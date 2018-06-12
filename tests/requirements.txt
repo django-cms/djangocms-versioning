@@ -1,0 +1,4 @@
+coverage
+djangocms_helper
+flake8
+isort

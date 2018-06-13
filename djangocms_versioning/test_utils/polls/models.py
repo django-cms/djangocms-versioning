@@ -27,13 +27,24 @@ class Answer(models.Model):
 
 
 class PollVersion(BaseVersion):
+    # Must be specified for Version to be able to filter by that field
     grouper_field = 'content__poll'
+
+    # Specifies copy/duplication order
+    # Content must be duplicated first, so new Answer objects can point
+    # to the new Content object
     copy_field_order = ('content', 'answers')
 
     content = models.OneToOneField(PollContent, on_delete=models.CASCADE)
     answers = models.ManyToManyField(Answer)
 
     def copy_answers(self, new):
+        """self - current Version
+        new - new Version
+
+        New Version's content field already points to a new Content,
+        so it can be used to create new Answer objects.
+        """
         return [
             Answer.objects.create(
                 text=answer.text,

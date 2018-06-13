@@ -11,8 +11,14 @@ class Campaign(models.Model):
 
 class BaseVersionQuerySet(models.QuerySet):
 
-    # extra_filters = Q(content__language='en')
     def for_grouper(self, grouper, extra_filters=None):
+        """Returns all `Version`s for specified grouper object.
+
+        Additional filters can be passed via extra_filters, for example
+        if version model has a FK to content object that is translatable,
+        passing `Q(content__language='en')` will return only versions
+        created for English language.
+        """
         if extra_filters is None:
             extra_filters = Q()
         return self.filter(
@@ -41,11 +47,42 @@ class BaseVersionQuerySet(models.QuerySet):
         ).order_by('-created')
 
     def public(self, when=None):
+        """Returns `Version` considered as public for a given date
+        in `when` (or present time when `when` is omitted).
+
+        Rules used to determine returned version:
+        - start field must be filled and start < `when`
+        - end field is empty
+          (meaning that publication of that version never ends)
+            OR
+          end field > `when`
+        - is_active is True (Version hasn't been disabled)
+        - most recent (in terms of creation) version of the ones meeting
+          above criteria is chosen
+
+        Returned version:
+
+             V1   V2   V3        None   V4
+             |    |    |          |     |
+             v    v    v          v     v
+        V4                            -----
+        V3            -----
+        V2       ----------------
+        V1  -----------------
+
+        ---- - Publication time frame
+               (from `Version` object and related `Campaign` combined)
+        """
         if when is None:
             when = localtime()
         return self._public_qs(when).first()
 
     def distinct_groupers(self):
+        """Returns a queryset of `Version` objects with unique
+        grouper objects.
+
+        Useful for listing, e.g. all Polls.
+        """
         if connections[self.db].features.can_distinct_on_fields:
             # ?
             return self.distinct(self.model.grouper_field).order_by('-created')
@@ -57,6 +94,7 @@ class BaseVersionQuerySet(models.QuerySet):
 
 
 class BaseVersion(models.Model):
+    # Following fields are always copied from original Version
     COPIED_FIELDS = ['label', 'campaign', 'start', 'end', 'is_active']
 
     label = models.TextField()
@@ -69,6 +107,8 @@ class BaseVersion(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     start = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)
+
+    # Used to disable versions
     is_active = models.BooleanField(default=True)
 
     objects = BaseVersionQuerySet.as_manager()
@@ -103,6 +143,14 @@ class BaseVersion(models.Model):
         return relation_fields
 
     def copy(self):
+        """Creates new Version object, with metadata copied over
+        from self.
+
+        Introspects relations and duplicates objects that
+        Version has a relation to. Default behaviour for duplication is
+        implemented in `_copy_func_factory`. This can be overriden
+        per-field by implementing `copy_{field_name}` method.
+        """
         new = self._meta.model(**{
             f: getattr(self, f)
             for f in self.COPIED_FIELDS

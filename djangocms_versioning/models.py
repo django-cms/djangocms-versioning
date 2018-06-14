@@ -26,9 +26,7 @@ class BaseVersionQuerySet(models.QuerySet):
             Q((self.model.grouper_field, grouper)),
         )
 
-    def _public_qs(self, when=None):
-        if when is None:
-            when = localtime()
+    def _public_qs(self, when):
         return self.filter(
             (
                 Q(start__lte=when) |
@@ -133,7 +131,8 @@ class BaseVersion(models.Model):
             f for f in self._meta.get_fields() if
             f.is_relation and
             f.name not in self.COPIED_FIELDS and
-            not f.auto_created
+            not f.auto_created and
+            not f.many_to_many
         ]
         if getattr(self, 'copy_field_order', None):
             relation_fields = sorted(
@@ -155,19 +154,12 @@ class BaseVersion(models.Model):
             f: getattr(self, f)
             for f in self.COPIED_FIELDS
         })
-        m2m_cache = {}
         relation_fields = self._get_relation_fields()
         for f in relation_fields:
             try:
                 copy_func = getattr(self, 'copy_{}'.format(f.name))
             except AttributeError:
                 copy_func = self._copy_func_factory(f.name)
-            new_value = copy_func(new)
-            if f.many_to_many:
-                m2m_cache[f.name] = new_value
-            else:
-                setattr(new, f.name, new_value)
+            setattr(new, f.name, copy_func(new))
         new.save()
-        for field, value in m2m_cache.items():
-            getattr(new, field).set(value)
         return new

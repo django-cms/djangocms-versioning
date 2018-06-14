@@ -1,3 +1,5 @@
+import copy
+
 from django.db import models
 from djangocms_versioning.models import BaseVersion
 
@@ -30,24 +32,19 @@ class PollVersion(BaseVersion):
     # Must be specified for Version to be able to filter by that field
     grouper_field = 'content__poll'
 
-    # Specifies copy/duplication order
-    # Content must be duplicated first, so new Answer objects can point
-    # to the new Content object
-    copy_field_order = ('content', 'answers')
-
     content = models.OneToOneField(PollContent, on_delete=models.CASCADE)
-    answers = models.ManyToManyField(Answer)
 
-    def copy_answers(self, new):
-        """self - current Version
-        new - new Version
+    def __str__(self):
+        return "content_id={} (id={})".format(self.content_id, self.pk)
 
-        New Version's content field already points to a new Content,
-        so it can be used to create new Answer objects.
-        """
-        return [
+    def copy_content(self, new):
+        content = copy.deepcopy(self.content)
+        content.pk = None
+        content.save()
+        [
             Answer.objects.create(
                 text=answer.text,
-                poll_content=new.content,
-            ) for answer in self.answers.all()
+                poll_content=content,
+            ) for answer in self.content.answer_set.all()
         ]
+        return content

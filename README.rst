@@ -32,7 +32,9 @@ to perform the application's database migrations.
 Usage
 =====
 
-## System explanation
+System explanation
+====
+
 There are four key terms or classes you need to understand in order to implement Versioning. Note that these are described here by their function - or role - in the Versioning system: the actual names of the classes in implementation are up to you. (This will be demonstrated in the examples below).
 
 **Grouper** - an object used to group all versions of an object together - mandatory. This will have a one-to-many relationship with *Content*.

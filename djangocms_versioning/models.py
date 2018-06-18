@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.db import connections, models
 from django.db.models import Max, Q
 from django.utils.timezone import localtime
@@ -82,12 +83,10 @@ class BaseVersionQuerySet(models.QuerySet):
         Useful for listing, e.g. all Polls.
         """
         if connections[self.db].features.can_distinct_on_fields:
-            # ?
             return self.distinct(self.model.grouper_field).order_by('-created')
         else:
-            inner = self.values(
-                self.model.grouper_field,
-            ).annotate(Max('pk')).values('pk__max')
+            inner = self.values(self.model.grouper_field).annotate(
+                Max('pk')).values('pk__max')
             return self.filter(pk__in=inner)
 
 
@@ -140,6 +139,14 @@ class BaseVersion(models.Model):
                 key=lambda f: self.copy_field_order.index(f.name),
             )
         return relation_fields
+
+    @property
+    def grouper_field(self):
+        """Stub for runtime error handling - override.
+        """
+        raise ImproperlyConfigured(
+            'Versioning - You must define grouper_field on the {} model.'.format(
+                self.__class__.__name__))
 
     def copy(self):
         """Creates new Version object, with metadata copied over

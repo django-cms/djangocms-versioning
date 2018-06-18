@@ -1,12 +1,13 @@
 from datetime import timedelta
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 from django.utils import timezone
 
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.test_utils.polls.models import (
-    Answer, Poll, PollContent, PollVersion,
+    Answer, Poll, PollContent, PollVersion, VersionWithoutGrouperField
 )
 
 
@@ -109,3 +110,9 @@ class ModelsVersioningTestCase(CMSTestCase):
         self.assertEqual(_public(), version2)
         self.assertEqual(_public(now + timedelta(days=5)), version3)
         self.assertEqual(_public(now + timedelta(days=13)), version2)
+
+    def test_runtime_error_raised_without_grouper_field_override(self):
+        version_without_grouper = VersionWithoutGrouperField()
+
+        with self.assertRaises(ImproperlyConfigured):
+            version_without_grouper.grouper_field

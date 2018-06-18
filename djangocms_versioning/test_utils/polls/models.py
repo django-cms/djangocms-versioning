@@ -48,3 +48,7 @@ class PollVersion(BaseVersion):
             ) for answer in self.content.answer_set.all()
         ]
         return content
+
+
+class VersionWithoutGrouperField(BaseVersion):
+    pass

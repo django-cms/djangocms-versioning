@@ -10,6 +10,8 @@ from djangocms_versioning.test_utils.polls.models import (
     Answer, Poll, PollContent, PollVersion, VersionWithoutGrouperField
 )
 
+from djangocms_versioning.models import Campaign
+
 
 class ModelsVersioningTestCase(CMSTestCase):
 
@@ -19,13 +21,13 @@ class ModelsVersioningTestCase(CMSTestCase):
     def _create_initial_poll_version(self, name):
         poll = Poll.objects.create(name=name)
         poll_content = PollContent.objects.create(
-            poll=poll, language='en', text='{} - content 1'.format(name),
+            poll=poll, language='en', text='{} - Content'.format(name),
         )
         Answer.objects.create(
-            poll_content=poll_content, text='{} - answer 1'.format(name),
+            poll_content=poll_content, text='{} - Answer 1'.format(name),
         )
         Answer.objects.create(
-            poll_content=poll_content, text='{} - answer 2'.format(name),
+            poll_content=poll_content, text='{} - Answer 2'.format(name),
         )
         return PollVersion.objects.create(
             start=timezone.now(),
@@ -56,6 +58,19 @@ class ModelsVersioningTestCase(CMSTestCase):
         self.assertNotEqual(
             list(self.initial_version.content.answer_set.values_list('pk')),
             list(new_version.content.answer_set.values_list('pk')),
+        )
+
+    def test_campaigns_duplicated(self):
+        campaign_1 = Campaign.objects.create(name='Campaign 1')
+        campaign_2 = Campaign.objects.create(name='Campaign 2')
+        self.initial_version.campaigns.add(campaign_1, campaign_2)
+
+        new_version = self.initial_version.copy()
+
+        self.assertEqual(new_version.campaigns.count(), 2)
+        self.assertEqual(
+            list(self.initial_version.campaigns.all()),
+            list(new_version.campaigns.all())
         )
 
     def test_distinct_groupers(self):

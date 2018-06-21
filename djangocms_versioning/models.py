@@ -92,12 +92,11 @@ class BaseVersionQuerySet(models.QuerySet):
 
 class BaseVersion(models.Model):
     # Following fields are always copied from original Version
-    COPIED_FIELDS = ['label', 'campaign', 'start', 'end', 'is_active']
+    COPIED_FIELDS = ['label', 'start', 'end', 'is_active']
 
     label = models.TextField()
-    campaign = models.ForeignKey(
+    campaigns = models.ManyToManyField(
         Campaign,
-        on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
@@ -113,13 +112,32 @@ class BaseVersion(models.Model):
     class Meta:
         abstract = True
 
-    def _copy_func_factory(self, name):
+    def _copy_function_factory(self, field):
+        """
+        Factory for a dynamically defined function that considers the relationship type
+        (1-2-M or M-2-M), when copying related objects between model instances.
+        :param field: Related object.
+        :return: Specific kind of object copy function.
+        """
         def inner(new):
-            related = getattr(self, name)
+            related = getattr(self, field.name)
             related.pk = None
             related.save()
             return related
-        return inner
+
+        def inner_m2m(new):
+            related = getattr(self, field.name)
+            new_objects = []
+            for instance in related.all():
+                instance.pk = None
+                instance.save()
+                related.add(instance)
+                new_objects.append(instance)
+
+            return new_objects
+
+        inner_copy = inner_m2m if field.many_to_many else inner
+        return inner_copy
 
     def _get_relation_fields(self):
         """Returns a list of relation fields to copy over.
@@ -130,8 +148,7 @@ class BaseVersion(models.Model):
             f for f in self._meta.get_fields() if
             f.is_relation and
             f.name not in self.COPIED_FIELDS and
-            not f.auto_created and
-            not f.many_to_many
+            not f.auto_created
         ]
         if getattr(self, 'copy_field_order', None):
             relation_fields = sorted(
@@ -154,19 +171,27 @@ class BaseVersion(models.Model):
 
         Introspects relations and duplicates objects that
         Version has a relation to. Default behaviour for duplication is
-        implemented in `_copy_func_factory`. This can be overriden
+        implemented in `_copy_function_factory`. This can be overriden
         per-field by implementing `copy_{field_name}` method.
         """
         new = self._meta.model(**{
             f: getattr(self, f)
             for f in self.COPIED_FIELDS
         })
+
         relation_fields = self._get_relation_fields()
-        for f in relation_fields:
+
+        for field in relation_fields:
             try:
-                copy_func = getattr(self, 'copy_{}'.format(f.name))
+                copy_function = getattr(self, 'copy_{}'.format(field.name))
             except AttributeError:
-                copy_func = self._copy_func_factory(f.name)
-            setattr(new, f.name, copy_func(new))
-        new.save()
+                copy_function = self._copy_function_factory(field)
+
+            new_value = copy_function(new)
+            # TODO: Correctly copy M2M relationships.
+            if field.many_to_many:
+                getattr(new, field.name).add(*new_value)
+            else:
+                setattr(new, field.name, new_value)
+
         return new

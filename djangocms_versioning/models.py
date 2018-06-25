@@ -31,15 +31,15 @@ class BaseVersionQuerySet(models.QuerySet):
         return self.filter(
             (
                 Q(start__lte=when) |
-                Q(campaign__start__lte=when)
+                Q(campaigns__start__lte=when)
             ) & (
                 Q(end__gte=when) |
                 Q(end__isnull=True) |
                 (
-                    Q(campaign__isnull=False) &
+                    Q(campaigns__isnull=False) &
                     (
-                        Q(campaign__end__gte=when) |
-                        Q(campaign__end__isnull=True)
+                        Q(campaigns__end__gte=when) |
+                        Q(campaigns__end__isnull=True)
                     )
                 )
             ) & Q(is_active=True)
@@ -97,7 +97,6 @@ class BaseVersion(models.Model):
     label = models.TextField()
     campaigns = models.ManyToManyField(
         Campaign,
-        null=True,
         blank=True,
     )
     created = models.DateTimeField(auto_now_add=True)
@@ -127,14 +126,8 @@ class BaseVersion(models.Model):
 
         def inner_m2m(new):
             related = getattr(self, field.name)
-            new_objects = []
-            for instance in related.all():
-                instance.pk = None
-                instance.save()
-                related.add(instance)
-                new_objects.append(instance)
-
-            return new_objects
+            related_objects = related.all()
+            return related_objects
 
         inner_copy = inner_m2m if field.many_to_many else inner
         return inner_copy
@@ -188,10 +181,17 @@ class BaseVersion(models.Model):
                 copy_function = self._copy_function_factory(field)
 
             new_value = copy_function(new)
-            # TODO: Correctly copy M2M relationships.
+            m2m_cache = {}
             if field.many_to_many:
-                getattr(new, field.name).add(*new_value)
+                if len(new_value):
+                    m2m_cache[field.name] = new_value
             else:
                 setattr(new, field.name, new_value)
+
+        # Must save object before adding M2M relations.
+        new.save()
+
+        for field_name, objects in m2m_cache.items():
+            getattr(new, field_name).add(*objects)
 
         return new

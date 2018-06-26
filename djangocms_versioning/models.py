@@ -120,9 +120,13 @@ class BaseVersion(models.Model):
         """
         def inner(new):
             related = getattr(self, field.name)
-            related.pk = None
-            related.save()
-            return related
+            initial = {
+                f.name: getattr(related, f.name)
+                for f in related._meta.fields if not f.auto_created
+            }
+            new_related = related._meta.model(**initial)
+            new_related.save()
+            return new_related
 
         def inner_m2m(new):
             related = getattr(self, field.name)

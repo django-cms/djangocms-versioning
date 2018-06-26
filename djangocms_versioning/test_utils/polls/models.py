@@ -52,3 +52,24 @@ class PollVersion(BaseVersion):
 
 class VersionWithoutGrouperField(BaseVersion):
     pass
+
+
+## Very simple models - no extra fk or relations ##
+
+
+class SimpleGrouper(models.Model):
+    pass
+
+
+class SimpleContent(models.Model):
+    grouper = models.ForeignKey(SimpleGrouper)
+    text = models.TextField()
+    integer = models.IntegerField()
+    date = models.DateField()
+
+
+class SimpleVersion(BaseVersion):
+    COPIED_FIELDS = ['label', 'start', 'end', 'is_active', 'comment']
+
+    content = models.OneToOneField(SimpleContent)
+    comment = models.TextField()

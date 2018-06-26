@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
@@ -7,7 +7,8 @@ from django.utils import timezone
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.test_utils.polls.models import (
-    Answer, Poll, PollContent, PollVersion, VersionWithoutGrouperField
+    Answer, Poll, PollContent, PollVersion, VersionWithoutGrouperField,
+    SimpleContent, SimpleGrouper, SimpleVersion
 )
 
 from djangocms_versioning.models import Campaign
@@ -131,3 +132,19 @@ class ModelsVersioningTestCase(CMSTestCase):
 
         with self.assertRaises(ImproperlyConfigured):
             version_without_grouper.grouper_field
+
+
+class CopyUnitTestCase(CMSTestCase):
+
+    def test_copy_object_with_no_relations(self):
+        grouper = SimpleGrouper.objects.create()
+        content = SimpleContent.objects.create(
+            grouper=grouper, text='Lorem ipsum', integer='1111',
+            date=date(2018, 8, 18))
+        version = SimpleVersion.objects.create(
+            content=content, comment='ipsum, honestly')
+
+        copied_version = version.copy()
+
+        self.assertEqual(copied_version.comment, version.comment)
+        self.assertNotEqual(copied_version.content.pk, version.content.pk)

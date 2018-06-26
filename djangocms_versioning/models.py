@@ -173,6 +173,7 @@ class BaseVersion(models.Model):
         })
 
         relation_fields = self._get_relation_fields()
+        m2m_cache = {}
 
         for field in relation_fields:
             try:
@@ -181,7 +182,6 @@ class BaseVersion(models.Model):
                 copy_function = self._copy_function_factory(field)
 
             new_value = copy_function(new)
-            m2m_cache = {}
             if field.many_to_many:
                 if len(new_value):
                     m2m_cache[field.name] = new_value
@@ -192,6 +192,6 @@ class BaseVersion(models.Model):
         new.save()
 
         for field_name, objects in m2m_cache.items():
-            getattr(new, field_name).add(*objects)
+            getattr(new, field_name).set(objects)
 
         return new

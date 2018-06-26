@@ -30,20 +30,21 @@ class BaseVersionQuerySet(models.QuerySet):
     def _public_qs(self, when):
         return self.filter(
             (
-                Q(start__lte=when) |
-                Q(campaigns__start__lte=when)
-            ) & (
-                Q(end__gte=when) |
-                Q(end__isnull=True) |
-                (
-                    Q(campaigns__isnull=False) &
-                    (
-                        Q(campaigns__end__gte=when) |
-                        Q(campaigns__end__isnull=True)
-                    )
+                Q(start__lte=when) & (
+                    Q(end__isnull=True) |
+                    Q(end__gte=when)
                 )
-            ) & Q(is_active=True)
-        ).order_by('-created')
+            ) | (
+                Q(
+                    campaigns__isnull=False,
+                    campaigns__start__lte=when,
+
+                ) & (
+                    Q(campaigns__end__gte=when) |
+                    Q(campaigns__end__isnull=True)
+                )
+            )
+        ).filter(is_active=True).order_by('-created')
 
     def public(self, when=None):
         """Returns `Version` considered as public for a given date

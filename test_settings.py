@@ -1,8 +1,8 @@
 HELPER_SETTINGS = {
     'TIME_ZONE': 'America/Chicago',
     'INSTALLED_APPS': [
-        'djangocms_versioning',
         'djangocms_versioning.test_utils.polls',
+        'djangocms_versioning',
     ],
     'MIGRATION_MODULES': {
         'auth': None,

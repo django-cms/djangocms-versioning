@@ -1,6 +1,7 @@
 from setuptools import find_packages, setup
 
 import djangocms_versioning
+import test_settings
 
 
 INSTALL_REQUIREMENTS = [
@@ -25,6 +26,7 @@ setup(
     ],
     install_requires=INSTALL_REQUIREMENTS,
     author='Divio AG',
+    test_suite='test_settings.run',
     author_email='info@divio.ch',
     url='http://github.com/divio/djangocms-versioning',
     license='BSD',

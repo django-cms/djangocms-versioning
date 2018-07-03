@@ -1,7 +1,10 @@
 from django.contrib import admin
 
 
-class VersioningAdminMixin:
+class VersioningAdminMixin(object):
+    """Mixin providing versioning functionality to admin classes.
+    """
+    # @TODO Implement versioning admin features here
     pass
 
 
@@ -34,6 +37,10 @@ def replace_admin_for_model(model, admin_site=admin.site):
         admin_site.register(model, new_admin_class)
 
 
-def replace_admin_for_models(models):
+def replace_admin_for_models(models, admin_site=admin.site):
+    """
+    :param models: List of model classes
+    :param admin_site: AdminSite instance
+    """
     for model in models:
-        replace_admin_for_model(model)
+        replace_admin_for_model(model, admin_site)

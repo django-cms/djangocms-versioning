@@ -18,7 +18,7 @@ def versioning_admin_factory(admin_class):
     return type(admin_class.__name__, (VersioningAdminMixin, admin_class), {})
 
 
-def replace_admin_for_model(model, admin_site=admin.site):
+def _replace_admin_for_model(model, admin_site=admin.site):
     """Checks if there's an existing admin class registered for `model`,
     and replaces it with a subclass that includes
     versioning functionality.
@@ -43,4 +43,4 @@ def replace_admin_for_models(models, admin_site=admin.site):
     :param admin_site: AdminSite instance
     """
     for model in models:
-        replace_admin_for_model(model, admin_site)
+        _replace_admin_for_model(model, admin_site)

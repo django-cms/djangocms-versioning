@@ -3,12 +3,12 @@ from django.contrib import admin
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.admin import (
-    replace_admin_for_model,
+    _replace_admin_for_model,
     replace_admin_for_models,
     versioning_admin_factory,
     VersioningAdminMixin,
 )
-from djangocms_versioning.test_utils.polls.models import Poll
+from djangocms_versioning.test_utils.polls.models import Answer, Poll
 
 
 class AdminVersioningTestCase(CMSTestCase):
@@ -38,27 +38,21 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         self.admin_class = type('TestAdmin', (admin.ModelAdmin, ), {})
 
     def test_replace_admin_on_unregistered_model(self):
-        """Test that calling `replace_admin_for_model` on a model that
+        """Test that calling `_replace_admin_for_model` on a model that
         isn't registered in admin is a no-op.
         """
-        replace_admin_for_model(self.model, self.site)
+        _replace_admin_for_model(self.model, self.site)
 
         self.assertNotIn(self.model, self.site._registry)
 
-    def test_replace_admin_on_registered_model(self):
+    def test_replace_admin_on_registered_models(self):
         self.site.register(self.model, self.admin_class)
+        self.site.register(Answer, self.admin_class)
+        models = [self.model, Answer]
 
-        replace_admin_for_model(self.model, self.site)
+        replace_admin_for_models(models, self.site)
 
-        self.assertIn(self.model, self.site._registry)
-        self.assertIn(self.admin_class, self.site._registry[self.model].__class__.mro())
-        self.assertIn(VersioningAdminMixin, self.site._registry[self.model].__class__.mro())
-
-    def test_replace_models(self):
-        self.site.register(self.model, self.admin_class)
-
-        replace_admin_for_models([self.model], self.site)
-
-        self.assertIn(self.model, self.site._registry)
-        self.assertIn(self.admin_class, self.site._registry[self.model].__class__.mro())
-        self.assertIn(VersioningAdminMixin, self.site._registry[self.model].__class__.mro())
+        for model in models:
+            self.assertIn(model, self.site._registry)
+            self.assertIn(self.admin_class, self.site._registry[model].__class__.mro())
+            self.assertIn(VersioningAdminMixin, self.site._registry[model].__class__.mro())

@@ -4,14 +4,13 @@ from django.contrib import admin
 
 from cms.test_utils.testcases import CMSTestCase
 
-import djangocms_versioning.admin
-from djangocms_versioning.admin import (
-    _replace_admin_for_model,
+import djangocms_versioning.helpers
+from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
-    VersioningAdminMixin,
 )
-from djangocms_versioning.test_utils.polls.models import Answer, Poll
+from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
 
 class AdminVersioningTestCase(CMSTestCase):
@@ -41,20 +40,18 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         self.admin_class = type('TestAdmin', (admin.ModelAdmin, ), {})
 
     def test_replace_admin_on_unregistered_model(self):
-        """Test that calling `_replace_admin_for_model` on a model that
+        """Test that calling `replace_admin_for_models` with a model that
         isn't registered in admin is a no-op.
         """
-        _replace_admin_for_model(self.model, self.site)
+        replace_admin_for_models([self.model], self.site)
 
         self.assertNotIn(self.model, self.site._registry)
 
     def test_replace_admin_on_registered_models_default_site(self):
-        self.site.register(self.model, self.admin_class)
+        with patch.object(djangocms_versioning.helpers, '_replace_admin_for_model') as mock:
+            replace_admin_for_models([PollContent])
 
-        with patch.object(djangocms_versioning.admin, '_replace_admin_for_model') as mock:
-            replace_admin_for_models([self.model])
-
-        mock.assert_called_with(self.model, admin.site)
+        mock.assert_called_with(admin.site._registry[PollContent], admin.site)
 
     def test_replace_admin_on_registered_models(self):
         self.site.register(self.model, self.admin_class)

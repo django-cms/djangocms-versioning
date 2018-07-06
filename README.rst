@@ -47,13 +47,10 @@ There are four key terms or classes you need to understand in order to implement
 
 The key things needed in order to implement DjangoCMS Versioning are:
 
-1. Create a *Grouper* model:
-If you are implementing Versioning on a new content-type model, then it's suggested that you use the terms above. So for example if you're building the polls app then you would create Poll (as the *Grouper* model) and PollContent (as the *Content* model).
-If you are implementing Versioning on an existing content-type model where you don't want to change the name of the *Content* model, then it is suggested that you add a *Grouper* model. So for example if you're implementing Versioning on an existing poll application where you've already defined Poll as your *Content* model and you have data in that model, then that existing model maps to our *Content* term. You would then add a new PollGrouper (or PollVersionGroup) model as the *Grouper*.
-1. Link your *Grouper* to your *Content* model by assigning a value to `grouper_field` property of *Version*. This value should be a lookup string to a foreign key field to Grouper in Content. If you don't do this you'll get an error, which will remind you to do it.
-1. Create the Version model:
-Continuing the polls example above, you could add PollVersions inheriting from djangocms-versioning.models.BaseVersion. 
-1. Implement your ContentExtension copying in the PollVersions copy_content method
+#. Create a *Grouper* model: If you are implementing Versioning on a new content-type model, then it's suggested that you use the terms above. So for example if you're building the polls app then you would create Poll (as the *Grouper* model) and PollContent (as the *Content* model). If you are implementing Versioning on an existing content-type model where you don't want to change the name of the *Content* model, then it is suggested that you add a *Grouper* model. So for example if you're implementing Versioning on an existing poll application where you've already defined Poll as your *Content* model and you have data in that model, then that existing model maps to our *Content* term. You would then add a new PollGrouper (or PollVersionGroup) model as the *Grouper*.
+#. Link your *Grouper* to your *Content* model by assigning a value to `grouper_field` property of *Version*. This value should be a lookup string to a foreign key field to Grouper in Content. If you don't do this you'll get an error, which will remind you to do it.
+#. Create the Version model: Continuing the polls example above, you could add PollVersions inheriting from djangocms-versioning.models.BaseVersion. 
+#. Implement your ContentExtension copying in the PollVersions copy_content method
 
 An example implementation can be found here: 
 https://github.com/divio/djangocms-versioning/blob/master/djangocms_versioning/test_utils/polls/models.py

@@ -18,7 +18,11 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, BlogPost
 from djangocms_versioning.test_utils.polls.models import (
-        Answer, Poll, PollContent, PollVersion)
+    Answer,
+    Poll,
+    PollContent,
+    PollVersion,
+)
 
 
 class AdminVersioningTestCase(CMSTestCase):

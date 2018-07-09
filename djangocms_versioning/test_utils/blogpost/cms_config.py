@@ -1,8 +1,6 @@
 from cms.app_base import CMSAppConfig
 
 
-# from .models import
-
 class BlogpostCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
 

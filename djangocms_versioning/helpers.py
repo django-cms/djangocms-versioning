@@ -17,9 +17,14 @@ def _replace_admin_for_model(modeladmin, admin_site):
     """Replaces existing admin class registered for `modeladmin.model` with
     a subclass that includes versioning functionality.
 
+    Doesn't do anything if `modeladmin` is already an instance of
+    `VersioningAdminMixin`.
+
     :param model: ModelAdmin instance
     :param admin_site: AdminSite instance
     """
+    if isinstance(modeladmin, VersioningAdminMixin):
+        return
     new_admin_class = versioning_admin_factory(modeladmin.__class__)
     admin_site.unregister(modeladmin.model)
     admin_site.register(modeladmin.model, new_admin_class)

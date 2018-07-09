@@ -1,9 +1,13 @@
 
+
 from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 
 from .helpers import replace_admin_for_models
+
+from cms.app_base import CMSAppConfig, CMSAppExtension
+from django.core.exceptions import ImproperlyConfigured
 
 
 class VersioningCMSExtension(CMSAppExtension):

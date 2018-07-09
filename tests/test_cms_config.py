@@ -1,31 +1,35 @@
 from mock import Mock
-from django.apps import apps
-from cms.app_registration import get_cms_extension_apps, get_cms_config_apps
-from cms.utils.setup import setup_cms_apps
-from djangocms_versioning.cms_config import VersioningCMSExtension
-from django.core.exceptions import ImproperlyConfigured
 
+from django.core.exceptions import ImproperlyConfigured
+from django.apps import apps
+
+from cms.app_registration import get_cms_extension_apps, get_cms_config_apps
 from cms.test_utils.testcases import CMSTestCase
+from cms.utils.setup import setup_cms_apps
+
+from djangocms_versioning.cms_config import VersioningCMSExtension
 
 
 class CMSConfigUnitTestCase(CMSTestCase):
-    """
-    Unit testing for missing cms_config attribute
-    should raise improperly configured exception
-    """
 
     def test_missing_cms_config_attribute(self):
         """
-        Missing cms config attribute case
+        Tests the if the  versioning_models attribute has been specified
         """
         extensions = VersioningCMSExtension()
-
         cms_config = Mock(spec=[],
-            djangocms_versioning_enabled=True)
-            # versioning_models=[] is missing - should raise an exception
-
+                          djangocms_versioning_enabled=True)
+        # versioning_models=[] is missing - should raise an exception
         with self.assertRaises(ImproperlyConfigured):
-            extensions.configure_app(cms_config)
+            extensions.handle_versioning_models_setting(cms_config)
+
+    def test_get_version_model(self):
+        extensions = VersioningCMSExtension()
+        extensions._version_models = ['Test_version']
+        self.assertListEqual(extensions.get_version_models(), ['Test_version'])
+
+
+class CMSConfigComponentTestCase(CMSTestCase):
 
     def test_version_model_appends(self):
         extensions = VersioningCMSExtension()

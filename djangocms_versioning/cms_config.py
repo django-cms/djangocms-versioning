@@ -5,27 +5,22 @@ from django.core.exceptions import ImproperlyConfigured
 class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
-        self.version_models = []
+        self._version_models = []
+
+    def handle_versioning_models_setting(self, cms_config):
+        if not hasattr(cms_config, 'versioning_models'):
+            raise ImproperlyConfigured(
+                "versioning_models must be defined in cms_config.py")
+        if not isinstance(cms_config.versioning_models, list):
+            raise ImproperlyConfigured(
+                "versioning_models not defined as a list")
+        elif cms_config.versioning_models:
+            self._version_models.extend(cms_config.versioning_models)
 
     def configure_app(self, cms_config):
-
-        if hasattr(cms_config, 'versioning_models'):
-            if not isinstance(cms_config.versioning_models, list):
-                raise ImproperlyConfigured(
-                    "versioning_models must be defined in cms_config.py")
-            else:
-                if cms_config.versioning_models:
-                    self.version_models.extend(cms_config.versioning_models)
-
-        else:
-
-            raise ImproperlyConfigured(
-                "versioning_models must be defined in cms_config.py"
-            )
+        # stub function created to help integrate with Kzrysztof code later
+        self.handle_versioning_models_setting(cms_config)
 
     def get_version_models(self):
-        print("self.version_models : ", self.version_models)
-        if not isinstance(self.version_models, list):
-            print("Version models not a list")
-        return self.version_models
+        return self._version_models
 

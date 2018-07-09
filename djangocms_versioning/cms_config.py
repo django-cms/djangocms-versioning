@@ -1,5 +1,9 @@
-from cms.app_base import CMSAppConfig, CMSAppExtension
+
 from django.core.exceptions import ImproperlyConfigured
+
+from cms.app_base import CMSAppConfig, CMSAppExtension
+
+from .helpers import replace_admin_for_models
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -20,6 +24,11 @@ class VersioningCMSExtension(CMSAppExtension):
     def configure_app(self, cms_config):
         # stub function created to help integrate with Kzrysztof code later
         self.handle_versioning_models_setting(cms_config)
+        content_model_n = []
+        for version_model_n in cms_config.versioning_models:
+            content_model_n.append(version_model_n._meta.get_field('content').rel.model)
+
+        replace_admin_for_models(content_model_n)
 
     def get_version_models(self):
         return self._version_models

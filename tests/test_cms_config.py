@@ -12,7 +12,9 @@ from djangocms_versioning.admin import VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogPostVersion,
-    BlogContent
+    BlogContent,
+    Comment,
+    CommentVersion,
 )
 from djangocms_versioning.test_utils.polls.models import PollVersion, PollContent
 
@@ -70,25 +72,36 @@ class VersioningIntegrationTestCase(CMSTestCase):
         get_cms_config_apps.cache_clear()
 
     def test_all_version_models_added(self):
-        setup_cms_apps()
+        """Check that all version models defined in cms_config.py
+        are collected into a list
+        """
+        setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
         versions_collected = app.cms_extension.get_version_models()
-        self.assertListEqual(versions_collected, [PollVersion, BlogPostVersion])
+        self.assertListEqual(
+            versions_collected,
+            [PollVersion, BlogPostVersion, CommentVersion]
+        )
 
     def test_admin_classes_reregistered(self):
         """Integration test that all content models that are registered
         with the admin have their admin class overridden with a
         subclass of VersioningAdminMixin
         """
-        setup_cms_apps()
+        setup_cms_apps()  # discover and run all cms_config.py files
+        # Check PollContent has had its admin class modified
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
             VersioningAdminMixin,
             admin.site._registry[PollContent].__class__.mro()
         )
+        # Check BlogContent has had its admin class modified
         self.assertIn(BlogContent, admin.site._registry)
         self.assertIn(
             VersioningAdminMixin,
             admin.site._registry[BlogContent].__class__.mro()
         )
-        # TODO: case when not registered with admin
+        # Check that Comments were not registered to the admin
+        # (they are defined in cms_config.py but are not registered
+        # to the admin)
+        self.assertNotIn(Comment, admin.site._registry)

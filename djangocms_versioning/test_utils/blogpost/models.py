@@ -18,14 +18,6 @@ class BlogContent(models.Model):
         return self.text
 
 
-class Comments(models.Model):
-    blogpost_content = models.ForeignKey(BlogContent, on_delete=models.CASCADE)
-    text = models.TextField()
-
-    def __str__(self):
-        return self.text
-
-
 class BlogPostVersion(BaseVersion):
     # Must be specified for Version to be able to filter by that field
     grouper_field = 'content__blogpost'
@@ -36,5 +28,14 @@ class BlogPostVersion(BaseVersion):
         return "content_id={} (id={})".format(self.content_id, self.pk)
 
 
-class VersionWithoutBlogPostGrouperField(BaseVersion):
-    pass
+class Comment(models.Model):
+    # NOTE: The BlogPost model is technically the grouper for comments
+    blogpost = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    def __str__(self):
+        return self.text
+
+
+class CommentVersion(models.Model):
+    content = models.OneToOneField(Comment, on_delete=models.CASCADE)

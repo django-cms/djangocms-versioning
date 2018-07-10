@@ -35,7 +35,6 @@ class PollVersion(BaseVersion):
     content = models.OneToOneField(PollContent, on_delete=models.CASCADE)
 
     def __str__(self):
-        import pdb; pdb.set_trace()
         return "content_id={} (id={})".format(self.content_id, self.pk)
 
     def copy_content(self, new):

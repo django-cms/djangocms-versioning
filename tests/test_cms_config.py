@@ -16,12 +16,12 @@ class CMSConfigUnitTestCase(CMSTestCase):
 
     def test_missing_cms_config_attribute(self):
         """
-        Tests the if the  versioning_models attribute has been specified
+        Tests if the  versioning_models attribute has not been specified
+        an ImproperlyConfigured exception is raised
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True)
-        # versioning_models=[] is missing - should raise an exception
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_models_setting(cms_config)
 
@@ -30,31 +30,6 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions._version_models = ['Test_version']
         self.assertListEqual(extensions.get_version_models(), ['Test_version'])
 
-
-# class CMSConfigComponentTestCase(CMSTestCase):
-#
-#     def test_version_model_appends(self):
-#         extensions = VersioningCMSExtension()
-#         cms_config1 = Mock(spec=[],
-#                            djangocms_versioning_enabled=True,
-#                            versioning_models=[{'a': 111}],
-#                            versioning_content_types={
-#                                'grouper': 'post',
-#                                'content': '.....',
-#                                'version': '# insert_version_object'})
-#
-#         cms_config2 = Mock(spec=[],
-#                            djangocms_versioning_enabled=True,
-#                            versioning_models=[{'b': 222}],
-#                            versioning_content_types={
-#                                'grouper': 'post',
-#                                'content': '.....',
-#                                'version': '# insert_version_object'})
-#
-#         extensions.configure_app(cms_config1)
-#         extensions.configure_app(cms_config2)
-#
-#         self.assertListEqual(extensions.get_version_models(), [{'a': 111}, {'b': 222}])
 
 class CMSConfigComponentTestCase(CMSTestCase):
 

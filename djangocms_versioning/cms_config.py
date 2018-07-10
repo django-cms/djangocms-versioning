@@ -27,8 +27,8 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)
-        content_model_n = [model._meta.get_field('content').rel.model for model in cms_config.versioning_models]
-        replace_admin_for_models(content_model_n)
+        content_models = [model._meta.get_field('content').rel.model for model in cms_config.versioning_models]
+        replace_admin_for_models(content_models)
 
     def get_version_models(self):
         return self._version_models

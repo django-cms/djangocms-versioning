@@ -5,9 +5,7 @@ from .models import BlogPostVersion
 
 class BlogpostCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
-
     versioning_models = [BlogPostVersion]
-
     versioning_content_types = [
         {'grouper': 'post',
          'content': '.....',

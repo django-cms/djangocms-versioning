@@ -35,6 +35,18 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions._version_models = ['Test_version']
         self.assertListEqual(extensions.get_version_models(), ['Test_version'])
 
+    def test_handle_admin_classes(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[], djangocms_versioning_enabled=True,
+            versioning_models=[PollVersion])
+        extensions.handle_admin_classes(cms_config)
+        self.assertIn(PollContent, admin.site._registry)
+        self.assertIn(
+            VersioningAdminMixin,
+            admin.site._registry[PollContent].__class__.mro()
+        )
+
 
 # class CMSConfigComponentTestCase(CMSTestCase):
 #

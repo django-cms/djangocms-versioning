@@ -10,7 +10,7 @@ class BlogPost(models.Model):
 
 
 class BlogContent(models.Model):
-    poll = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    blogpost = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
     language = models.TextField()
     text = models.TextField()
 
@@ -19,7 +19,7 @@ class BlogContent(models.Model):
 
 
 class Comments(models.Model):
-    poll_content = models.ForeignKey(BlogContent, on_delete=models.CASCADE)
+    blogpost_content = models.ForeignKey(BlogContent, on_delete=models.CASCADE)
     text = models.TextField()
 
     def __str__(self):

@@ -8,8 +8,6 @@ class BlogpostCMSConfig(CMSAppConfig):
 
     versioning_models = [BlogPostVersion]
 
-    versioning_models = ['BlogpostVersion']
-
     versioning_content_types = [
         {'grouper': 'post',
          'content': '.....',

@@ -76,8 +76,8 @@ class CMSConfigComponentTestCase(CMSTestCase):
                                'content': '.....',
                                'version': '# insert_version_object'})
 
-        extensions.configure_app(cms_config1)
-        extensions.configure_app(cms_config2)
+        extensions.handle_versioning_models_setting(cms_config1)
+        extensions.handle_versioning_models_setting(cms_config2)
 
         self.assertListEqual(extensions.get_version_models(), [{'a': 111}, {'b': 222}])
 
@@ -100,5 +100,4 @@ class VersioningIntegrationTestCase(CMSTestCase):
 
         self.assertListEqual(versions_collected, [PollVersion, BlogPostVersion])
 
-        self.assertListEqual(versions_collected, ['PollsVersion', 'BlogpostVersion'])
 

@@ -1,6 +1,6 @@
 from cms.app_base import CMSAppConfig
 
-from .models import BlogPostVersion, CommentVersion
+from djangocms_versioning.test_utils.blogpost.models import BlogPostVersion, CommentVersion
 
 
 class BlogpostCMSConfig(CMSAppConfig):

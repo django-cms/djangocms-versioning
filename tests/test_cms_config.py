@@ -23,7 +23,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
 
     def test_missing_cms_config_attribute(self):
         """
-        Tests if the  versioning_models attribute has not been specified
+        Tests, if the versioning_models attribute has not been specified,
         an ImproperlyConfigured exception is raised
         """
         extensions = VersioningCMSExtension()
@@ -33,6 +33,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions.handle_versioning_models_setting(cms_config)
 
     def test_raises_exception_if_versioning_models_not_iterable(self):
+        """Tests ImproperlyConfigured exception is raised if
+        versioning_models setting is not an iterable
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True,
@@ -41,6 +44,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions.handle_versioning_models_setting(cms_config)
 
     def test_raises_exception_if_not_a_class(self):
+        """Tests ImproperlyConfigured exception is raised if elements
+        in the versioning_models list are not classes
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True,
@@ -49,6 +55,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions.handle_versioning_models_setting(cms_config)
 
     def test_raises_exception_if_doesnt_inherit_from_base_version(self):
+        """Tests ImproperlyConfigured exception is raised if elements
+        in the versioning_models list do not inherit from BaseVersion
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True,
@@ -62,6 +71,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
         self.assertListEqual(extensions.get_version_models(), ['Test_version'])
 
     def test_handle_versioning_models(self):
+        """Test handle_versioning_models_setting method adds all the
+        models into the _versioning_models list
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[],
@@ -73,6 +85,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions._version_models, [PollVersion, BlogPostVersion])
 
     def test_handle_admin_classes(self):
+        """Test handle_admin_classes replaces the admin model class
+        with an admin model class that inherits from VersioningAdminMixin
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[], djangocms_versioning_enabled=True,

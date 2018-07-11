@@ -14,6 +14,9 @@ class VersioningCMSExtension(CMSAppExtension):
         self._version_models = []
 
     def handle_versioning_models_setting(self, cms_config):
+        """Check the versioning_models setting has been correctly set
+        and add the models to the masterlist if all is ok
+        """
         if not hasattr(cms_config, 'versioning_models'):
             raise ImproperlyConfigured(
                 "versioning_models must be defined in cms_config.py")
@@ -33,6 +36,9 @@ class VersioningCMSExtension(CMSAppExtension):
         self._version_models.extend(cms_config.versioning_models)
 
     def handle_admin_classes(self, cms_config):
+        """Replaces admin model classes for all registered content types
+        with an admin model class that inherits from VersioningAdminMixin
+        """
         content_models = [
             model._meta.get_field('content').rel.model
             for model in cms_config.versioning_models

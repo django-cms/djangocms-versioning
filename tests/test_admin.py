@@ -77,13 +77,13 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         self.assertIn(VersioningAdminMixin, self.site._registry[self.model].__class__.mro())
 
     def test_replace_admin_again(self):
-        """Test that calling `replace_admin_for_models` with a model,
-        which admin is already a subclass of VersioningAdminMixin, is a no-op.
+        """Test that, if a model's admin class already subclasses
+        VersioningAdminMixin, nothing happens.
         """
         version_admin = versioning_admin_factory(self.admin_class)
         self.site.register(self.model, version_admin)
 
-        with patch.object(djangocms_versioning.helpers, 'versioning_admin_factory') as mock:
-            replace_admin_for_models([self.model], self.site)
+        replace_admin_for_models([self.model], self.site)
 
-        mock.assert_not_called()
+        self.assertIn(self.model, self.site._registry)
+        self.assertEqual(self.site._registry[self.model].__class__, version_admin)

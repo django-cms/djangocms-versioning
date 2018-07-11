@@ -32,19 +32,36 @@ class CMSConfigUnitTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_models_setting(cms_config)
 
+    def test_raises_exception_if_versioning_models_not_iterable(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(spec=[],
+                          djangocms_versioning_enabled=True,
+                          versioning_models=PollVersion)
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_models_setting(cms_config)
+
+    def test_raises_exception_if_not_a_class(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(spec=[],
+                          djangocms_versioning_enabled=True,
+                          versioning_models=['aaa', {}])
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_models_setting(cms_config)
+
+    def test_raises_exception_if_doesnt_inherit_from_base_version(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(spec=[],
+                          djangocms_versioning_enabled=True,
+                          versioning_models=[PollContent])
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_models_setting(cms_config)
+
     def test_get_version_model(self):
         extensions = VersioningCMSExtension()
         extensions._version_models = ['Test_version']
         self.assertListEqual(extensions.get_version_models(), ['Test_version'])
 
-<<<<<<< HEAD
-
-class CMSConfigComponentTestCase(CMSTestCase):
-
-    def test_version_model_appends(self):
-=======
     def test_handle_versioning_models(self):
->>>>>>> 160c6e4f551caa932b98c52c1b4393abdbc1cd4e
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[],

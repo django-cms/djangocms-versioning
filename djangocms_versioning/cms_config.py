@@ -4,10 +4,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 
-from .helpers import replace_admin_for_models
-
-from cms.app_base import CMSAppConfig, CMSAppExtension
-from django.core.exceptions import ImproperlyConfigured
+from djangocms_versioning.helpers import replace_admin_for_models
+from djangocms_versioning.models import BaseVersion
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -22,6 +20,15 @@ class VersioningCMSExtension(CMSAppExtension):
         if not isinstance(cms_config.versioning_models, collections.abc.Iterable):
             raise ImproperlyConfigured(
                 "versioning_models not defined as a list")
+        for model in cms_config.versioning_models:
+            try:
+                is_versioning_model = issubclass(model, BaseVersion)
+            except TypeError:
+                raise ImproperlyConfigured(
+                    "elements in versioning_models must be model classes")
+            if not is_versioning_model:
+                raise ImproperlyConfigured(
+                    "models in versioning_models must inherit from BaseVersion")
 
         self._version_models.extend(cms_config.versioning_models)
 

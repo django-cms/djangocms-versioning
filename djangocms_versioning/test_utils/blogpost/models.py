@@ -37,5 +37,5 @@ class Comment(models.Model):
         return self.text
 
 
-class CommentVersion(models.Model):
+class CommentVersion(BaseVersion):
     content = models.OneToOneField(Comment, on_delete=models.CASCADE)

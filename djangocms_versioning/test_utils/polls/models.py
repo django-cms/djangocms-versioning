@@ -1,7 +1,8 @@
 import copy
 
 from django.db import models
-from djangocms_versioning.models import BaseVersion
+
+from .models import BaseVersion
 
 
 class Poll(models.Model):

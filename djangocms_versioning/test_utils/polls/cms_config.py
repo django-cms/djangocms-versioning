@@ -1,6 +1,6 @@
 from cms.app_base import CMSAppConfig
 
-from djangocms_versioning.test_utils.polls.models import PollVersion
+from .models import PollVersion
 
 
 class PollsCMSConfig(CMSAppConfig):

@@ -4,8 +4,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 
-from djangocms_versioning.helpers import replace_admin_for_models
-from djangocms_versioning.models import BaseVersion
+from .helpers import replace_admin_for_models
+from .models import BaseVersion
 
 
 class VersioningCMSExtension(CMSAppExtension):

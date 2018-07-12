@@ -1,6 +1,9 @@
 from unittest.mock import patch
 
+from freezegun import freeze_time
+
 from django.contrib import admin
+from django.test import RequestFactory
 
 from cms.test_utils.testcases import CMSTestCase
 
@@ -10,6 +13,7 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
+from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
 
@@ -87,3 +91,27 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
 
         self.assertIn(self.model, self.site._registry)
         self.assertEqual(self.site._registry[self.model].__class__, version_admin)
+
+
+class ContentAdminChangelistTestCase(CMSTestCase):
+
+    def setUp(self):
+        admin_class = type(
+            'PollModelAdmin', (admin.ModelAdmin, VersioningAdminMixin), {})
+        admin_site = admin.AdminSite()
+        self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
+
+    def test_only_fetches_latest_content_records(self):
+        poll = factories.PollFactory()
+        # Make sure django sets the created date far in the past
+        with freeze_time('2014-01-01'):
+            factories.PollContentFactory.create_batch(
+                4, poll=poll)
+        # For this one the created date will be now
+        poll_content = factories.PollContentFactory(poll=poll)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+
+        admin_queryset = self.model_admin.get_queryset(request)
+
+        self.assertQuerysetEqual(
+            admin_queryset, [poll_content.pk], transform=lambda x: x.pk)

@@ -124,4 +124,22 @@ class ContentAdminChangelistTestCase(CMSTestCase):
             ordered=False
         )
 
-    # TODO: Try on something other than polls
+    #~ def test_records_filtering_is_generic(self):
+        #~ # Uses something other than polls
+        #~ post = factories.BlogPostFactory()
+        #~ # Make sure django sets the created date far in the past
+        #~ with freeze_time('2016-06-06'):
+            #~ factories.BlogContentWithVersionFactory(blogpost=post)
+        #~ # For these the created date will be now
+        #~ blog_content1 = factories.BlogContentWithVersionFactory(blogpost=post)
+        #~ blog_content2 = factories.BlogContentWithVersionFactory()
+        #~ request = RequestFactory().get('/admin/blogpost/blogcontent/')
+
+        #~ admin_queryset = self.model_admin.get_queryset(request)
+
+        #~ self.assertQuerysetEqual(
+            #~ admin_queryset,
+            #~ [blog_content1.pk, blog_content2.pk],
+            #~ transform=lambda x: x.pk,
+            #~ ordered=False
+        #~ )

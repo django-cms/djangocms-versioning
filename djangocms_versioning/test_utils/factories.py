@@ -1,5 +1,6 @@
 import factory
 
+from .blogpost.models import BlogPost, BlogContent, BlogPostVersion
 from .polls.models import Poll, PollContent, PollVersion
 
 
@@ -26,12 +27,42 @@ class PollContentWithVersionFactory(PollContentFactory):
 
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
-        # NOTE: Use this method like in this example:
-        # PollContentFactory(poll=poll, version__label='label1')
-        # where label is a field of the PollVersion object associated
-        # with the PollContent object being created
+        # NOTE: Use this method as below to define version attributes:
+        # PollContentWithVersionFactory(version__label='label1')
         if not create:
             # Simple build, do nothing.
             return
 
         PollVersionFactory(content=self, **kwargs)
+
+
+class BlogPostFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = BlogPost
+
+
+class BlogPostVersionFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = BlogPostVersion
+
+
+class BlogContentFactory(factory.django.DjangoModelFactory):
+    blogpost = factory.SubFactory(BlogPostFactory)
+
+    class Meta:
+        model = BlogContent
+
+
+class BlogContentWithVersionFactory(BlogContentFactory):
+
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        # NOTE: Use this method as below to define version attributes:
+        # BlogContentWithVersionFactory(version__label='label1')
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        BlogPostVersionFactory(content=self, **kwargs)

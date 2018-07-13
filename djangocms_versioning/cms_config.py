@@ -12,6 +12,7 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
         self._version_models = []
+        self.content_to_version_models = {}
 
     def handle_versioning_models_setting(self, cms_config):
         """Check the versioning_models setting has been correctly set
@@ -43,6 +44,11 @@ class VersioningCMSExtension(CMSAppExtension):
             model._meta.get_field('content').rel.model
             for model in cms_config.versioning_models
         ]
+        self.content_to_version_models.update({
+            content: version
+            for content, version
+            in zip(content_models, cms_config.versioning_models)
+        })
         replace_admin_for_models(content_models)
 
     def configure_app(self, cms_config):

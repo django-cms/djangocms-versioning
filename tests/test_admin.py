@@ -1,6 +1,8 @@
 from unittest.mock import patch
 
+# from django.apps import apps
 from django.contrib import admin
+from django.test import RequestFactory
 
 from cms.test_utils.testcases import CMSTestCase
 
@@ -87,3 +89,51 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
 
         self.assertIn(self.model, self.site._registry)
         self.assertEqual(self.site._registry[self.model].__class__, version_admin)
+
+
+class AdminAddVersionTestCase(CMSTestCase):
+
+    def setUp(self):
+        admin_class = type(
+            'PollModelAdmin', (admin.ModelAdmin, VersioningAdminMixin), {})
+        admin_site = admin.AdminSite()
+        self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
+
+    def test_only_fetches_latest_content_records(self):
+
+
+        #PollModelAdmin()
+        p1 = Poll()
+        p1.name = "p1"
+        p1.save()
+        pc1 = PollContent()
+        # pc1.text = "blah"
+        # pc1.language = "en"
+        # pc1.poll = p1
+        pc1.save()
+
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        self.model_admin.save_model(request, pc1, None, change=False)
+
+        extension = apps.get_app_config('djangocms_versioning').cms_extension
+        version_model_class = extension.content_to_version_models[PollContent]
+        print(version_model_class)
+        # get the version model with poll_id
+        # check if record exists or not
+
+
+        # p1.text = "Hello Poll"
+
+    #     poll = factories.PollFactory()
+    #     # Make sure django sets the created date far in the past
+    #     with freeze_time('2014-01-01'):
+    #         factories.PollContentFactory.create_batch(
+    #             4, poll=poll)
+    #     # For this one the created date will be now
+    #     poll_content = factories.PollContentFactory(poll=poll)
+    #     request = RequestFactory().get('/admin/polls/pollcontent/')
+    #
+    #     admin_queryset = self.model_admin.get_queryset(request)
+    #
+    #     self.assertQuerysetEqual(
+    #         admin_queryset, [poll_content.pk], transform=lambda x: x.pk)

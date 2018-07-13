@@ -17,16 +17,7 @@ class VersioningAdminMixin:
             # create a new version object
             extension = apps.get_app_config('djangocms_versioning').cms_extension
             new_version_model_class = extension.content_to_version_models[obj.__class__]
-            #new_version_model = BaseVersion()
-            #obj.
-            # copy the content_id field to map to the content model
-            # point it to the content object that is created
-            # new_version_model.content_id = self.###
-
             new_version_model_obj = new_version_model_class()
-
-
-            # save the version model
             new_version_model_obj.content_id = obj.id
             new_version_model_obj.save()
 

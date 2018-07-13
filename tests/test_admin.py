@@ -96,14 +96,10 @@ class AdminAddVersionTestCase(CMSTestCase):
     def setUp(self):
         admin_class = type(
              'PollModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
-        # admin_class = versioning_admin_factory(PollModelAdmin)
         admin_site = admin.AdminSite()
         self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
 
-    def test_only_fetches_latest_content_records(self):
-
-
-        #PollModelAdmin()
+    def test_version_is_added_for_change_false(self):
         p1 = Poll()
         p1.name = "p1"
         p1.save()
@@ -112,29 +108,25 @@ class AdminAddVersionTestCase(CMSTestCase):
         pc1.language = "en"
         pc1.poll = p1
         pc1.save()
-
         request = RequestFactory().get('/admin/polls/pollcontent/')
         self.model_admin.save_model(request, pc1, None, change=False)
-
         extension = apps.get_app_config('djangocms_versioning').cms_extension
         version_model_class = extension.content_to_version_models[PollContent]
-        print(version_model_class)
-        # get the version model with poll_id
-        # check if record exists or not
+        check_obj = version_model_class.objects.get(content_id=pc1)
+        self.assertTrue(check_obj)
 
-
-        # p1.text = "Hello Poll"
-
-    #     poll = factories.PollFactory()
-    #     # Make sure django sets the created date far in the past
-    #     with freeze_time('2014-01-01'):
-    #         factories.PollContentFactory.create_batch(
-    #             4, poll=poll)
-    #     # For this one the created date will be now
-    #     poll_content = factories.PollContentFactory(poll=poll)
-    #     request = RequestFactory().get('/admin/polls/pollcontent/')
-    #
-    #     admin_queryset = self.model_admin.get_queryset(request)
-    #
-    #     self.assertQuerysetEqual(
-    #         admin_queryset, [poll_content.pk], transform=lambda x: x.pk)
+    def test_version_is_not_added_for_change_true(self):
+        p2 = Poll()
+        p2.name = "p2"
+        p2.save()
+        pc2 = PollContent()
+        pc2.text = "no blah blah"
+        pc2.language = "en"
+        pc2.poll = p2
+        pc2.save()
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        self.model_admin.save_model(request, pc2, None, change=True)
+        extension = apps.get_app_config('djangocms_versioning').cms_extension
+        version_model_class = extension.content_to_version_models[PollContent]
+        check_obj_exist = version_model_class.objects.filter(content_id=pc2.id).exists()
+        self.assertFalse(check_obj_exist)

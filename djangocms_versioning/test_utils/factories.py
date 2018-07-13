@@ -16,9 +16,13 @@ class PollVersionFactory(factory.django.DjangoModelFactory):
 
 
 class PollContentFactory(factory.django.DjangoModelFactory):
+    poll = factory.SubFactory(PollFactory)
 
     class Meta:
         model = PollContent
+
+
+class PollContentWithVersionFactory(PollContentFactory):
 
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
@@ -30,4 +34,4 @@ class PollContentFactory(factory.django.DjangoModelFactory):
             # Simple build, do nothing.
             return
 
-        PollVersion(content=self, **kwargs)
+        PollVersionFactory(content=self, **kwargs)

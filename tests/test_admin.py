@@ -97,21 +97,31 @@ class ContentAdminChangelistTestCase(CMSTestCase):
 
     def setUp(self):
         admin_class = type(
-            'PollModelAdmin', (admin.ModelAdmin, VersioningAdminMixin), {})
+            'PollModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
         admin_site = admin.AdminSite()
         self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
 
     def test_only_fetches_latest_content_records(self):
-        poll = factories.PollFactory()
+        poll1 = factories.PollFactory()
+        poll2 = factories.PollFactory()
         # Make sure django sets the created date far in the past
         with freeze_time('2014-01-01'):
-            factories.PollContentFactory.create_batch(
-                4, poll=poll)
-        # For this one the created date will be now
-        poll_content = factories.PollContentFactory(poll=poll)
+            factories.PollContentWithVersionFactory.create_batch(
+                4, poll=poll1)
+            factories.PollContentWithVersionFactory(poll=poll2)
+        # For these the created date will be now
+        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
+        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2)
+        poll_content3 = factories.PollContentWithVersionFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
 
         admin_queryset = self.model_admin.get_queryset(request)
 
         self.assertQuerysetEqual(
-            admin_queryset, [poll_content.pk], transform=lambda x: x.pk)
+            admin_queryset,
+            [poll_content1.pk, poll_content2.pk, poll_content3.pk],
+            transform=lambda x: x.pk,
+            ordered=False
+        )
+
+    # TODO: Try on something other than polls

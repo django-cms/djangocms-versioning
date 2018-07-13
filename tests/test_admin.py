@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-# from django.apps import apps
+from django.apps import apps
 from django.contrib import admin
 from django.test import RequestFactory
 
@@ -95,7 +95,8 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def setUp(self):
         admin_class = type(
-            'PollModelAdmin', (admin.ModelAdmin, VersioningAdminMixin), {})
+             'PollModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
+        # admin_class = versioning_admin_factory(PollModelAdmin)
         admin_site = admin.AdminSite()
         self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
 
@@ -107,9 +108,9 @@ class AdminAddVersionTestCase(CMSTestCase):
         p1.name = "p1"
         p1.save()
         pc1 = PollContent()
-        # pc1.text = "blah"
-        # pc1.language = "en"
-        # pc1.poll = p1
+        pc1.text = "blah"
+        pc1.language = "en"
+        pc1.poll = p1
         pc1.save()
 
         request = RequestFactory().get('/admin/polls/pollcontent/')

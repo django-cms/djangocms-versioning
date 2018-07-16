@@ -97,19 +97,24 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
 class ContentAdminChangelistTestCase(CMSTestCase):
 
     def _get_admin_class_obj(self, content_model):
+        """Helper method to set up a model admin class that derives
+        from VersioningAdminMixin
+        """
         admin_class = type(
             'VersioningModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
         admin_site = admin.AdminSite()
         return admin_class(model=content_model, admin_site=admin_site)
 
     def test_only_fetches_latest_content_records(self):
+        """Only returns content records of the latest content
+        """
         model_admin = self._get_admin_class_obj(PollContent)
         poll1 = factories.PollFactory()
         poll2 = factories.PollFactory()
         # Make sure django sets the created date far in the past
         with freeze_time('2014-01-01'):
             factories.PollContentWithVersionFactory.create_batch(
-                4, poll=poll1)
+                2, poll=poll1)
             factories.PollContentWithVersionFactory(poll=poll2)
         # For these the created date will be now
         poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
@@ -127,8 +132,11 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         )
 
     def test_records_filtering_is_generic(self):
+        """Check there's nothing specific to polls hardcoded in
+        VersioningAdminMixin.get_queryset. This repeats a similar test
+        for PollContent, but using BlogContent instead.
+        """
         model_admin = self._get_admin_class_obj(BlogContent)
-        # Uses something other than polls
         post = factories.BlogPostFactory()
         # Make sure django sets the created date far in the past
         with freeze_time('2016-06-06'):

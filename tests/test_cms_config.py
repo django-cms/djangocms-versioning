@@ -85,6 +85,10 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions._version_models, [PollVersion, BlogPostVersion])
 
     def test_content_to_version_model_dict_created(self):
+        """Test handle_versioning_models_setting method creates a
+        dictionary which tells us what the versioning model is for each
+        registered content model
+        """
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[],
@@ -135,6 +139,9 @@ class VersioningIntegrationTestCase(CMSTestCase):
         )
 
     def test_content_to_version_dict_created(self):
+        """Check that we create a dictionary which tells us what
+        the versioning model is for each registered content model
+        """
         setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
         self.assertDictEqual(

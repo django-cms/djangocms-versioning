@@ -32,7 +32,6 @@ class PollContentWithVersionFactory(PollContentFactory):
         if not create:
             # Simple build, do nothing.
             return
-
         PollVersionFactory(content=self, **kwargs)
 
 
@@ -64,5 +63,4 @@ class BlogContentWithVersionFactory(BlogContentFactory):
         if not create:
             # Simple build, do nothing.
             return
-
         BlogPostVersionFactory(content=self, **kwargs)

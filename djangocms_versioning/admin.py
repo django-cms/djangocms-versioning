@@ -1,5 +1,4 @@
 from django.apps import apps
-from django.db.models import Max, Prefetch
 
 
 class VersioningAdminMixin:

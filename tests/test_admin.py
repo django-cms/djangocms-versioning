@@ -106,7 +106,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         return admin_class(model=content_model, admin_site=admin_site)
 
     def test_only_fetches_latest_content_records(self):
-        """Only returns content records of the latest content
+        """Returns content records of the latest content
         """
         model_admin = self._get_admin_class_obj(PollContent)
         poll1 = factories.PollFactory()

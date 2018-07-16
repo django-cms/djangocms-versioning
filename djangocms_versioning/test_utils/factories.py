@@ -1,6 +1,6 @@
 import factory
 
-from .blogpost.models import BlogPost, BlogContent, BlogPostVersion
+from .blogpost.models import BlogContent, BlogPost, BlogPostVersion
 from .polls.models import Poll, PollContent, PollVersion
 
 

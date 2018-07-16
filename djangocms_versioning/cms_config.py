@@ -54,7 +54,3 @@ class VersioningCMSExtension(CMSAppExtension):
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)
         self.handle_admin_classes(cms_config)
-
-    def get_version_models(self):
-        return self._version_models
-

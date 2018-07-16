@@ -100,13 +100,9 @@ class AdminAddVersionTestCase(CMSTestCase):
         self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
 
     def test_version_is_added_for_change_false(self):
-        p1 = Poll()
-        p1.name = "p1"
+        p1 = Poll.objects.create(name="p1")
         p1.save()
-        pc1 = PollContent()
-        pc1.text = "blah"
-        pc1.language = "en"
-        pc1.poll = p1
+        pc1 = PollContent.objects.create(text="blah", language="en", poll=p1)
         pc1.save()
         request = RequestFactory().get('/admin/polls/pollcontent/')
         self.model_admin.save_model(request, pc1, None, change=False)
@@ -116,13 +112,9 @@ class AdminAddVersionTestCase(CMSTestCase):
         self.assertTrue(check_obj)
 
     def test_version_is_not_added_for_change_true(self):
-        p2 = Poll()
-        p2.name = "p2"
+        p2 = Poll.objects.create(name="p2")
         p2.save()
-        pc2 = PollContent()
-        pc2.text = "no blah blah"
-        pc2.language = "en"
-        pc2.poll = p2
+        pc2 = PollContent.objects.create(text="no blah blah", language="en", poll=p2)
         pc2.save()
         request = RequestFactory().get('/admin/polls/pollcontent/')
         self.model_admin.save_model(request, pc2, None, change=True)

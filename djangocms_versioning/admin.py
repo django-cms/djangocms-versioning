@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.db.models import Max, Prefetch
 
 
@@ -9,6 +10,10 @@ class VersioningAdminMixin:
         """Limit query to most recent content versions
         """
         queryset = super(VersioningAdminMixin, self).get_queryset(request)
-        query_str = """SELECT MAX(created), polls_pollcontent.id FROM polls_pollcontent LEFT OUTER JOIN "polls_pollversion" ON ("polls_pollcontent"."id" = "polls_pollversion"."content_id") GROUP BY poll_id"""
-        latest_version_ids = [record.id for record in queryset.raw(query_str)]
-        return queryset.filter(id__in=latest_version_ids)
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        version_model = versioning_extension.content_to_version_models[
+            queryset.model]
+        filter_name = '{}__in'.format(version_model.__name__.lower())
+        latest_versions = version_model.objects.distinct_groupers()
+        return queryset.filter(**{filter_name: latest_versions})

@@ -70,7 +70,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions._version_models = ['Test_version']
         self.assertListEqual(extensions.get_version_models(), ['Test_version'])
 
-    def test_handle_versioning_models(self):
+    def test_versioning_models_list_created(self):
         """Test handle_versioning_models_setting method adds all the
         models into the _versioning_models list
         """
@@ -83,6 +83,18 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions.handle_versioning_models_setting(cms_config)
         self.assertListEqual(
             extensions._version_models, [PollVersion, BlogPostVersion])
+
+    def test_content_to_version_model_dict_created(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning_models=[PollVersion, BlogPostVersion]
+        )
+        extensions.handle_versioning_models_setting(cms_config)
+        self.assertDictEqual(
+            extensions.content_to_version_models,
+            {PollContent: PollVersion, BlogContent: BlogPostVersion})
 
     def test_handle_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class
@@ -120,6 +132,18 @@ class VersioningIntegrationTestCase(CMSTestCase):
         self.assertListEqual(
             versions_collected,
             [PollVersion, BlogPostVersion, CommentVersion]
+        )
+
+    def test_content_to_version_dict_created(self):
+        setup_cms_apps()  # discover and run all cms_config.py files
+        app = apps.get_app_config('djangocms_versioning')
+        self.assertDictEqual(
+            app.cms_extension.content_to_version_models,
+            {
+                PollContent: PollVersion,
+                BlogContent: BlogPostVersion,
+                Comment: CommentVersion
+            }
         )
 
     def test_admin_classes_reregistered(self):

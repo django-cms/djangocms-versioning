@@ -65,7 +65,6 @@ class CMSConfigUnitTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_models_setting(cms_config)
 
-
     def test_handle_versioning_models(self):
         """Test handle_versioning_models_setting method adds all the
         models into the _versioning_models list

@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from freezegun import freeze_time
+
 from django.apps import apps
 from django.contrib import admin
 from django.test import RequestFactory
@@ -12,6 +14,8 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
+from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
 
@@ -118,3 +122,65 @@ class AdminAddVersionTestCase(CMSTestCase):
         version_model_class = extension.content_to_version_models[PollContent]
         check_obj_exist = version_model_class.objects.filter(content_id=pc2.id).exists()
         self.assertFalse(check_obj_exist)
+
+
+class ContentAdminChangelistTestCase(CMSTestCase):
+
+    def _get_admin_class_obj(self, content_model):
+        """Helper method to set up a model admin class that derives
+        from VersioningAdminMixin
+        """
+        admin_class = type(
+            'VersioningModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
+        admin_site = admin.AdminSite()
+        return admin_class(model=content_model, admin_site=admin_site)
+
+    def test_only_fetches_latest_content_records(self):
+        """Returns content records of the latest content
+        """
+        model_admin = self._get_admin_class_obj(PollContent)
+        poll1 = factories.PollFactory()
+        poll2 = factories.PollFactory()
+        # Make sure django sets the created date far in the past
+        with freeze_time('2014-01-01'):
+            factories.PollContentWithVersionFactory.create_batch(
+                2, poll=poll1)
+            factories.PollContentWithVersionFactory(poll=poll2)
+        # For these the created date will be now
+        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
+        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2)
+        poll_content3 = factories.PollContentWithVersionFactory()
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+
+        admin_queryset = model_admin.get_queryset(request)
+
+        self.assertQuerysetEqual(
+            admin_queryset,
+            [poll_content1.pk, poll_content2.pk, poll_content3.pk],
+            transform=lambda x: x.pk,
+            ordered=False
+        )
+
+    def test_records_filtering_is_generic(self):
+        """Check there's nothing specific to polls hardcoded in
+        VersioningAdminMixin.get_queryset. This repeats a similar test
+        for PollContent, but using BlogContent instead.
+        """
+        model_admin = self._get_admin_class_obj(BlogContent)
+        post = factories.BlogPostFactory()
+        # Make sure django sets the created date far in the past
+        with freeze_time('2016-06-06'):
+            factories.BlogContentWithVersionFactory(blogpost=post)
+        # For these the created date will be now
+        blog_content1 = factories.BlogContentWithVersionFactory(blogpost=post)
+        blog_content2 = factories.BlogContentWithVersionFactory()
+        request = RequestFactory().get('/admin/blogpost/blogcontent/')
+
+        admin_queryset = model_admin.get_queryset(request)
+
+        self.assertQuerysetEqual(
+            admin_queryset,
+            [blog_content1.pk, blog_content2.pk],
+            transform=lambda x: x.pk,
+            ordered=False
+        )

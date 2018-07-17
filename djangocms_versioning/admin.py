@@ -8,7 +8,7 @@ class VersioningAdminMixin:
     def get_queryset(self, request):
         """Limit query to most recent content versions
         """
-        queryset = super(VersioningAdminMixin, self).get_queryset(request)
+        queryset = super().get_queryset(request)
         versioning_extension = apps.get_app_config(
             'djangocms_versioning').cms_extension
         version_model = versioning_extension.content_to_version_models[

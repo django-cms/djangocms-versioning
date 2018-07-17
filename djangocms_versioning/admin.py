@@ -4,7 +4,6 @@ from django.apps import apps
 class VersioningAdminMixin:
     """Mixin providing versioning functionality to admin classes.
     """
-
     def save_model(self, request, obj, form, change):
         """
         Overrides the save method to create a version model

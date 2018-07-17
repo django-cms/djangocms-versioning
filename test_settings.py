@@ -9,7 +9,7 @@ HELPER_SETTINGS = {
         'auth': None,
         'cms': None,
         'menus': None,
-        'djangocms_alias': None,
+        'djangocms_versioning': None,
     },
     'CMS_PERMISSION': True,
     'LANGUAGES': (

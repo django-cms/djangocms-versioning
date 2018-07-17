@@ -101,9 +101,7 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_version_is_added_for_change_false(self):
         p1 = Poll.objects.create(name="p1")
-        p1.save()
         pc1 = PollContent.objects.create(text="blah", language="en", poll=p1)
-        pc1.save()
         request = RequestFactory().get('/admin/polls/pollcontent/')
         self.model_admin.save_model(request, pc1, None, change=False)
         extension = apps.get_app_config('djangocms_versioning').cms_extension
@@ -113,9 +111,7 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_version_is_not_added_for_change_true(self):
         p2 = Poll.objects.create(name="p2")
-        p2.save()
         pc2 = PollContent.objects.create(text="no blah blah", language="en", poll=p2)
-        pc2.save()
         request = RequestFactory().get('/admin/polls/pollcontent/')
         self.model_admin.save_model(request, pc2, None, change=True)
         extension = apps.get_app_config('djangocms_versioning').cms_extension

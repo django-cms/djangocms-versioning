@@ -77,7 +77,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
         )
         extensions.handle_versioning_models_setting(cms_config)
         self.assertListEqual(
-            extensions._version_models, [PollVersion, BlogPostVersion])
+            extensions.version_models, [PollVersion, BlogPostVersion])
 
     def test_content_to_version_model_dict_created(self):
         """Test handle_versioning_models_setting method creates a
@@ -127,7 +127,7 @@ class VersioningIntegrationTestCase(CMSTestCase):
         """
         setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
-        versions_collected = app.cms_extension._version_models
+        versions_collected = app.cms_extension.version_models
         self.assertListEqual(
             versions_collected,
             [PollVersion, BlogPostVersion, CommentVersion]

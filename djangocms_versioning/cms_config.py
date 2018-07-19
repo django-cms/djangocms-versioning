@@ -11,7 +11,7 @@ from .models import BaseVersion
 class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
-        self._version_models = []
+        self.version_models = []
         self.content_to_version_models = {}
 
     def handle_versioning_models_setting(self, cms_config):
@@ -36,7 +36,7 @@ class VersioningCMSExtension(CMSAppExtension):
                     "models in versioning_models must inherit from BaseVersion")
         # If no exceptions raised, we can now add the versioning models
         # into our masterlist
-        self._version_models.extend(cms_config.versioning_models)
+        self.version_models.extend(cms_config.versioning_models)
         # Based on the versioning models list, create a helper
         # attribute that we can derive
         content_models = [
@@ -59,5 +59,3 @@ class VersioningCMSExtension(CMSAppExtension):
         self.handle_versioning_models_setting(cms_config)
         self.handle_admin_classes(cms_config)
 
-    def get_version_models(self):
-        return self._version_models

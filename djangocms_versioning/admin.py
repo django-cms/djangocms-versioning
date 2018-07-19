@@ -27,4 +27,3 @@ class VersioningAdminMixin:
         filter_name = '{}__in'.format(version_model.__name__.lower())
         latest_versions = version_model.objects.distinct_groupers()
         return queryset.filter(**{filter_name: latest_versions})
-

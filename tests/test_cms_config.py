@@ -4,19 +4,22 @@ from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
 
-from cms.app_registration import get_cms_extension_apps, get_cms_config_apps
+from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.test_utils.blogpost.models import (
-    BlogPostVersion,
     BlogContent,
+    BlogPostVersion,
     Comment,
     CommentVersion,
 )
-from djangocms_versioning.test_utils.polls.models import PollVersion, PollContent
+from djangocms_versioning.test_utils.polls.models import (
+    PollContent,
+    PollVersion,
+)
 
 
 class CMSConfigUnitTestCase(CMSTestCase):

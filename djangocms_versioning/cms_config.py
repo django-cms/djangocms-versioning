@@ -2,7 +2,7 @@ import collections
 
 from django.core.exceptions import ImproperlyConfigured
 
-from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.app_base import CMSAppExtension
 
 from .helpers import replace_admin_for_models
 from .models import BaseVersion
@@ -40,7 +40,7 @@ class VersioningCMSExtension(CMSAppExtension):
         # Based on the versioning models list, create a helper
         # attribute that we can derive
         content_models = [
-            model._meta.get_field('content').rel.model
+            model._meta.get_field('content').remote_field.model
             for model in cms_config.versioning_models
         ]
         self.content_to_version_models.update({
@@ -58,4 +58,3 @@ class VersioningCMSExtension(CMSAppExtension):
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)
         self.handle_admin_classes(cms_config)
-

@@ -1,7 +1,7 @@
 from unittest.mock import patch
+import datetime, pytz
 
 from freezegun import freeze_time
-import datetime, pytz
 
 from django.apps import apps
 from django.contrib import admin
@@ -17,7 +17,8 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, BlogPost
-from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
+from djangocms_versioning.test_utils.polls.models import (
+        Answer, Poll, PollContent, PollVersion)
 
 
 class AdminVersioningTestCase(CMSTestCase):
@@ -106,14 +107,11 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_poll_version_is_added_for_change_false(self):
         with freeze_time('2011-01-06'):
-            # factories.BlogContentWithVersionFactory(blogpost=post)
             p1 = Poll.objects.create(name="p1")
             pc1 = PollContent.objects.create(text="blah", language="en", poll=p1)
             request = RequestFactory().get('/admin/polls/pollcontent/')
             self.model_admin.save_model(request, pc1, None, change=False)
-            extension = apps.get_app_config('djangocms_versioning').cms_extension
-            version_model_class = extension.content_to_version_models[PollContent]
-            check_obj = version_model_class.objects.get(content_id=pc1)
+            check_obj = PollVersion.objects.get(content_id=pc1)
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
             self.assertEqual(check_obj.label, "")

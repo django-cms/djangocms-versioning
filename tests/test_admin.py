@@ -257,27 +257,18 @@ class VersionAdminTestCase(CMSTestCase):
         register_version_admin_for_models([self.model], self.site)
         self.superuser = self.get_superuser()
 
-    def _create_version(self, name):
-        return PollVersion.objects.create(
-            content=PollContent.objects.create(
-                text=name,
-                poll=Poll.objects.create(name=name),
-            ),
-        )
-
     def test_admin_queryset_num_queries(self):
         """Test that accessing Version.content doesn't result in
         additional query
         """
-        self._create_version('test1')
-        self._create_version('test2')
+        factories.PollContentWithVersionFactory.create_batch(2)
         with self.assertNumQueries(1):
             queryset = self.site._registry[PollVersion].get_queryset(self.get_request())
             for version in queryset:
                 version.content
 
     def test_content_link(self):
-        version = self._create_version('test4')
+        version = factories.PollContentWithVersionFactory(text='test4').pollversion
         self.assertEqual(
             self.site._registry[PollVersion].content_link(version),
             '<a href="{url}">{label}</a>'.format(
@@ -292,7 +283,7 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
-        version = self._create_version('test')
+        version = factories.PollContentWithVersionFactory().pollversion
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(self.model, 'change', version.pk))
         self.assertEqual(response.status_code, 403)

@@ -1,7 +1,6 @@
 from setuptools import find_packages, setup
 
 import djangocms_versioning
-import test_settings
 
 
 INSTALL_REQUIREMENTS = [

@@ -6,11 +6,14 @@ from django.utils import timezone
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.test_utils.polls.models import (
-    Answer, Poll, PollContent, PollVersion, VersionWithoutGrouperField
-)
-
 from djangocms_versioning.models import Campaign
+from djangocms_versioning.test_utils.polls.models import (
+    Answer,
+    Poll,
+    PollContent,
+    PollVersion,
+    VersionWithoutGrouperField,
+)
 
 
 class ModelsVersioningTestCase(CMSTestCase):

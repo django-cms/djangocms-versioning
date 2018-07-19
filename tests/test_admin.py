@@ -1,13 +1,14 @@
+import datetime
 from unittest.mock import patch
-import datetime, pytz
-
-from freezegun import freeze_time
 
 from django.apps import apps
 from django.contrib import admin
 from django.test import RequestFactory
 
 from cms.test_utils.testcases import CMSTestCase
+
+import pytz
+from freezegun import freeze_time
 
 import djangocms_versioning.helpers
 from djangocms_versioning.admin import VersioningAdminMixin
@@ -16,9 +17,16 @@ from djangocms_versioning.helpers import (
     versioning_admin_factory,
 )
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.models import BlogContent, BlogPost
+from djangocms_versioning.test_utils.blogpost.models import (
+    BlogContent,
+    BlogPost,
+)
 from djangocms_versioning.test_utils.polls.models import (
-        Answer, Poll, PollContent, PollVersion)
+    Answer,
+    Poll,
+    PollContent,
+    PollVersion,
+)
 
 
 class AdminVersioningTestCase(CMSTestCase):

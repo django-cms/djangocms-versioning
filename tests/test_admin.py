@@ -291,8 +291,3 @@ class VersionAdminTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
         self.assertEqual(response.status_code, 403)
-
-    def test_version_deleting_is_disabled(self):
-        with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
-        self.assertEqual(response.status_code, 403)

@@ -4,7 +4,10 @@ from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppExtension
 
-from .helpers import replace_admin_for_models
+from .helpers import (
+    register_version_admin_for_models,
+    replace_admin_for_models,
+)
 from .models import BaseVersion
 
 
@@ -51,9 +54,11 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def handle_admin_classes(self, cms_config):
         """Replaces admin model classes for all registered content types
-        with an admin model class that inherits from VersioningAdminMixin
+        with an admin model class that inherits from VersioningAdminMixin.
+        Registers admin model class for all provided versioning models.
         """
         replace_admin_for_models(self.content_to_version_models.keys())
+        register_version_admin_for_models(cms_config.versioning_models)
 
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)

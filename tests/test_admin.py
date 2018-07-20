@@ -11,8 +11,9 @@ import pytz
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
-from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.helpers import (
+    register_version_admin_for_models,
     replace_admin_for_models,
     versioning_admin_factory,
 )
@@ -218,3 +219,90 @@ class ContentAdminChangelistTestCase(CMSTestCase):
             transform=lambda x: x.pk,
             ordered=False
         )
+
+
+class AdminRegisterVersionTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.model = PollVersion
+        self.site = admin.AdminSite()
+
+    def test_register_version_admin(self):
+        """Test that calling register_version_admin_for_models registers
+        VersionAdmin for specified models.
+        """
+        register_version_admin_for_models([self.model], self.site)
+
+        self.assertIn(self.model, self.site._registry)
+        self.assertEqual(self.site._registry[self.model].__class__, VersionAdmin)
+
+    def test_register_version_admin_again(self):
+        """Test that, if a version model's admin class is already registered,
+        nothing happens when calling register_version_admin_for_models
+        for that model.
+        """
+        register_version_admin_for_models([self.model], self.site)
+
+        with patch.object(self.site, 'register') as mock:
+            register_version_admin_for_models([self.model], self.site)
+
+        mock.assert_not_called()
+
+
+class VersionAdminTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.model = PollVersion
+        self.site = admin.AdminSite()
+        register_version_admin_for_models([self.model], self.site)
+        self.superuser = self.get_superuser()
+
+    def _create_version(self, name):
+        return PollVersion.objects.create(
+            content=PollContent.objects.create(
+                text=name,
+                poll=Poll.objects.create(name=name),
+            ),
+        )
+
+    def test_admin_queryset_num_queries(self):
+        """Test that accessing Version.content doesn't result in
+        additional query
+        """
+        self._create_version('test1')
+        self._create_version('test2')
+        with self.assertNumQueries(1):
+            queryset = self.site._registry[PollVersion].get_queryset(self.get_request())
+            for version in queryset:
+                version.content
+
+    def test_content_link(self):
+        version = self._create_version('test4')
+        self.assertEqual(
+            self.site._registry[PollVersion].content_link(version),
+            '<a href="{url}">{label}</a>'.format(
+                url='/en/admin/polls/pollcontent/1/change/',
+                label='test4',
+            ),
+        )
+
+    def test_version_adding_is_disabled(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.get_admin_url(self.model, 'add'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_version_editing_is_disabled(self):
+        version = self._create_version('test')
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.get_admin_url(self.model, 'change', version.pk))
+        self.assertEqual(response.status_code, 403)
+
+    def test_version_deleting_is_disabled(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
+        self.assertEqual(response.status_code, 403)
+
+    def test_version_deleting_is_disabled(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
+        self.assertEqual(response.status_code, 403)

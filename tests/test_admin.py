@@ -258,14 +258,13 @@ class VersionAdminTestCase(CMSTestCase):
         self.superuser = self.get_superuser()
 
     def test_admin_queryset_num_queries(self):
-        """Test that accessing Version.content doesn't result in
-        additional query
+        """Test that accessing Version.content in changelist
+        doesn't result in additional query
         """
-        factories.PollContentWithVersionFactory.create_batch(2)
-        with self.assertNumQueries(1):
-            queryset = self.site._registry[PollVersion].get_queryset(self.get_request())
-            for version in queryset:
-                version.content
+        self.assertIn(
+            'content',
+            self.site._registry[PollVersion].list_select_related,
+        )
 
     def test_content_link(self):
         version = factories.PollContentWithVersionFactory(text='test4').pollversion

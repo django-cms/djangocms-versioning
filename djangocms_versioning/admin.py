@@ -47,9 +47,7 @@ class VersionAdmin(admin.ModelAdmin):
         'is_active',
     )
     list_display_links = None
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('content')
+    list_select_related = ('content',)
 
     def content_link(self, obj):
         content = obj.content

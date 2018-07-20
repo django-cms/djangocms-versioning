@@ -1,4 +1,8 @@
 from django.apps import apps
+from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 
 
 class VersioningAdminMixin:
@@ -27,3 +31,45 @@ class VersioningAdminMixin:
         filter_name = '{}__in'.format(version_model.__name__.lower())
         latest_versions = version_model.objects.distinct_groupers()
         return queryset.filter(**{filter_name: latest_versions})
+
+
+class VersionAdmin(admin.ModelAdmin):
+    """Admin class used for version models.
+    """
+
+    # disable delete action
+    actions = None
+
+    list_display = (
+        'pk',
+        'content_link',
+        'label',
+        'is_active',
+    )
+    list_display_links = None
+    list_select_related = ('content',)
+
+    def content_link(self, obj):
+        content = obj.content
+        url = reverse('admin:{app}_{model}_change'.format(
+            app=content._meta.app_label,
+            model=content._meta.model_name,
+        ), args=[content.pk])
+        return format_html(
+            '<a href="{url}">{label}</a>',
+            url=url,
+            label=content,
+        )
+    content_link.short_description = _('Content')
+    content_link.admin_order_field = 'content'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Return True for changelist and False for change view.
+        """
+        return obj is None
+
+    def has_delete_permission(self, request, obj=None):
+        return False

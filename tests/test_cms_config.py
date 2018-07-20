@@ -1,4 +1,4 @@
-from mock import Mock
+from unittest.mock import Mock
 
 from django.apps import apps
 from django.contrib import admin
@@ -8,7 +8,7 @@ from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
-from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
@@ -98,7 +98,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
             extensions.content_to_version_models,
             {PollContent: PollVersion, BlogContent: BlogPostVersion})
 
-    def test_handle_admin_classes(self):
+    def test_handle_content_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class
         with an admin model class that inherits from VersioningAdminMixin
         """
@@ -111,6 +111,21 @@ class CMSConfigUnitTestCase(CMSTestCase):
         self.assertIn(
             VersioningAdminMixin,
             admin.site._registry[PollContent].__class__.mro()
+        )
+
+    def test_handle_admin_classes_versionadmin(self):
+        """Test handle_admin_classes registers admin model class for
+        specified version models
+        """
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[], djangocms_versioning_enabled=True,
+            versioning_models=[PollVersion])
+        extensions.handle_admin_classes(cms_config)
+        self.assertIn(PollVersion, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[PollVersion].__class__.mro()
         )
 
 
@@ -173,3 +188,27 @@ class VersioningIntegrationTestCase(CMSTestCase):
         # (they are defined in cms_config.py but are not registered
         # to the admin)
         self.assertNotIn(Comment, admin.site._registry)
+
+    def test_version_admin_classes_registered(self):
+        """Integration test that all version models provided are registered
+        with the admin using VersionAdmin
+        """
+        setup_cms_apps()  # discover and run all cms_config.py files
+        # Check PollVersion has had its admin class registered
+        self.assertIn(PollVersion, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[PollVersion].__class__.mro()
+        )
+        # Check BlogPostVersion has had its admin class registered
+        self.assertIn(BlogPostVersion, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[BlogPostVersion].__class__.mro()
+        )
+        # Check CommentVersion has had its admin class registered
+        self.assertIn(CommentVersion, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[CommentVersion].__class__.mro()
+        )

@@ -33,7 +33,6 @@ class ModelsVersioningTestCase(CMSTestCase):
             poll_content=poll_content, text='{} - Answer 2'.format(name),
         )
         return PollVersion.objects.create(
-            start=timezone.now(),
             content=poll_content,
         )
 
@@ -106,28 +105,6 @@ class ModelsVersioningTestCase(CMSTestCase):
             Q(content__language='en'),
         )
         self.assertEqual(qs.count(), 1)
-
-    def test_public(self):
-        now = timezone.now()
-
-        version2 = self.initial_version.copy()
-        version3 = version2.copy()
-        version3.start += timedelta(days=3)
-        version3.end = version3.start + timedelta(days=10)
-        version3.save()
-        version4 = version3.copy()
-        version4.is_active = False
-        version4.save()
-
-        def _public(when=None):
-            return PollVersion.objects.for_grouper(
-                self.initial_version.content.poll,
-                Q(content__language='en'),
-            ).public(when)
-
-        self.assertEqual(_public(), version2)
-        self.assertEqual(_public(now + timedelta(days=5)), version3)
-        self.assertEqual(_public(now + timedelta(days=13)), version2)
 
     def test_runtime_error_raised_without_grouper_field_override(self):
         version_without_grouper = VersionWithoutGrouperField()

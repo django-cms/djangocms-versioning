@@ -45,37 +45,6 @@ class BaseVersionQuerySet(models.QuerySet):
             ) & Q(is_active=True)
         ).order_by('-created')
 
-    def public(self, when=None):
-        """Returns `Version` considered as public for a given date
-        in `when` (or present time when `when` is omitted).
-
-        Rules used to determine returned version:
-        - start field must be filled and start < `when`
-        - end field is empty
-          (meaning that publication of that version never ends)
-            OR
-          end field > `when`
-        - is_active is True (Version hasn't been disabled)
-        - most recent (in terms of creation) version of the ones meeting
-          above criteria is chosen
-
-        Returned version:
-
-             V1   V2   V3        None   V4
-             |    |    |          |     |
-             v    v    v          v     v
-        V4                            -----
-        V3            -----
-        V2       ----------------
-        V1  -----------------
-
-        ---- - Publication time frame
-               (from `Version` object and related `Campaign` combined)
-        """
-        if when is None:
-            when = localtime()
-        return self._public_qs(when).first()
-
     def distinct_groupers(self):
         """Returns a queryset of `Version` objects with unique
         grouper objects.
@@ -92,7 +61,7 @@ class BaseVersionQuerySet(models.QuerySet):
 
 class BaseVersion(models.Model):
     # Following fields are always copied from original Version
-    COPIED_FIELDS = ['label', 'start', 'end', 'is_active']
+    COPIED_FIELDS = ['label']
 
     label = models.TextField()
     campaigns = models.ManyToManyField(
@@ -100,11 +69,6 @@ class BaseVersion(models.Model):
         blank=True,
     )
     created = models.DateTimeField(auto_now_add=True)
-    start = models.DateTimeField(null=True, blank=True)
-    end = models.DateTimeField(null=True, blank=True)
-
-    # Used to disable versions
-    is_active = models.BooleanField(default=True)
 
     objects = BaseVersionQuerySet.as_manager()
 

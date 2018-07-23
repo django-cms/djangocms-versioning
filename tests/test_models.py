@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.models import Campaign
+# from djangocms_versioning.models import Campaign
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
     Poll,
@@ -14,7 +14,6 @@ from djangocms_versioning.test_utils.polls.models import (
     PollVersion,
     VersionWithoutGrouperField,
 )
-
 
 class ModelsVersioningTestCase(CMSTestCase):
 
@@ -63,18 +62,18 @@ class ModelsVersioningTestCase(CMSTestCase):
             list(new_version.content.answer_set.values_list('pk')),
         )
 
-    def test_campaigns_duplicated(self):
-        campaign_1 = Campaign.objects.create(name='Campaign 1')
-        campaign_2 = Campaign.objects.create(name='Campaign 2')
-        self.initial_version.campaigns.add(campaign_1, campaign_2)
-
-        new_version = self.initial_version.copy()
-
-        self.assertEqual(new_version.campaigns.count(), 2)
-        self.assertEqual(
-            list(self.initial_version.campaigns.all()),
-            list(new_version.campaigns.all())
-        )
+    # def test_campaigns_duplicated(self):
+    #     campaign_1 = Campaign.objects.create(name='Campaign 1')
+    #     campaign_2 = Campaign.objects.create(name='Campaign 2')
+    #     self.initial_version.campaigns.add(campaign_1, campaign_2)
+    #
+    #     new_version = self.initial_version.copy()
+    #
+    #     self.assertEqual(new_version.campaigns.count(), 2)
+    #     self.assertEqual(
+    #         list(self.initial_version.campaigns.all()),
+    #         list(new_version.campaigns.all())
+    #     )
 
     def test_distinct_groupers(self):
         self.initial_version.copy()

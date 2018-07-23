@@ -4,10 +4,10 @@ from django.db.models import Max, Q
 from django.utils.timezone import localtime
 
 
-class Campaign(models.Model):
-    name = models.TextField()
-    start = models.DateTimeField(null=True, blank=True)
-    end = models.DateTimeField(null=True, blank=True)
+# class Campaign(models.Model):
+#     name = models.TextField()
+#     start = models.DateTimeField(null=True, blank=True)
+#     end = models.DateTimeField(null=True, blank=True)
 
 
 class BaseVersionQuerySet(models.QuerySet):
@@ -95,10 +95,10 @@ class BaseVersion(models.Model):
     COPIED_FIELDS = ['label', 'start', 'end', 'is_active']
 
     label = models.TextField()
-    campaigns = models.ManyToManyField(
-        Campaign,
-        blank=True,
-    )
+    # campaigns = models.ManyToManyField(
+    #     Campaign,
+    #     blank=True,
+    # )
     created = models.DateTimeField(auto_now_add=True)
     start = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)

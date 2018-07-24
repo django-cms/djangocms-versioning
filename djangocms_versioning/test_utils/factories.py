@@ -50,6 +50,7 @@ class AnswerFactory(factory.django.DjangoModelFactory):
 
 
 class BlogPostFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=6)
 
     class Meta:
         model = BlogPost
@@ -63,6 +64,8 @@ class BlogPostVersionFactory(factory.django.DjangoModelFactory):
 
 class BlogContentFactory(factory.django.DjangoModelFactory):
     blogpost = factory.SubFactory(BlogPostFactory)
+    language = 'en'
+    text = FuzzyText(length=24)
 
     class Meta:
         model = BlogContent

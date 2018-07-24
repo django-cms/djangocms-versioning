@@ -14,6 +14,7 @@ from djangocms_versioning.test_utils.polls.models import (
     VersionWithoutGrouperField,
 )
 
+
 class ModelsVersioningTestCase(CMSTestCase):
 
     def setUp(self):

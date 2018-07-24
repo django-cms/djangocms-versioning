@@ -123,7 +123,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         with freeze_time('2011-01-06'):
             pc1 = factories.PollContentFactory()
             request = RequestFactory().get('/admin/polls/pollcontent/')
-            model_admin.save_model(request, pc1, None, change=False)
+            model_admin.save_model(request, pc1, form=None, change=False)
             check_obj = PollVersion.objects.get(content=pc1)
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
@@ -133,7 +133,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         model_admin = self._get_admin_class_obj(PollContent)
         pc2 = factories.PollContentFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        model_admin.save_model(request, pc2, None, change=True)
+        model_admin.save_model(request, pc2, form=None, change=True)
         check_obj_exist = PollVersion.objects.filter(content=pc2).exists()
         self.assertFalse(check_obj_exist)
 
@@ -141,7 +141,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         model_admin = self._get_admin_class_obj(BlogContent)
         bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        model_admin.save_model(request, bc1, None, change=False)
+        model_admin.save_model(request, bc1, form=None, change=False)
         check_obj = BlogPostVersion.objects.get(content_id=bc1)
         self.assertTrue(check_obj)
 
@@ -149,7 +149,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         model_admin = self._get_admin_class_obj(BlogContent)
         bc2 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        model_admin.save_model(request, bc2, None, change=True)
+        model_admin.save_model(request, bc2, form=None, change=True)
         check_obj_exist = BlogPostVersion.objects.filter(
             content_id=bc2.id).exists()
         self.assertFalse(check_obj_exist)

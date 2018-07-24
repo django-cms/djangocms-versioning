@@ -107,7 +107,7 @@ class ModelsVersioningTestCase(CMSTestCase):
         )
         self.assertEqual(qs.count(), 1)
 
-    def test_public(self):
+    def test_public_dates(self):
         now = timezone.now()
 
         version2 = self.initial_version.copy()
@@ -128,6 +128,36 @@ class ModelsVersioningTestCase(CMSTestCase):
         self.assertEqual(_public(), version2)
         self.assertEqual(_public(now + timedelta(days=5)), version3)
         self.assertEqual(_public(now + timedelta(days=13)), version2)
+
+    def test_public_campaigns(self):
+        now = timezone.now()
+        version = self.initial_version
+        campaign1 = Campaign.objects.create(
+            name='Summer',
+            start=now + timedelta(days=7),
+            end=now + timedelta(days=14),
+        )
+        campaign2 = Campaign.objects.create(
+            name='Winter',
+            start=now + timedelta(days=28),
+            end=now + timedelta(days=35),
+        )
+        version.start = None
+        version.end = None
+        version.save()
+        version.campaigns.set([campaign1, campaign2])
+
+        def _public(when=None):
+            return PollVersion.objects.for_grouper(
+                version.content.poll,
+                Q(content__language='en'),
+            ).public(when)
+
+        self.assertIsNone(_public())
+        self.assertEqual(_public(now + timedelta(days=8)), version)
+        self.assertIsNone(_public(now + timedelta(days=20)))
+        self.assertEqual(_public(now + timedelta(days=30)), version)
+        self.assertIsNone(_public(now + timedelta(days=40)))
 
     def test_runtime_error_raised_without_grouper_field_override(self):
         version_without_grouper = VersionWithoutGrouperField()

@@ -27,24 +27,6 @@ class BaseVersionQuerySet(models.QuerySet):
             Q((self.model.grouper_field, grouper)),
         )
 
-    def _public_qs(self, when):
-        return self.filter(
-            (
-                Q(start__lte=when) |
-                Q(campaigns__start__lte=when)
-            ) & (
-                Q(end__gte=when) |
-                Q(end__isnull=True) |
-                (
-                    Q(campaigns__isnull=False) &
-                    (
-                        Q(campaigns__end__gte=when) |
-                        Q(campaigns__end__isnull=True)
-                    )
-                )
-            ) & Q(is_active=True)
-        ).order_by('-created')
-
     def distinct_groupers(self):
         """Returns a queryset of `Version` objects with unique
         grouper objects.

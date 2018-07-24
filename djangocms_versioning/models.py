@@ -30,18 +30,10 @@ class BaseVersionQuerySet(models.QuerySet):
     def _public_qs(self, when):
         return self.filter(
             (
-                Q(start__lte=when) |
-                Q(campaigns__start__lte=when)
+                Q(start__lte=when)
             ) & (
                 Q(end__gte=when) |
-                Q(end__isnull=True) |
-                (
-                    Q(campaigns__isnull=False) &
-                    (
-                        Q(campaigns__end__gte=when) |
-                        Q(campaigns__end__isnull=True)
-                    )
-                )
+                Q(end__isnull=True)
             ) & Q(is_active=True)
         ).order_by('-created')
 
@@ -70,7 +62,7 @@ class BaseVersionQuerySet(models.QuerySet):
         V1  -----------------
 
         ---- - Publication time frame
-               (from `Version` object and related `Campaign` combined)
+               (from `Version` object)
         """
         if when is None:
             when = localtime()
@@ -95,10 +87,6 @@ class BaseVersion(models.Model):
     COPIED_FIELDS = ['label', 'start', 'end', 'is_active']
 
     label = models.TextField()
-    # campaigns = models.ManyToManyField(
-    #     Campaign,
-    #     blank=True,
-    # )
     created = models.DateTimeField(auto_now_add=True)
     start = models.DateTimeField(null=True, blank=True)
     end = models.DateTimeField(null=True, blank=True)

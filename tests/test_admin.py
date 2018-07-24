@@ -21,6 +21,7 @@ from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
     BlogPost,
+    BlogPostVersion,
 )
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
@@ -108,54 +109,49 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
 
 class AdminAddVersionTestCase(CMSTestCase):
 
-    def setUp(self):
+    def _get_admin_class_obj(self, content_model):
+        """Helper method to set up a model admin class that derives
+        from VersioningAdminMixin
+        """
         admin_class = type(
-             'PollModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
+            'VersioningModelAdmin', (VersioningAdminMixin, admin.ModelAdmin), {})
         admin_site = admin.AdminSite()
-        self.model_admin = admin_class(model=PollContent, admin_site=admin_site)
+        return admin_class(model=content_model, admin_site=admin_site)
 
     def test_poll_version_is_added_for_change_false(self):
+        model_admin = self._get_admin_class_obj(PollContent)
         with freeze_time('2011-01-06'):
-            p1 = Poll.objects.create(name="p1")
-            pc1 = PollContent.objects.create(text="blah", language="en", poll=p1)
+            pc1 = factories.PollContentFactory()
             request = RequestFactory().get('/admin/polls/pollcontent/')
-            self.model_admin.save_model(request, pc1, None, change=False)
-            check_obj = PollVersion.objects.get(content_id=pc1)
+            model_admin.save_model(request, pc1, form=None, change=False)
+            check_obj = PollVersion.objects.get(content=pc1)
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
             self.assertEqual(check_obj.label, "")
-            self.assertEqual(check_obj.start, None)
-            self.assertEqual(check_obj.end, None)
-            self.assertEqual(check_obj.is_active, True)
 
     def test_poll_version_is_not_added_for_change_true(self):
-        p2 = Poll.objects.create(name="p2")
-        pc2 = PollContent.objects.create(text="no blah blah", language="en", poll=p2)
+        model_admin = self._get_admin_class_obj(PollContent)
+        pc2 = factories.PollContentFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        self.model_admin.save_model(request, pc2, None, change=True)
-        extension = apps.get_app_config('djangocms_versioning').cms_extension
-        version_model_class = extension.content_to_version_models[PollContent]
-        check_obj_exist = version_model_class.objects.filter(content_id=pc2.id).exists()
+        model_admin.save_model(request, pc2, form=None, change=True)
+        check_obj_exist = PollVersion.objects.filter(content=pc2).exists()
         self.assertFalse(check_obj_exist)
 
     def test_blogpost_version_is_added_for_change_false(self):
-        b1 = BlogPost.objects.create(name="b1")
-        bc1 = BlogContent.objects.create(text="blah", language="en", blogpost=b1)
+        model_admin = self._get_admin_class_obj(BlogContent)
+        bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        self.model_admin.save_model(request, bc1, None, change=False)
-        extension = apps.get_app_config('djangocms_versioning').cms_extension
-        version_model_class = extension.content_to_version_models[BlogContent]
-        check_obj = version_model_class.objects.get(content_id=bc1)
+        model_admin.save_model(request, bc1, form=None, change=False)
+        check_obj = BlogPostVersion.objects.get(content_id=bc1)
         self.assertTrue(check_obj)
 
     def test_blogpost_version_is_not_added_for_change_true(self):
-        b2 = BlogPost.objects.create(name="b2")
-        bc2 = BlogContent.objects.create(text="no blah blah", language="en", blogpost=b2)
+        model_admin = self._get_admin_class_obj(BlogContent)
+        bc2 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        self.model_admin.save_model(request, bc2, None, change=True)
-        extension = apps.get_app_config('djangocms_versioning').cms_extension
-        version_model_class = extension.content_to_version_models[BlogContent]
-        check_obj_exist = version_model_class.objects.filter(content_id=bc2.id).exists()
+        model_admin.save_model(request, bc2, form=None, change=True)
+        check_obj_exist = BlogPostVersion.objects.filter(
+            content_id=bc2.id).exists()
         self.assertFalse(check_obj_exist)
 
 

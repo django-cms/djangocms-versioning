@@ -44,7 +44,6 @@ class VersionAdmin(admin.ModelAdmin):
         'pk',
         'content_link',
         'label',
-        'is_active',
     )
     list_display_links = None
     list_select_related = ('content',)

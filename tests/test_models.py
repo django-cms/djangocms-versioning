@@ -7,6 +7,11 @@ from django.utils import timezone
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.models import Campaign
+from djangocms_versioning.test_utils.factories import (
+    AnswerFactory,
+    PollContentWithVersionFactory,
+    PollVersionFactory,
+)
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
     Poll,
@@ -19,23 +24,9 @@ from djangocms_versioning.test_utils.polls.models import (
 class ModelsVersioningTestCase(CMSTestCase):
 
     def setUp(self):
-        self.initial_version = self._create_initial_poll_version('poll 1')
-
-    def _create_initial_poll_version(self, name):
-        poll = Poll.objects.create(name=name)
-        poll_content = PollContent.objects.create(
-            poll=poll, language='en', text='{} - Content'.format(name),
-        )
-        Answer.objects.create(
-            poll_content=poll_content, text='{} - Answer 1'.format(name),
-        )
-        Answer.objects.create(
-            poll_content=poll_content, text='{} - Answer 2'.format(name),
-        )
-        return PollVersion.objects.create(
-            start=timezone.now(),
-            content=poll_content,
-        )
+        self.initial_version = PollVersionFactory()
+        AnswerFactory.create_batch(
+            2, poll_content=self.initial_version.content)
 
     def test_content_object_gets_duplicated(self):
         new_version = self.initial_version.copy()
@@ -78,7 +69,7 @@ class ModelsVersioningTestCase(CMSTestCase):
 
     def test_distinct_groupers(self):
         self.initial_version.copy()
-        poll2_version = self._create_initial_poll_version('poll 2')
+        poll2_version = PollVersionFactory()
         poll2_version.copy()
         poll2_version.copy()
 
@@ -86,7 +77,7 @@ class ModelsVersioningTestCase(CMSTestCase):
 
     def test_for_grouper(self):
         self.initial_version.copy()
-        poll2_version = self._create_initial_poll_version('poll 2')
+        poll2_version = PollVersionFactory()
         poll2_version.copy()
         poll2_version.copy()
 
@@ -97,7 +88,7 @@ class ModelsVersioningTestCase(CMSTestCase):
         version2 = self.initial_version.copy()
         version2.content.language = 'de'
         version2.content.save()
-        poll2_version = self._create_initial_poll_version('poll 2')
+        poll2_version = PollVersionFactory()
         poll2_version.copy()
         poll2_version.copy()
 
@@ -106,28 +97,6 @@ class ModelsVersioningTestCase(CMSTestCase):
             Q(content__language='en'),
         )
         self.assertEqual(qs.count(), 1)
-
-    def test_public(self):
-        now = timezone.now()
-
-        version2 = self.initial_version.copy()
-        version3 = version2.copy()
-        version3.start += timedelta(days=3)
-        version3.end = version3.start + timedelta(days=10)
-        version3.save()
-        version4 = version3.copy()
-        version4.is_active = False
-        version4.save()
-
-        def _public(when=None):
-            return PollVersion.objects.for_grouper(
-                self.initial_version.content.poll,
-                Q(content__language='en'),
-            ).public(when)
-
-        self.assertEqual(_public(), version2)
-        self.assertEqual(_public(now + timedelta(days=5)), version3)
-        self.assertEqual(_public(now + timedelta(days=13)), version2)
 
     def test_runtime_error_raised_without_grouper_field_override(self):
         version_without_grouper = VersionWithoutGrouperField()

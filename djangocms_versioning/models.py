@@ -4,12 +4,6 @@ from django.db.models import Max, Q
 from django.utils.timezone import localtime
 
 
-class Campaign(models.Model):
-    name = models.TextField()
-    start = models.DateTimeField(null=True, blank=True)
-    end = models.DateTimeField(null=True, blank=True)
-
-
 class BaseVersionQuerySet(models.QuerySet):
 
     def for_grouper(self, grouper, extra_filters=None):
@@ -46,10 +40,6 @@ class BaseVersion(models.Model):
     COPIED_FIELDS = ['label']
 
     label = models.TextField()
-    campaigns = models.ManyToManyField(
-        Campaign,
-        blank=True,
-    )
     created = models.DateTimeField(auto_now_add=True)
 
     objects = BaseVersionQuerySet.as_manager()

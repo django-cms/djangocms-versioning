@@ -39,7 +39,7 @@ There are four key terms or classes you need to understand in order to implement
 
 **Grouper** - an object used to group all versions of an object together - mandatory. This will have a one-to-many relationship with *Content*.
 
-**Version** - an object with a one-to-one relation to a single content record - mandatory. This tracks additional information about that version such as start and end dates, as well as foreign key to *Campaign*. You would create this model and it should inherit from *BaseVersion* model included in Versioning models.py
+**Version** - an object with a one-to-one relation to a single content record - mandatory. This tracks additional information about that version such as when it was created. You would create this model and it should inherit from *BaseVersion* model included in Versioning models.py
 
 **Content** - a single versioned object, must have a FK to a *Grouper* object - mandatory. If you are implementing Versioning on an existing content model then this will be that model. All you need to add is the foreign key to your *Grouper* model.
 

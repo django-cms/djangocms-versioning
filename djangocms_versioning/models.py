@@ -3,6 +3,8 @@ from django.db import connections, models
 from django.db.models import Max, Q
 from django.utils.timezone import localtime
 
+from django_fsm import FSMField, transition
+
 
 class BaseVersionQuerySet(models.QuerySet):
 
@@ -41,6 +43,19 @@ class BaseVersion(models.Model):
 
     label = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
+
+    # States
+    ARCHIVED = 'Archived'
+    DRAFT = 'Draft'
+    PUBLISHED = 'Published'
+    UNPUBLISHED = 'Unpublished'
+    STATES = (
+        (DRAFT, 'Draft'),
+        (PUBLISHED, 'Published'),
+        (UNPUBLISHED, 'Unpublished'),
+        (ARCHIVED, 'Archived'),
+    )
+    state = FSMField(default=DRAFT, choices=STATES, protected=True)
 
     objects = BaseVersionQuerySet.as_manager()
 
@@ -135,3 +150,15 @@ class BaseVersion(models.Model):
             getattr(new, field_name).set(objects)
 
         return new
+
+    @transition(field=state, source=DRAFT, target=ARCHIVED)
+    def archive(self):
+        pass
+
+    @transition(field=state, source=DRAFT, target=PUBLISHED)
+    def publish(self):
+        pass
+
+    @transition(field=state, source=[], target=UNPUBLISHED)
+    def unpublish(self):
+        pass

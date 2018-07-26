@@ -2,8 +2,6 @@ import copy
 
 from django.db import models
 
-from djangocms_versioning.models import BaseVersion
-
 
 class Poll(models.Model):
     name = models.TextField()
@@ -27,29 +25,3 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.text
-
-
-class PollVersion(BaseVersion):
-    # Must be specified for Version to be able to filter by that field
-    grouper_field = 'content__poll'
-
-    content = models.OneToOneField(PollContent, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "content_id={} (id={})".format(self.content_id, self.pk)
-
-    def copy_content(self, new):
-        content = copy.deepcopy(self.content)
-        content.pk = None
-        content.save()
-        [
-            Answer.objects.create(
-                text=answer.text,
-                poll_content=content,
-            ) for answer in self.content.answer_set.all()
-        ]
-        return content
-
-
-class VersionWithoutGrouperField(BaseVersion):
-    pass

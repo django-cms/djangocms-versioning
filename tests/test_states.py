@@ -2,9 +2,8 @@ from django_fsm import TransitionNotAllowed
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.models import BaseVersion
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.polls.models import PollVersion
+from djangocms_versioning.models import Version
 
 
 class TestVersionState(CMSTestCase):
@@ -19,7 +18,7 @@ class TestVersionState(CMSTestCase):
         # Not using PollVersionFactory for this as PollVersionFactory
         # could potentially be overriding the value of state and we
         # want to know the default
-        version = PollVersion.objects.create(
+        version = Version.objects.create(
             content=factories.PollContentFactory())
         self.assertEqual(version.state, 'Draft')
 

@@ -1,10 +1,16 @@
 from django.apps import apps
 from django.contrib import admin
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.views.main import ChangeList
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Version
+
+
+GROUPER_PARAM = 'grouper'
 
 
 class VersioningAdminMixin:
@@ -28,6 +34,33 @@ class VersioningAdminMixin:
         return queryset.filter(pk__in=latest_versions.values('object_id'))
 
 
+class VersionChangeList(ChangeList):
+
+    def get_filters_params(self, params=None):
+        params = super().get_filters_params(params)
+        params.pop(GROUPER_PARAM, None)
+        return params
+
+    def get_queryset(self, request):
+        grouper = request.GET.get(GROUPER_PARAM)
+        content_type_id = request.GET.get('content_type_id')
+        try:
+            content_type = ContentType.objects.get(pk=content_type_id)
+            model = content_type.model_class()
+        except (ContentType.DoesNotExist, ValueError):
+            raise IncorrectLookupParameters("Invalid content_type_id")
+        qs = super().get_queryset(request)
+        if grouper is None:
+            return qs
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables.contents[model]
+        object_ids = model.objects.filter(**{versionable.grouper_field.name: grouper})
+        return qs.filter(
+            object_id__in=object_ids,
+        )
+
+
 @admin.register(Version)
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
@@ -45,6 +78,9 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('content')
+
+    def get_changelist(self, request, **kwargs):
+        return VersionChangeList
 
     def content_link(self, obj):
         content = obj.content

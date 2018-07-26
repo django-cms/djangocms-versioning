@@ -1,9 +1,8 @@
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import connections, models
+from django.db import models
 from django.db.models import Max, Q
-from django.utils.timezone import localtime
 
 from django_fsm import FSMField, transition
 
@@ -70,7 +69,6 @@ class Version(models.Model):
         (ARCHIVED, 'Archived'),
     )
     state = FSMField(default=DRAFT, choices=STATES, protected=True)
-
 
     def _copy_function_factory(self, field):
         """

@@ -4,10 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppExtension
 
-from .helpers import (
-    register_version_admin_for_models,
-    replace_admin_for_models,
-)
+from .helpers import replace_admin_for_models
 from .versionable import VersionableList
 
 

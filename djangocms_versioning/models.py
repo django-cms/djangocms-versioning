@@ -159,6 +159,6 @@ class BaseVersion(models.Model):
     def publish(self):
         pass
 
-    @transition(field=state, source=[], target=UNPUBLISHED)
+    @transition(field=state, source=PUBLISHED, target=UNPUBLISHED)
     def unpublish(self):
         pass

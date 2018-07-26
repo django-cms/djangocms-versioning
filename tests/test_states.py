@@ -37,3 +37,33 @@ class TestVersionState(CMSTestCase):
         version = factories.PollVersionFactory(state='Draft')
         with self.assertRaises(TransitionNotAllowed):
             version.unpublish()
+
+    def test_archived_cant_change_to_published(self):
+        version = factories.PollVersionFactory(state='Archived')
+        with self.assertRaises(TransitionNotAllowed):
+            version.publish()
+
+    def test_archived_cant_change_to_unpublished(self):
+        version = factories.PollVersionFactory(state='Archived')
+        with self.assertRaises(TransitionNotAllowed):
+            version.unpublish()
+
+    def test_published_can_change_to_unpublished(self):
+        version = factories.PollVersionFactory(state='Published')
+        version.unpublish()
+        self.assertEqual(version.state, 'Unpublished')
+
+    def test_published_cant_change_to_archived(self):
+        version = factories.PollVersionFactory(state='Published')
+        with self.assertRaises(TransitionNotAllowed):
+            version.archive()
+
+    def test_unpublished_cant_change_to_published(self):
+        version = factories.PollVersionFactory(state='Unpublished')
+        with self.assertRaises(TransitionNotAllowed):
+            version.publish()
+
+    def test_unpublished_cant_change_to_archived(self):
+        version = factories.PollVersionFactory(state='Unpublished')
+        with self.assertRaises(TransitionNotAllowed):
+            version.archive()

@@ -30,8 +30,9 @@ class VersioningAdminMixin:
         """Limit query to most recent content versions
         """
         queryset = super().get_queryset(request)
-        latest_versions = Version.objects.distinct_groupers(queryset.model)
-        return queryset.filter(pk__in=latest_versions.values('object_id'))
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables.by_content[queryset.model]
+        return queryset.filter(pk__in=versionable.distinct_groupers())
 
 
 class VersionChangeList(ChangeList):
@@ -42,7 +43,10 @@ class VersionChangeList(ChangeList):
         return params
 
     def get_queryset(self, request):
-        grouper = request.GET.get(GROUPER_PARAM)
+        try:
+            grouper = int(request.GET.get(GROUPER_PARAM))
+        except (TypeError, ValueError):
+            raise IncorrectLookupParameters("Invalid grouper")
         content_type_id = request.GET.get('content_type_id')
         try:
             content_type = ContentType.objects.get(pk=content_type_id)
@@ -52,9 +56,8 @@ class VersionChangeList(ChangeList):
         qs = super().get_queryset(request)
         if grouper is None:
             return qs
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables.contents[model]
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables.by_content[model]
         object_ids = model.objects.filter(**{versionable.grouper_field.name: grouper})
         return qs.filter(
             object_id__in=object_ids,

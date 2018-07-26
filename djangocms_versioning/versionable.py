@@ -1,4 +1,5 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Max
 
 
 class Versionable:
@@ -42,9 +43,22 @@ class Versionable:
 
         return grouper_field
 
+    def distinct_groupers(self):
+        """Returns a queryset of `self.content` objects with unique
+        grouper objects.
+
+        Useful for listing, e.g. all Polls.
+        """
+        inner = self.content.objects.values(
+            self.grouper_field.name,
+        ).annotate(Max('pk')).values('pk__max')
+        return self.content.objects.filter(
+            id__in=inner,
+        )
+
 
 class VersionableList(list):
 
     @property
-    def contents(self):
+    def by_content(self):
         return {versionable.content: versionable for versionable in self}

@@ -37,7 +37,7 @@ class VersioningCMSExtension(CMSAppExtension):
         with an admin model class that inherits from VersioningAdminMixin.
         Registers admin model class for all provided versioning models.
         """
-        replace_admin_for_models(cms_config.versioning.contents.keys())
+        replace_admin_for_models(cms_config.versioning.by_content.keys())
 
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)

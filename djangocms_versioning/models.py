@@ -1,9 +1,8 @@
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import connections, models
-from django.db.models import Max, Q
-from django.utils.timezone import localtime
+from django.db import models
+from django.db.models import Q
 
 
 class VersionQuerySet(models.QuerySet):
@@ -23,20 +22,6 @@ class VersionQuerySet(models.QuerySet):
             Q(extra_filters) &
             Q((self.model.grouper_field, grouper)),
         )
-
-    def distinct_groupers(self, content_model):
-        """Returns a queryset of `Version` objects with unique
-        grouper objects.
-
-        Useful for listing, e.g. all Polls.
-        """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables.contents[content_model]
-        ctype = ContentType.objects.get_for_model(content_model)
-        inner = content_model.objects.values(versionable.grouper_field.name).annotate(
-            Max('pk')).values('pk__max')
-        return self.filter(content_type=ctype, object_id__in=inner)
 
 
 class Version(models.Model):

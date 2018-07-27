@@ -1,8 +1,22 @@
 import factory
 from factory.fuzzy import FuzzyText
 
-from .blogpost.models import BlogContent, BlogPost, BlogPostVersion
-from .polls.models import Answer, Poll, PollContent, PollVersion
+from django.contrib.contenttypes.models import ContentType
+
+from djangocms_versioning.models import Version
+
+from .blogpost.models import BlogContent, BlogPost
+from .polls.models import Answer, Poll, PollContent
+
+
+class AbstractVersionFactory(factory.DjangoModelFactory):
+    object_id = factory.SelfAttribute('content.id')
+    content_type = factory.LazyAttribute(
+        lambda o: ContentType.objects.get_for_model(o.content))
+
+    class Meta:
+        exclude = ['content']
+        abstract = True
 
 
 class PollFactory(factory.django.DjangoModelFactory):
@@ -21,11 +35,11 @@ class PollContentFactory(factory.django.DjangoModelFactory):
         model = PollContent
 
 
-class PollVersionFactory(factory.django.DjangoModelFactory):
+class PollVersionFactory(AbstractVersionFactory):
     content = factory.SubFactory(PollContentFactory)
 
     class Meta:
-        model = PollVersion
+        model = Version
 
 
 class PollContentWithVersionFactory(PollContentFactory):
@@ -56,12 +70,6 @@ class BlogPostFactory(factory.django.DjangoModelFactory):
         model = BlogPost
 
 
-class BlogPostVersionFactory(factory.django.DjangoModelFactory):
-
-    class Meta:
-        model = BlogPostVersion
-
-
 class BlogContentFactory(factory.django.DjangoModelFactory):
     blogpost = factory.SubFactory(BlogPostFactory)
     language = 'en'
@@ -69,6 +77,13 @@ class BlogContentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = BlogContent
+
+
+class BlogPostVersionFactory(AbstractVersionFactory):
+    content = factory.SubFactory(BlogContentFactory)
+
+    class Meta:
+        model = Version
 
 
 class BlogContentWithVersionFactory(BlogContentFactory):

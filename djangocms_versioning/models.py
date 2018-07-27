@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -152,13 +153,28 @@ class Version(models.Model):
         return new
 
     @transition(field=state, source=DRAFT, target=ARCHIVED)
-    def archive(self):
+    def archive(self, user):
         """Change state to ARCHIVED"""
+        StateTracking.objects.create(
+            version=self, old_state=self.DRAFT, new_state=self.ARCHIVED, user=user)
 
     @transition(field=state, source=DRAFT, target=PUBLISHED)
-    def publish(self):
+    def publish(self, user):
         """Change state to PUBLISHED"""
+        StateTracking.objects.create(
+            version=self, old_state=self.DRAFT, new_state=self.PUBLISHED, user=user)
 
     @transition(field=state, source=PUBLISHED, target=UNPUBLISHED)
-    def unpublish(self):
+    def unpublish(self, user):
         """Change state to UNPUBLISHED"""
+        StateTracking.objects.create(
+            version=self, old_state=self.PUBLISHED, new_state=self.UNPUBLISHED, user=user)
+
+
+class StateTracking(models.Model):
+    version = models.ForeignKey(Version, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    old_state = models.CharField(max_length=100, choices=Version.STATES)
+    new_state = models.CharField(max_length=100, choices=Version.STATES)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

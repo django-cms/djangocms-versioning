@@ -1,6 +1,7 @@
 import factory
 from factory.fuzzy import FuzzyText
 
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
 from djangocms_versioning.models import Version
@@ -96,3 +97,9 @@ class BlogContentWithVersionFactory(BlogContentFactory):
             # Simple build, do nothing.
             return
         BlogPostVersionFactory(content=self, **kwargs)
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = User

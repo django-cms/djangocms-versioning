@@ -27,7 +27,6 @@ class VersioningCMSExtension(CMSAppExtension):
         if not isinstance(cms_config.versioning, collections.abc.Iterable):
             raise ImproperlyConfigured(
                 "versioning not defined as a list")
-        cms_config.versioning = VersionableList(cms_config.versioning)
         # If no exceptions raised, we can now add the versioned models
         # into our masterlist
         self.versionables.extend(cms_config.versioning)
@@ -37,7 +36,9 @@ class VersioningCMSExtension(CMSAppExtension):
         with an admin model class that inherits from VersioningAdminMixin.
         Registers admin model class for all provided versioning models.
         """
-        replace_admin_for_models(cms_config.versioning.by_content.keys())
+        replace_admin_for_models(
+            VersionableList(cms_config.versioning).by_content.keys(),
+        )
 
     def configure_app(self, cms_config):
         self.handle_versioning_models_setting(cms_config)

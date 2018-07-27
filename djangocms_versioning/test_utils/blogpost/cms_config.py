@@ -12,4 +12,8 @@ class BlogpostCMSConfig(CMSAppConfig):
             grouper=BlogPost,
             content=BlogContent,
         ),
+        Versionable(
+            grouper=BlogPost,
+            content=Comment,
+        ),
     ]

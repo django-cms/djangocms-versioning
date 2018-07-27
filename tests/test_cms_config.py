@@ -10,93 +10,72 @@ from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
+from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
-    BlogPostVersion,
+    BlogPost,
     Comment,
-    CommentVersion,
 )
+from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
+    Poll,
     PollContent,
-    PollVersion,
 )
+from djangocms_versioning.versionable import Versionable, VersionableList
 
 
 class CMSConfigUnitTestCase(CMSTestCase):
 
     def test_missing_cms_config_attribute(self):
         """
-        Tests, if the versioning_models attribute has not been specified,
+        Tests, if the versioning attribute has not been specified,
         an ImproperlyConfigured exception is raised
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True)
         with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_models_setting(cms_config)
+            extensions.handle_versioning_setting(cms_config)
 
-    def test_raises_exception_if_versioning_models_not_iterable(self):
+    def test_raises_exception_if_versioning_not_iterable(self):
         """Tests ImproperlyConfigured exception is raised if
-        versioning_models setting is not an iterable
-        """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(spec=[],
-                          djangocms_versioning_enabled=True,
-                          versioning_models=PollVersion)
-        with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_models_setting(cms_config)
-
-    def test_raises_exception_if_not_a_class(self):
-        """Tests ImproperlyConfigured exception is raised if elements
-        in the versioning_models list are not classes
-        """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(spec=[],
-                          djangocms_versioning_enabled=True,
-                          versioning_models=['aaa', {}])
-        with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_models_setting(cms_config)
-
-    def test_raises_exception_if_doesnt_inherit_from_base_version(self):
-        """Tests ImproperlyConfigured exception is raised if elements
-        in the versioning_models list do not inherit from BaseVersion
-        """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(spec=[],
-                          djangocms_versioning_enabled=True,
-                          versioning_models=[PollContent])
-        with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_models_setting(cms_config)
-
-    def test_versioning_models_list_created(self):
-        """Test handle_versioning_models_setting method adds all the
-        models into the _versioning_models list
+        versioning setting is not an iterable
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning_models=[PollVersion, BlogPostVersion]
+            versioning=Versionable(grouper=Poll, content=PollContent)
         )
-        extensions.handle_versioning_models_setting(cms_config)
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_setting(cms_config)
+
+    def test_raises_exception_if_not_versionable_class(self):
+        """Tests ImproperlyConfigured exception is raised if elements
+        in the versioning list are not instances of Versionable classes
+        """
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(spec=[],
+                          djangocms_versioning_enabled=True,
+                          versioning=['aaa', {}])
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_setting(cms_config)
+
+    def test_versionables_list_created(self):
+        """Test handle_versioning_setting method adds all the
+        models into the versionables list
+        """
+        extension = VersioningCMSExtension()
+        poll_versionable = Versionable(grouper=Poll, content=PollContent)
+        blog_versionable = Versionable(grouper=BlogPost, content=BlogContent)
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable, blog_versionable]
+        )
+        extension.handle_versioning_setting(cms_config)
         self.assertListEqual(
-            extensions.version_models, [PollVersion, BlogPostVersion])
-
-    def test_content_to_version_model_dict_created(self):
-        """Test handle_versioning_models_setting method creates a
-        dictionary which tells us what the versioning model is for each
-        registered content model
-        """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(
-            spec=[],
-            djangocms_versioning_enabled=True,
-            versioning_models=[PollVersion, BlogPostVersion]
-        )
-        extensions.handle_versioning_models_setting(cms_config)
-        self.assertDictEqual(
-            extensions.content_to_version_models,
-            {PollContent: PollVersion, BlogContent: BlogPostVersion})
+            extension.versionables, [poll_versionable, blog_versionable])
 
     def test_handle_content_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class
@@ -105,27 +84,12 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[], djangocms_versioning_enabled=True,
-            versioning_models=[PollVersion])
+            versioning=VersionableList([Versionable(grouper=Poll, content=PollContent)]))
         extensions.handle_admin_classes(cms_config)
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
             VersioningAdminMixin,
             admin.site._registry[PollContent].__class__.mro()
-        )
-
-    def test_handle_admin_classes_versionadmin(self):
-        """Test handle_admin_classes registers admin model class for
-        specified version models
-        """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(
-            spec=[], djangocms_versioning_enabled=True,
-            versioning_models=[PollVersion])
-        extensions.handle_admin_classes(cms_config)
-        self.assertIn(PollVersion, admin.site._registry)
-        self.assertIn(
-            VersionAdmin,
-            admin.site._registry[PollVersion].__class__.mro()
         )
 
 
@@ -139,31 +103,18 @@ class VersioningIntegrationTestCase(CMSTestCase):
         get_cms_extension_apps.cache_clear()
         get_cms_config_apps.cache_clear()
 
-    def test_all_version_models_added(self):
+    def test_all_versionables_collected(self):
         """Check that all version models defined in cms_config.py
         are collected into a list
         """
         setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
-        versions_collected = app.cms_extension.version_models
+        poll_versionable = PollsCMSConfig.versioning[0]
+        blog_versionable = BlogpostCMSConfig.versioning[0]
+        comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
-            versions_collected,
-            [PollVersion, BlogPostVersion, CommentVersion]
-        )
-
-    def test_content_to_version_dict_created(self):
-        """Check that we create a dictionary which tells us what
-        the versioning model is for each registered content model
-        """
-        setup_cms_apps()  # discover and run all cms_config.py files
-        app = apps.get_app_config('djangocms_versioning')
-        self.assertDictEqual(
-            app.cms_extension.content_to_version_models,
-            {
-                PollContent: PollVersion,
-                BlogContent: BlogPostVersion,
-                Comment: CommentVersion
-            }
+            app.cms_extension.versionables,
+            [poll_versionable, blog_versionable, comment_versionable]
         )
 
     def test_admin_classes_reregistered(self):
@@ -188,27 +139,3 @@ class VersioningIntegrationTestCase(CMSTestCase):
         # (they are defined in cms_config.py but are not registered
         # to the admin)
         self.assertNotIn(Comment, admin.site._registry)
-
-    def test_version_admin_classes_registered(self):
-        """Integration test that all version models provided are registered
-        with the admin using VersionAdmin
-        """
-        setup_cms_apps()  # discover and run all cms_config.py files
-        # Check PollVersion has had its admin class registered
-        self.assertIn(PollVersion, admin.site._registry)
-        self.assertIn(
-            VersionAdmin,
-            admin.site._registry[PollVersion].__class__.mro()
-        )
-        # Check BlogPostVersion has had its admin class registered
-        self.assertIn(BlogPostVersion, admin.site._registry)
-        self.assertIn(
-            VersionAdmin,
-            admin.site._registry[BlogPostVersion].__class__.mro()
-        )
-        # Check CommentVersion has had its admin class registered
-        self.assertIn(CommentVersion, admin.site._registry)
-        self.assertIn(
-            VersionAdmin,
-            admin.site._registry[CommentVersion].__class__.mro()
-        )

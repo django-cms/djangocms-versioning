@@ -153,12 +153,12 @@ class Version(models.Model):
 
     @transition(field=state, source=DRAFT, target=ARCHIVED)
     def archive(self):
-        pass
+        """Change state to ARCHIVED"""
 
     @transition(field=state, source=DRAFT, target=PUBLISHED)
     def publish(self):
-        pass
+        """Change state to PUBLISHED"""
 
     @transition(field=state, source=PUBLISHED, target=UNPUBLISHED)
     def unpublish(self):
-        pass
+        """Change state to UNPUBLISHED"""

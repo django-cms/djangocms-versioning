@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('label', models.TextField()),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('object_id', models.PositiveIntegerField()),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
+                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
             ],
         ),
     ]

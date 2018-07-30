@@ -31,7 +31,7 @@ class Version(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(
         ContentType,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
     )
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')

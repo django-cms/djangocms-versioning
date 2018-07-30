@@ -1,8 +1,8 @@
 from cms.app_base import CMSAppConfig
 
-from djangocms_versioning import Versionable
+from djangocms_versioning.versionable import Versionable
 
-from .models import BlogPost, BlogContent, Comment
+from .models import BlogContent, BlogPost, CommentContent
 
 
 class BlogpostCMSConfig(CMSAppConfig):
@@ -14,6 +14,6 @@ class BlogpostCMSConfig(CMSAppConfig):
         ),
         Versionable(
             grouper=BlogPost,
-            content=Comment,
-        )
+            content=CommentContent,
+        ),
     ]

@@ -17,8 +17,7 @@ class BlogContent(models.Model):
         return self.text
 
 
-class Comment(models.Model):
-    # NOTE: The BlogPost model is technically the grouper for comments
+class CommentContent(models.Model):
     blogpost = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
     text = models.TextField()
 

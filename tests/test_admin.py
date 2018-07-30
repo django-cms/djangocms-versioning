@@ -139,12 +139,12 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_blogpost_version_is_added_for_change_false(self):
         model_admin = self._get_admin_class_obj(BlogContent)
-        pc2 = factories.BlogContentFactory()
+        bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        model_admin.save_model(request, pc2, form=None, change=False)
+        model_admin.save_model(request, bc1, form=None, change=False)
         check_obj_exist = Version.objects.filter(
-            content_type=ContentType.objects.get_for_model(pc2),
-            object_id=pc2.pk).exists()
+            content_type=ContentType.objects.get_for_model(bc1),
+            object_id=bc1.pk).exists()
         self.assertTrue(check_obj_exist)
 
     def test_blogpost_version_is_not_added_for_change_true(self):

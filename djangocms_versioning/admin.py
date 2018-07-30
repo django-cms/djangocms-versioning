@@ -58,7 +58,7 @@ class VersionChangeList(ChangeList):
             return qs
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         versionable = versioning_extension.versionables_by_content[model]
-        object_ids = model.objects.filter(**{versionable.grouper_field.name: grouper})
+        object_ids = versionable.for_grouper(grouper)
         return qs.filter(object_id__in=object_ids)
 
 

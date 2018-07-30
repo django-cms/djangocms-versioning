@@ -31,11 +31,9 @@ class Version(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(
         ContentType,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
     )
-    object_id = models.PositiveIntegerField(blank=True, null=True)
+    object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')
 
     objects = VersionQuerySet.as_manager()

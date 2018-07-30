@@ -4,14 +4,18 @@ from django.core.exceptions import ImproperlyConfigured
 
 from cms.app_base import CMSAppExtension
 
+from .datastructures import VersionableItem
 from .helpers import replace_admin_for_models
-from .versionable import Versionable, VersionableList
 
 
 class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
-        self.versionables = VersionableList()
+        self.versionables = []
+
+    @property
+    def versionables_by_content(self):
+        return {versionable.content_model: versionable for versionable in self.versionables}
 
     def handle_versioning_setting(self, cms_config):
         """Check the versioning setting has been correctly set
@@ -25,9 +29,9 @@ class VersioningCMSExtension(CMSAppExtension):
             raise ImproperlyConfigured(
                 "versioning not defined as an iterable")
         for versionable in cms_config.versioning:
-            if not isinstance(versionable, Versionable):
+            if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
-                    "{!r} is not a subclass of djangocms_versioning.Versionable".format(versionable))
+                    "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
         # If no exceptions raised, we can now add the versioned models
         # into our masterlist
         self.versionables.extend(cms_config.versioning)
@@ -38,7 +42,7 @@ class VersioningCMSExtension(CMSAppExtension):
         Registers admin model class for all provided versioning models.
         """
         replace_admin_for_models(
-            VersionableList(cms_config.versioning).by_content.keys(),
+            [versionable.content_model for versionable in cms_config.versioning],
         )
 
     def configure_app(self, cms_config):

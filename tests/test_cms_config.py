@@ -10,6 +10,7 @@ from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
+from djangocms_versioning.datastructures import VersionableItem
 from djangocms_versioning.test_utils.blogpost.cms_config import (
     BlogpostCMSConfig,
 )
@@ -20,7 +21,6 @@ from djangocms_versioning.test_utils.blogpost.models import (
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
-from djangocms_versioning.versionable import Versionable, VersionableList
 
 
 class CMSConfigUnitTestCase(CMSTestCase):
@@ -44,14 +44,14 @@ class CMSConfigUnitTestCase(CMSTestCase):
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning=Versionable(grouper=Poll, content=PollContent)
+            versioning=VersionableItem(content_model=PollContent, grouper_field_name='poll')
         )
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_setting(cms_config)
 
     def test_raises_exception_if_not_versionable_class(self):
         """Tests ImproperlyConfigured exception is raised if elements
-        in the versioning list are not instances of Versionable classes
+        in the versioning list are not instances of VersionableItem classes
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
@@ -65,8 +65,8 @@ class CMSConfigUnitTestCase(CMSTestCase):
         models into the versionables list
         """
         extension = VersioningCMSExtension()
-        poll_versionable = Versionable(grouper=Poll, content=PollContent)
-        blog_versionable = Versionable(grouper=BlogPost, content=BlogContent)
+        poll_versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
+        blog_versionable = VersionableItem(content_model=BlogContent, grouper_field_name='blogpost')
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
@@ -83,7 +83,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[], djangocms_versioning_enabled=True,
-            versioning=VersionableList([Versionable(grouper=Poll, content=PollContent)]))
+            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
         extensions.handle_admin_classes(cms_config)
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
@@ -110,10 +110,9 @@ class VersioningIntegrationTestCase(CMSTestCase):
         app = apps.get_app_config('djangocms_versioning')
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
-        comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [poll_versionable, blog_versionable, comment_versionable]
+            [poll_versionable, blog_versionable]
         )
 
     def test_admin_classes_reregistered(self):

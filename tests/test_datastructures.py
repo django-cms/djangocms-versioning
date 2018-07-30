@@ -3,7 +3,6 @@ from django.db.models import Q
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.datastructures import VersionableItem
-from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import (
     AnswerFactory,
     PollVersionFactory,

@@ -1,7 +1,7 @@
+from django.contrib.contenttypes.models import ContentType
+
 import factory
 from factory.fuzzy import FuzzyText
-
-from django.contrib.contenttypes.models import ContentType
 
 from djangocms_versioning.models import Version
 

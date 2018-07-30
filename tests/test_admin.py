@@ -12,11 +12,11 @@ from freezegun import freeze_time
 
 import djangocms_versioning.helpers
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.models import Version
 from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
+from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.models import (

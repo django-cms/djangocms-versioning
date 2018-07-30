@@ -10,17 +10,16 @@ from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
-from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
+from djangocms_versioning.test_utils.blogpost.cms_config import (
+    BlogpostCMSConfig,
+)
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
     BlogPost,
     Comment,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import (
-    Poll,
-    PollContent,
-)
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 from djangocms_versioning.versionable import Versionable, VersionableList
 
 

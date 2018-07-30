@@ -5,6 +5,8 @@ from django.db.models import Q
 
 from django_fsm import FSMField, transition
 
+from . import constants
+
 
 class VersionQuerySet(models.QuerySet):
 
@@ -39,21 +41,10 @@ class Version(models.Model):
     )
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content = GenericForeignKey('content_type', 'object_id')
+    state = FSMField(
+        default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
     objects = VersionQuerySet.as_manager()
-
-    # States
-    ARCHIVED = 'Archived'
-    DRAFT = 'Draft'
-    PUBLISHED = 'Published'
-    UNPUBLISHED = 'Unpublished'
-    STATES = (
-        (DRAFT, 'Draft'),
-        (PUBLISHED, 'Published'),
-        (UNPUBLISHED, 'Unpublished'),
-        (ARCHIVED, 'Archived'),
-    )
-    state = FSMField(default=DRAFT, choices=STATES, protected=True)
 
     def _copy_function_factory(self, field):
         """
@@ -136,14 +127,14 @@ class Version(models.Model):
 
         return new
 
-    @transition(field=state, source=DRAFT, target=ARCHIVED)
+    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def archive(self):
         """Change state to ARCHIVED"""
 
-    @transition(field=state, source=DRAFT, target=PUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
     def publish(self):
         """Change state to PUBLISHED"""
 
-    @transition(field=state, source=PUBLISHED, target=UNPUBLISHED)
+    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
     def unpublish(self):
         """Change state to UNPUBLISHED"""

@@ -38,9 +38,9 @@ class VersioningAdminMixin:
 class VersionChangeList(ChangeList):
 
     def get_filters_params(self, params=None):
-        params = super().get_filters_params(params)
-        params.pop(GROUPER_PARAM, None)
-        return params
+        lookup_params = super().get_filters_params(params)
+        lookup_params.pop(GROUPER_PARAM, None)
+        return lookup_params
 
     def get_queryset(self, request):
         try:

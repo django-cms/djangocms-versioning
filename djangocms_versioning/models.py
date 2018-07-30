@@ -1,11 +1,12 @@
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Max, Q
+from django.db.models import Q
 
 from django_fsm import FSMField, transition
+
+from . import constants
 
 
 class VersionQuerySet(models.QuerySet):
@@ -26,20 +27,6 @@ class VersionQuerySet(models.QuerySet):
             Q((self.model.grouper_field, grouper)),
         )
 
-    def distinct_groupers(self, content_model):
-        """Returns a queryset of `Version` objects with unique
-        grouper objects.
-
-        Useful for listing, e.g. all Polls.
-        """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables.contents[content_model]
-        ctype = ContentType.objects.get_for_model(content_model)
-        inner = content_model.objects.values(versionable.grouper_field.name).annotate(
-            Max('pk')).values('pk__max')
-        return self.filter(content_type=ctype, object_id__in=inner)
-
 
 class Version(models.Model):
     # Following fields are always copied from original Version
@@ -55,21 +42,10 @@ class Version(models.Model):
     )
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content = GenericForeignKey('content_type', 'object_id')
+    state = FSMField(
+        default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
     objects = VersionQuerySet.as_manager()
-
-    # States
-    ARCHIVED = 'Archived'
-    DRAFT = 'Draft'
-    PUBLISHED = 'Published'
-    UNPUBLISHED = 'Unpublished'
-    STATES = (
-        (DRAFT, 'Draft'),
-        (PUBLISHED, 'Published'),
-        (UNPUBLISHED, 'Unpublished'),
-        (ARCHIVED, 'Archived'),
-    )
-    state = FSMField(default=DRAFT, choices=STATES, protected=True)
 
     def _copy_function_factory(self, field):
         """
@@ -152,29 +128,43 @@ class Version(models.Model):
 
         return new
 
-    @transition(field=state, source=DRAFT, target=ARCHIVED)
+    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def archive(self, user):
         """Change state to ARCHIVED"""
         StateTracking.objects.create(
-            version=self, old_state=self.DRAFT, new_state=self.ARCHIVED, user=user)
+            version=self,
+            old_state=constants.DRAFT,
+            new_state=constants.ARCHIVED,
+            user=user
+        )
 
-    @transition(field=state, source=DRAFT, target=PUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
     def publish(self, user):
         """Change state to PUBLISHED"""
         StateTracking.objects.create(
-            version=self, old_state=self.DRAFT, new_state=self.PUBLISHED, user=user)
+            version=self,
+            old_state=constants.DRAFT,
+            new_state=constants.PUBLISHED,
+            user=user
+        )
 
-    @transition(field=state, source=PUBLISHED, target=UNPUBLISHED)
+    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
         StateTracking.objects.create(
-            version=self, old_state=self.PUBLISHED, new_state=self.UNPUBLISHED, user=user)
+            version=self,
+            old_state=constants.PUBLISHED,
+            new_state=constants.UNPUBLISHED,
+            user=user
+        )
 
 
 class StateTracking(models.Model):
     version = models.ForeignKey(Version, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    old_state = models.CharField(max_length=100, choices=Version.STATES)
-    new_state = models.CharField(max_length=100, choices=Version.STATES)
+    old_state = models.CharField(
+        max_length=100, choices=constants.VERSION_STATES)
+    new_state = models.CharField(
+        max_length=100, choices=constants.VERSION_STATES)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

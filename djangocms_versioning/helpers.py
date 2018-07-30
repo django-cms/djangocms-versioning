@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .admin import VersionAdmin, VersioningAdminMixin
+from .admin import VersioningAdminMixin
 
 
 def versioning_admin_factory(admin_class):
@@ -43,15 +43,3 @@ def replace_admin_for_models(models, admin_site=None):
         except KeyError:
             continue
         _replace_admin_for_model(modeladmin, admin_site)
-
-
-def register_version_admin_for_models(models, admin_site=None):
-    """
-    :param models: List of model classes
-    :param admin_site: AdminSite instance
-    """
-    if admin_site is None:
-        admin_site = admin.site
-    for model in models:
-        if model not in admin_site._registry:
-            admin_site.register(model, VersionAdmin)

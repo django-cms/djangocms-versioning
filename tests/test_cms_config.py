@@ -16,11 +16,10 @@ from djangocms_versioning.test_utils.blogpost.cms_config import (
 )
 from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
-    BlogPost,
     Comment,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+from djangocms_versioning.test_utils.polls.models import PollContent
 
 
 class CMSConfigUnitTestCase(CMSTestCase):

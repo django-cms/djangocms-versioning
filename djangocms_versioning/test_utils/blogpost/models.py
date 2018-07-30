@@ -17,8 +17,15 @@ class BlogContent(models.Model):
         return self.text
 
 
-class CommentContent(models.Model):
+class Comment(models.Model):
     blogpost = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.pk)
+
+
+class CommentContent(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
     text = models.TextField()
 
     def __str__(self):

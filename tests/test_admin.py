@@ -121,7 +121,8 @@ class AdminAddVersionTestCase(CMSTestCase):
             model_admin.save_model(request, pc1, form=None, change=False)
             check_obj = Version.objects.get(
                 content_type=ContentType.objects.get_for_model(pc1),
-                object_id=pc1.pk)
+                object_id=pc1.pk,
+            )
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
             self.assertEqual(check_obj.label, "")

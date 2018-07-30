@@ -1,8 +1,8 @@
 import datetime
 from unittest.mock import patch
 
-from django.apps import apps
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 
 from cms.test_utils.testcases import CMSTestCase
@@ -13,21 +13,16 @@ from freezegun import freeze_time
 import djangocms_versioning.helpers
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.helpers import (
-    register_version_admin_for_models,
     replace_admin_for_models,
     versioning_admin_factory,
 )
+from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.models import (
-    BlogContent,
-    BlogPost,
-    BlogPostVersion,
-)
+from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
     Poll,
     PollContent,
-    PollVersion,
 )
 
 
@@ -124,7 +119,9 @@ class AdminAddVersionTestCase(CMSTestCase):
             pc1 = factories.PollContentFactory()
             request = RequestFactory().get('/admin/polls/pollcontent/')
             model_admin.save_model(request, pc1, form=None, change=False)
-            check_obj = PollVersion.objects.get(content=pc1)
+            check_obj = Version.objects.get(
+                content_type=ContentType.objects.get_for_model(pc1),
+                object_id=pc1.pk)
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
             self.assertEqual(check_obj.label, "")
@@ -134,24 +131,29 @@ class AdminAddVersionTestCase(CMSTestCase):
         pc2 = factories.PollContentFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
         model_admin.save_model(request, pc2, form=None, change=True)
-        check_obj_exist = PollVersion.objects.filter(content=pc2).exists()
+        check_obj_exist = Version.objects.filter(
+            content_type=ContentType.objects.get_for_model(pc2),
+            object_id=pc2.pk).exists()
         self.assertFalse(check_obj_exist)
 
     def test_blogpost_version_is_added_for_change_false(self):
         model_admin = self._get_admin_class_obj(BlogContent)
-        bc1 = factories.BlogContentFactory()
+        pc2 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        model_admin.save_model(request, bc1, form=None, change=False)
-        check_obj = BlogPostVersion.objects.get(content_id=bc1)
-        self.assertTrue(check_obj)
+        model_admin.save_model(request, pc2, form=None, change=False)
+        check_obj_exist = Version.objects.filter(
+            content_type=ContentType.objects.get_for_model(pc2),
+            object_id=pc2.pk).exists()
+        self.assertTrue(check_obj_exist)
 
     def test_blogpost_version_is_not_added_for_change_true(self):
         model_admin = self._get_admin_class_obj(BlogContent)
         bc2 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
         model_admin.save_model(request, bc2, form=None, change=True)
-        check_obj_exist = BlogPostVersion.objects.filter(
-            content_id=bc2.id).exists()
+        check_obj_exist = Version.objects.filter(
+            content_type=ContentType.objects.get_for_model(bc2),
+            object_id=bc2.pk).exists()
         self.assertFalse(check_obj_exist)
 
 
@@ -219,53 +221,29 @@ class ContentAdminChangelistTestCase(CMSTestCase):
 
 class AdminRegisterVersionTestCase(CMSTestCase):
 
-    def setUp(self):
-        self.model = PollVersion
-        self.site = admin.AdminSite()
-
     def test_register_version_admin(self):
-        """Test that calling register_version_admin_for_models registers
-        VersionAdmin for specified models.
+        """Test that VersionAdmin is registered for Version model
         """
-        register_version_admin_for_models([self.model], self.site)
 
-        self.assertIn(self.model, self.site._registry)
-        self.assertEqual(self.site._registry[self.model].__class__, VersionAdmin)
-
-    def test_register_version_admin_again(self):
-        """Test that, if a version model's admin class is already registered,
-        nothing happens when calling register_version_admin_for_models
-        for that model.
-        """
-        register_version_admin_for_models([self.model], self.site)
-
-        with patch.object(self.site, 'register') as mock:
-            register_version_admin_for_models([self.model], self.site)
-
-        mock.assert_not_called()
+        self.assertIn(Version, admin.site._registry)
+        self.assertEqual(admin.site._registry[Version].__class__, VersionAdmin)
 
 
 class VersionAdminTestCase(CMSTestCase):
 
     def setUp(self):
-        self.model = PollVersion
+        self.model = Version
         self.site = admin.AdminSite()
-        register_version_admin_for_models([self.model], self.site)
+        self.site.register(Version, VersionAdmin)
         self.superuser = self.get_superuser()
 
-    def test_admin_queryset_num_queries(self):
-        """Test that accessing Version.content in changelist
-        doesn't result in additional query
-        """
-        self.assertIn(
-            'content',
-            self.site._registry[PollVersion].list_select_related,
-        )
-
     def test_content_link(self):
-        version = factories.PollContentWithVersionFactory(text='test4').pollversion
+        pc = factories.PollContentWithVersionFactory(text='test4')
+        version = self.model.objects.get(
+            content_type=ContentType.objects.get_for_model(pc),
+            object_id=pc.pk)
         self.assertEqual(
-            self.site._registry[PollVersion].content_link(version),
+            self.site._registry[self.model].content_link(version),
             '<a href="{url}">{label}</a>'.format(
                 url='/en/admin/polls/pollcontent/1/change/',
                 label='test4',
@@ -278,7 +256,10 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
-        version = factories.PollContentWithVersionFactory().pollversion
+        pc = factories.PollContentWithVersionFactory()
+        version = self.model.objects.get(
+            content_type=ContentType.objects.get_for_model(pc),
+            object_id=pc.pk)
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(self.model, 'change', version.pk))
         self.assertEqual(response.status_code, 403)

@@ -1,6 +1,5 @@
 from unittest import skip
 
-from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Q
 
 from cms.test_utils.testcases import CMSTestCase

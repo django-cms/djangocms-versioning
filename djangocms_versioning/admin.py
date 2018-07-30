@@ -38,9 +38,9 @@ class VersioningAdminMixin:
 class VersionChangeList(ChangeList):
 
     def get_filters_params(self, params=None):
-        params = super().get_filters_params(params)
-        params.pop(GROUPER_PARAM, None)
-        return params
+        lookup_params = super().get_filters_params(params)
+        lookup_params.pop(GROUPER_PARAM, None)
+        return lookup_params
 
     def get_queryset(self, request):
         try:
@@ -59,9 +59,7 @@ class VersionChangeList(ChangeList):
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         versionable = versioning_extension.versionables.by_content[model]
         object_ids = model.objects.filter(**{versionable.grouper_field.name: grouper})
-        return qs.filter(
-            object_id__in=object_ids,
-        )
+        return qs.filter(object_id__in=object_ids)
 
 
 @admin.register(Version)

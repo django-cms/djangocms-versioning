@@ -17,10 +17,7 @@ from djangocms_versioning.test_utils.blogpost.models import (
     Comment,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import (
-    Poll,
-    PollContent,
-)
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 from djangocms_versioning.versionable import Versionable, VersionableList
 
 

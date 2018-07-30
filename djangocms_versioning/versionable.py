@@ -21,7 +21,8 @@ class Versionable:
         for field in relations:
             if self.grouper_field_name and field.name != self.grouper_field_name:
                 continue
-            if field.rel.model != self.grouper:
+
+            if field.remote_field.model != self.grouper:
                 continue
             if grouper_field:
                 raise ImproperlyConfigured(

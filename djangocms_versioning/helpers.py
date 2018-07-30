@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .admin import VersionAdmin, VersioningAdminMixin
+from .admin import VersioningAdminMixin
 
 
 def versioning_admin_factory(admin_class):

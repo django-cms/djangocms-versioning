@@ -100,6 +100,11 @@ class BlogContentWithVersionFactory(BlogContentFactory):
 
 
 class UserFactory(factory.django.DjangoModelFactory):
+    username = factory.LazyAttribute(lambda u: u.first_name.lower())
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+    email = factory.LazyAttribute(
+        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower()))
 
     class Meta:
         model = User

@@ -11,7 +11,11 @@ import pytz
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
-from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
+from djangocms_versioning.admin import (
+    VersionAdmin,
+    VersionChangeList,
+    VersioningAdminMixin,
+)
 from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
@@ -237,6 +241,21 @@ class VersionAdminTestCase(CMSTestCase):
         self.site.register(Version, VersionAdmin)
         self.superuser = self.get_superuser()
 
+    def test_get_changelist(self):
+        self.assertEqual(
+            self.site._registry[Version].get_changelist(RequestFactory().get('/admin/')),
+            VersionChangeList,
+        )
+
+    def test_queryset_content_prefetching(self):
+        factories.PollVersionFactory.create_batch(4)
+        with self.assertNumQueries(2):
+            qs = self.site._registry[Version].get_queryset(RequestFactory().get('/'))
+            for version in qs:
+                version.content
+        self.assertTrue(qs._prefetch_done)
+        self.assertIn('content', qs._prefetch_related_lookups)
+
     def test_content_link(self):
         version = factories.PollVersionFactory(content__text='test4')
         self.assertEqual(
@@ -262,3 +281,56 @@ class VersionAdminTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(Version, 'delete', 1))
         self.assertEqual(response.status_code, 403)
+
+
+class VersionChangeListTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.superuser = self.get_superuser()
+
+    def test_missing_grouper(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist'),
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_unregistered_content_type(self):
+        """Test that passing content_type_id of a model that isn't registered
+        as content model returns an error
+        """
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=1',
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_invalid_content_type(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=0',
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_grouper_filtering(self):
+        pv = factories.PollVersionFactory()
+        factories.PollVersionFactory.create_batch(4)
+        with self.login_user_context(self.superuser):
+            querystring = '?grouper={grouper}&content_type_id={ctype}'.format(
+                grouper=pv.content.poll_id,
+                ctype=ContentType.objects.get_for_model(pv.content).pk,
+            )
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + querystring,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('cl', response.context)
+        self.assertQuerysetEqual(
+            response.context['cl'].queryset,
+            [pv.pk],
+            transform=lambda x: x.pk,
+            ordered=False
+        )

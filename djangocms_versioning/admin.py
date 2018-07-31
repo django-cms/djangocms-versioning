@@ -43,9 +43,15 @@ class VersionChangeList(ChangeList):
         return lookup_params
 
     def get_queryset(self, request):
-        """Takes content_type_id and grouper from queryparams and filters
-        version list by content model type and grouper field
-        (specified in VersionableItem definition).
+        """Adds support for querying the version model by content grouper
+        field using ?content_type_id={id}&grouper={id}.
+
+        Filters by the value of grouper field (specified in VersionableItem
+        definition) of content model.
+
+        Functionality is implemented here, because list_filter doesn't allow
+        for specifying filters that work without being shown in the UI
+        along with filter choices.
         """
         try:
             grouper = int(request.GET.get(GROUPER_PARAM))
@@ -57,11 +63,12 @@ class VersionChangeList(ChangeList):
             model = content_type.model_class()
         except (ContentType.DoesNotExist, ValueError):
             raise IncorrectLookupParameters("Invalid content_type_id")
-        qs = super().get_queryset(request)
-        if grouper is None:
-            return qs
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[model]
+        try:
+            versionable = versioning_extension.versionables_by_content[model]
+        except KeyError:
+            raise IncorrectLookupParameters("No content model registered for given content_type_id")
+        qs = super().get_queryset(request)
         object_ids = versionable.for_grouper(grouper)
         return qs.filter(object_id__in=object_ids)
 

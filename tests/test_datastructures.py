@@ -1,5 +1,3 @@
-from django.db.models import Q
-
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.datastructures import VersionableItem
@@ -37,19 +35,3 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs = versionable.for_grouper(self.initial_version.content.poll)
         self.assertEqual(qs.count(), 2)
-
-    def test_for_grouper_extra_filters(self):
-        version2 = self.initial_version.copy()
-        version2.content.language = 'de'
-        version2.content.save()
-        poll2_version = PollVersionFactory()
-        poll2_version.copy()
-        poll2_version.copy()
-
-        versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
-
-        qs = versionable.for_grouper(
-            self.initial_version.content.poll,
-            Q(language='en'),
-        )
-        self.assertEqual(qs.count(), 1)

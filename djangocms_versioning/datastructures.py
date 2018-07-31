@@ -1,4 +1,4 @@
-from django.db.models import Max, Q
+from django.db.models import Max
 
 
 class VersionableItem:
@@ -22,17 +22,6 @@ class VersionableItem:
         ).annotate(Max('pk')).values('pk__max')
         return self.content_model.objects.filter(id__in=inner)
 
-    def for_grouper(self, grouper, extra_filters=None):
-        """Returns all `Content` objects for specified grouper object.
-
-        Additional filters on content model can be passed via extra_filters,
-        for example if versioned content object is translatable, passing
-        `Q(language='en')` will return only content objects created for
-        English language.
-        """
-
-        if extra_filters is None:
-            extra_filters = Q()
-        return self.content_model.objects.filter(
-            Q(**{self.grouper_field.name: grouper}) & extra_filters,
-        )
+    def for_grouper(self, grouper):
+        """Returns all `Content` objects for specified grouper object."""
+        return self.content_model.objects.filter(**{self.grouper_field.name: grouper})

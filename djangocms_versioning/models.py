@@ -77,9 +77,6 @@ class Version(models.Model):
         m2m_cache = {}
 
         for field in relation_fields:
-            # FIXME .copy() is broken after GFK changes
-            if field.name == 'content_type':
-                continue
             try:
                 copy_function = getattr(self, 'copy_{}'.format(field.name))
             except AttributeError:

@@ -233,18 +233,14 @@ class AdminRegisterVersionTestCase(CMSTestCase):
 class VersionAdminTestCase(CMSTestCase):
 
     def setUp(self):
-        self.model = Version
         self.site = admin.AdminSite()
         self.site.register(Version, VersionAdmin)
         self.superuser = self.get_superuser()
 
     def test_content_link(self):
-        pc = factories.PollContentWithVersionFactory(text='test4')
-        version = self.model.objects.get(
-            content_type=ContentType.objects.get_for_model(pc),
-            object_id=pc.pk)
+        version = factories.PollVersionFactory(content__text='test4')
         self.assertEqual(
-            self.site._registry[self.model].content_link(version),
+            self.site._registry[Version].content_link(version),
             '<a href="{url}">{label}</a>'.format(
                 url='/en/admin/polls/pollcontent/1/change/',
                 label='test4',
@@ -253,19 +249,16 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'add'))
+            response = self.client.get(self.get_admin_url(Version, 'add'))
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
-        pc = factories.PollContentWithVersionFactory()
-        version = self.model.objects.get(
-            content_type=ContentType.objects.get_for_model(pc),
-            object_id=pc.pk)
+        version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'change', version.pk))
+            response = self.client.get(self.get_admin_url(Version, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
+            response = self.client.get(self.get_admin_url(Version, 'delete', 1))
         self.assertEqual(response.status_code, 403)

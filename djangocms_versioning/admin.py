@@ -43,6 +43,10 @@ class VersionChangeList(ChangeList):
         return lookup_params
 
     def get_queryset(self, request):
+        """Takes content_type_id and grouper from queryparams and filters
+        version list by content model type and grouper field
+        (specified in VersionableItem definition).
+        """
         try:
             grouper = int(request.GET.get(GROUPER_PARAM))
         except (TypeError, ValueError):

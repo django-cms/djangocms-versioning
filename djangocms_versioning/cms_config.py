@@ -1,6 +1,7 @@
 import collections
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.functional import cached_property
 
 from cms.app_base import CMSAppExtension
 
@@ -13,13 +14,13 @@ class VersioningCMSExtension(CMSAppExtension):
     def __init__(self):
         self.versionables = []
 
-    @property
+    @cached_property
     def versionables_by_content(self):
         return {versionable.content_model: versionable for versionable in self.versionables}
 
     def handle_versioning_setting(self, cms_config):
         """Check the versioning setting has been correctly set
-        and add the models to the masterlist if all is ok
+        and add it to the masterlist if all is ok
         """
         # First check that versioning is correctly defined
         if not hasattr(cms_config, 'versioning'):
@@ -32,14 +33,11 @@ class VersioningCMSExtension(CMSAppExtension):
             if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
-        # If no exceptions raised, we can now add the versioned models
-        # into our masterlist
         self.versionables.extend(cms_config.versioning)
 
     def handle_admin_classes(self, cms_config):
         """Replaces admin model classes for all registered content types
         with an admin model class that inherits from VersioningAdminMixin.
-        Registers admin model class for all provided versioning models.
         """
         replace_admin_for_models(
             [versionable.content_model for versionable in cms_config.versioning],

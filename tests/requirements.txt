@@ -1,3 +1,4 @@
+# test libraries
 coverage
 djangocms_helper
 flake8
@@ -5,3 +6,6 @@ isort
 factory-boy
 freezegun
 mock
+
+# libraries specified in setup.py
+django-fsm>=2.6,<2.7

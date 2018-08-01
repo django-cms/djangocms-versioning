@@ -2,6 +2,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from django_fsm import FSMField, transition
+
+from . import constants
+
 
 class Version(models.Model):
     # Following fields are always copied from original Version
@@ -15,6 +19,8 @@ class Version(models.Model):
     )
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')
+    state = FSMField(
+        default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
     def _copy_function_factory(self, field):
         """
@@ -96,3 +102,15 @@ class Version(models.Model):
             getattr(new, field_name).set(objects)
 
         return new
+
+    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
+    def archive(self):
+        """Change state to ARCHIVED"""
+
+    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    def publish(self):
+        """Change state to PUBLISHED"""
+
+    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    def unpublish(self):
+        """Change state to UNPUBLISHED"""

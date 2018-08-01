@@ -109,9 +109,10 @@ class VersioningIntegrationTestCase(CMSTestCase):
         app = apps.get_app_config('djangocms_versioning')
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
+        comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [poll_versionable, blog_versionable]
+            [poll_versionable, blog_versionable, comment_versionable]
         )
 
     def test_admin_classes_reregistered(self):

@@ -1,19 +1,19 @@
 from cms.app_base import CMSAppConfig
 
-from djangocms_versioning.versionable import Versionable
+from djangocms_versioning.datastructures import VersionableItem
 
-from .models import BlogContent, BlogPost, Comment, CommentContent
+from .models import BlogContent, CommentContent
 
 
 class BlogpostCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
     versioning = [
-        Versionable(
-            grouper=BlogPost,
-            content=BlogContent,
+        VersionableItem(
+            content_model=BlogContent,
+            grouper_field_name='blogpost',
         ),
-        Versionable(
-            grouper=Comment,
-            content=CommentContent,
+        VersionableItem(
+            content_model=CommentContent,
+            grouper_field_name='comment',
         ),
     ]

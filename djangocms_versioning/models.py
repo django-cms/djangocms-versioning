@@ -2,30 +2,10 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q
 
 from django_fsm import FSMField, transition
 
 from . import constants
-
-
-class VersionQuerySet(models.QuerySet):
-
-    def for_grouper(self, grouper, extra_filters=None):
-        """Returns all `Version`s for specified grouper object.
-
-        Additional filters can be passed via extra_filters, for example
-        if version model has a FK to content object that is translatable,
-        passing `Q(language='en')` will return only versions
-        created for English language.
-        """
-
-        if extra_filters is None:
-            extra_filters = Q()
-        return self.filter(
-            Q(extra_filters) &
-            Q((self.model.grouper_field, grouper)),
-        )
 
 
 class Version(models.Model):
@@ -36,16 +16,12 @@ class Version(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(
         ContentType,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
     )
-    object_id = models.PositiveIntegerField(blank=True, null=True)
+    object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')
     state = FSMField(
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
-
-    objects = VersionQuerySet.as_manager()
 
     def _copy_function_factory(self, field):
         """

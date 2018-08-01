@@ -11,7 +11,11 @@ import pytz
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
-from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
+from djangocms_versioning.admin import (
+    VersionAdmin,
+    VersionChangeList,
+    VersioningAdminMixin,
+)
 from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
@@ -121,7 +125,8 @@ class AdminAddVersionTestCase(CMSTestCase):
             model_admin.save_model(request, pc1, form=None, change=False)
             check_obj = Version.objects.get(
                 content_type=ContentType.objects.get_for_model(pc1),
-                object_id=pc1.pk)
+                object_id=pc1.pk,
+            )
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
             self.assertEqual(check_obj.label, "")
@@ -138,12 +143,12 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_blogpost_version_is_added_for_change_false(self):
         model_admin = self._get_admin_class_obj(BlogContent)
-        pc2 = factories.BlogContentFactory()
+        bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
-        model_admin.save_model(request, pc2, form=None, change=False)
+        model_admin.save_model(request, bc1, form=None, change=False)
         check_obj_exist = Version.objects.filter(
-            content_type=ContentType.objects.get_for_model(pc2),
-            object_id=pc2.pk).exists()
+            content_type=ContentType.objects.get_for_model(bc1),
+            object_id=bc1.pk).exists()
         self.assertTrue(check_obj_exist)
 
     def test_blogpost_version_is_not_added_for_change_true(self):
@@ -232,18 +237,29 @@ class AdminRegisterVersionTestCase(CMSTestCase):
 class VersionAdminTestCase(CMSTestCase):
 
     def setUp(self):
-        self.model = Version
         self.site = admin.AdminSite()
         self.site.register(Version, VersionAdmin)
         self.superuser = self.get_superuser()
 
-    def test_content_link(self):
-        pc = factories.PollContentWithVersionFactory(text='test4')
-        version = self.model.objects.get(
-            content_type=ContentType.objects.get_for_model(pc),
-            object_id=pc.pk)
+    def test_get_changelist(self):
         self.assertEqual(
-            self.site._registry[self.model].content_link(version),
+            self.site._registry[Version].get_changelist(RequestFactory().get('/admin/')),
+            VersionChangeList,
+        )
+
+    def test_queryset_content_prefetching(self):
+        factories.PollVersionFactory.create_batch(4)
+        with self.assertNumQueries(2):
+            qs = self.site._registry[Version].get_queryset(RequestFactory().get('/'))
+            for version in qs:
+                version.content
+        self.assertTrue(qs._prefetch_done)
+        self.assertIn('content', qs._prefetch_related_lookups)
+
+    def test_content_link(self):
+        version = factories.PollVersionFactory(content__text='test4')
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
             '<a href="{url}">{label}</a>'.format(
                 url='/en/admin/polls/pollcontent/1/change/',
                 label='test4',
@@ -252,19 +268,69 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'add'))
+            response = self.client.get(self.get_admin_url(Version, 'add'))
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
-        pc = factories.PollContentWithVersionFactory()
-        version = self.model.objects.get(
-            content_type=ContentType.objects.get_for_model(pc),
-            object_id=pc.pk)
+        version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'change', version.pk))
+            response = self.client.get(self.get_admin_url(Version, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.model, 'delete', 1))
+            response = self.client.get(self.get_admin_url(Version, 'delete', 1))
         self.assertEqual(response.status_code, 403)
+
+
+class VersionChangeListTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.superuser = self.get_superuser()
+
+    def test_missing_grouper(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist'),
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_unregistered_content_type(self):
+        """Test that passing content_type_id of a model that isn't registered
+        as content model returns an error
+        """
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=1',
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_invalid_content_type(self):
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=0',
+                follow=True,
+            )
+        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+    def test_grouper_filtering(self):
+        pv = factories.PollVersionFactory()
+        factories.PollVersionFactory.create_batch(4)
+        with self.login_user_context(self.superuser):
+            querystring = '?grouper={grouper}&content_type_id={ctype}'.format(
+                grouper=pv.content.poll_id,
+                ctype=ContentType.objects.get_for_model(pv.content).pk,
+            )
+            response = self.client.get(
+                self.get_admin_url(Version, 'changelist') + querystring,
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('cl', response.context)
+        self.assertQuerysetEqual(
+            response.context['cl'].queryset,
+            [pv.pk],
+            transform=lambda x: x.pk,
+            ordered=False
+        )

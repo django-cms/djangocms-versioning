@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 import factory
 from factory.fuzzy import FuzzyText
 
+from django.contrib.auth.models import User
 from djangocms_versioning.models import Version
 
 from .blogpost.models import BlogContent, BlogPost
@@ -96,3 +97,14 @@ class BlogContentWithVersionFactory(BlogContentFactory):
             # Simple build, do nothing.
             return
         BlogPostVersionFactory(content=self, **kwargs)
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    username = factory.LazyAttribute(lambda u: u.first_name.lower())
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+    email = factory.LazyAttribute(
+        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower()))
+
+    class Meta:
+        model = User

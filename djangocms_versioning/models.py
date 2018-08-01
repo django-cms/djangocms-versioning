@@ -81,6 +81,7 @@ class Version(models.Model):
         })
 
         relation_fields = self._get_relation_fields()
+        relation_fields = [f for f in relation_fields if f.name != 'content_type']
         m2m_cache = {}
 
         for field in relation_fields:

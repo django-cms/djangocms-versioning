@@ -1,8 +1,15 @@
 from cms.app_base import CMSAppConfig
 
-from .models import PollVersion
+from djangocms_versioning.datastructures import VersionableItem
+
+from .models import PollContent
 
 
 class PollsCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
-    versioning_models = [PollVersion]
+    versioning = [
+        VersionableItem(
+            content_model=PollContent,
+            grouper_field_name='poll',
+        ),
+    ]

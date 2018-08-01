@@ -1,8 +1,16 @@
 from django.apps import apps
 from django.contrib import admin
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.views.main import ChangeList
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+
+from .models import Version
+
+
+GROUPER_PARAM = 'grouper'
 
 
 class VersioningAdminMixin:
@@ -16,23 +24,56 @@ class VersioningAdminMixin:
         super().save_model(request, obj, form, change)
         if not change:
             # create a new version object and save it
-            extension = apps.get_app_config('djangocms_versioning').cms_extension
-            version_model = extension.content_to_version_models[obj.__class__]
-            version_model.objects.create(content=obj)
+            Version.objects.create(content=obj)
 
     def get_queryset(self, request):
         """Limit query to most recent content versions
         """
         queryset = super().get_queryset(request)
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        version_model = versioning_extension.content_to_version_models[
-            queryset.model]
-        filter_name = '{}__in'.format(version_model.__name__.lower())
-        latest_versions = version_model.objects.distinct_groupers()
-        return queryset.filter(**{filter_name: latest_versions})
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_content[queryset.model]
+        return queryset.filter(pk__in=versionable.distinct_groupers())
 
 
+class VersionChangeList(ChangeList):
+
+    def get_filters_params(self, params=None):
+        lookup_params = super().get_filters_params(params)
+        lookup_params.pop(GROUPER_PARAM, None)
+        return lookup_params
+
+    def get_queryset(self, request):
+        """Adds support for querying the version model by content grouper
+        field using ?content_type_id={id}&grouper={id}.
+
+        Filters by the value of grouper field (specified in VersionableItem
+        definition) of content model.
+
+        Functionality is implemented here, because list_filter doesn't allow
+        for specifying filters that work without being shown in the UI
+        along with filter choices.
+        """
+        try:
+            grouper = int(request.GET.get(GROUPER_PARAM))
+        except (TypeError, ValueError):
+            raise IncorrectLookupParameters("Invalid grouper")
+        content_type_id = request.GET.get('content_type_id')
+        try:
+            content_type = ContentType.objects.get(pk=content_type_id)
+            model = content_type.model_class()
+        except (ContentType.DoesNotExist, ValueError):
+            raise IncorrectLookupParameters("Invalid content_type_id")
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        try:
+            versionable = versioning_extension.versionables_by_content[model]
+        except KeyError:
+            raise IncorrectLookupParameters("No content model registered for given content_type_id")
+        qs = super().get_queryset(request)
+        object_ids = versionable.for_grouper(grouper)
+        return qs.filter(object_id__in=object_ids)
+
+
+@admin.register(Version)
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
@@ -46,7 +87,12 @@ class VersionAdmin(admin.ModelAdmin):
         'label',
     )
     list_display_links = None
-    list_select_related = ('content',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('content')
+
+    def get_changelist(self, request, **kwargs):
+        return VersionChangeList
 
     def content_link(self, obj):
         content = obj.content

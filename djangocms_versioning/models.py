@@ -1,51 +1,20 @@
-from django.core.exceptions import ImproperlyConfigured
-from django.db import connections, models
-from django.db.models import Max, Q
-from django.utils.timezone import localtime
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 
-class BaseVersionQuerySet(models.QuerySet):
-
-    def for_grouper(self, grouper, extra_filters=None):
-        """Returns all `Version`s for specified grouper object.
-
-        Additional filters can be passed via extra_filters, for example
-        if version model has a FK to content object that is translatable,
-        passing `Q(content__language='en')` will return only versions
-        created for English language.
-        """
-        if extra_filters is None:
-            extra_filters = Q()
-        return self.filter(
-            Q(extra_filters) &
-            Q((self.model.grouper_field, grouper)),
-        )
-
-    def distinct_groupers(self):
-        """Returns a queryset of `Version` objects with unique
-        grouper objects.
-
-        Useful for listing, e.g. all Polls.
-        """
-        if connections[self.db].features.can_distinct_on_fields:
-            return self.distinct(self.model.grouper_field).order_by('-created')
-        else:
-            inner = self.values(self.model.grouper_field).annotate(
-                Max('pk')).values('pk__max')
-            return self.filter(pk__in=inner)
-
-
-class BaseVersion(models.Model):
+class Version(models.Model):
     # Following fields are always copied from original Version
     COPIED_FIELDS = ['label']
 
     label = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
-
-    objects = BaseVersionQuerySet.as_manager()
-
-    class Meta:
-        abstract = True
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+    )
+    object_id = models.PositiveIntegerField()
+    content = GenericForeignKey('content_type', 'object_id')
 
     def _copy_function_factory(self, field):
         """
@@ -89,14 +58,6 @@ class BaseVersion(models.Model):
                 key=lambda f: self.copy_field_order.index(f.name),
             )
         return relation_fields
-
-    @property
-    def grouper_field(self):
-        """Stub for runtime error handling - override.
-        """
-        raise ImproperlyConfigured(
-            'Versioning - You must define grouper_field on the {} model.'.format(
-                self.__class__.__name__))
 
     def copy(self):
         """Creates new Version object, with metadata copied over

@@ -1,65 +1,48 @@
 import collections
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.functional import cached_property
 
 from cms.app_base import CMSAppExtension
 
-from .helpers import (
-    register_version_admin_for_models,
-    replace_admin_for_models,
-)
-from .models import BaseVersion
+from .datastructures import VersionableItem
+from .helpers import replace_admin_for_models
 
 
 class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
-        self.version_models = []
-        self.content_to_version_models = {}
+        self.versionables = []
 
-    def handle_versioning_models_setting(self, cms_config):
-        """Check the versioning_models setting has been correctly set
-        and add the models to the masterlist if all is ok
+    @cached_property
+    def versionables_by_content(self):
+        return {versionable.content_model: versionable for versionable in self.versionables}
+
+    def handle_versioning_setting(self, cms_config):
+        """Check the versioning setting has been correctly set
+        and add it to the masterlist if all is ok
         """
-        # First check that versioning_models is correctly defined
-        if not hasattr(cms_config, 'versioning_models'):
+        # First check that versioning is correctly defined
+        if not hasattr(cms_config, 'versioning'):
             raise ImproperlyConfigured(
-                "versioning_models must be defined in cms_config.py")
-        if not isinstance(cms_config.versioning_models, collections.abc.Iterable):
+                "versioning must be defined in cms_config.py")
+        if not isinstance(cms_config.versioning, collections.abc.Iterable):
             raise ImproperlyConfigured(
-                "versioning_models not defined as a list")
-        for model in cms_config.versioning_models:
-            try:
-                is_versioning_model = issubclass(model, BaseVersion)
-            except TypeError:
+                "versioning not defined as an iterable")
+        for versionable in cms_config.versioning:
+            if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
-                    "elements in versioning_models must be model classes")
-            if not is_versioning_model:
-                raise ImproperlyConfigured(
-                    "models in versioning_models must inherit from BaseVersion")
-        # If no exceptions raised, we can now add the versioning models
-        # into our masterlist
-        self.version_models.extend(cms_config.versioning_models)
-        # Based on the versioning models list, create a helper
-        # attribute that we can derive
-        content_models = [
-            model._meta.get_field('content').remote_field.model
-            for model in cms_config.versioning_models
-        ]
-        self.content_to_version_models.update({
-            content: version
-            for content, version
-            in zip(content_models, cms_config.versioning_models)
-        })
+                    "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
+        self.versionables.extend(cms_config.versioning)
 
     def handle_admin_classes(self, cms_config):
         """Replaces admin model classes for all registered content types
         with an admin model class that inherits from VersioningAdminMixin.
-        Registers admin model class for all provided versioning models.
         """
-        replace_admin_for_models(self.content_to_version_models.keys())
-        register_version_admin_for_models(cms_config.versioning_models)
+        replace_admin_for_models(
+            [versionable.content_model for versionable in cms_config.versioning],
+        )
 
     def configure_app(self, cms_config):
-        self.handle_versioning_models_setting(cms_config)
+        self.handle_versioning_setting(cms_config)
         self.handle_admin_classes(cms_config)

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from djangocms_versioning.models import Version
 
 from .blogpost.models import BlogContent, BlogPost
-from .polls.models import Answer, Poll, PollContent
+from .polls.models import Answer, Poll, PollContent, Category
 
 
 class AbstractVersionFactory(factory.DjangoModelFactory):
@@ -34,6 +34,15 @@ class PollContentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = PollContent
+
+    @factory.post_generation
+    def categories(self, create, categories, **kwargs):
+        if not create:
+            # Simple build, do nothing.
+            return
+
+        if categories:
+            self.categories.add(*categories)
 
 
 class PollVersionFactory(AbstractVersionFactory):
@@ -62,6 +71,13 @@ class AnswerFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Answer
+
+
+class CategoryFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=12)
+
+    class Meta:
+        model = Category
 
 
 class BlogPostFactory(factory.django.DjangoModelFactory):

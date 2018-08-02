@@ -23,3 +23,12 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Category(models.Model):
+    poll_contents = models.ManyToManyField(
+        PollContent, related_name='categories')
+    name = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.name

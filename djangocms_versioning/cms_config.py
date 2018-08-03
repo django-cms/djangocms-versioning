@@ -18,6 +18,11 @@ class VersioningCMSExtension(CMSAppExtension):
     def versionables_by_content(self):
         return {versionable.content_model: versionable for versionable in self.versionables}
 
+    def is_content_model_versioned(self, content_model):
+        """Checks if provided content model supports versioning.
+        """
+        return content_model in self.versionables_by_content
+
     def handle_versioning_setting(self, cms_config):
         """Check the versioning setting has been correctly set
         and add it to the masterlist if all is ok

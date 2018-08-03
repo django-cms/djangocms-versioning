@@ -90,6 +90,28 @@ class CMSConfigUnitTestCase(CMSTestCase):
             admin.site._registry[PollContent].__class__.mro()
         )
 
+    def test_is_content_model_versioned(self):
+        """Test that is_content_model_versioned returns True for
+        content model that's versioned
+        """
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[], djangocms_versioning_enabled=True,
+            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
+        extensions.handle_versioning_setting(cms_config)
+        self.assertTrue(extensions.is_content_model_versioned(PollContent))
+
+    def test_is_content_model_versioned(self):
+        """Test that is_content_model_versioned returns True for
+        content model that's versioned
+        """
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[], djangocms_versioning_enabled=True,
+            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
+        extensions.handle_versioning_setting(cms_config)
+        self.assertFalse(extensions.is_content_model_versioned(BlogContent))
+
 
 class VersioningIntegrationTestCase(CMSTestCase):
 

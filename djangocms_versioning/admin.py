@@ -84,7 +84,6 @@ class VersionAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
         'content_link',
-        'label',
     )
     list_display_links = None
 

@@ -129,7 +129,6 @@ class AdminAddVersionTestCase(CMSTestCase):
             )
             self.assertTrue(check_obj)
             self.assertEqual(check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc))
-            self.assertEqual(check_obj.label, "")
 
     def test_poll_version_is_not_added_for_change_true(self):
         model_admin = self._get_admin_class_obj(PollContent)

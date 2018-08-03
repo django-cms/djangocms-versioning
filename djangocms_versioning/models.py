@@ -8,9 +8,7 @@ from . import constants
 
 
 class Version(models.Model):
-    # Following fields are always copied from original Version
 
-    label = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(
         ContentType,

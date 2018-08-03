@@ -21,13 +21,7 @@ class Version(models.Model):
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
     def copy(self):
-        """Creates new Version object, with metadata copied over
-        from self.
-
-        Introspects relations and duplicates objects that
-        Version has a relation to. Default behaviour for duplication is
-        implemented in `_copy_function_factory`. This can be overriden
-        per-field by implementing `copy_{field_name}` method.
+        """Creates a new Version object, with a copy of the content object
         """
         content_class = self.content.__class__
         content_fields = {

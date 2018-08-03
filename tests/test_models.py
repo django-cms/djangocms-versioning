@@ -1,77 +1,48 @@
-from unittest import skip
+from freezegun import freeze_time
 
 from django.db.models import Q
+from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 
+from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.factories import (
-    AnswerFactory,
-    PollVersionFactory,
-)
+from djangocms_versioning.test_utils import factories
 
 
-@skip("Fix as part of FIL-398")
 class CopyTestCase(CMSTestCase):
 
-    def setUp(self):
-        self.initial_version = PollVersionFactory()
-        AnswerFactory.create_batch(
-            2, poll_content=self.initial_version.content)
+    @freeze_time(None)
+    def test_new_version_object_gets_created(self):
+        with freeze_time('2017-07-07'):
+            # Make sure created in the past
+            original_version = factories.PollVersionFactory()
+        new_version = original_version.copy()
+
+        # Created a new version record
+        self.assertNotEqual(original_version.pk, new_version.pk)
+        self.assertEqual(new_version.created, now())
+        self.assertEqual(new_version.state, DRAFT)
 
     def test_content_object_gets_duplicated(self):
-        new_version = self.initial_version.copy()
+        original_version = factories.PollVersionFactory()
+        new_version = original_version.copy()
+
+        # Created a new content record
+        self.assertNotEqual(
+            original_version.content.pk,
+            new_version.content.pk,
+        )
+        # Has the same fields as the original version
         self.assertEqual(
-            self.initial_version.content.text,
+            original_version.content.text,
             new_version.content.text,
         )
         self.assertEqual(
-            self.initial_version.content.language,
+            original_version.content.language,
             new_version.content.language,
         )
-        self.assertNotEqual(
-            self.initial_version.content,
-            new_version.content,
-        )
-
-    def test_answers_get_duplicated(self):
-        new_version = self.initial_version.copy()
         self.assertEqual(
-            list(self.initial_version.content.answer_set.values_list('text')),
-            list(new_version.content.answer_set.values_list('text')),
+            original_version.content.poll,
+            new_version.content.poll,
         )
-        self.assertNotEqual(
-            list(self.initial_version.content.answer_set.values_list('pk')),
-            list(new_version.content.answer_set.values_list('pk')),
-        )
-
-    def test_distinct_groupers(self):
-        self.initial_version.copy()
-        poll2_version = PollVersionFactory()
-        poll2_version.copy()
-        poll2_version.copy()
-
-        self.assertEqual(Version.objects.distinct_groupers().count(), 2)
-
-    def test_for_grouper(self):
-        self.initial_version.copy()
-        poll2_version = PollVersionFactory()
-        poll2_version.copy()
-        poll2_version.copy()
-
-        qs = Version.objects.for_grouper(self.initial_version.content.poll)
-        self.assertEqual(qs.count(), 2)
-
-    def test_for_grouper_extra_filters(self):
-        version2 = self.initial_version.copy()
-        version2.content.language = 'de'
-        version2.content.save()
-        poll2_version = PollVersionFactory()
-        poll2_version.copy()
-        poll2_version.copy()
-
-        qs = Version.objects.for_grouper(
-            self.initial_version.content.poll,
-            Q(content__language='en'),
-        )
-        self.assertEqual(qs.count(), 1)

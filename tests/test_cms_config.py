@@ -94,23 +94,19 @@ class CMSConfigUnitTestCase(CMSTestCase):
         """Test that is_content_model_versioned returns True for
         content model that's versioned
         """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(
-            spec=[], djangocms_versioning_enabled=True,
-            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
-        extensions.handle_versioning_setting(cms_config)
-        self.assertTrue(extensions.is_content_model_versioned(PollContent))
+        extension = VersioningCMSExtension()
+        extension.versionables = [VersionableItem(content_model=PollContent, grouper_field_name='poll')]
 
-    def test_is_content_model_versioned(self):
-        """Test that is_content_model_versioned returns True for
-        content model that's versioned
+        self.assertTrue(extension.is_content_model_versioned(PollContent))
+
+    def test_is_content_model_not_versioned(self):
+        """Test that is_content_model_versioned returns False for
+        content model that's not versioned
         """
-        extensions = VersioningCMSExtension()
-        cms_config = Mock(
-            spec=[], djangocms_versioning_enabled=True,
-            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
-        extensions.handle_versioning_setting(cms_config)
-        self.assertFalse(extensions.is_content_model_versioned(BlogContent))
+        extension = VersioningCMSExtension()
+        extension.versionables = []
+
+        self.assertFalse(extension.is_content_model_versioned(PollContent))
 
 
 class VersioningIntegrationTestCase(CMSTestCase):

@@ -35,15 +35,24 @@ class VersioningCMSExtension(CMSAppExtension):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
             # ...and has copy functions provided for all foreign keys on content
-            content_rels = [
-                f for f in versionable.content_model._meta.fields
+            fk_rels = [
+                f.name for f in versionable.content_model._meta.fields
                 if f.is_relation and not f.name == versionable.grouper_field_name
             ]
+            fk_reverse_rels = [
+                "%s.%s" % (f.name, f.field.name)
+                for f in versionable.content_model._meta.related_objects
+            ]
+            # ...and copy functions for all m2m relationships
+            m2m_rels = [
+                f.name for f in versionable.content_model._meta.many_to_many
+            ]
+            content_rels = fk_rels + m2m_rels + fk_reverse_rels
             for rel in content_rels:
-                if rel.name not in versionable.copy_functions:
+                if rel not in versionable.copy_functions:
                     raise ImproperlyConfigured(
                         "%s.%s needs to have a copy method provided in cms_config.py"
-                        % (versionable.content_model.__name__, rel.name))
+                        % (versionable.content_model.__name__, rel))
         # All checks passed, we can add it to our masterlist now
         self.versionables.extend(cms_config.versioning)
 

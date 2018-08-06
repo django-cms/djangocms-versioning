@@ -86,12 +86,12 @@ class ManyToManyB(models.Model):
 
 
 ### Generic FK Relationship ###
-class GrouperGenericF(models.Model):
+class GrouperGeneric(models.Model):
     pass
 
 
-class ContentGenericF(models.Model):
-    grouper = models.ForeignKey(GrouperGenericF)
+class ContentGeneric(models.Model):
+    grouper = models.ForeignKey(GrouperGeneric)
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,

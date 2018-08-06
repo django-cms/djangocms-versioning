@@ -275,6 +275,76 @@ class CMSConfigFKTestCase(CMSTestCase):
         except ImproperlyConfigured:
             self.fail("Unexpectedly raised ImproperlyConfigured")
 
+    def test_many_to_many_bwd_rel_raises_exception_if_function_not_provided(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=relationship_models.ContentManytoManyB,
+                    grouper_field_name='grouper',
+                )
+            ]
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_setting(cms_config)
+
+    def test_many_to_many_bwd_rel_doesnt_raise_exception_if_function_provided(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=relationship_models.ContentManytoManyB,
+                    grouper_field_name='grouper',
+                    copy_functions={
+                        'manytomanyb.rel': lambda old_value: old_value
+                    }
+                )
+            ]
+        )
+        try:
+            extensions.handle_versioning_setting(cms_config)
+        except ImproperlyConfigured:
+            self.fail("Unexpectedly raised ImproperlyConfigured")
+
+    def test_generic_rel_raises_exception_if_function_not_provided(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=relationship_models.ContentGeneric,
+                    grouper_field_name='grouper',
+                )
+            ]
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_versioning_setting(cms_config)
+
+    def test_generic_fwd_rel_doesnt_raise_exception_if_function_provided(self):
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=relationship_models.ContentGeneric,
+                    grouper_field_name='grouper',
+                    copy_functions={
+                        'rel': lambda old_value: old_value
+                    }
+                )
+            ]
+        )
+        try:
+            extensions.handle_versioning_setting(cms_config)
+        except ImproperlyConfigured:
+            self.fail("Unexpectedly raised ImproperlyConfigured")
+
 
 class VersioningIntegrationTestCase(CMSTestCase):
 

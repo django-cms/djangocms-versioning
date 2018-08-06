@@ -34,20 +34,30 @@ class VersioningCMSExtension(CMSAppExtension):
             if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
-            # ...and has copy functions provided for all foreign keys on content
+            # ...and has copy functions provided for all relationships on content
+            generic_rels = [
+                f.name for f in versionable.content_model._meta.virtual_fields
+                if f.is_relation
+            ]
             fk_rels = [
                 f.name for f in versionable.content_model._meta.fields
-                if f.is_relation and not f.name == versionable.grouper_field_name
+                if f.is_relation
+                # don't include the grouper FK - that doesn't need a copy method
+                and not f.name == versionable.grouper_field_name
+                # don't include the content type fk of generic keys
+                # if the model has a generic fk then we only need a copy
+                # method for generic fk field itself
+                and f.name not in [versionable.content_model._meta.get_field(rel_name).ct_field for rel_name in generic_rels]
             ]
-            fk_reverse_rels = [
-                "%s.%s" % (f.name, f.field.name)
-                for f in versionable.content_model._meta.related_objects
-            ]
-            # ...and copy functions for all m2m relationships
             m2m_rels = [
                 f.name for f in versionable.content_model._meta.many_to_many
             ]
-            content_rels = fk_rels + m2m_rels + fk_reverse_rels
+            reverse_rels = [
+                "%s.%s" % (f.name, f.field.name)
+                # _meta.related_objects contains data for both fk and m2m rels
+                for f in versionable.content_model._meta.related_objects
+            ]
+            content_rels = fk_rels + m2m_rels + reverse_rels + generic_rels
             for rel in content_rels:
                 if rel not in versionable.copy_functions:
                     raise ImproperlyConfigured(

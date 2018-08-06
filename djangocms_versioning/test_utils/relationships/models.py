@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from django.db import models
 
@@ -68,7 +69,7 @@ class ManyToManyF(models.Model):
 
 class ContentManytoManyF(models.Model):
     grouper = models.ForeignKey(GrouperManytoManyF)
-    rel = models.ManyToManyfield(ManyToManyF)
+    rel = models.ManyToManyField(ManyToManyF)
 
 
 ### Many-to-Many Backwards Relationship ###
@@ -80,31 +81,23 @@ class ContentManytoManyB(models.Model):
     grouper = models.ForeignKey(GrouperManytoManyB)
 
 
-### One-to-Many Generic Forwards Relationship ###
+class ManyToManyB(models.Model):
+    rel = models.ManyToManyField(ContentManytoManyB)
+
+
+### Generic FK Relationship ###
 class GrouperGenericF(models.Model):
-    pass
-
-
-class GenericF(models.Model):
     pass
 
 
 class ContentGenericF(models.Model):
     grouper = models.ForeignKey(GrouperGenericF)
-    rel = GenericForeignKey(GenericF)
-
-
-### One-to-Many Generic Backwards Relationship ###
-class GrouperGenericB(models.Model):
-    pass
-
-
-class ContentGenericB(models.Model):
-    grouper = models.ForeignKey(GrouperGenericB)
-
-
-class GenericB(models.Model):
-    rel = GenericForeignKey(ContentGenericB)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+    )
+    object_id = models.PositiveIntegerField()
+    rel = GenericForeignKey('content_type', 'object_id')
 
 
 ### A longer chain of relationships ###

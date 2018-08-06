@@ -22,7 +22,7 @@ class VersioningCMSExtension(CMSAppExtension):
         """Check the versioning setting has been correctly set
         and add it to the masterlist if all is ok
         """
-        # First check that versioning is correctly defined
+        # First check that versioning is defined and is an iterable
         if not hasattr(cms_config, 'versioning'):
             raise ImproperlyConfigured(
                 "versioning must be defined in cms_config.py")
@@ -30,9 +30,21 @@ class VersioningCMSExtension(CMSAppExtension):
             raise ImproperlyConfigured(
                 "versioning not defined as an iterable")
         for versionable in cms_config.versioning:
+            # Now check each item in the iterable is a VersionableItem
             if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
+            # ...and has copy functions provided for all foreign keys on content
+            content_rels = [
+                f for f in versionable.content_model._meta.fields
+                if f.is_relation and not f.name == versionable.grouper_field_name
+            ]
+            for rel in content_rels:
+                if rel.name not in versionable.copy_functions:
+                    raise ImproperlyConfigured(
+                        "%s.%s needs to have a copy method provided in cms_config.py"
+                        % (versionable.content_model.__name__, rel.name))
+        # All checks passed, we can add it to our masterlist now
         self.versionables.extend(cms_config.versioning)
 
     def handle_admin_classes(self, cms_config):

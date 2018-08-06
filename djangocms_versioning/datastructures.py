@@ -1,4 +1,7 @@
 from django.db.models import Max
+from django.utils.functional import cached_property
+
+from .models import Version
 
 
 class VersionableItem:
@@ -10,6 +13,25 @@ class VersionableItem:
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
+
+    @cached_property
+    def version_proxy(self):
+        class Meta:
+            proxy = True
+        ProxyVersion = type(
+            self.grouper_field.remote_field.model.__name__ + 'Version',
+            (Version, ),
+            {
+                'Meta': Meta,
+                '__module__': __name__,
+                '_content_model': self.content_model,
+            },
+        )
+        return ProxyVersion
+
+    @property
+    def grouper_model(self):
+        return self.grouper_field.remote_field.model
 
     def distinct_groupers(self):
         """Returns a queryset of `self.content` objects with unique

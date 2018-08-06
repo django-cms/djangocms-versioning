@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import patch
 
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
@@ -17,6 +18,7 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning.helpers import (
+    register_versionadmin_proxy,
     replace_admin_for_models,
     versioning_admin_factory,
 )
@@ -228,9 +230,25 @@ class AdminRegisterVersionTestCase(CMSTestCase):
     def test_register_version_admin(self):
         """Test that VersionAdmin is registered for Version model
         """
+        site = admin.AdminSite()
 
-        self.assertIn(Version, admin.site._registry)
-        self.assertEqual(admin.site._registry[Version].__class__, VersionAdmin)
+        register_versionadmin_proxy(PollContent, 'foo', site)
+
+        self.assertIn(PollContent, site._registry)
+        self.assertIn(VersionAdmin, site._registry[PollContent].__class__.mro())
+
+    def test_register_version_admin_again(self):
+        """Test that attempting to register a proxy model again
+        doesn't do anything.
+        """
+        existing_admin = type('TestAdmin', (admin.ModelAdmin, ), {})
+        site = admin.AdminSite()
+        site.register(PollContent, existing_admin)
+
+        with patch.object(site, 'register') as mock:
+            register_versionadmin_proxy(PollContent, 'foo', site)
+
+        mock.assert_not_called()
 
 
 class VersionAdminTestCase(CMSTestCase):
@@ -239,6 +257,8 @@ class VersionAdminTestCase(CMSTestCase):
         self.site = admin.AdminSite()
         self.site.register(Version, VersionAdmin)
         self.superuser = self.get_superuser()
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        self.versionable = versioning_extension.versionables_by_content[PollContent]
 
     def test_get_changelist(self):
         self.assertEqual(
@@ -267,18 +287,18 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'add'))
+            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'add'))
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
         version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'change', version.pk))
+            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'delete', 1))
+            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'delete', 1))
         self.assertEqual(response.status_code, 403)
 
 
@@ -286,45 +306,39 @@ class VersionChangeListTestCase(CMSTestCase):
 
     def setUp(self):
         self.superuser = self.get_superuser()
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        self.versionable = versioning_extension.versionables_by_content[PollContent]
 
-    def test_missing_grouper(self):
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_admin_url(Version, 'changelist'),
-                follow=True,
-            )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
-
-    def test_unregistered_content_type(self):
-        """Test that passing content_type_id of a model that isn't registered
-        as content model returns an error
+    def test_missing_grouper_shows_form(self):
+        """Test that going to a changelist with no grouper in querystring
+        shows a form to select a grouper.
         """
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=1',
-                follow=True,
-            )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+        pv = factories.PollVersionFactory()
 
-    def test_invalid_content_type(self):
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=0',
+                self.get_admin_url(self.versionable.version_proxy, 'changelist'),
                 follow=True,
             )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.assertIn('grouper', response.context['form'].fields)
+        self.assertIn(
+            (pv.content.poll.pk, str(pv.content.poll)),
+            response.context['form'].fields['grouper'].choices,
+        )
 
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()
         factories.PollVersionFactory.create_batch(4)
+
         with self.login_user_context(self.superuser):
-            querystring = '?grouper={grouper}&content_type_id={ctype}'.format(
-                grouper=pv.content.poll_id,
-                ctype=ContentType.objects.get_for_model(pv.content).pk,
-            )
+            querystring = '?grouper={grouper}'.format(grouper=pv.content.poll_id)
             response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + querystring,
+                self.get_admin_url(self.versionable.version_proxy, 'changelist') + querystring,
             )
+
         self.assertEqual(response.status_code, 200)
         self.assertIn('cl', response.context)
         self.assertQuerysetEqual(

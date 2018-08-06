@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 
-from .admin import VersioningAdminMixin
+from .admin import VersionAdmin, VersioningAdminMixin
 
 
 def versioning_admin_factory(admin_class):
@@ -43,3 +44,28 @@ def replace_admin_for_models(models, admin_site=None):
         except KeyError:
             continue
         _replace_admin_for_model(modeladmin, admin_site)
+
+
+def register_versionadmin_proxy(version_proxy, grouper_name, admin_site=None):
+    """
+    ;param version_proxy: Proxy model to Version
+    :param grouper_name: Grouper model name
+    :param admin_site: AdminSite instance
+    """
+    if admin_site is None:
+        admin_site = admin.site
+
+    if version_proxy in admin_site._registry:
+        # Attempting to register the proxy again is a no-op.
+        return
+
+    class ProxiedAdmin(VersionAdmin):
+
+        def get_queryset(self, request):
+            content_type = ContentType.objects.get_for_model(self.model._content_model)
+            return super().get_queryset(request).filter(
+                content_type=content_type,
+            )
+    ProxiedAdmin.__name__ = grouper_name + VersionAdmin.__name__
+
+    admin_site.register(version_proxy, ProxiedAdmin)

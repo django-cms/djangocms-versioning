@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 from cms.app_base import CMSAppExtension
 
 from .datastructures import VersionableItem
-from .helpers import replace_admin_for_models
+from .helpers import register_versionadmin_proxy, replace_admin_for_models
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -48,6 +48,17 @@ class VersioningCMSExtension(CMSAppExtension):
             [versionable.content_model for versionable in cms_config.versioning],
         )
 
+    def handle_version_admin(self, cms_config):
+        """Registers version admin for all registered content types
+        with default filtering by content type applied.
+        """
+        for versionable in cms_config.versioning:
+            register_versionadmin_proxy(
+                versionable.version_proxy,
+                versionable.grouper_field.remote_field.model.__name__,
+            )
+
     def configure_app(self, cms_config):
         self.handle_versioning_setting(cms_config)
         self.handle_admin_classes(cms_config)
+        self.handle_version_admin(cms_config)

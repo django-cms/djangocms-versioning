@@ -98,25 +98,3 @@ class ContentGeneric(models.Model):
     )
     object_id = models.PositiveIntegerField()
     rel = GenericForeignKey('content_type', 'object_id')
-
-
-### A longer chain of relationships ###
-class GrouperMultipleRelationships(models.Model):
-    pass
-
-
-class MultipleRelationshipsC(models.Model):
-    pass
-
-
-class MultipleRelationshipsB(models.Model):
-    rel = models.ForeignKey(MultipleRelationshipsC)
-
-
-class MultipleRelationshipsA(models.Model):
-    rel = models.ForeignKey(MultipleRelationshipsB)
-
-
-class ContentMultipleRelationships(models.Model):
-    grouper = models.ForeignKey(Grouper1toManyF)
-    rel = models.ForeignKey(MultipleRelationshipsA)

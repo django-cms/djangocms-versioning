@@ -46,8 +46,11 @@ class VersioningCMSExtension(CMSAppExtension):
                 and not f.name == versionable.grouper_field_name
                 # don't include the content type fk of generic keys
                 # if the model has a generic fk then we only need a copy
-                # method for generic fk field itself
-                and f.name not in [versionable.content_model._meta.get_field(rel_name).ct_field for rel_name in generic_rels]
+                # method for the generic fk field itself
+                and f.name not in [
+                    versionable.content_model._meta.get_field(rel_name).ct_field
+                    for rel_name in generic_rels
+                ]
             ]
             m2m_rels = [
                 f.name for f in versionable.content_model._meta.many_to_many

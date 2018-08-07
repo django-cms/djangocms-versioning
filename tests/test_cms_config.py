@@ -345,6 +345,65 @@ class CMSConfigFKTestCase(CMSTestCase):
         except ImproperlyConfigured:
             self.fail("Unexpectedly raised ImproperlyConfigured")
 
+    #~ def test_multiple_rel_b_exception(self):
+        #~ extensions = VersioningCMSExtension()
+        #~ cms_config = Mock(
+            #~ spec=[],
+            #~ djangocms_versioning_enabled=True,
+            #~ versioning=[
+                #~ VersionableItem(
+                    #~ content_model=relationship_models.ContentMultipleRelationships,
+                    #~ grouper_field_name='grouper',
+                    #~ copy_functions={
+                        #~ 'rel': lambda old_value: old_value
+                    #~ }
+                #~ )
+            #~ ]
+        #~ )
+        #~ with self.assertRaises(ImproperlyConfigured):
+            #~ extensions.handle_versioning_setting(cms_config)
+
+    #~ def test_multiple_rel_c_exception(self):
+        #~ extensions = VersioningCMSExtension()
+        #~ cms_config = Mock(
+            #~ spec=[],
+            #~ djangocms_versioning_enabled=True,
+            #~ versioning=[
+                #~ VersionableItem(
+                    #~ content_model=relationship_models.ContentMultipleRelationships,
+                    #~ grouper_field_name='grouper',
+                    #~ copy_functions={
+                        #~ 'rel': lambda old_value: old_value,
+                        #~ 'rel.rel': lambda old_value: old_value,
+                    #~ }
+                #~ )
+            #~ ]
+        #~ )
+        #~ with self.assertRaises(ImproperlyConfigured):
+            #~ extensions.handle_versioning_setting(cms_config)
+
+    #~ def test_multiple_rel_doesnt_raise_exception_if_all_functions_provided(self):
+        #~ extensions = VersioningCMSExtension()
+        #~ cms_config = Mock(
+            #~ spec=[],
+            #~ djangocms_versioning_enabled=True,
+            #~ versioning=[
+                #~ VersionableItem(
+                    #~ content_model=relationship_models.ContentMultipleRelationships,
+                    #~ grouper_field_name='grouper',
+                    #~ copy_functions={
+                        #~ 'rel': lambda old_value: old_value,
+                        #~ 'rel.rel': lambda old_value: old_value,
+                        #~ 'rel.rel.rel': lambda old_value: old_value,
+                    #~ }
+                #~ )
+            #~ ]
+        #~ )
+        #~ try:
+            #~ extensions.handle_versioning_setting(cms_config)
+        #~ except ImproperlyConfigured:
+            #~ self.fail("Unexpectedly raised ImproperlyConfigured")
+
 
 class VersioningIntegrationTestCase(CMSTestCase):
 

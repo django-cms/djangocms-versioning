@@ -7,7 +7,7 @@ Let's use an example. There's an existing `blog` application
 that has a single model called `Post`:
 
 ```python
-# polls/models.py
+# blog/models.py
 from django.db import models
 
 
@@ -23,7 +23,7 @@ which tie select content objects together.
 In order to make `blog` app work with versioning, changes to model structure are needed.
 
 ```python
-# polls/models.py
+# blog/models.py
 from django.db import models
 
 
@@ -46,21 +46,25 @@ every new **content** object.
 
 `Post` becomes a **grouper** model and `PostContent` becomes a **content** model.
 
+Keep in mind that it's not necessary to rename `Post` to `PostContent`,
+it's just a naming convention. It's absolutely possible to keep **content** model
+named `Post` and have `PostGrouper` as a name of **grouper** model.
+
 Versioning needs to be aware of these models. This can be done in `cms_config.py` file:
 
 ```python
-# polls/cms_config.py
+# blog/cms_config.py
 from cms.app_base import CMSAppConfig
 from djangocms_versioning.datastructures import VersionableItem
-from .models import PollContent
+from .models import PostContent
 
 
-class PollsCMSConfig(CMSAppConfig):
+class BlogCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True  # -- 1
     versioning = [
         VersionableItem(   # -- 2
-            content_model=PollContent,
-            grouper_field_name='poll',
+            content_model=PostContent,
+            grouper_field_name='post',
         ),
     ]
 ```
@@ -70,6 +74,6 @@ class PollsCMSConfig(CMSAppConfig):
 
     `VersionableItem` has the following attributes:
 
-    - content_model - *content model* class - in our example it's `PollContent`
+    - content_model - *content model* class - in our example it's `PostContent`
     - grouper_field_name - name of the field on the content model which is
-    a relation to *grouper model* - in the example it's `poll`
+    a relation to *grouper model* - in the example it's `post`

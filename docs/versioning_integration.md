@@ -17,7 +17,7 @@ class Post(models.Model):
 ```
 
 Versioning works by creating multiple objects (called **content objects**).
-To know what these objects are versions of, there's a contept of **grouper objects**,
+To know what these objects are versions of, there's a concept of **grouper objects**,
 which tie select content objects together.
 
 In order to make `blog` app work with versioning, changes to model structure are needed.

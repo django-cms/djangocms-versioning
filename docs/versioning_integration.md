@@ -69,7 +69,7 @@ class BlogCMSConfig(CMSAppConfig):
     ]
 ```
 
-1. This line instructs CMS to pass this configuration to Versioning
+1. This must be set to True for Versioning to read app's CMS config.
 2. `versioning` attribute takes a list of `VersionableItem` objects.
 
     `VersionableItem` has the following attributes:

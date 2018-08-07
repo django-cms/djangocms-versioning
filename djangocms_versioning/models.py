@@ -29,14 +29,14 @@ class Version(models.Model):
         implemented in `_copy_function_factory`. This can be overriden
         per-field by implementing `copy_{field_name}` method.
         """
-        content_class = self.content.__class__
+        content_model = self.content.__class__
         content_fields = {
             field.name: getattr(self.content, field.name)
-            for field in content_class._meta.fields
+            for field in content_model._meta.fields
             # don't copy primary key because we're creating a new obj
-            if content_class._meta.pk.name != field.name
+            if content_model._meta.pk.name != field.name
         }
-        new_content = content_class.objects.create(**content_fields)
+        new_content = content_model.objects.create(**content_fields)
         new_version = Version.objects.create(content=new_content)
         return new_version
 

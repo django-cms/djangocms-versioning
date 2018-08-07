@@ -8,6 +8,9 @@ that has a single model called `Post`:
 
 ```python
 # polls/models.py
+from django.db import models
+
+
 class Post(models.Model):
     title = models.CharField(max_length=100)
     text = models.TextField()
@@ -21,6 +24,9 @@ In order to make `blog` app work with versioning, changes to model structure are
 
 ```python
 # polls/models.py
+from django.db import models
+
+
 class Post(models.Model):
     pass
 
@@ -34,12 +40,21 @@ class PostContent(models.Model):
 This structure is not only compatible with versioning,
 but also works when versioning is not enabled.
 
+Note: With versioning disabled **grouper** essentially becomes a one-to-one
+relation to **content**, as it will always be created along with
+every new **content** object.
+
 `Post` becomes a **grouper** model and `PostContent` becomes a **content** model.
 
 Versioning needs to be aware of these models. This can be done in `cms_config.py` file:
 
 ```python
 # polls/cms_config.py
+from cms.app_base import CMSAppConfig
+from djangocms_versioning.datastructures import VersionableItem
+from .models import PollContent
+
+
 class PollsCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True  # -- 1
     versioning = [

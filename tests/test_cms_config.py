@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
+from django.test.utils import ignore_warnings
 
 from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
@@ -129,6 +130,7 @@ class CMSConfigUnitTestCase(CMSTestCase):
         )
 
 
+@ignore_warnings(module='djangocms_versioning.helpers')
 class VersioningIntegrationTestCase(CMSTestCase):
 
     def setUp(self):

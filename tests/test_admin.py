@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
+from django.test.utils import ignore_warnings
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.urlutils import admin_reverse
@@ -244,6 +245,7 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         self.assertIn(Version, site._registry)
         self.assertIn(VersionAdmin, site._registry[Version].__class__.mro())
 
+    @ignore_warnings(module='djangocms_versioning.helpers')
     def test_register_version_admin_again(self):
         """Test that attempting to register a proxy model again
         doesn't do anything.

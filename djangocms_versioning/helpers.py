@@ -1,3 +1,5 @@
+import warnings
+
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 
@@ -61,6 +63,12 @@ def register_versionadmin_proxy(versionable, admin_site=None):
 
     if versionable.version_model_proxy in admin_site._registry:
         # Attempting to register the proxy again is a no-op.
+        warnings.warn(
+            '{!r} is already registered with admin.'.format(
+                versionable.version_model_proxy,
+            ),
+            UserWarning,
+        )
         return
 
     class ProxiedAdmin(VersionAdmin):

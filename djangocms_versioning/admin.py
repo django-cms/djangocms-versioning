@@ -1,12 +1,14 @@
 from django.apps import apps
+from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.views.main import ChangeList
-from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
+from .forms import grouper_form_factory
 from .models import Version
 
 
@@ -44,7 +46,7 @@ class VersionChangeList(ChangeList):
 
     def get_queryset(self, request):
         """Adds support for querying the version model by content grouper
-        field using ?content_type_id={id}&grouper={id}.
+        field using ?grouper={id}.
 
         Filters by the value of grouper field (specified in VersionableItem
         definition) of content model.
@@ -53,27 +55,17 @@ class VersionChangeList(ChangeList):
         for specifying filters that work without being shown in the UI
         along with filter choices.
         """
+        qs = super().get_queryset(request)
         try:
             grouper = int(request.GET.get(GROUPER_PARAM))
         except (TypeError, ValueError):
-            raise IncorrectLookupParameters("Invalid grouper")
-        content_type_id = request.GET.get('content_type_id')
-        try:
-            content_type = ContentType.objects.get(pk=content_type_id)
-            model = content_type.model_class()
-        except (ContentType.DoesNotExist, ValueError):
-            raise IncorrectLookupParameters("Invalid content_type_id")
+            raise IncorrectLookupParameters("Missing grouper")
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        try:
-            versionable = versioning_extension.versionables_by_content[model]
-        except KeyError:
-            raise IncorrectLookupParameters("No content model registered for given content_type_id")
-        qs = super().get_queryset(request)
-        object_ids = versionable.for_grouper(grouper)
-        return qs.filter(object_id__in=object_ids)
+        versionable = versioning_extension.versionables_by_content[self.model_admin.model._source_model]
+        content_objects = versionable.for_grouper(grouper)
+        return qs.filter(object_id__in=content_objects)
 
 
-@admin.register(Version)
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
@@ -106,6 +98,37 @@ class VersionAdmin(admin.ModelAdmin):
         )
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
+
+    def grouper_form_view(self, request):
+        """Displays an intermediary page to select a grouper object
+        to show versions of.
+        """
+        context = dict(
+            self.admin_site.each_context(request),
+            opts=self.model._meta,
+            form=grouper_form_factory(self.model._source_model)(),
+        )
+        return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
+
+    def changelist_view(self, request, extra_context=None):
+        if not request.GET:
+            # redirect to grouper form when there's no GET parameters
+            opts = self.model._meta
+            return redirect(reverse('admin:{}_{}_grouper'.format(
+                opts.app_label,
+                opts.model_name,
+            )))
+        return super().changelist_view(request, extra_context)
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        return [
+            url(
+                r'^grouper/$',
+                self.admin_site.admin_view(self.grouper_form_view),
+                name='{}_{}_grouper'.format(*info),
+            ),
+        ] + super().get_urls()
 
     def has_add_permission(self, request):
         return False

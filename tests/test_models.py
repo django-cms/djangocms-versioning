@@ -1,12 +1,10 @@
-from freezegun import freeze_time
-
-from django.db.models import Q
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 
+from freezegun import freeze_time
+
 from djangocms_versioning.constants import DRAFT
-from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 
 

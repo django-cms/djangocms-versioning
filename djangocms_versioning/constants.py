@@ -1,4 +1,4 @@
-### Version states ###
+"""Version states"""
 ARCHIVED = 'archived'
 DRAFT = 'draft'
 PUBLISHED = 'published'

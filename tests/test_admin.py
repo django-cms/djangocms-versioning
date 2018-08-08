@@ -228,7 +228,8 @@ class ContentAdminChangelistTestCase(CMSTestCase):
 class AdminRegisterVersionTestCase(CMSTestCase):
 
     def test_register_version_admin(self):
-        """Test that VersionAdmin is registered for Version model
+        """Test that a model admin based on VersionAdmin class is registered
+        for specified VersionableItem
         """
         site = admin.AdminSite()
 
@@ -266,9 +267,6 @@ class VersionAdminTestCase(CMSTestCase):
     def setUp(self):
         self.site = admin.AdminSite()
         self.site.register(Version, VersionAdmin)
-        self.superuser = self.get_superuser()
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        self.versionable = versioning_extension.versionables_by_content[PollContent]
 
     def test_get_changelist(self):
         self.assertEqual(
@@ -294,6 +292,14 @@ class VersionAdminTestCase(CMSTestCase):
                 label='test4',
             ),
         )
+
+
+class VersionAdminViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.superuser = self.get_superuser()
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        self.versionable = versioning_extension.versionables_by_content[PollContent]
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):

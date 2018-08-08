@@ -11,6 +11,7 @@ from cms.utils.setup import setup_cms_apps
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
     BlogpostCMSConfig,
 )
@@ -174,3 +175,30 @@ class VersioningIntegrationTestCase(CMSTestCase):
         # (they are defined in cms_config.py but are not registered
         # to the admin)
         self.assertNotIn(Comment, admin.site._registry)
+
+    def test_version_admin_registered(self):
+        """Integration test that for each content model
+        there's a version proxy registered with the admin
+        subclassing VersionAdmin
+        """
+        setup_cms_apps()
+
+        version_proxies = [
+            model for model in admin.site._registry if issubclass(model, Version)
+        ]
+        source_models_in_proxies = [model._source_model for model in version_proxies]
+        source_model_to_proxy = dict(zip(source_models_in_proxies, version_proxies))
+
+        self.assertIn(PollContent, source_models_in_proxies)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[source_model_to_proxy[PollContent]].__class__.mro()
+        )
+
+        self.assertIn(BlogContent, source_models_in_proxies)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[source_model_to_proxy[BlogContent]].__class__.mro()
+        )
+
+        self.assertNotIn(Comment, source_models_in_proxies)

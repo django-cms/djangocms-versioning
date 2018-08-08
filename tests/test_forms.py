@@ -16,17 +16,18 @@ class GrouperFormTestCase(CMSTestCase):
         pv = factories.PollVersionFactory()
 
         form_class = grouper_form_factory(PollContent)
-        form = form_class()
 
         self.assertIn(forms.Form, form_class.mro())
         self.assertEqual(form_class.__name__, 'PollContentGrouperForm')
-        self.assertIn('grouper', form.fields)
+        self.assertIn('grouper', form_class.base_fields)
         self.assertIn(
             (pv.content.poll.pk, str(pv.content.poll)),
-            form.fields['grouper'].choices,
+            form_class.base_fields['grouper'].choices,
         )
 
     def test_factory_cache(self):
+        """Test that grouper_form_factory is cached
+        and return value is created once."""
         self.assertEqual(
             id(grouper_form_factory(PollContent)),
             id(grouper_form_factory(PollContent)),

@@ -1,7 +1,6 @@
 import datetime
 from unittest.mock import Mock, patch
 
-from django.apps import apps
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
@@ -26,6 +25,7 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
     Poll,
@@ -299,8 +299,7 @@ class VersionAdminViewTestCase(CMSTestCase):
 
     def setUp(self):
         self.superuser = self.get_superuser()
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        self.versionable = versioning_extension.versionables_by_content[PollContent]
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
@@ -335,8 +334,7 @@ class VersionChangeListTestCase(CMSTestCase):
 
     def setUp(self):
         self.superuser = self.get_superuser()
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        self.versionable = versioning_extension.versionables_by_content[PollContent]
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_no_querystring_shows_form(self):
         """Test that going to a changelist with no data in querystring

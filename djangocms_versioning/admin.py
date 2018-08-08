@@ -112,6 +112,7 @@ class VersionAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
+            # redirect to grouper form when there's no GET parameters
             opts = self.model._meta
             return redirect(reverse('admin:{}_{}_grouper'.format(
                 opts.app_label,

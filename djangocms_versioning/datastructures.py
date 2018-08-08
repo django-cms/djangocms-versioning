@@ -20,16 +20,13 @@ class VersionableItem:
         It's used for creating separate version model classes for each
         content type.
         """
-
         model_name = self.content_model.__name__ + 'Version'
 
-        class Meta:
-            proxy = True
         ProxyVersion = type(
             model_name,
             (Version, ),
             {
-                'Meta': Meta,
+                'Meta': type('Meta', (), {'proxy': True}),
                 '__module__': __name__,
                 '_source_model': self.content_model,
             },

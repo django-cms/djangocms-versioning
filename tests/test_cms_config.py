@@ -1,16 +1,18 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
+from django.test.utils import ignore_warnings
 
 from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
-from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
     BlogpostCMSConfig,
 )
@@ -19,7 +21,7 @@ from djangocms_versioning.test_utils.blogpost.models import (
     Comment,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import PollContent
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
 class CMSConfigUnitTestCase(CMSTestCase):
@@ -90,7 +92,45 @@ class CMSConfigUnitTestCase(CMSTestCase):
             admin.site._registry[PollContent].__class__.mro()
         )
 
+    def test_is_content_model_versioned(self):
+        """Test that is_content_model_versioned returns True for
+        content model that's versioned
+        """
+        extension = VersioningCMSExtension()
+        extension.versionables = [VersionableItem(content_model=PollContent, grouper_field_name='poll')]
 
+        self.assertTrue(extension.is_content_model_versioned(PollContent))
+
+    def test_is_content_model_not_versioned(self):
+        """Test that is_content_model_versioned returns False for
+        content model that's not versioned
+        """
+        extension = VersioningCMSExtension()
+        extension.versionables = []
+
+        self.assertFalse(extension.is_content_model_versioned(PollContent))
+
+    def test_handle_version_admin(self):
+        versionable = Mock(
+            spec=[], djangocms_versioning_enabled=True, content_model=PollContent,
+            grouper_model=Poll,
+            version_model_proxy=apps.get_model('djangocms_versioning', 'PollContentVersion')
+        )
+
+        with patch.object(versionable, 'version_model_proxy'):
+            extensions = VersioningCMSExtension()
+            cms_config = Mock(
+                spec=[], djangocms_versioning_enabled=True,
+                versioning=[versionable])
+            extensions.handle_version_admin(cms_config)
+        self.assertIn(versionable.version_model_proxy, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[versionable.version_model_proxy].__class__.mro()
+        )
+
+
+@ignore_warnings(module='djangocms_versioning.helpers')
 class VersioningIntegrationTestCase(CMSTestCase):
 
     def setUp(self):
@@ -137,3 +177,30 @@ class VersioningIntegrationTestCase(CMSTestCase):
         # (they are defined in cms_config.py but are not registered
         # to the admin)
         self.assertNotIn(Comment, admin.site._registry)
+
+    def test_version_admin_registered(self):
+        """Integration test that for each content model
+        there's a version proxy registered with the admin
+        subclassing VersionAdmin
+        """
+        setup_cms_apps()
+
+        version_proxies = [
+            model for model in admin.site._registry if issubclass(model, Version)
+        ]
+        source_models_in_proxies = [model._source_model for model in version_proxies]
+        source_model_to_proxy = dict(zip(source_models_in_proxies, version_proxies))
+
+        self.assertIn(PollContent, source_models_in_proxies)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[source_model_to_proxy[PollContent]].__class__.mro()
+        )
+
+        self.assertIn(BlogContent, source_models_in_proxies)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[source_model_to_proxy[BlogContent]].__class__.mro()
+        )
+
+        self.assertNotIn(Comment, source_models_in_proxies)

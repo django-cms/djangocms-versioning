@@ -1,7 +1,5 @@
 from mock import Mock, patch
 
-from freezegun import freeze_time
-
 from django.db.models import Q
 from django.utils.timezone import now
 
@@ -12,6 +10,8 @@ from djangocms_versioning.datastructures import VersionableItem
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.relationships import models
+
+from freezegun import freeze_time
 
 
 class CopyTestCase(CMSTestCase):

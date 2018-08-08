@@ -1,11 +1,14 @@
 import datetime
-from unittest.mock import patch
+import warnings
+from unittest.mock import Mock, patch
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
+from django.test.utils import ignore_warnings
 
 from cms.test_utils.testcases import CMSTestCase
+from cms.utils.urlutils import admin_reverse
 
 import pytz
 from freezegun import freeze_time
@@ -17,12 +20,14 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning.helpers import (
+    register_versionadmin_proxy,
     replace_admin_for_models,
     versioning_admin_factory,
 )
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
     Poll,
@@ -226,11 +231,54 @@ class ContentAdminChangelistTestCase(CMSTestCase):
 class AdminRegisterVersionTestCase(CMSTestCase):
 
     def test_register_version_admin(self):
-        """Test that VersionAdmin is registered for Version model
+        """Test that a model admin based on VersionAdmin class is registered
+        for specified VersionableItem
         """
+        site = admin.AdminSite()
 
-        self.assertIn(Version, admin.site._registry)
-        self.assertEqual(admin.site._registry[Version].__class__, VersionAdmin)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
+        register_versionadmin_proxy(versionable, site)
+
+        self.assertIn(Version, site._registry)
+        self.assertIn(VersionAdmin, site._registry[Version].__class__.mro())
+
+    @ignore_warnings(module='djangocms_versioning.helpers')
+    def test_register_version_admin_again(self):
+        """Test that attempting to register a proxy model again
+        doesn't do anything.
+        """
+        existing_admin = type('TestAdmin', (admin.ModelAdmin, ), {})
+        site = admin.AdminSite()
+        site.register(Version, existing_admin)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
+
+        with patch.object(site, 'register') as mock:
+            register_versionadmin_proxy(versionable, site)
+
+        mock.assert_not_called()
+
+    def test_register_versionadmin_proxy_warning(self):
+        existing_admin = type('TestAdmin', (admin.ModelAdmin, ), {})
+        site = admin.AdminSite()
+        site.register(Version, existing_admin)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
+
+        with patch.object(warnings, 'warn') as mock:
+            register_versionadmin_proxy(versionable, site)
+        message = '{!r} is already registered with admin.'.format(Version)
+        mock.assert_called_with(message, UserWarning)
 
 
 class VersionAdminTestCase(CMSTestCase):
@@ -238,7 +286,6 @@ class VersionAdminTestCase(CMSTestCase):
     def setUp(self):
         self.site = admin.AdminSite()
         self.site.register(Version, VersionAdmin)
-        self.superuser = self.get_superuser()
 
     def test_get_changelist(self):
         self.assertEqual(
@@ -265,66 +312,90 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+
+class VersionAdminViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.superuser = self.get_superuser()
+        self.versionable = PollsCMSConfig.versioning[0]
+
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'add'))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'add'))
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
         version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'change', version.pk))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(Version, 'delete', 1))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'delete', 1))
         self.assertEqual(response.status_code, 403)
+
+    def test_grouper_view_requires_staff_permissions(self):
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'grouper'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_grouper_view_requires_staff_permissions_(self):
+        url = self.get_admin_url(self.versionable.version_model_proxy, 'grouper')
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
 
 class VersionChangeListTestCase(CMSTestCase):
 
     def setUp(self):
         self.superuser = self.get_superuser()
+        self.versionable = PollsCMSConfig.versioning[0]
 
-    def test_missing_grouper(self):
+    def test_no_querystring_shows_form(self):
+        """Test that going to a changelist with no data in querystring
+        shows a form to select a grouper.
+        """
+        pv = factories.PollVersionFactory()
+
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_admin_url(Version, 'changelist'),
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
                 follow=True,
             )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
 
-    def test_unregistered_content_type(self):
-        """Test that passing content_type_id of a model that isn't registered
-        as content model returns an error
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('form', response.context)
+        self.assertIn('grouper', response.context['form'].fields)
+        self.assertIn(
+            (pv.content.poll.pk, str(pv.content.poll)),
+            response.context['form'].fields['grouper'].choices,
+        )
+
+    def test_missing_grouper(self):
+        """Test that going to a changelist with no grouper in querystring
+        shows an error.
         """
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=1',
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + '?foo=1',
                 follow=True,
             )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
 
-    def test_invalid_content_type(self):
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + '?grouper=1&content_type_id=0',
-                follow=True,
-            )
-        self.assertRedirects(response, "/en/admin/djangocms_versioning/version/?e=1")
+        self.assertRedirects(response, '/en/admin/djangocms_versioning/pollcontentversion/?e=1')
 
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()
         factories.PollVersionFactory.create_batch(4)
+
         with self.login_user_context(self.superuser):
-            querystring = '?grouper={grouper}&content_type_id={ctype}'.format(
-                grouper=pv.content.poll_id,
-                ctype=ContentType.objects.get_for_model(pv.content).pk,
-            )
+            querystring = '?grouper={grouper}'.format(grouper=pv.content.poll_id)
             response = self.client.get(
-                self.get_admin_url(Version, 'changelist') + querystring,
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring,
             )
+
         self.assertEqual(response.status_code, 200)
         self.assertIn('cl', response.context)
         self.assertQuerysetEqual(

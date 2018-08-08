@@ -1,4 +1,5 @@
 import datetime
+import warnings
 from unittest.mock import Mock, patch
 
 from django.contrib import admin
@@ -263,6 +264,21 @@ class AdminRegisterVersionTestCase(CMSTestCase):
             register_versionadmin_proxy(versionable, site)
 
         mock.assert_not_called()
+
+    def test_register_versionadmin_proxy_warning(self):
+        existing_admin = type('TestAdmin', (admin.ModelAdmin, ), {})
+        site = admin.AdminSite()
+        site.register(Version, existing_admin)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
+
+        with patch.object(warnings, 'warn') as mock:
+            register_versionadmin_proxy(versionable, site)
+        message = '{!r} is already registered with admin.'.format(Version)
+        mock.assert_called_with(message, UserWarning)
 
 
 class VersionAdminTestCase(CMSTestCase):

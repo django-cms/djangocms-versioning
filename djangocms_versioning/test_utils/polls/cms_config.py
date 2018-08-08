@@ -11,5 +11,8 @@ class PollsCMSConfig(CMSAppConfig):
         VersionableItem(
             content_model=PollContent,
             grouper_field_name='poll',
+            copy_functions={
+                'answer.poll_content': lambda old_value: old_value
+            }
         ),
     ]

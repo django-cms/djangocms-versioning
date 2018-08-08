@@ -1,6 +1,6 @@
-from cms.test_utils.testcases import CMSTestCase
-
 from django import forms
+
+from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.forms import grouper_form_factory
 from djangocms_versioning.test_utils import factories

@@ -7,8 +7,8 @@ from cms.test_utils.testcases import CMSTestCase
 from djangocms_versioning.datastructures import VersionableItem
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
-from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 from djangocms_versioning.test_utils.non_configured.models import PersonContent
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
 class VersionableItemTestCase(CMSTestCase):

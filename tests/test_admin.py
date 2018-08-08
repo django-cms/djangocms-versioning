@@ -349,8 +349,6 @@ class VersionChangeListTestCase(CMSTestCase):
         """Test that going to a changelist with no grouper in querystring
         shows an error.
         """
-        pv = factories.PollVersionFactory()
-
         with self.login_user_context(self.superuser):
             response = self.client.get(
                 self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + '?foo=1',

@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 
 from cms.test_utils.testcases import CMSTestCase
+from cms.utils.urlutils import admin_reverse
 
 import pytz
 from freezegun import freeze_time
@@ -316,6 +317,18 @@ class VersionAdminViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'delete', 1))
         self.assertEqual(response.status_code, 403)
+
+    def test_grouper_view_requires_staff_permissions(self):
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'grouper'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_grouper_view_requires_staff_permissions_(self):
+        url = self.get_admin_url(self.versionable.version_model_proxy, 'grouper')
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
 
 class VersionChangeListTestCase(CMSTestCase):

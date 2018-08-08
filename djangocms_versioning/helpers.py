@@ -46,26 +46,33 @@ def replace_admin_for_models(models, admin_site=None):
         _replace_admin_for_model(modeladmin, admin_site)
 
 
-def register_versionadmin_proxy(version_proxy, grouper_name, admin_site=None):
-    """
-    ;param version_proxy: Proxy model to Version
-    :param grouper_name: Grouper model name
+def register_versionadmin_proxy(versionable, admin_site=None):
+    """Creates a model admin class based on `VersionAdmin` and registers
+    it with `admin_site` for `versionable.version_model_proxy`.
+
+    This model class applies filtering on the list of versions,
+    so that only versions for `versionable.content_model` are shown.
+
+    :param versionable: VersionableItem instance
     :param admin_site: AdminSite instance
     """
     if admin_site is None:
         admin_site = admin.site
 
-    if version_proxy in admin_site._registry:
+    if versionable.version_model_proxy in admin_site._registry:
         # Attempting to register the proxy again is a no-op.
         return
 
     class ProxiedAdmin(VersionAdmin):
 
         def get_queryset(self, request):
-            content_type = ContentType.objects.get_for_model(self.model._content_model)
+            content_type = ContentType.objects.get_for_model(self.model._source_model)
             return super().get_queryset(request).filter(
                 content_type=content_type,
             )
-    ProxiedAdmin.__name__ = grouper_name + VersionAdmin.__name__
+    ProxiedAdmin.__name__ = (
+        versionable.grouper_model.__name__ +
+        VersionAdmin.__name__
+    )
 
-    admin_site.register(version_proxy, ProxiedAdmin)
+    admin_site.register(versionable.version_model_proxy, ProxiedAdmin)

@@ -1,7 +1,9 @@
 from django.apps import apps
+from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.views.main import ChangeList
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -57,11 +59,11 @@ class VersionChangeList(ChangeList):
         try:
             grouper = int(request.GET.get(GROUPER_PARAM))
         except (TypeError, ValueError):
-            return qs
+            raise IncorrectLookupParameters("Missing grouper")
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[self.model_admin.model._content_model]
-        object_ids = versionable.for_grouper(grouper)
-        return qs.filter(object_id__in=object_ids)
+        versionable = versioning_extension.versionables_by_content[self.model_admin.model._source_model]
+        content_objects = versionable.for_grouper(grouper)
+        return qs.filter(object_id__in=content_objects)
 
 
 class VersionAdmin(admin.ModelAdmin):
@@ -98,17 +100,34 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.admin_order_field = 'content'
 
     def grouper_form_view(self, request):
+        """Displays an intermediary page to select a grouper object
+        to show versions of.
+        """
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._content_model)(),
+            form=grouper_form_factory(self.model._source_model)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
-            return self.grouper_form_view(request)
+            opts = self.model._meta
+            return redirect(reverse('admin:{}_{}_grouper'.format(
+                opts.app_label,
+                opts.model_name,
+            )))
         return super().changelist_view(request, extra_context)
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        return [
+            url(
+                r'^grouper/$',
+                self.admin_site.admin_view(self.grouper_form_view),
+                name='{}_{}_grouper'.format(*info),
+            ),
+        ] + super().get_urls()
 
     def has_add_permission(self, request):
         return False

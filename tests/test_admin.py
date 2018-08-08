@@ -1,5 +1,5 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.contrib import admin
@@ -232,10 +232,15 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         """
         site = admin.AdminSite()
 
-        register_versionadmin_proxy(PollContent, 'foo', site)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
+        register_versionadmin_proxy(versionable, site)
 
-        self.assertIn(PollContent, site._registry)
-        self.assertIn(VersionAdmin, site._registry[PollContent].__class__.mro())
+        self.assertIn(Version, site._registry)
+        self.assertIn(VersionAdmin, site._registry[Version].__class__.mro())
 
     def test_register_version_admin_again(self):
         """Test that attempting to register a proxy model again
@@ -243,10 +248,15 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         """
         existing_admin = type('TestAdmin', (admin.ModelAdmin, ), {})
         site = admin.AdminSite()
-        site.register(PollContent, existing_admin)
+        site.register(Version, existing_admin)
+        versionable = Mock(
+            spec=[],
+            version_model_proxy=Version,
+            grouper_model=Poll,
+        )
 
         with patch.object(site, 'register') as mock:
-            register_versionadmin_proxy(PollContent, 'foo', site)
+            register_versionadmin_proxy(versionable, site)
 
         mock.assert_not_called()
 
@@ -287,18 +297,18 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_version_adding_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'add'))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'add'))
         self.assertEqual(response.status_code, 403)
 
     def test_version_editing_is_disabled(self):
         version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'change', version.pk))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):
-            response = self.client.get(self.get_admin_url(self.versionable.version_proxy, 'delete', 1))
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'delete', 1))
         self.assertEqual(response.status_code, 403)
 
 
@@ -309,15 +319,15 @@ class VersionChangeListTestCase(CMSTestCase):
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         self.versionable = versioning_extension.versionables_by_content[PollContent]
 
-    def test_missing_grouper_shows_form(self):
-        """Test that going to a changelist with no grouper in querystring
+    def test_no_querystring_shows_form(self):
+        """Test that going to a changelist with no data in querystring
         shows a form to select a grouper.
         """
         pv = factories.PollVersionFactory()
 
         with self.login_user_context(self.superuser):
             response = self.client.get(
-                self.get_admin_url(self.versionable.version_proxy, 'changelist'),
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
                 follow=True,
             )
 
@@ -329,6 +339,20 @@ class VersionChangeListTestCase(CMSTestCase):
             response.context['form'].fields['grouper'].choices,
         )
 
+    def test_missing_grouper(self):
+        """Test that going to a changelist with no grouper in querystring
+        shows an error.
+        """
+        pv = factories.PollVersionFactory()
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + '?foo=1',
+                follow=True,
+            )
+
+        self.assertRedirects(response, '/en/admin/djangocms_versioning/pollcontentversion/?e=1')
+
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()
         factories.PollVersionFactory.create_batch(4)
@@ -336,7 +360,7 @@ class VersionChangeListTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             querystring = '?grouper={grouper}'.format(grouper=pv.content.poll_id)
             response = self.client.get(
-                self.get_admin_url(self.versionable.version_proxy, 'changelist') + querystring,
+                self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring,
             )
 
         self.assertEqual(response.status_code, 200)

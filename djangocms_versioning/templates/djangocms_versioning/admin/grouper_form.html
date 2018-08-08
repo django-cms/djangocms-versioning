@@ -32,9 +32,9 @@
         </ul>
     {% endblock %}
     <div class="module" id="changelist">
-      <form>
+      <form action="{% url opts|admin_urlname:"changelist" %}">
         {{ form.as_p }}
-        <button type="submit">Submit</button>
+        <button type="submit">{% trans "Submit" %}</button>
         </form>
       </form>
     </div>

@@ -49,14 +49,13 @@ class VersioningCMSExtension(CMSAppExtension):
         )
 
     def handle_version_admin(self, cms_config):
-        """Registers version admin for all registered content types
-        with default filtering by content type applied.
+        """
+        Registers version admin for all registered content types
+        with filtering by content type applied, so only versions for
+        that specific content type are shown.
         """
         for versionable in cms_config.versioning:
-            register_versionadmin_proxy(
-                versionable.version_proxy,
-                versionable.grouper_field.remote_field.model.__name__,
-            )
+            register_versionadmin_proxy(versionable)
 
     def configure_app(self, cms_config):
         self.handle_versioning_setting(cms_config)

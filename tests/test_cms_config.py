@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.contrib import admin
@@ -8,7 +8,7 @@ from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
-from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
 from djangocms_versioning.datastructures import VersionableItem
 from djangocms_versioning.test_utils.blogpost.cms_config import (
@@ -19,7 +19,7 @@ from djangocms_versioning.test_utils.blogpost.models import (
     Comment,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import PollContent
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
 class CMSConfigUnitTestCase(CMSTestCase):
@@ -107,6 +107,25 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extension.versionables = []
 
         self.assertFalse(extension.is_content_model_versioned(PollContent))
+
+    def test_handle_version_admin(self):
+        versionable = Mock(
+            spec=[], djangocms_versioning_enabled=True, content_model=PollContent,
+            grouper_model=Poll,
+            version_model_proxy=apps.get_model('djangocms_versioning', 'PollContentVersion')
+        )
+
+        with patch.object(versionable, 'version_model_proxy'):
+            extensions = VersioningCMSExtension()
+            cms_config = Mock(
+                spec=[], djangocms_versioning_enabled=True,
+                versioning=[versionable])
+            extensions.handle_version_admin(cms_config)
+        self.assertIn(versionable.version_model_proxy, admin.site._registry)
+        self.assertIn(
+            VersionAdmin,
+            admin.site._registry[versionable.version_model_proxy].__class__.mro()
+        )
 
 
 class VersioningIntegrationTestCase(CMSTestCase):

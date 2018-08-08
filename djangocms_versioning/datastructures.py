@@ -15,16 +15,23 @@ class VersionableItem:
         return self.content_model._meta.get_field(self.grouper_field_name)
 
     @cached_property
-    def version_proxy(self):
+    def version_model_proxy(self):
+        """Returns a dynamically created proxy model class to Version.
+        It's used for creating separate version model classes for each
+        content type.
+        """
+
+        model_name = self.content_model.__name__ + 'Version'
+
         class Meta:
             proxy = True
         ProxyVersion = type(
-            self.grouper_field.remote_field.model.__name__ + 'Version',
+            model_name,
             (Version, ),
             {
                 'Meta': Meta,
                 '__module__': __name__,
-                '_content_model': self.content_model,
+                '_source_model': self.content_model,
             },
         )
         return ProxyVersion

@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -30,13 +31,10 @@ class Version(models.Model):
         per-field by implementing `copy_{field_name}` method.
         """
         content_model = self.content.__class__
-        content_fields = {
-            field.name: getattr(self.content, field.name)
-            for field in content_model._meta.fields
-            # don't copy primary key because we're creating a new obj
-            if content_model._meta.pk.name != field.name
-        }
-        new_content = content_model.objects.create(**content_fields)
+        versioning_ext = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        copy_function = versioning_ext.versionables_by_content[content_model].copy_function
+        new_content = copy_function(self.content)
         new_version = Version.objects.create(content=new_content)
         return new_version
 

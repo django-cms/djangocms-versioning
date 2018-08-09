@@ -4,7 +4,7 @@ from django.apps import apps
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
@@ -24,7 +24,9 @@ class VersionableItemTestCase(CMSTestCase):
         PollVersionFactory(content__poll=poll2_version.content.poll)
         latest_poll2_version = PollVersionFactory(content__poll=poll2_version.content.poll)
 
-        versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
+        versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
 
         self.assertQuerysetEqual(
             versionable.distinct_groupers(),
@@ -41,7 +43,9 @@ class VersionableItemTestCase(CMSTestCase):
         PollVersionFactory(content__poll=poll2_version.content.poll)
         PollVersionFactory(content__poll=poll2_version.content.poll)
 
-        versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
+        versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
 
         self.assertQuerysetEqual(
             versionable.for_grouper(self.initial_version.content.poll),
@@ -51,7 +55,9 @@ class VersionableItemTestCase(CMSTestCase):
         )
 
     def test_grouper_model(self):
-        versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
+        versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
 
         self.assertEqual(versionable.grouper_model, Poll)
 
@@ -70,7 +76,9 @@ class VersionableItemProxyModelTestCase(CMSTestCase):
         apps.all_models.pop('djangocms_versioning', None)
 
     def test_version_model_proxy(self):
-        versionable = VersionableItem(content_model=PersonContent, grouper_field_name='person')
+        versionable = VersionableItem(
+            content_model=PersonContent, grouper_field_name='person',
+            copy_function=default_copy)
         version_model_proxy = versionable.version_model_proxy
 
         self.assertIn(Version, version_model_proxy.mro())
@@ -81,7 +89,9 @@ class VersionableItemProxyModelTestCase(CMSTestCase):
     def test_version_model_proxy_cached(self):
         """Test that version_model_proxy property is cached
         and return value is created once."""
-        versionable = VersionableItem(content_model=PersonContent, grouper_field_name='person')
+        versionable = VersionableItem(
+            content_model=PersonContent, grouper_field_name='person',
+            copy_function=default_copy)
 
         self.assertEqual(
             id(versionable.version_model_proxy),

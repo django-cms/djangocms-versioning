@@ -1,3 +1,6 @@
+from mock import Mock, patch
+
+from django.apps import apps
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
@@ -5,16 +8,27 @@ from cms.test_utils.testcases import CMSTestCase
 from freezegun import freeze_time
 
 from djangocms_versioning.constants import DRAFT
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.polls.models import PollContent
 
 
 class CopyTestCase(CMSTestCase):
+
+    def _create_versionables_mock(self, copy_function):
+        versionable = VersionableItem(
+            content_model=PollContent,
+            grouper_field_name='poll',
+            copy_function=copy_function
+        )
+        return {PollContent: versionable}
 
     @freeze_time(None)
     def test_new_version_object_gets_created(self):
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_version = factories.PollVersionFactory()
+
         new_version = original_version.copy()
 
         # Created a new version record
@@ -22,9 +36,14 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(new_version.created, now())
         self.assertEqual(new_version.state, DRAFT)
 
-    def test_content_object_gets_duplicated(self):
+    def test_content_object_gets_duplicated_with_default_copy(self):
         original_version = factories.PollVersionFactory()
-        new_version = original_version.copy()
+        versioning_app_ext = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionables_mock = self._create_versionables_mock(default_copy)
+
+        with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
+            new_version = original_version.copy()
 
         # Created a new content record
         self.assertNotEqual(
@@ -44,3 +63,17 @@ class CopyTestCase(CMSTestCase):
             original_version.content.poll,
             new_version.content.poll,
         )
+
+    def test_custom_defined_copy_method_is_used_to_set_content(self):
+        original_version = factories.PollVersionFactory()
+        new_content = factories.PollContentFactory(
+            poll=original_version.content.poll)
+        mocked_copy = Mock(return_value=new_content)
+        versionables_mock = self._create_versionables_mock(mocked_copy)
+        versioning_app_ext = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+
+        with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
+            new_version = original_version.copy()
+
+        self.assertEqual(new_version.content.pk, new_content.pk)

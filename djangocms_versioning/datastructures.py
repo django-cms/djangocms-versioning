@@ -54,10 +54,20 @@ class VersionableItem:
         return self.content_model.objects.filter(**{self.grouper_field.name: grouper})
 
 
-def default_copy(original_version):
-    content_model = original_version.__class__
+def default_copy(original_content):
+    """Copy all fields of the original content object exactly as they are
+    and return a new content object which is different only in its pk.
+
+    NOTE: This will only work for very simple content objects. This will
+    throw exceptions on one2one and m2m relationships. And it might not
+    be the desired behaviour for some foreign keys (in some cases we
+    would expect a version to copy some of its related objects as well).
+    In such cases a custom copy method must be defined and specified in
+    cms_config.py
+    """
+    content_model = original_content.__class__
     content_fields = {
-        field.name: getattr(original_version, field.name)
+        field.name: getattr(original_content, field.name)
         for field in content_model._meta.fields
         # don't copy primary key because we're creating a new obj
         if content_model._meta.pk.name != field.name

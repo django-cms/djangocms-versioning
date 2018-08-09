@@ -16,6 +16,10 @@ from djangocms_versioning.test_utils.polls.models import PollContent
 class CopyTestCase(CMSTestCase):
 
     def _create_versionables_mock(self, copy_function):
+        """Helper function for mocking the versionables_by_content
+        property so that a different copy_function can be specified on
+        the polls app.
+        """
         versionable = VersionableItem(
             content_model=PollContent,
             grouper_field_name='poll',
@@ -25,6 +29,8 @@ class CopyTestCase(CMSTestCase):
 
     @freeze_time(None)
     def test_new_version_object_gets_created(self):
+        """When copying, a new version object should get created
+        """
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_version = factories.PollVersionFactory()
@@ -37,6 +43,10 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(new_version.state, DRAFT)
 
     def test_content_object_gets_duplicated_with_default_copy(self):
+        """When copying, the new version object should have a new
+        related content object. The default copy method will copy all
+        content fields (other than the pk) exactly as they were.
+        """
         original_version = factories.PollVersionFactory()
         versioning_app_ext = apps.get_app_config(
             'djangocms_versioning').cms_extension
@@ -64,7 +74,11 @@ class CopyTestCase(CMSTestCase):
             new_version.content.poll,
         )
 
-    def test_custom_defined_copy_method_is_used_to_set_content(self):
+    def test_the_copy_method_is_configurable(self):
+        """When copying, the new version object should have a new
+        related content object. How the content object will be
+        copied can be configured.
+        """
         original_version = factories.PollVersionFactory()
         new_content = factories.PollContentFactory(
             poll=original_version.content.poll)

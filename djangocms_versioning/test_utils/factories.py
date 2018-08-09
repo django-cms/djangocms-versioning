@@ -8,6 +8,7 @@ from djangocms_versioning.models import Version
 
 from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
+from .relationships import models as rel_models
 
 
 class AbstractVersionFactory(factory.DjangoModelFactory):
@@ -108,3 +109,37 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = User
+
+
+### Factories for versions of content with specific types of relationships
+# NOTE: Not using factory boy for these as it's easier to do it like this
+def one2one():
+    grouper = rel_models.Grouper1to1F.objects.create()
+    rel = rel_models.OneToOneF.objects.create()
+    content = rel_models.Content1to1F.objects.create(
+        grouper=grouper, rel=rel)
+    return Version.objects.create(content=content)
+
+
+def one2one_reverse():
+    grouper = rel_models.Grouper1to1B.objects.create()
+    content = rel_models.Content1to1B.objects.create(grouper=grouper)
+    rel = rel_models.OneToOneB.objects.create(rel=content)
+    return Version.objects.create(content=content)
+
+
+def one2many():
+    grouper = rel_models.Grouper1toManyF.objects.create()
+    rel = rel_models.OneToManyF.objects.create()
+    content = rel_models.Content1toManyF.objects.create(
+        grouper=grouper, rel=rel)
+    return Version.objects.create(content=content)
+
+
+def many2many():
+    grouper = rel_models.GrouperManytoManyF.objects.create()
+    content = rel_models.ContentManytoManyF.objects.create(
+        grouper=grouper)
+    rel = rel_models.ManyToManyF.objects.create()
+    content.rel.add(rel)
+    return Version.objects.create(content=content)

@@ -6,10 +6,14 @@ from .models import Version
 
 class VersionableItem:
 
-    def __init__(self, content_model, grouper_field_name):
+    def __init__(self, content_model, grouper_field_name, copy_functions=None):
         self.content_model = content_model
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
+        if copy_functions is None:
+            self.copy_functions = {}
+        else:
+            self.copy_functions = copy_functions
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)

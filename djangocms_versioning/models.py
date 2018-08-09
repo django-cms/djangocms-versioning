@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -21,22 +22,31 @@ class Version(models.Model):
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
     def copy(self):
-        """Creates new Version object, with metadata copied over
-        from self.
-
-        Introspects relations and duplicates objects that
-        Version has a relation to. Default behaviour for duplication is
-        implemented in `_copy_function_factory`. This can be overriden
-        per-field by implementing `copy_{field_name}` method.
+        """Creates a new Version object, with a copy of the content object
         """
         content_model = self.content.__class__
+        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+        copy_functions = versioning_ext.versionables_by_content[
+            content_model].copy_functions
         content_fields = {
             field.name: getattr(self.content, field.name)
             for field in content_model._meta.fields
             # don't copy primary key because we're creating a new obj
             if content_model._meta.pk.name != field.name
+            # we will add fields with custom copy methods to the dict later
+            and field.name not in copy_functions
         }
+        m2m_copy_functions = {}
+        m2m_fieldnames = [
+            f.name for f in content_model._meta.many_to_many]
+        for fieldname, copy_function in copy_functions.items():
+            if fieldname in m2m_fieldnames:
+                m2m_copy_functions[fieldname] = copy_function
+                continue
+            content_fields[fieldname] = copy_function(self)
         new_content = content_model.objects.create(**content_fields)
+        for fieldname, copy_function in m2m_copy_functions.items():
+            copy_function(self, new_content)
         new_version = Version.objects.create(content=new_content)
         return new_version
 

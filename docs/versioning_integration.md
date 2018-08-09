@@ -55,7 +55,7 @@ Versioning needs to be aware of these models. This can be done in `cms_config.py
 ```python
 # blog/cms_config.py
 from cms.app_base import CMSAppConfig
-from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
 
@@ -65,6 +65,7 @@ class BlogCMSConfig(CMSAppConfig):
         VersionableItem(   # -- 2
             content_model=PostContent,
             grouper_field_name='post',
+            copy_function=default_copy,
         ),
     ]
 ```
@@ -77,3 +78,28 @@ class BlogCMSConfig(CMSAppConfig):
     - content_model - *content model* class - in our example it's `PostContent`
     - grouper_field_name - name of the field on the content model which is
     a relation to *grouper model* - in the example it's `post`
+    - copy_function - a function that copies a content instance. This is
+    used for some operations in versioning such as creating new drafts
+    from published versions. See the copy function section of this doc for more info.
+
+
+## The copy function
+When configuring versioning we require you to provide a copy function.
+We provide a default function for this (djangocms_versioning.datastructures.default_copy),
+but there are many cases in which you may need to implement your own, these are:
+
+    - If your content model contains any one2one or m2m fields.
+    - If your content model contains a foreign key that relates to an
+    object that should be considered part of the version. For example
+    if you're versioning a poll object, you might consider the answers
+    in the poll as part of a version. If so, you will need to copy
+    the answer objects, not just the poll object. On the other hand if
+    a poll has an fk to a category model, you probably wouldn't consider
+    category as part of the version. In this case the default copy function
+    will take care of this.
+    - If other models have reverse relationships to your content model.
+    For example if you had a comment model which has an fk to the poll
+    content model, you might need to make copies of the comment instances
+    related to the poll content instance you're copying and make sure
+    they're referring to the new content instance.
+    - If your content model contains a generic foreign key.

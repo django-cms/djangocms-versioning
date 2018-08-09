@@ -21,6 +21,9 @@ class Version(models.Model):
     state = FSMField(
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
+    class Meta:
+        unique_together = ("content_type", "object_id")
+
     def copy(self):
         """Creates a new Version object, with a copy of the related
         content object.

@@ -98,8 +98,4 @@ but there are many cases in which you may need to implement your own, these are:
     category as part of the version. In this case the default copy function
     will take care of this.
     - If other models have reverse relationships to your content model.
-    For example if you had a comment model which has an fk to the poll
-    content model, you might need to make copies of the comment instances
-    related to the poll content instance you're copying and make sure
-    they're referring to the new content instance.
     - If your content model contains a generic foreign key.

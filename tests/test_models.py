@@ -5,13 +5,13 @@ from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 
+from freezegun import freeze_time
+
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.datastructures import VersionableItem
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.relationships import models
-
-from freezegun import freeze_time
 
 
 class CopyTestCase(CMSTestCase):
@@ -51,11 +51,11 @@ class CopyTestCase(CMSTestCase):
             new_version.content.poll,
         )
 
+
+class CustomCopyTestCase(CMSTestCase):
+
     def test_defining_copy_method_for_1to1_works(self):
-        grouper = models.Grouper1to1F.objects.create()
-        old_rel = models.OneToOneF.objects.create()
-        old_content = models.Content1to1F.objects.create(grouper=grouper, rel=old_rel)
-        old_version = Version.objects.create(content=old_content)
+        old_version = factories.one2one()
         new_rel = models.OneToOneF.objects.create()
         versionable = VersionableItem(
             content_model=models.Content1to1F,
@@ -67,7 +67,69 @@ class CopyTestCase(CMSTestCase):
         versionables_mock = Mock(cms_extension=Mock(
             versionables_by_content={models.Content1to1F: versionable}))
 
-        with patch('djangocms_versioning.models.apps.get_app_config', Mock(return_value=versionables_mock)):
+        with patch('djangocms_versioning.models.apps.get_app_config') as app_mock:
+            app_mock.return_value = versionables_mock
             new_version = old_version.copy()
 
         self.assertEqual(new_version.content.rel.pk, new_rel.pk)
+
+    def test_defining_copy_method_for_1to1_reverse_works(self):
+        old_version = factories.one2one_reverse()
+        def copy_function(old_obj, new_obj):
+            models.OneToOneB.objects.create(rel=new_obj)
+        versionable = VersionableItem(
+            content_model=models.Content1to1B,
+            grouper_field_name='grouper',
+            copy_functions={'onetooneb.rel': copy_function}
+        )
+        versionables_mock = Mock(cms_extension=Mock(
+            versionables_by_content={models.Content1to1B: versionable}))
+
+        with patch('djangocms_versioning.models.apps.get_app_config') as app_mock:
+            app_mock.return_value = versionables_mock
+            new_version = old_version.copy()
+
+        new_rel = models.OneToOneB.objects.get()
+        self.assertEqual(new_rel.rel.pk, new_version.content.pk)
+
+    def test_defining_copy_method_for_1tomany_works(self):
+        old_version = factories.one2many()
+        new_rel = models.OneToManyF.objects.create()
+        versionable = VersionableItem(
+            content_model=models.Content1toManyF,
+            grouper_field_name='grouper',
+            copy_functions={
+                'rel': lambda old_content: new_rel
+            }
+        )
+        versionables_mock = Mock(cms_extension=Mock(
+            versionables_by_content={models.Content1toManyF: versionable}))
+
+        with patch('djangocms_versioning.models.apps.get_app_config') as app_mock:
+            app_mock.return_value = versionables_mock
+            new_version = old_version.copy()
+
+        self.assertEqual(new_version.content.rel.pk, new_rel.pk)
+
+    def test_defining_copy_method_for_m2m_works(self):
+        old_version = factories.many2many()
+        new_rel = models.ManyToManyF.objects.create()
+        versionable = VersionableItem(
+            content_model=models.ContentManytoManyF,
+            grouper_field_name='grouper',
+            copy_functions={
+                'rel': lambda old_obj, new_obj: new_obj.rel.add(new_rel)
+            }
+        )
+        versionables_mock = Mock(cms_extension=Mock(
+            versionables_by_content={models.ContentManytoManyF: versionable}))
+
+        with patch('djangocms_versioning.models.apps.get_app_config') as app_mock:
+            app_mock.return_value = versionables_mock
+            new_version = old_version.copy()
+
+        self.assertQuerysetEqual(
+            new_version.content.rel.all(),
+            [new_rel.pk],
+            lambda x: x.pk
+        )

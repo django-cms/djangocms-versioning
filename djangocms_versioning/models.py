@@ -26,7 +26,8 @@ class Version(models.Model):
         """
         content_model = self.content.__class__
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
-        copy_functions = versioning_ext.versionables_by_content[content_model].copy_functions
+        copy_functions = versioning_ext.versionables_by_content[
+            content_model].copy_functions
         content_fields = {
             field.name: getattr(self.content, field.name)
             for field in content_model._meta.fields
@@ -35,9 +36,17 @@ class Version(models.Model):
             # we will add fields with custom copy methods to the dict later
             and field.name not in copy_functions
         }
+        m2m_copy_functions = {}
+        m2m_fieldnames = [
+            f.name for f in content_model._meta.many_to_many]
         for fieldname, copy_function in copy_functions.items():
+            if fieldname in m2m_fieldnames:
+                m2m_copy_functions[fieldname] = copy_function
+                continue
             content_fields[fieldname] = copy_function(self)
         new_content = content_model.objects.create(**content_fields)
+        for fieldname, copy_function in m2m_copy_functions.items():
+            copy_function(self, new_content)
         new_version = Version.objects.create(content=new_content)
         return new_version
 

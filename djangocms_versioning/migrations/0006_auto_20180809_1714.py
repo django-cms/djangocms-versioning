@@ -13,36 +13,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='BlogContentVersion',
-            fields=[
-            ],
-            options={
-                'proxy': True,
-                'indexes': [],
-            },
-            bases=('djangocms_versioning.version',),
-        ),
-        migrations.CreateModel(
-            name='CommentContentVersion',
-            fields=[
-            ],
-            options={
-                'proxy': True,
-                'indexes': [],
-            },
-            bases=('djangocms_versioning.version',),
-        ),
-        migrations.CreateModel(
-            name='PollContentVersion',
-            fields=[
-            ],
-            options={
-                'proxy': True,
-                'indexes': [],
-            },
-            bases=('djangocms_versioning.version',),
-        ),
         migrations.AlterUniqueTogether(
             name='version',
             unique_together=set([('content_type', 'object_id')]),

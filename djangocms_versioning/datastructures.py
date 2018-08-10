@@ -6,10 +6,11 @@ from .models import Version
 
 class VersionableItem:
 
-    def __init__(self, content_model, grouper_field_name):
+    def __init__(self, content_model, grouper_field_name, copy_function):
         self.content_model = content_model
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
+        self.copy_function = copy_function
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
@@ -51,3 +52,24 @@ class VersionableItem:
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
         return self.content_model.objects.filter(**{self.grouper_field.name: grouper})
+
+
+def default_copy(original_content):
+    """Copy all fields of the original content object exactly as they are
+    and return a new content object which is different only in its pk.
+
+    NOTE: This will only work for very simple content objects. This will
+    throw exceptions on one2one and m2m relationships. And it might not
+    be the desired behaviour for some foreign keys (in some cases we
+    would expect a version to copy some of its related objects as well).
+    In such cases a custom copy method must be defined and specified in
+    cms_config.py
+    """
+    content_model = original_content.__class__
+    content_fields = {
+        field.name: getattr(original_content, field.name)
+        for field in content_model._meta.fields
+        # don't copy primary key because we're creating a new obj
+        if content_model._meta.pk.name != field.name
+    }
+    return content_model.objects.create(**content_fields)

@@ -1,6 +1,6 @@
 from cms.app_base import CMSAppConfig
 
-from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 
 from .models import PollContent
 
@@ -11,5 +11,6 @@ class PollsCMSConfig(CMSAppConfig):
         VersionableItem(
             content_model=PollContent,
             grouper_field_name='poll',
+            copy_function=default_copy,
         ),
     ]

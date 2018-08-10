@@ -373,7 +373,7 @@ class VersionAdminViewTestCase(CMSTestCase):
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
     def test_archive_view_sets_state_and_redirects(self):
-        poll_version = factories.PollVersionFactory()
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
 
@@ -388,6 +388,36 @@ class VersionAdminViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, 'changelist')
             + '?grouper=' + str(poll_version_updated.content.poll.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_archive_view_cannot_be_accessed_for_archived_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_archive_view_cannot_be_accessed_for_published_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_archive_view_cannot_be_accessed_for_unpublished_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
 
 
 class VersionChangeListTestCase(CMSTestCase):

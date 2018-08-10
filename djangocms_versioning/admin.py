@@ -3,11 +3,13 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.views.main import ChangeList
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
+from .constants import DRAFT
 from .forms import grouper_form_factory
 from .models import Version
 
@@ -136,8 +138,11 @@ class VersionAdmin(admin.ModelAdmin):
         version changelist
         """
         # FIXME: Should this really be a GET not a POST?
-        # Archive the version
         version = self.model.objects.get(pk=pk)
+        # Raise 404 if not in draft status
+        if version.state != DRAFT:
+            raise Http404
+        # Archive the version
         version.archive(request.user)
         version.save()
         # Redirect

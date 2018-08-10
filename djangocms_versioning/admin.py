@@ -110,8 +110,12 @@ class VersionAdmin(admin.ModelAdmin):
         archive_url = reverse('admin:djangocms_versioning_{model}_archive'.format(
             model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        return format_html('<a href="{archive_url}">Archive</a>'.format(
-            archive_url=archive_url))
+        archive_icon = '<a href="{archive_url}">Archive</a>'.format(
+            archive_url=archive_url)
+        all_actions = ''
+        if obj.state == DRAFT:
+            all_actions += archive_icon
+        return format_html(all_actions)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

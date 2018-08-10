@@ -75,7 +75,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     list_display = (
         'pk',
+        'created',
         'content_link',
+        'state',
+        'state_actions',
     )
     list_display_links = None
 
@@ -99,6 +102,15 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
+    def state_actions(self, obj):
+        """Display links to state change endpoints
+        """
+        archive_url = reverse('admin:djangocms_versioning_{model}_archive'.format(
+            model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        return format_html('<a href="{archive_url}">Archive</a>'.format(
+            archive_url=archive_url))
+
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
         to show versions of.
@@ -109,6 +121,32 @@ class VersionAdmin(admin.ModelAdmin):
             form=grouper_form_factory(self.model._source_model)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
+
+    def _get_grouper(self, version_obj):
+        """Helper method to get the grouper from the version object
+        """
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_content[
+            version_obj.content.__class__]
+        return getattr(version_obj.content, versionable.grouper_field_name)
+
+    def archive_view(self, request, pk):
+        """Archives the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: Should this really be a GET not a POST?
+        # Archive the version
+        version = self.model.objects.get(pk=pk)
+        version.archive(request.user)
+        version.save()
+        # Redirect
+        grouper = self._get_grouper(version)
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(grouper.pk)
+        return redirect(url)
 
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
@@ -127,6 +165,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^grouper/$',
                 self.admin_site.admin_view(self.grouper_form_view),
                 name='{}_{}_grouper'.format(*info),
+            ),
+            url(
+                r'^(.+)/archive/$',
+                self.admin_site.admin_view(self.archive_view),
+                name='{}_{}_archive'.format(*info),
             ),
         ] + super().get_urls()
 

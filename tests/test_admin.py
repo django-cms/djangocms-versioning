@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 
@@ -13,6 +14,7 @@ from cms.utils.urlutils import admin_reverse
 import pytz
 from freezegun import freeze_time
 
+from djangocms_versioning import constants
 import djangocms_versioning.helpers
 from djangocms_versioning.admin import (
     VersionAdmin,
@@ -312,6 +314,20 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+    def test_state_actions(self):
+        version = factories.PollVersionFactory()
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        archive_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_archive',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(archive_url, state_actions)
+
 
 class VersionAdminViewTestCase(CMSTestCase):
 
@@ -346,6 +362,32 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+    def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
+        poll_version = factories.PollVersionFactory()
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+    def test_archive_view_sets_state_and_redirects(self):
+        poll_version = factories.PollVersionFactory()
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        # NOTE: django_fsm does not work with refresh_from_db so doing the
+        # get explicitly
+        poll_version_updated = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_updated.state, constants.ARCHIVED)
+        redirect_url = (self.get_admin_url(
+            self.versionable.version_model_proxy, 'changelist')
+            + '?grouper=' + str(poll_version_updated.content.poll.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
 
 
 class VersionChangeListTestCase(CMSTestCase):

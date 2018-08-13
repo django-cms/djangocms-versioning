@@ -83,6 +83,7 @@ class CopyTestCase(CMSTestCase):
         copied can be configured.
         """
         original_version = factories.PollVersionFactory()
+        user = factories.UserFactory()
         new_content = factories.PollContentFactory(
             poll=original_version.content.poll)
         mocked_copy = Mock(return_value=new_content)
@@ -91,6 +92,6 @@ class CopyTestCase(CMSTestCase):
             'djangocms_versioning').cms_extension
 
         with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
-            new_version = original_version.copy()
+            new_version = original_version.copy(user)
 
         self.assertEqual(new_version.content.pk, new_content.pk)

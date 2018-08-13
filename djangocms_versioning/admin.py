@@ -141,7 +141,15 @@ class VersionAdmin(admin.ModelAdmin):
         """Archives the specified version and redirects back to the
         version changelist
         """
-        # FIXME: Should this really be a GET not a POST?
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
         version = self.model.objects.get(pk=pk)
         # Raise 404 if not in draft status
         if version.state != DRAFT:

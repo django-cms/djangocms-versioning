@@ -1,5 +1,6 @@
 import datetime
 import warnings
+from unittest import skip
 from unittest.mock import Mock, patch
 
 from django.contrib import admin
@@ -410,7 +411,7 @@ class VersionAdminViewTestCase(CMSTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
         with self.login_user_context(self.get_standard_user()):
-            response = self.client.get(url)
+            response = self.client.post(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
@@ -420,7 +421,7 @@ class VersionAdminViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
-            response = self.client.get(url)
+            response = self.client.post(url)
 
         # NOTE: django_fsm does not work with refresh_from_db so doing the
         # get explicitly
@@ -437,7 +438,7 @@ class VersionAdminViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
-            response = self.client.get(url)
+            response = self.client.post(url)
 
         self.assertEqual(response.status_code, 404)
 
@@ -447,12 +448,23 @@ class VersionAdminViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
-            response = self.client.get(url)
+            response = self.client.post(url)
 
         self.assertEqual(response.status_code, 404)
 
     def test_archive_view_cannot_be_accessed_for_unpublished_version(self):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    @skip("Awaiting frontend work before this can be fixed")
+    def test_archive_view_cant_be_accessed_by_get_request(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
 

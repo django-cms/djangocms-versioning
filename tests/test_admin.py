@@ -422,7 +422,8 @@ class VersionAdminViewTestCase(CMSTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
     @freeze_time(None)
-    def test_archive_view_sets_state_and_redirects(self):
+    @patch('django.contrib.messages.success')
+    def test_archive_view_sets_state_and_redirects(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
@@ -441,6 +442,10 @@ class VersionAdminViewTestCase(CMSTestCase):
         self.assertEqual(tracking.old_state, constants.DRAFT)
         self.assertEqual(tracking.new_state, constants.ARCHIVED)
         self.assertEqual(tracking.user, user)
+        # Message displayed
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(
+            mocked_messages.call_args[0][1], "Version archived")
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')

@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.conf.urls import url
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.views.main import ChangeList
 from django.http import Http404
@@ -157,6 +157,8 @@ class VersionAdmin(admin.ModelAdmin):
         # Archive the version
         version.archive(request.user)
         version.save()
+        # Display message
+        messages.success(request, "Version archived")
         # Redirect
         grouper = self._get_grouper(version)
         url = reverse('admin:{app}_{model}_changelist'.format(

@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
+from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.urlutils import admin_reverse
@@ -27,7 +28,7 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
-from djangocms_versioning.models import Version
+from djangocms_versioning.models import Version, StateTracking
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -407,29 +408,43 @@ class VersionAdminViewTestCase(CMSTestCase):
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
-        poll_version = factories.PollVersionFactory()
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
         with self.login_user_context(self.get_standard_user()):
             response = self.client.post(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.DRAFT)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
+    @freeze_time(None)
     def test_archive_view_sets_state_and_redirects(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
+        user = self.get_staff_user_with_no_permissions()
 
-        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+        with self.login_user_context(user):
             response = self.client.post(url)
 
-        # NOTE: django_fsm does not work with refresh_from_db so doing the
-        # get explicitly
-        poll_version_updated = Version.objects.get(pk=poll_version.pk)
-        self.assertEqual(poll_version_updated.state, constants.ARCHIVED)
+        # State updated
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        # State change tracked
+        tracking = StateTracking.objects.get()
+        self.assertEqual(tracking.version, poll_version_)
+        self.assertEqual(tracking.date, now())
+        self.assertEqual(tracking.old_state, constants.DRAFT)
+        self.assertEqual(tracking.new_state, constants.ARCHIVED)
+        self.assertEqual(tracking.user, user)
+        # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?grouper=' + str(poll_version_updated.content.poll.pk))
+            + '?grouper=' + str(poll_version_.content.poll.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_archive_view_cannot_be_accessed_for_archived_version(self):
@@ -441,6 +456,11 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.post(url)
 
         self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
     def test_archive_view_cannot_be_accessed_for_published_version(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -451,6 +471,11 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.post(url)
 
         self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.PUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
     def test_archive_view_cannot_be_accessed_for_unpublished_version(self):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
@@ -461,6 +486,11 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.post(url)
 
         self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
     @skip("Awaiting frontend work before this can be fixed")
     def test_archive_view_cant_be_accessed_by_get_request(self):
@@ -472,6 +502,8 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
 class VersionChangeListTestCase(CMSTestCase):

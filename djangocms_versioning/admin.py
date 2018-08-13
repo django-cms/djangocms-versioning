@@ -128,15 +128,6 @@ class VersionAdmin(admin.ModelAdmin):
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 
-    def _get_grouper(self, version_obj):
-        """Helper method to get the grouper from the version object
-        """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[
-            version_obj.content.__class__]
-        return getattr(version_obj.content, versionable.grouper_field_name)
-
     def archive_view(self, request, pk):
         """Archives the specified version and redirects back to the
         version changelist
@@ -160,11 +151,10 @@ class VersionAdmin(admin.ModelAdmin):
         # Display message
         messages.success(request, "Version archived")
         # Redirect
-        grouper = self._get_grouper(version)
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
             model=self.model._meta.model_name,
-        )) + '?grouper=' + str(grouper.pk)
+        )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
     def changelist_view(self, request, extra_context=None):

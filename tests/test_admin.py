@@ -131,6 +131,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         with freeze_time('2011-01-06'):
             pc1 = factories.PollContentFactory()
             request = RequestFactory().get('/admin/polls/pollcontent/')
+            request.user = factories.UserFactory()
             model_admin.save_model(request, pc1, form=None, change=False)
             check_obj = Version.objects.get(
                 content_type=ContentType.objects.get_for_model(pc1),
@@ -153,6 +154,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         model_admin = self._get_admin_class_obj(BlogContent)
         bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
+        request.user = factories.UserFactory()
         model_admin.save_model(request, bc1, form=None, change=False)
         check_obj_exist = Version.objects.filter(
             content_type=ContentType.objects.get_for_model(bc1),

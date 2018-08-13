@@ -10,10 +10,22 @@ from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
 
 
+class UserFactory(factory.django.DjangoModelFactory):
+    username = FuzzyText(length=12)
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+    email = factory.LazyAttribute(
+        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower()))
+
+    class Meta:
+        model = User
+
+
 class AbstractVersionFactory(factory.DjangoModelFactory):
     object_id = factory.SelfAttribute('content.id')
     content_type = factory.LazyAttribute(
         lambda o: ContentType.objects.get_for_model(o.content))
+    created_by = factory.SubFactory(UserFactory)
 
     class Meta:
         exclude = ['content']
@@ -97,14 +109,3 @@ class BlogContentWithVersionFactory(BlogContentFactory):
             # Simple build, do nothing.
             return
         BlogPostVersionFactory(content=self, **kwargs)
-
-
-class UserFactory(factory.django.DjangoModelFactory):
-    username = factory.LazyAttribute(lambda u: u.first_name.lower())
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
-    email = factory.LazyAttribute(
-        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower()))
-
-    class Meta:
-        model = User

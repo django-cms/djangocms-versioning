@@ -28,7 +28,7 @@ class VersioningAdminMixin:
         super().save_model(request, obj, form, change)
         if not change:
             # create a new version object and save it
-            Version.objects.create(content=obj)
+            Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
         """Limit query to most recent content versions

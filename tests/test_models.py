@@ -15,16 +15,21 @@ class CopyTestCase(CMSTestCase):
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_version = factories.PollVersionFactory()
-        new_version = original_version.copy()
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
 
         # Created a new version record
         self.assertNotEqual(original_version.pk, new_version.pk)
         self.assertEqual(new_version.created, now())
+        self.assertEqual(new_version.created_by, user)
         self.assertEqual(new_version.state, DRAFT)
 
     def test_content_object_gets_duplicated(self):
         original_version = factories.PollVersionFactory()
-        new_version = original_version.copy()
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
 
         # Created a new content record
         self.assertNotEqual(

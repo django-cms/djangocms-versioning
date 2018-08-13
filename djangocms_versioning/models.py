@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -11,6 +12,7 @@ from . import constants
 class Version(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL)
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,
@@ -20,7 +22,37 @@ class Version(models.Model):
     state = FSMField(
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
-    def copy(self):
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        # Only one draft version is allowed per grouper. Set all other
+        # drafts to archived
+        if self.state == constants.DRAFT:
+            pks_for_grouper = self.versionable.for_grouper(
+                self.grouper).values_list('pk', flat=True)
+            to_archive = Version.objects.exclude(pk=self.pk).filter(
+                state=constants.DRAFT, object_id__in=pks_for_grouper)
+            for version in to_archive:
+                version.archive(self.created_by)
+                version.save()
+
+    @property
+    def versionable(self):
+        """Helper property to get the versionable for the content type
+        of the version
+        """
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        return versioning_extension.versionables_by_content[
+            self.content.__class__]
+
+    @property
+    def grouper(self):
+        """Helper property to get the grouper for the version
+        """
+        return getattr(
+            self.content, self.versionable.grouper_field_name)
+
+    def copy(self, created_by):
         """Creates new Version object, with metadata copied over
         from self.
 
@@ -37,7 +69,8 @@ class Version(models.Model):
             if content_model._meta.pk.name != field.name
         }
         new_content = content_model.objects.create(**content_fields)
-        new_version = Version.objects.create(content=new_content)
+        new_version = Version.objects.create(
+            content=new_content, created_by=created_by)
         return new_version
 
     @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)

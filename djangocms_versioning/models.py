@@ -22,6 +22,9 @@ class Version(models.Model):
     state = FSMField(
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
 
+    class Meta:
+        unique_together = ("content_type", "object_id")
+
     def save(self, **kwargs):
         super().save(**kwargs)
         # Only one draft version is allowed per grouper. Set all other
@@ -53,22 +56,17 @@ class Version(models.Model):
             self.content, self.versionable.grouper_field_name)
 
     def copy(self, created_by):
-        """Creates new Version object, with metadata copied over
-        from self.
-
-        Introspects relations and duplicates objects that
-        Version has a relation to. Default behaviour for duplication is
-        implemented in `_copy_function_factory`. This can be overriden
-        per-field by implementing `copy_{field_name}` method.
+        """Creates a new Version object, with a copy of the related
+        content object.
+        Allows customization of how the content object will be copied
+        when specified in cms_config.py
         """
         content_model = self.content.__class__
-        content_fields = {
-            field.name: getattr(self.content, field.name)
-            for field in content_model._meta.fields
-            # don't copy primary key because we're creating a new obj
-            if content_model._meta.pk.name != field.name
-        }
-        new_content = content_model.objects.create(**content_fields)
+        versioning_ext = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        copy_function = versioning_ext.versionables_by_content[
+            content_model].copy_function
+        new_content = copy_function(self.content)
         new_version = Version.objects.create(
             content=new_content, created_by=created_by)
         return new_version

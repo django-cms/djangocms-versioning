@@ -11,7 +11,7 @@ from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSExtension
-from djangocms_versioning.datastructures import VersionableItem
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
     BlogpostCMSConfig,
@@ -45,7 +45,9 @@ class CMSConfigUnitTestCase(CMSTestCase):
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning=VersionableItem(content_model=PollContent, grouper_field_name='poll')
+            versioning=VersionableItem(
+                content_model=PollContent, grouper_field_name='poll',
+                copy_function=default_copy)
         )
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_setting(cms_config)
@@ -66,8 +68,12 @@ class CMSConfigUnitTestCase(CMSTestCase):
         models into the versionables list
         """
         extension = VersioningCMSExtension()
-        poll_versionable = VersionableItem(content_model=PollContent, grouper_field_name='poll')
-        blog_versionable = VersionableItem(content_model=BlogContent, grouper_field_name='blogpost')
+        poll_versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        blog_versionable = VersionableItem(
+            content_model=BlogContent, grouper_field_name='blogpost',
+            copy_function=default_copy)
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
@@ -84,7 +90,10 @@ class CMSConfigUnitTestCase(CMSTestCase):
         extensions = VersioningCMSExtension()
         cms_config = Mock(
             spec=[], djangocms_versioning_enabled=True,
-            versioning=[VersionableItem(content_model=PollContent, grouper_field_name='poll')])
+            versioning=[VersionableItem(
+                content_model=PollContent, grouper_field_name='poll',
+                copy_function=default_copy
+            )])
         extensions.handle_admin_classes(cms_config)
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
@@ -97,7 +106,10 @@ class CMSConfigUnitTestCase(CMSTestCase):
         content model that's versioned
         """
         extension = VersioningCMSExtension()
-        extension.versionables = [VersionableItem(content_model=PollContent, grouper_field_name='poll')]
+        extension.versionables = [VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy
+        )]
 
         self.assertTrue(extension.is_content_model_versioned(PollContent))
 

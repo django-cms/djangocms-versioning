@@ -34,12 +34,14 @@ class CopyTestCase(CMSTestCase):
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_version = factories.PollVersionFactory()
+        user = factories.UserFactory()
 
-        new_version = original_version.copy()
+        new_version = original_version.copy(user)
 
         # Created a new version record
         self.assertNotEqual(original_version.pk, new_version.pk)
         self.assertEqual(new_version.created, now())
+        self.assertEqual(new_version.created_by, user)
         self.assertEqual(new_version.state, DRAFT)
 
     def test_content_object_gets_duplicated_with_default_copy(self):
@@ -48,12 +50,13 @@ class CopyTestCase(CMSTestCase):
         content fields (other than the pk) exactly as they were.
         """
         original_version = factories.PollVersionFactory()
+        user = factories.UserFactory()
         versioning_app_ext = apps.get_app_config(
             'djangocms_versioning').cms_extension
         versionables_mock = self._create_versionables_mock(default_copy)
 
         with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
-            new_version = original_version.copy()
+            new_version = original_version.copy(user)
 
         # Created a new content record
         self.assertNotEqual(
@@ -80,6 +83,7 @@ class CopyTestCase(CMSTestCase):
         copied can be configured.
         """
         original_version = factories.PollVersionFactory()
+        user = factories.UserFactory()
         new_content = factories.PollContentFactory(
             poll=original_version.content.poll)
         mocked_copy = Mock(return_value=new_content)
@@ -88,6 +92,6 @@ class CopyTestCase(CMSTestCase):
             'djangocms_versioning').cms_extension
 
         with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
-            new_version = original_version.copy()
+            new_version = original_version.copy(user)
 
         self.assertEqual(new_version.content.pk, new_content.pk)

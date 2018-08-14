@@ -1,11 +1,14 @@
 import datetime
 import warnings
+from unittest import skip
 from unittest.mock import Mock, patch
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
+from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.urlutils import admin_reverse
@@ -13,6 +16,7 @@ from cms.utils.urlutils import admin_reverse
 import pytz
 from freezegun import freeze_time
 
+from djangocms_versioning import constants
 import djangocms_versioning.helpers
 from djangocms_versioning.admin import (
     VersionAdmin,
@@ -24,7 +28,7 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
-from djangocms_versioning.models import Version
+from djangocms_versioning.models import Version, StateTracking
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -127,6 +131,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         with freeze_time('2011-01-06'):
             pc1 = factories.PollContentFactory()
             request = RequestFactory().get('/admin/polls/pollcontent/')
+            request.user = factories.UserFactory()
             model_admin.save_model(request, pc1, form=None, change=False)
             check_obj = Version.objects.get(
                 content_type=ContentType.objects.get_for_model(pc1),
@@ -149,6 +154,7 @@ class AdminAddVersionTestCase(CMSTestCase):
         model_admin = self._get_admin_class_obj(BlogContent)
         bc1 = factories.BlogContentFactory()
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
+        request.user = factories.UserFactory()
         model_admin.save_model(request, bc1, form=None, change=False)
         check_obj_exist = Version.objects.filter(
             content_type=ContentType.objects.get_for_model(bc1),
@@ -312,6 +318,62 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+    def test_archive_in_state_actions_for_draft_version(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        archive_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_archive',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(archive_url, state_actions)
+
+    def test_archive_not_in_state_actions_for_archived_version(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        archive_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_archive',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(archive_url, state_actions)
+
+    def test_archive_not_in_state_actions_for_published_version(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        archive_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_archive',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(archive_url, state_actions)
+
+    def test_archive_not_in_state_actions_for_unpublished_version(self):
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        archive_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_archive',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(archive_url, state_actions)
+
 
 class VersionAdminViewTestCase(CMSTestCase):
 
@@ -346,6 +408,109 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+    def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.DRAFT)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    @freeze_time(None)
+    @patch('django.contrib.messages.success')
+    def test_archive_view_sets_state_and_redirects(self, mocked_messages):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # State updated
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        # State change tracked
+        tracking = StateTracking.objects.get()
+        self.assertEqual(tracking.version, poll_version_)
+        self.assertEqual(tracking.date, now())
+        self.assertEqual(tracking.old_state, constants.DRAFT)
+        self.assertEqual(tracking.new_state, constants.ARCHIVED)
+        self.assertEqual(tracking.user, user)
+        # Message displayed
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(
+            mocked_messages.call_args[0][1], "Version archived")
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            self.versionable.version_model_proxy, 'changelist')
+            + '?grouper=' + str(poll_version_.content.poll.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_archive_view_cannot_be_accessed_for_archived_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    def test_archive_view_cannot_be_accessed_for_published_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.PUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    def test_archive_view_cannot_be_accessed_for_unpublished_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    @skip("Awaiting frontend work before this can be fixed")
+    def test_archive_view_cant_be_accessed_by_get_request(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
 class VersionChangeListTestCase(CMSTestCase):

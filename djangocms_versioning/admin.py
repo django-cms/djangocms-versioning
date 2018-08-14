@@ -157,6 +157,35 @@ class VersionAdmin(admin.ModelAdmin):
         )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
+    def publish_view(self, request, pk):
+        """Publishes the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        version = self.model.objects.get(pk=pk)
+        # Raise 404 if not in draft status
+        if version.state != DRAFT:
+            raise Http404
+        # Publish the version
+        version.publish(request.user)
+        version.save()
+        # Display message
+        messages.success(request, "Version published")
+        # Redirect
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(version.grouper.pk)
+        return redirect(url)
+
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
@@ -179,6 +208,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/archive/$',
                 self.admin_site.admin_view(self.archive_view),
                 name='{}_{}_archive'.format(*info),
+            ),
+            url(
+                r'^(.+)/publish/$',
+                self.admin_site.admin_view(self.publish_view),
+                name='{}_{}_publish'.format(*info),
             ),
         ] + super().get_urls()
 

@@ -104,18 +104,36 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def state_actions(self, obj):
-        """Display links to state change endpoints
+    def _get_archive_link(self, obj):
+        """Helper function to get the html link to the archive action
         """
+        if not obj.state == DRAFT:
+            # Don't display the link if it can't be archived
+            return ''
         archive_url = reverse('admin:djangocms_versioning_{model}_archive'.format(
             model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        archive_icon = '<a href="{archive_url}">Archive</a>'.format(
+        return ' <a href="{archive_url}">Archive</a> '.format(
             archive_url=archive_url)
-        all_actions = ''
-        if obj.state == DRAFT:
-            all_actions += archive_icon
-        return format_html(all_actions)
+
+    def _get_publish_link(self, obj):
+        """Helper function to get the html link to the publish action
+        """
+        if not obj.state == DRAFT:
+            # Don't display the link if it can't be published
+            return ''
+        publish_url = reverse('admin:djangocms_versioning_{model}_publish'.format(
+            model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        return ' <a href="{publish_url}">Publish</a> '.format(
+            publish_url=publish_url)
+
+    def state_actions(self, obj):
+        """Display links to state change endpoints
+        """
+        archive_link = self._get_archive_link(obj)
+        publish_link = self._get_publish_link(obj)
+        return format_html(archive_link + publish_link)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

@@ -318,6 +318,9 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+
+class StateActionsTestCase(CMSTestCase):
+
     def test_archive_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         # Get the version model proxy from the main admin site
@@ -374,6 +377,62 @@ class VersionAdminTestCase(CMSTestCase):
 
         self.assertNotIn(archive_url, state_actions)
 
+    def test_publish_in_state_actions_for_draft_version(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_archived_version(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_published_version(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_unpublished_version(self):
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
 
 class VersionAdminViewTestCase(CMSTestCase):
 
@@ -408,6 +467,12 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+
+class ArchiveViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)

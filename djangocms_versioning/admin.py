@@ -6,6 +6,7 @@ from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -114,8 +115,10 @@ class VersionAdmin(admin.ModelAdmin):
         archive_url = reverse('admin:{app}_{model}_archive'.format(
             app=obj._meta.app_label, model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        return ' <a href="{archive_url}">Archive</a> '.format(
-            archive_url=archive_url)
+        return render_to_string(
+            'djangocms_versioning/admin/archive_icon.html',
+            {'archive_url': archive_url}
+        )
 
     def _get_publish_link(self, obj):
         """Helper function to get the html link to the publish action
@@ -126,8 +129,10 @@ class VersionAdmin(admin.ModelAdmin):
         publish_url = reverse('admin:{app}_{model}_publish'.format(
             app=obj._meta.app_label, model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        return ' <a href="{publish_url}">Publish</a> '.format(
-            publish_url=publish_url)
+        return render_to_string(
+            'djangocms_versioning/admin/publish_icon.html',
+            {'publish_url': publish_url}
+        )
 
     def state_actions(self, obj):
         """Display links to state change endpoints
@@ -160,6 +165,7 @@ class VersionAdmin(admin.ModelAdmin):
         # if request.method != 'POST':
         #     raise Http404
 
+        # Check version exists
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(
@@ -192,6 +198,7 @@ class VersionAdmin(admin.ModelAdmin):
         # if request.method != 'POST':
         #     raise Http404
 
+        # Check version exists
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(

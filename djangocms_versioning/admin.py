@@ -107,8 +107,8 @@ class VersionAdmin(admin.ModelAdmin):
     def state_actions(self, obj):
         """Display links to state change endpoints
         """
-        archive_url = reverse('admin:djangocms_versioning_{model}_archive'.format(
-            model=self.model.__name__.lower(),
+        archive_url = reverse('admin:{app}_{model}_archive'.format(
+            app=obj._meta.app_label, model=self.model.__name__.lower(),
         ), args=(obj.pk,))
         archive_icon = '<a href="{archive_url}">Archive</a>'.format(
             archive_url=archive_url)

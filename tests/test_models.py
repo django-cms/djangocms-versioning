@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import PollContent
 
 
@@ -95,3 +96,14 @@ class CopyTestCase(CMSTestCase):
             new_version = original_version.copy(user)
 
         self.assertEqual(new_version.content.pk, new_content.pk)
+
+
+class TestVersionModelProperties(CMSTestCase):
+
+    def test_versionable(self):
+        version = factories.PollVersionFactory()
+        self.assertEqual(version.versionable, PollsCMSConfig.versioning[0])
+
+    def test_grouper(self):
+        version = factories.PollVersionFactory()
+        self.assertEqual(version.grouper, version.content.poll)

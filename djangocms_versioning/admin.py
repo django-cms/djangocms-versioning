@@ -179,7 +179,7 @@ class VersionAdmin(admin.ModelAdmin):
         )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
-    def publish_view(self, request, pk):
+    def publish_view(self, request, object_id):
         """Publishes the specified version and redirects back to the
         version changelist
         """
@@ -192,7 +192,10 @@ class VersionAdmin(admin.ModelAdmin):
         # if request.method != 'POST':
         #     raise Http404
 
-        version = self.model.objects.get(pk=pk)
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
         # Raise 404 if not in draft status
         if version.state != DRAFT:
             raise Http404

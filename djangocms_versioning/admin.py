@@ -1,13 +1,16 @@
 from django.apps import apps
 from django.conf.urls import url
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
+from .constants import DRAFT
 from .forms import grouper_form_factory
 from .models import Version
 
@@ -26,7 +29,7 @@ class VersioningAdminMixin:
         super().save_model(request, obj, form, change)
         if not change:
             # create a new version object and save it
-            Version.objects.create(content=obj)
+            Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
         """Limit query to most recent content versions
@@ -75,7 +78,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     list_display = (
         'pk',
+        'created',
         'content_link',
+        'state',
+        'state_actions',
     )
     list_display_links = None
 
@@ -99,6 +105,19 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
+    def state_actions(self, obj):
+        """Display links to state change endpoints
+        """
+        archive_url = reverse('admin:{app}_{model}_archive'.format(
+            app=obj._meta.app_label, model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        archive_icon = '<a href="{archive_url}">Archive</a>'.format(
+            archive_url=archive_url)
+        all_actions = ''
+        if obj.state == DRAFT:
+            all_actions += archive_icon
+        return format_html(all_actions)
+
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
         to show versions of.
@@ -109,6 +128,38 @@ class VersionAdmin(admin.ModelAdmin):
             form=grouper_form_factory(self.model._source_model)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
+
+    def archive_view(self, request, object_id):
+        """Archives the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        # Raise 404 if not in draft status
+        if version.state != DRAFT:
+            raise Http404
+        # Archive the version
+        version.archive(request.user)
+        version.save()
+        # Display message
+        messages.success(request, "Version archived")
+        # Redirect
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(version.grouper.pk)
+        return redirect(url)
 
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
@@ -127,6 +178,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^grouper/$',
                 self.admin_site.admin_view(self.grouper_form_view),
                 name='{}_{}_grouper'.format(*info),
+            ),
+            url(
+                r'^(.+)/archive/$',
+                self.admin_site.admin_view(self.archive_view),
+                name='{}_{}_archive'.format(*info),
             ),
         ] + super().get_urls()
 

@@ -2,6 +2,7 @@ from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -128,7 +129,7 @@ class VersionAdmin(admin.ModelAdmin):
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 
-    def archive_view(self, request, pk):
+    def archive_view(self, request, object_id):
         """Archives the specified version and redirects back to the
         version changelist
         """
@@ -141,7 +142,10 @@ class VersionAdmin(admin.ModelAdmin):
         # if request.method != 'POST':
         #     raise Http404
 
-        version = self.model.objects.get(pk=pk)
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
         # Raise 404 if not in draft status
         if version.state != DRAFT:
             raise Http404

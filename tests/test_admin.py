@@ -499,6 +499,21 @@ class VersionAdminViewTestCase(CMSTestCase):
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
+    @patch('django.contrib.messages.add_message')
+    def test_archive_view_redirects_when_nonexistent_version(self, mocked_messages):
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', 89)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
+
     @skip("Awaiting frontend work before this can be fixed")
     def test_archive_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)

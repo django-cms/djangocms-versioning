@@ -23,6 +23,14 @@ class VersioningToolbar(CMSToolbar):
         return versioning_extension.versionables_by_content[
             self.toolbar.obj.__class__]
 
+    def _is_versioned(self):
+        """Helper method to check if the model has been registered for
+        versioning
+        """
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        return self.toolbar.obj.__class__ in versioning_extension.versionables_by_content
+
     def _get_proxy_model(self):
         """Helper method to get the proxy model class for the content
         model class
@@ -32,6 +40,10 @@ class VersioningToolbar(CMSToolbar):
     def _add_publish_button(self, item):
         """Helper method to add a publish button to the toolbar
         """
+        # Only add the publish button if the content type is registered
+        # with versioning
+        if not self._is_versioned():
+            return
         # Only add the publish button if the version is a draft
         content_type = ContentType.objects.get_for_model(self.toolbar.obj)
         version = Version.objects.get(

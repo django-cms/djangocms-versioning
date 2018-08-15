@@ -12,7 +12,7 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 
 class VersioningToolbarTestCase(CMSTestCase):
 
-    def _get_toolbar(self, version):
+    def _get_toolbar(self, content_obj):
         """Helper method to set up the toolbar
         """
         request = RequestFactory().get('/')
@@ -21,7 +21,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         cms_toolbar = CMSToolbar(request)
         toolbar = VersioningToolbar(
             request, toolbar=cms_toolbar, is_current_app=True, app_path='/')
-        toolbar.toolbar.obj = version.content
+        toolbar.toolbar.obj = content_obj
         return toolbar
 
     def _get_publish_url(self, version):
@@ -34,7 +34,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_in_toolbar_for_draft_version(self):
         version = PollVersionFactory(state=constants.DRAFT)
-        toolbar = self._get_toolbar(version)
+        toolbar = self._get_toolbar(version.content)
 
         toolbar.post_template_populate()
 
@@ -45,7 +45,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_not_in_toolbar_for_archived_version(self):
         version = PollVersionFactory(state=constants.ARCHIVED)
-        toolbar = self._get_toolbar(version)
+        toolbar = self._get_toolbar(version.content)
 
         toolbar.post_template_populate()
 
@@ -54,7 +54,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_not_in_toolbar_for_published_version(self):
         version = PollVersionFactory(state=constants.PUBLISHED)
-        toolbar = self._get_toolbar(version)
+        toolbar = self._get_toolbar(version.content)
 
         toolbar.post_template_populate()
 
@@ -63,7 +63,18 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_not_in_toolbar_for_unpublished_version(self):
         version = PollVersionFactory(state=constants.UNPUBLISHED)
-        toolbar = self._get_toolbar(version)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        self.assertListEqual(
+            toolbar.toolbar.get_right_items()[0].buttons, [])
+
+    def test_dont_add_publish_for_models_not_registered_with_versioning(self):
+        # User objects are not registered with versioning, so attempting
+        # to populate a user toolbar should not attempt to add a publish
+        # button
+        toolbar = self._get_toolbar(UserFactory())
 
         toolbar.post_template_populate()
 

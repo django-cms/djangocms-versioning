@@ -53,9 +53,9 @@ class TestVersionState(CMSTestCase):
         created, then this should not change the other draft's status to
         archived.
         """
-        other_version = factories.PollVersionFactory(state=constants.DRAFT)
+        factories.PollVersionFactory(state=constants.DRAFT)
 
-        version = Version.objects.create(
+        Version.objects.create(
             content=factories.PollContentFactory(), state=constants.DRAFT,
             created_by=factories.UserFactory())
 
@@ -108,7 +108,7 @@ class TestVersionState(CMSTestCase):
         published version created, then this should not change the other
         published versions' status to unpublished.
         """
-        other_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        factories.PollVersionFactory(state=constants.PUBLISHED)
         user = factories.UserFactory()
         version = factories.PollVersionFactory(state=constants.DRAFT)
 

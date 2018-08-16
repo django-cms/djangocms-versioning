@@ -6,7 +6,9 @@ from cms.toolbar.toolbar import CMSToolbar
 from djangocms_versioning import constants
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import (
-    UserFactory, PollVersionFactory)
+    PollVersionFactory,
+    UserFactory,
+)
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 
 

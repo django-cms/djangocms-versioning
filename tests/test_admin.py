@@ -16,8 +16,8 @@ from cms.utils.urlutils import admin_reverse
 import pytz
 from freezegun import freeze_time
 
-from djangocms_versioning import constants
 import djangocms_versioning.helpers
+from djangocms_versioning import constants
 from djangocms_versioning.admin import (
     VersionAdmin,
     VersionChangeList,
@@ -28,7 +28,7 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
-from djangocms_versioning.models import Version, StateTracking
+from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig

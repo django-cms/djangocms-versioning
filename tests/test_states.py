@@ -103,26 +103,6 @@ class TestVersionState(CMSTestCase):
             Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
             3)
 
-    def test_new_published_version_with_create_causes_old_published_versions_to_change_to_unpublished(self):
-        """Same as above, but using Version.objects.create instead of the
-        publish method
-        """
-        poll = factories.PollFactory()
-        factories.PollVersionFactory.create_batch(
-            3, state=constants.PUBLISHED, content__poll=poll)
-
-        version = Version.objects.create(
-            state=constants.PUBLISHED, created_by=factories.UserFactory(),
-            content=factories.PollContentFactory(poll=poll))
-
-        # Only one published version
-        self.assertEqual(
-            Version.objects.filter(state=constants.PUBLISHED).count(), 1)
-        # Everything other than the last published version has status unpublished
-        self.assertEqual(
-            Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
-            3)
-
     def test_new_published_version_doesnt_change_status_of_published_versions_from_other_groupers(self):
         """When versions relating to different groupers have a new
         published version created, then this should not change the other
@@ -139,7 +119,7 @@ class TestVersionState(CMSTestCase):
         self.assertEqual(
             Version.objects.filter(state=constants.PUBLISHED).count(), 2)
 
-    def test_new_published_version_doesnt_change_status_of_published_versions_with_other_states(self):
+    def test_new_published_version_doesnt_change_status_of_versions_with_other_states(self):
         """When versions relating to the same grouper have non-published
         states, these should not change upon creating a new published version
         """

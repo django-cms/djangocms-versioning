@@ -4,13 +4,14 @@ from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
 from .models import Version
 
@@ -161,6 +162,50 @@ class VersionAdmin(admin.ModelAdmin):
         )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
+    def edit_redirect_view(self, request, object_id):
+        """Redirects to the admin change view and creates a draft version
+        if no draft exists yet.
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        # If published then there's extra things to do...
+        if version.state == PUBLISHED:
+            # First check there is no draft record for this grouper
+            # already.
+            pks_for_grouper = version.versionable.for_grouper(
+                version.grouper).values_list('pk', flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type,
+                state=DRAFT)
+            if drafts.exists():
+                # There is a draft record so people should be editing
+                # the draft record not the published one. Return 404.
+                raise Http404
+            # If there is no draft record then create a new version
+            # that's a draft with the content copied over
+            version = version.copy(request.user)
+        # Raise 404 if the version is neither draft or published
+        elif version.state != DRAFT:
+            raise Http404
+        # Redirect
+        url = reverse('admin:{app}_{model}_change'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        ), args=(version.pk,))
+        return redirect(url)
+
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
@@ -183,6 +228,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/archive/$',
                 self.admin_site.admin_view(self.archive_view),
                 name='{}_{}_archive'.format(*info),
+            ),
+            url(
+                r'^(.+)/edit-redirect/$',
+                self.admin_site.admin_view(self.edit_redirect_view),
+                name='{}_{}_edit_redirect'.format(*info),
             ),
         ] + super().get_urls()
 

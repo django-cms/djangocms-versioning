@@ -7,6 +7,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -106,18 +107,49 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def state_actions(self, obj):
-        """Display links to state change endpoints
+    def _get_archive_link(self, obj):
+        """Helper function to get the html link to the archive action
         """
+        if not obj.state == DRAFT:
+            # Don't display the link if it can't be archived
+            return ''
         archive_url = reverse('admin:{app}_{model}_archive'.format(
             app=obj._meta.app_label, model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        archive_icon = '<a href="{archive_url}">Archive</a>'.format(
-            archive_url=archive_url)
-        all_actions = ''
-        if obj.state == DRAFT:
-            all_actions += archive_icon
-        return format_html(all_actions)
+        return render_to_string(
+            'djangocms_versioning/admin/archive_icon.html',
+            {'archive_url': archive_url}
+        )
+
+    def _get_edit_link(self, obj):
+        """Helper function to get the html link to the edit action
+        """
+        if obj.state == PUBLISHED:
+            pks_for_grouper = obj.versionable.for_grouper(
+                obj.grouper).values_list('pk', flat=True)
+            content_type = ContentType.objects.get_for_model(obj.content)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type,
+                state=DRAFT)
+            if drafts.exists():
+                return ''
+        elif not obj.state == DRAFT:
+            # Don't display the link if it can't be archived
+            return ''
+        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
+            app=obj._meta.app_label, model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        return render_to_string(
+            'djangocms_versioning/admin/edit_icon.html',
+            {'edit_url': edit_url}
+        )
+
+    def state_actions(self, obj):
+        """Display links to state change endpoints
+        """
+        archive_link = self._get_archive_link(obj)
+        edit_link = self._get_edit_link(obj)
+        return format_html(archive_link + edit_link)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

@@ -36,7 +36,6 @@ class Version(models.Model):
                 state=constants.DRAFT, object_id__in=pks_for_grouper)
             for version in to_archive:
                 version.archive(self.created_by)
-                version.save()
 
     @property
     def versionable(self):
@@ -71,8 +70,9 @@ class Version(models.Model):
             content=new_content, created_by=created_by)
         return new_version
 
-    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def archive(self, user):
+        self._set_archive(user)
+        self.save()
         """Change state to ARCHIVED"""
         StateTracking.objects.create(
             version=self,
@@ -81,9 +81,14 @@ class Version(models.Model):
             user=user
         )
 
-    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
+    def _set_archive(self, user):
+        pass
+
     def publish(self, user):
         """Change state to PUBLISHED"""
+        self._set_publish(user)
+        self.save()
         StateTracking.objects.create(
             version=self,
             old_state=constants.DRAFT,
@@ -98,17 +103,25 @@ class Version(models.Model):
             state=constants.PUBLISHED, object_id__in=pks_for_grouper)
         for version in to_unpublish:
             version.unpublish(user)
-            version.save()
 
-    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    def _set_publish(self, user):
+        pass
+
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
+        self._set_unpublish(user)
+        self.save()
         StateTracking.objects.create(
             version=self,
             old_state=constants.PUBLISHED,
             new_state=constants.UNPUBLISHED,
             user=user
         )
+
+    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    def _set_unpublish(self, user):
+        pass
 
 
 class StateTracking(models.Model):

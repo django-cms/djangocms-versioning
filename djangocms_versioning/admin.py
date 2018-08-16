@@ -175,7 +175,6 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
         # Archive the version
         version.archive(request.user)
-        version.save()
         # Display message
         messages.success(request, "Version archived")
         # Redirect
@@ -208,7 +207,6 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
         # Publish the version
         version.publish(request.user)
-        version.save()
         # Display message
         messages.success(request, "Version published")
         # Redirect

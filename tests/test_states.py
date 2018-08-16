@@ -16,7 +16,6 @@ class TestVersionState(CMSTestCase):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         with self.assertRaises(AttributeError):
             version.state = constants.PUBLISHED
-            version.save()
 
     def test_new_version_is_draft_by_default(self):
         # Not using PollVersionFactory for this as PollVersionFactory
@@ -93,7 +92,6 @@ class TestVersionState(CMSTestCase):
             state=constants.DRAFT, content__poll=poll)
 
         version.publish(user)
-        version.save()
 
         # Only one published version
         self.assertEqual(
@@ -113,7 +111,6 @@ class TestVersionState(CMSTestCase):
         version = factories.PollVersionFactory(state=constants.DRAFT)
 
         version.publish(user)
-        version.save()
 
         # Both are still published versions because they relate to different groupers
         self.assertEqual(
@@ -131,7 +128,6 @@ class TestVersionState(CMSTestCase):
             content__poll=poll, state=constants.DRAFT)
 
         version.publish(user)
-        version.save()
 
         # Nothing has an unpublished state cause there were no published versions
         self.assertEqual(

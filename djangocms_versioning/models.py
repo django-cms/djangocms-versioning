@@ -37,6 +37,16 @@ class Version(models.Model):
             for version in to_archive:
                 version.archive(self.created_by)
                 version.save()
+        # Only one published version is allowed per grouper. Set all other
+        # drafts to unpublished
+        elif self.state == constants.PUBLISHED:
+            pks_for_grouper = self.versionable.for_grouper(
+                self.grouper).values_list('pk', flat=True)
+            to_unpublish = Version.objects.exclude(pk=self.pk).filter(
+                state=constants.PUBLISHED, object_id__in=pks_for_grouper)
+            for version in to_unpublish:
+                version.unpublish(self.created_by)
+                version.save()
 
     @property
     def versionable(self):

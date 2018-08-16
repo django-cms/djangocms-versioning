@@ -29,7 +29,7 @@ class VersioningToolbar(CMSToolbar):
         """
         versioning_extension = apps.get_app_config(
             'djangocms_versioning').cms_extension
-        return self.toolbar.obj.__class__ in versioning_extension.versionables_by_content
+        return versioning_extension.is_content_model_versioned(self.toolbar.obj.__class__)
 
     def _get_proxy_model(self):
         """Helper method to get the proxy model class for the content

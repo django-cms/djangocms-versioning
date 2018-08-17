@@ -279,7 +279,11 @@ class VersionAdmin(admin.ModelAdmin):
         elif version.state != DRAFT:
             raise Http404
         # Redirect
-        return redirect(version.versionable.change_url(version.content))
+        url = reverse('admin:{app}_{model}_change'.format(
+            app=version.content._meta.app_label,
+            model=version.content._meta.model_name,
+        ), args=(version.content.pk,))
+        return redirect(url)
 
     def changelist_view(self, request, extra_context=None):
         if not request.GET:

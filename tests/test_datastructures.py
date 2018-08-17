@@ -61,30 +61,6 @@ class VersionableItemTestCase(CMSTestCase):
 
         self.assertEqual(versionable.grouper_model, Poll)
 
-    def test_change_url(self):
-        version = PollVersionFactory()
-        versionable = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy,
-            change_url_function=lambda obj: '/i-want-cats-lots-of-them-!/')
-
-        change_url = versionable.change_url(version)
-
-        self.assertEqual(
-            change_url, '/i-want-cats-lots-of-them-!/')
-
-    def test_change_url_default_value(self):
-        version = PollVersionFactory()
-        versionable = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
-
-        change_url = versionable.change_url(version)
-
-        expected_url = '/en/admin/polls/pollcontent/{pk}/change/'.format(
-            pk=version.content.pk)
-        self.assertEqual(change_url, expected_url)
-
 
 class VersionableItemProxyModelTestCase(CMSTestCase):
 

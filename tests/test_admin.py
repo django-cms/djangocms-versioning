@@ -16,8 +16,8 @@ from cms.utils.urlutils import admin_reverse
 import pytz
 from freezegun import freeze_time
 
-from djangocms_versioning import constants
 import djangocms_versioning.helpers
+from djangocms_versioning import constants
 from djangocms_versioning.admin import (
     VersionAdmin,
     VersionChangeList,
@@ -28,7 +28,7 @@ from djangocms_versioning.helpers import (
     replace_admin_for_models,
     versioning_admin_factory,
 )
-from djangocms_versioning.models import Version, StateTracking
+from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -318,6 +318,9 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+
+class StateActionsTestCase(CMSTestCase):
+
     def test_archive_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         # Get the version model proxy from the main admin site
@@ -374,6 +377,62 @@ class VersionAdminTestCase(CMSTestCase):
 
         self.assertNotIn(archive_url, state_actions)
 
+    def test_publish_in_state_actions_for_draft_version(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_archived_version(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_published_version(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
+    def test_publish_not_in_state_actions_for_unpublished_version(self):
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        publish_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_publish',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(publish_url, state_actions)
+
 
 class VersionAdminViewTestCase(CMSTestCase):
 
@@ -408,6 +467,12 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+
+class ArchiveViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -519,6 +584,130 @@ class VersionAdminViewTestCase(CMSTestCase):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+
+class PublishViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
+    def test_publish_view_doesnt_allow_user_without_staff_permissions(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.DRAFT)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    @freeze_time(None)
+    @patch('django.contrib.messages.success')
+    def test_publish_view_sets_state_and_redirects(self, mocked_messages):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # State updated
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.PUBLISHED)
+        # State change tracked
+        tracking = StateTracking.objects.get()
+        self.assertEqual(tracking.version, poll_version_)
+        self.assertEqual(tracking.date, now())
+        self.assertEqual(tracking.old_state, constants.DRAFT)
+        self.assertEqual(tracking.new_state, constants.PUBLISHED)
+        self.assertEqual(tracking.user, user)
+        # Message displayed
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(
+            mocked_messages.call_args[0][1], "Version published")
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            self.versionable.version_model_proxy, 'changelist')
+            + '?grouper=' + str(poll_version_.content.poll.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_publish_view_cannot_be_accessed_for_archived_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    def test_publish_view_cannot_be_accessed_for_published_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.PUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    def test_publish_view_cannot_be_accessed_for_unpublished_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
+        # no status change has been tracked
+        self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    @patch('django.contrib.messages.add_message')
+    def test_publish_view_redirects_when_nonexistent_version(self, mocked_messages):
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', 89)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
+
+    @skip("Awaiting frontend work before this can be fixed")
+    def test_publish_view_cant_be_accessed_by_get_request(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)

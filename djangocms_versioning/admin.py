@@ -6,6 +6,7 @@ from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -105,18 +106,40 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def state_actions(self, obj):
-        """Display links to state change endpoints
+    def _get_archive_link(self, obj):
+        """Helper function to get the html link to the archive action
         """
+        if not obj.state == DRAFT:
+            # Don't display the link if it can't be archived
+            return ''
         archive_url = reverse('admin:{app}_{model}_archive'.format(
             app=obj._meta.app_label, model=self.model.__name__.lower(),
         ), args=(obj.pk,))
-        archive_icon = '<a href="{archive_url}">Archive</a>'.format(
-            archive_url=archive_url)
-        all_actions = ''
-        if obj.state == DRAFT:
-            all_actions += archive_icon
-        return format_html(all_actions)
+        return render_to_string(
+            'djangocms_versioning/admin/archive_icon.html',
+            {'archive_url': archive_url}
+        )
+
+    def _get_publish_link(self, obj):
+        """Helper function to get the html link to the publish action
+        """
+        if not obj.state == DRAFT:
+            # Don't display the link if it can't be published
+            return ''
+        publish_url = reverse('admin:{app}_{model}_publish'.format(
+            app=obj._meta.app_label, model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        return render_to_string(
+            'djangocms_versioning/admin/publish_icon.html',
+            {'publish_url': publish_url}
+        )
+
+    def state_actions(self, obj):
+        """Display links to state change endpoints
+        """
+        archive_link = self._get_archive_link(obj)
+        publish_link = self._get_publish_link(obj)
+        return format_html(archive_link + publish_link)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -142,6 +165,7 @@ class VersionAdmin(admin.ModelAdmin):
         # if request.method != 'POST':
         #     raise Http404
 
+        # Check version exists
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(
@@ -151,9 +175,40 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
         # Archive the version
         version.archive(request.user)
-        version.save()
         # Display message
         messages.success(request, "Version archived")
+        # Redirect
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(version.grouper.pk)
+        return redirect(url)
+
+    def publish_view(self, request, object_id):
+        """Publishes the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        # Check version exists
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        # Raise 404 if not in draft status
+        if version.state != DRAFT:
+            raise Http404
+        # Publish the version
+        version.publish(request.user)
+        # Display message
+        messages.success(request, "Version published")
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -183,6 +238,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/archive/$',
                 self.admin_site.admin_view(self.archive_view),
                 name='{}_{}_archive'.format(*info),
+            ),
+            url(
+                r'^(.+)/publish/$',
+                self.admin_site.admin_view(self.publish_view),
+                name='{}_{}_publish'.format(*info),
             ),
         ] + super().get_urls()
 

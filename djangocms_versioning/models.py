@@ -71,9 +71,9 @@ class Version(models.Model):
         return new_version
 
     def archive(self, user):
+        """Change state to ARCHIVED"""
         self._set_archive(user)
         self.save()
-        """Change state to ARCHIVED"""
         StateTracking.objects.create(
             version=self,
             old_state=constants.DRAFT,
@@ -86,7 +86,8 @@ class Version(models.Model):
         pass
 
     def publish(self, user):
-        """Change state to PUBLISHED"""
+        """Change state to PUBLISHED and unpublish currently
+        published versions"""
         self._set_publish(user)
         self.save()
         StateTracking.objects.create(
@@ -96,7 +97,7 @@ class Version(models.Model):
             user=user
         )
         # Only one published version is allowed per grouper. Set all other
-        # drafts to unpublished
+        # published versions to unpublished
         pks_for_grouper = self.versionable.for_grouper(
             self.grouper).values_list('pk', flat=True)
         to_unpublish = Version.objects.exclude(pk=self.pk).filter(

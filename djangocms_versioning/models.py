@@ -83,6 +83,8 @@ class Version(models.Model):
 
     @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def _set_archive(self, user):
+        """State machine transition method for moving version
+        from DRAFT to ARCHIVED state"""
         pass
 
     def publish(self, user):
@@ -107,6 +109,8 @@ class Version(models.Model):
 
     @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
     def _set_publish(self, user):
+        """State machine transition method for moving version
+        from DRAFT to PUBLISHED state"""
         pass
 
     def unpublish(self, user):
@@ -122,6 +126,8 @@ class Version(models.Model):
 
     @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
     def _set_unpublish(self, user):
+        """State machine transition method for moving version
+        from PUBLISHED to UNPUBLISHED state"""
         pass
 
 

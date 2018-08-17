@@ -36,7 +36,6 @@ class Version(models.Model):
                 state=constants.DRAFT, object_id__in=pks_for_grouper)
             for version in to_archive:
                 version.archive(self.created_by)
-                version.save()
 
     @property
     def versionable(self):
@@ -71,9 +70,10 @@ class Version(models.Model):
             content=new_content, created_by=created_by)
         return new_version
 
-    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def archive(self, user):
         """Change state to ARCHIVED"""
+        self._set_archive(user)
+        self.save()
         StateTracking.objects.create(
             version=self,
             old_state=constants.DRAFT,
@@ -81,25 +81,66 @@ class Version(models.Model):
             user=user
         )
 
-    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
+    def _set_archive(self, user):
+        """State machine transition method for moving version
+        from DRAFT to ARCHIVED state.
+
+        Please refrain from modifying data in this method, as
+        state change is not guaranteed to be saved (making it
+        possible to be left with inconsistent data)"""
+        pass
+
     def publish(self, user):
-        """Change state to PUBLISHED"""
+        """Change state to PUBLISHED and unpublish currently
+        published versions"""
+        self._set_publish(user)
+        self.save()
         StateTracking.objects.create(
             version=self,
             old_state=constants.DRAFT,
             new_state=constants.PUBLISHED,
             user=user
         )
+        # Only one published version is allowed per grouper. Set all other
+        # published versions to unpublished
+        pks_for_grouper = self.versionable.for_grouper(
+            self.grouper).values_list('pk', flat=True)
+        to_unpublish = Version.objects.exclude(pk=self.pk).filter(
+            state=constants.PUBLISHED, object_id__in=pks_for_grouper)
+        for version in to_unpublish:
+            version.unpublish(user)
 
-    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    def _set_publish(self, user):
+        """State machine transition method for moving version
+        from DRAFT to PUBLISHED state.
+
+        Please refrain from modifying data in this method, as
+        state change is not guaranteed to be saved (making it
+        possible to be left with inconsistent data)"""
+        pass
+
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
+        self._set_unpublish(user)
+        self.save()
         StateTracking.objects.create(
             version=self,
             old_state=constants.PUBLISHED,
             new_state=constants.UNPUBLISHED,
             user=user
         )
+
+    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    def _set_unpublish(self, user):
+        """State machine transition method for moving version
+        from PUBLISHED to UNPUBLISHED state.
+
+        Please refrain from modifying data in this method, as
+        state change is not guaranteed to be saved (making it
+        possible to be left with inconsistent data)"""
+        pass
 
 
 class StateTracking(models.Model):

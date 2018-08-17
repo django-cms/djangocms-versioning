@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('djangocms_versioning', '0005_remove_version_label'),
+        ('djangocms_versioning', '0006_auto_20180809_1714'),
     ]
 
     operations = [

@@ -16,7 +16,6 @@ class TestVersionState(CMSTestCase):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         with self.assertRaises(AttributeError):
             version.state = constants.PUBLISHED
-            version.save()
 
     def test_new_version_is_draft_by_default(self):
         # Not using PollVersionFactory for this as PollVersionFactory
@@ -53,9 +52,9 @@ class TestVersionState(CMSTestCase):
         created, then this should not change the other draft's status to
         archived.
         """
-        other_version = factories.PollVersionFactory(state=constants.DRAFT)
+        factories.PollVersionFactory(state=constants.DRAFT)
 
-        version = Version.objects.create(
+        Version.objects.create(
             content=factories.PollContentFactory(), state=constants.DRAFT,
             created_by=factories.UserFactory())
 
@@ -79,6 +78,60 @@ class TestVersionState(CMSTestCase):
         # Nothing has an archived state cause there were no drafts
         self.assertEqual(
             Version.objects.exclude(pk=version.pk).filter(state=constants.ARCHIVED).count(),
+            0)
+
+    def test_new_published_version_causes_old_published_versions_to_change_to_unpublished(self):
+        """When versions relating to the same grouper have a new published
+        version created, all old published version should be marked unpublished
+        """
+        poll = factories.PollFactory()
+        factories.PollVersionFactory.create_batch(
+            3, state=constants.PUBLISHED, content__poll=poll)
+        user = factories.UserFactory()
+        version = factories.PollVersionFactory(
+            state=constants.DRAFT, content__poll=poll)
+
+        version.publish(user)
+
+        # Only one published version
+        self.assertEqual(
+            Version.objects.filter(state=constants.PUBLISHED).count(), 1)
+        # Everything other than the last published version has status unpublished
+        self.assertEqual(
+            Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
+            3)
+
+    def test_new_published_version_doesnt_change_status_of_published_versions_from_other_groupers(self):
+        """When versions relating to different groupers have a new
+        published version created, then this should not change the other
+        published versions' status to unpublished.
+        """
+        factories.PollVersionFactory(state=constants.PUBLISHED)
+        user = factories.UserFactory()
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        version.publish(user)
+
+        # Both are still published versions because they relate to different groupers
+        self.assertEqual(
+            Version.objects.filter(state=constants.PUBLISHED).count(), 2)
+
+    def test_new_published_version_doesnt_change_status_of_versions_with_other_states(self):
+        """When versions relating to the same grouper have non-published
+        states, these should not change upon creating a new published version
+        """
+        poll = factories.PollFactory()
+        factories.PollVersionFactory(state=constants.DRAFT, content__poll=poll)
+        factories.PollVersionFactory(state=constants.ARCHIVED, content__poll=poll)
+        user = factories.UserFactory()
+        version = factories.PollVersionFactory(
+            content__poll=poll, state=constants.DRAFT)
+
+        version.publish(user)
+
+        # Nothing has an unpublished state cause there were no published versions
+        self.assertEqual(
+            Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
             0)
 
     def test_draft_can_change_to_archived(self):

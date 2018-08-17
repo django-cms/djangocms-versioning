@@ -7,7 +7,7 @@ from cms.toolbar.items import ButtonList
 from cms.toolbar_base import CMSToolbar
 from cms.toolbar_pool import toolbar_pool
 
-from djangocms_versioning.constants import DRAFT
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.models import Version
 
 
@@ -29,7 +29,8 @@ class VersioningToolbar(CMSToolbar):
         """
         versioning_extension = apps.get_app_config(
             'djangocms_versioning').cms_extension
-        return versioning_extension.is_content_model_versioned(self.toolbar.obj.__class__)
+        return versioning_extension.is_content_model_versioned(
+            self.toolbar.obj.__class__)
 
     def _get_proxy_model(self):
         """Helper method to get the proxy model class for the content
@@ -62,10 +63,45 @@ class VersioningToolbar(CMSToolbar):
             disabled=False,
         )
 
+    def _add_edit_button(self, item):
+        """Helper method to add an edit button to the toolbar
+        """
+        # Only add the edit button if the content type is registered
+        # with versioning
+        if not self._is_versioned():
+            return
+        # Only add the edit button if the version is a draft
+        content_type = ContentType.objects.get_for_model(self.toolbar.obj)
+        version = Version.objects.get(
+            content_type=content_type, object_id=self.toolbar.obj.pk)
+        if version.state == PUBLISHED:
+            pks_for_grouper = version.versionable.for_grouper(
+                version.grouper).values_list('pk', flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type,
+                state=DRAFT)
+            if drafts.exists():
+                return
+        elif version.state != DRAFT:
+            return
+        # Add the edit button in all other cases
+        proxy_model = self._get_proxy_model()
+        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
+            app=proxy_model._meta.app_label,
+            model=proxy_model.__name__.lower(),
+        ), args=(self.toolbar.obj.pk,))
+        item.add_button(
+            _('Edit'),
+            url=edit_url,
+            disabled=False,
+        )
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
         # Create a button area on the toolbar
         item = ButtonList(side=self.toolbar.RIGHT)
         self.toolbar.add_item(item)
         # Add buttons
+        self._add_edit_button(item)
         self._add_publish_button(item)

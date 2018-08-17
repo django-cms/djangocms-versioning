@@ -34,13 +34,21 @@ class VersioningToolbarTestCase(CMSTestCase):
             versionable.version_model_proxy, 'publish', version.pk)
         return admin_url
 
+    def _get_edit_url(self, version):
+        """Helper method to return the expected edit redirect url
+        """
+        versionable = PollsCMSConfig.versioning[0]
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, 'edit_redirect', version.pk)
+        return admin_url
+
     def test_publish_in_toolbar_for_draft_version(self):
         version = PollVersionFactory(state=constants.DRAFT)
         toolbar = self._get_toolbar(version.content)
 
         toolbar.post_template_populate()
 
-        publish_button = toolbar.toolbar.get_right_items()[0].buttons[0]
+        publish_button = toolbar.toolbar.get_right_items()[0].buttons[1]
         self.assertEqual(publish_button.name, 'Publish')
         self.assertEqual(publish_button.url, self._get_publish_url(version))
         self.assertFalse(publish_button.disabled)
@@ -60,8 +68,12 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         toolbar.post_template_populate()
 
-        self.assertListEqual(
-            toolbar.toolbar.get_right_items()[0].buttons, [])
+        publish_buttons = [
+            button
+            for button in toolbar.toolbar.get_right_items()[0].buttons
+            if button.name == 'Publish'
+        ]
+        self.assertListEqual(publish_buttons, [])
 
     def test_publish_not_in_toolbar_for_unpublished_version(self):
         version = PollVersionFactory(state=constants.UNPUBLISHED)
@@ -75,6 +87,68 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_dont_add_publish_for_models_not_registered_with_versioning(self):
         # User objects are not registered with versioning, so attempting
         # to populate a user toolbar should not attempt to add a publish
+        # button
+        toolbar = self._get_toolbar(UserFactory())
+
+        toolbar.post_template_populate()
+
+        self.assertListEqual(
+            toolbar.toolbar.get_right_items()[0].buttons, [])
+
+    def test_edit_in_toolbar_for_draft_version(self):
+        version = PollVersionFactory(state=constants.DRAFT)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        edit_button = toolbar.toolbar.get_right_items()[0].buttons[0]
+        self.assertEqual(edit_button.name, 'Edit')
+        self.assertEqual(edit_button.url, self._get_edit_url(version))
+        self.assertFalse(edit_button.disabled)
+
+    def test_edit_not_in_toolbar_for_archived_version(self):
+        version = PollVersionFactory(state=constants.ARCHIVED)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        self.assertListEqual(
+            toolbar.toolbar.get_right_items()[0].buttons, [])
+
+    def test_edit_in_toolbar_for_published_version(self):
+        version = PollVersionFactory(state=constants.PUBLISHED)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        edit_button = toolbar.toolbar.get_right_items()[0].buttons[0]
+        self.assertEqual(edit_button.name, 'Edit')
+        self.assertEqual(edit_button.url, self._get_edit_url(version))
+        self.assertFalse(edit_button.disabled)
+
+    def test_edit_not_in_toolbar_for_published_version_when_draft_exists(self):
+        version = PollVersionFactory(state=constants.PUBLISHED)
+        PollVersionFactory(
+            content__poll=version.content.poll, state=constants.DRAFT)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        self.assertListEqual(
+            toolbar.toolbar.get_right_items()[0].buttons, [])
+
+    def test_edit_not_in_toolbar_for_unpublished_version(self):
+        version = PollVersionFactory(state=constants.UNPUBLISHED)
+        toolbar = self._get_toolbar(version.content)
+
+        toolbar.post_template_populate()
+
+        self.assertListEqual(
+            toolbar.toolbar.get_right_items()[0].buttons, [])
+
+    def test_dont_add_edit_for_models_not_registered_with_versioning(self):
+        # User objects are not registered with versioning, so attempting
+        # to populate a user toolbar should not attempt to add a edit
         # button
         toolbar = self._get_toolbar(UserFactory())
 

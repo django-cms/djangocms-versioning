@@ -233,9 +233,9 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
         # Redirect
         url = reverse('admin:{app}_{model}_change'.format(
-            app=self.model._meta.app_label,
-            model=self.model._meta.model_name,
-        ), args=(version.pk,))
+            app=version.content._meta.app_label,
+            model=version.content._meta.model_name,
+        ), args=(version.content.pk,))
         return redirect(url)
 
     def changelist_view(self, request, extra_context=None):

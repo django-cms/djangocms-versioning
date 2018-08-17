@@ -640,7 +640,7 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertEqual(draft.content.language, published.content.language)
         # Redirect happened
         redirect_url = (self.get_admin_url(
-            self.versionable.version_model_proxy, 'change', draft.pk))
+            PollContent, 'change', draft.content.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_edit_redirect_view_doesnt_create_draft_if_draft_exists(self):
@@ -659,7 +659,30 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertFalse(Version.objects.exclude(pk=draft.pk).exists())
         # Redirect happened
         redirect_url = (self.get_admin_url(
-            self.versionable.version_model_proxy, 'change', draft.pk))
+            PollContent, 'change', draft.content.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_edit_redirect_view_url_uses_content_id_not_version_id(self):
+        """Regression test for a bug. Make sure than when we generate
+        the redirect url for the content change page, we use the id
+        of the content record, not the id of the version record.
+        """
+        # All versions are stored in the version table so increase the
+        # id of version id sequence by creating a blogpost version
+        factories.BlogPostVersionFactory()
+        # Now create a poll version - the poll content and version id
+        # will be different.
+        draft = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', draft.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            PollContent, 'change', draft.content.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_edit_redirect_view_cannot_be_accessed_for_archived_version(self):

@@ -875,6 +875,19 @@ class EditRedirectTestCase(CMSTestCase):
             PollContent, 'change', draft.content.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
+    def test_edit_redirect_view_redirects_to_configurable_url(self):
+        draft = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', draft.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with patch.object(self.versionable, 'change_url_function', lambda x: '/en/admin/'):
+            with self.login_user_context(user):
+                response = self.client.post(url)
+
+        # Redirect happened
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+
     def test_edit_redirect_view_cannot_be_accessed_for_archived_version(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(

@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.utils.functional import cached_property
 
@@ -6,11 +7,15 @@ from .models import Version
 
 class VersionableItem:
 
-    def __init__(self, content_model, grouper_field_name, copy_function):
+    def __init__(
+        self, content_model, grouper_field_name, copy_function,
+        change_url_function=None
+    ):
         self.content_model = content_model
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
         self.copy_function = copy_function
+        self.change_url_function = change_url_function
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
@@ -52,6 +57,16 @@ class VersionableItem:
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
         return self.content_model.objects.filter(**{self.grouper_field.name: grouper})
+
+    def change_url(self, content_obj):
+        """Returns the change url for the content object"""
+        if self.change_url_function is None:
+            default_url = reverse('admin:{app}_{model}_change'.format(
+                app=self.content_model._meta.app_label,
+                model=self.content_model._meta.model_name,
+            ), args=(content_obj.pk,))
+            return default_url
+        return self.change_url_function(content_obj)
 
 
 def default_copy(original_content):

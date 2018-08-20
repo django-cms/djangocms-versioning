@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
 from .models import Version
 
@@ -216,6 +216,38 @@ class VersionAdmin(admin.ModelAdmin):
         )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
+    def unpublish_view(self, request, object_id):
+        """Unpublishes the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        # Check version exists
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        # Raise 404 if not in published status
+        if version.state != PUBLISHED:
+            raise Http404
+        # Unpublish the version
+        version.unpublish(request.user)
+        # Display message
+        messages.success(request, "Version unpublished")
+        # Redirect
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(version.grouper.pk)
+        return redirect(url)
+
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
@@ -243,6 +275,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/publish/$',
                 self.admin_site.admin_view(self.publish_view),
                 name='{}_{}_publish'.format(*info),
+            ),
+            url(
+                r'^(.+)/unpublish/$',
+                self.admin_site.admin_view(self.unpublish_view),
+                name='{}_{}_unpublish'.format(*info),
             ),
         ] + super().get_urls()
 

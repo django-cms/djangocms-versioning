@@ -433,6 +433,78 @@ class StateActionsTestCase(CMSTestCase):
 
         self.assertNotIn(publish_url, state_actions)
 
+    def test_edit_in_state_actions_for_draft_version(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        edit_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_edit_redirect',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(edit_url, state_actions)
+
+    def test_edit_not_in_state_actions_for_archived_version(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        edit_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_edit_redirect',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(edit_url, state_actions)
+
+    def test_edit_in_state_actions_for_published_version(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        edit_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_edit_redirect',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertIn(edit_url, state_actions)
+
+    def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        factories.PollVersionFactory(
+            state=constants.DRAFT, content__poll=version.content.poll)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        edit_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_edit_redirect',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(edit_url, state_actions)
+
+    def test_edit_not_in_state_actions_for_unpublished_version(self):
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        # Get the version model proxy from the main admin site
+        # Trying to test this on the plain Version model throws exceptions
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
+        edit_url = reverse(
+            'admin:djangocms_versioning_pollcontentversion_edit_redirect',
+            args=(version.pk,))
+
+        state_actions = admin.site._registry[version_model_proxy].state_actions(version)
+
+        self.assertNotIn(edit_url, state_actions)
+
 
 class VersionAdminViewTestCase(CMSTestCase):
 
@@ -715,6 +787,159 @@ class PublishViewTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 404)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
+
+
+class EditRedirectTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
+    def test_edit_redirect_view_doesnt_allow_user_without_staff_permissions(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+        # no draft was created
+        self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
+
+    @freeze_time(None)
+    def test_edit_redirect_view_creates_draft_and_redirects(self):
+        """If the version is published then create a draft and redirect
+        to editing it.
+        """
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', published.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # Draft created
+        draft = Version.objects.get(state=constants.DRAFT)
+        self.assertEqual(draft.content.poll, published.content.poll)
+        self.assertEqual(draft.created_by, user)
+        self.assertEqual(draft.created, now())
+        # Content copied
+        self.assertNotEqual(draft.content.pk, published.content.pk)
+        self.assertEqual(draft.content.text, published.content.text)
+        self.assertEqual(draft.content.language, published.content.language)
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            PollContent, 'change', draft.content.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_edit_redirect_view_doesnt_create_draft_if_draft_exists(self):
+        """If the version is published, but there is a newer version
+        that is a draft then redirect to editing the draft, don't create.
+        """
+        draft = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', draft.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # No drafts created
+        self.assertFalse(Version.objects.exclude(pk=draft.pk).exists())
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            PollContent, 'change', draft.content.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_edit_redirect_view_url_uses_content_id_not_version_id(self):
+        """Regression test for a bug. Make sure than when we generate
+        the redirect url for the content change page, we use the id
+        of the content record, not the id of the version record.
+        """
+        # All versions are stored in the version table so increase the
+        # id of version id sequence by creating a blogpost version
+        factories.BlogPostVersionFactory()
+        # Now create a poll version - the poll content and version id
+        # will be different.
+        draft = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', draft.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        # Redirect happened
+        redirect_url = (self.get_admin_url(
+            PollContent, 'change', draft.content.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
+
+    def test_edit_redirect_view_cannot_be_accessed_for_archived_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no draft was created
+        self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
+
+    def test_edit_redirect_view_cannot_be_accessed_for_unpublished_version(self):
+        poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no draft was created
+        self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
+
+    def test_edit_redirect_view_cannot_be_accessed_for_published_version_when_draft_exists(self):
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        draft = factories.PollVersionFactory(
+            state=constants.DRAFT, content__poll=published.content.poll)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', published.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no draft was created
+        self.assertFalse(Version.objects.exclude(
+            pk=draft.pk).filter(state=constants.DRAFT).exists())
+
+    @patch('django.contrib.messages.add_message')
+    def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', 89)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
+
+    @skip("Awaiting frontend work before this can be fixed")
+    def test_edit_redirect_view_cant_be_accessed_by_get_request(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+        # no draft was created
+        self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
 
 class VersionChangeListTestCase(CMSTestCase):

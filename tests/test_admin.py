@@ -489,7 +489,6 @@ class StateActionsTestCase(CMSTestCase):
 
         self.assertNotIn(unpublish_url, state_actions)
 
-
     def test_edit_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         # Get the version model proxy from the main admin site
@@ -968,7 +967,6 @@ class UnpublishViewTestCase(CMSTestCase):
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
-
 
 
 class EditRedirectTestCase(CMSTestCase):

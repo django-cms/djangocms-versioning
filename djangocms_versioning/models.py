@@ -24,7 +24,10 @@ class VersionQuerySet(models.QuerySet):
 class Version(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+    )
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,

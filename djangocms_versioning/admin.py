@@ -134,12 +134,27 @@ class VersionAdmin(admin.ModelAdmin):
             {'publish_url': publish_url}
         )
 
+    def _get_unpublish_link(self, obj):
+        """Helper function to get the html link to the unpublish action
+        """
+        if not obj.state == PUBLISHED:
+            # Don't display the link if it can't be unpublished
+            return ''
+        unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
+            app=obj._meta.app_label, model=self.model.__name__.lower(),
+        ), args=(obj.pk,))
+        return render_to_string(
+            'djangocms_versioning/admin/unpublish_icon.html',
+            {'unpublish_url': unpublish_url}
+        )
+
     def state_actions(self, obj):
         """Display links to state change endpoints
         """
         archive_link = self._get_archive_link(obj)
         publish_link = self._get_publish_link(obj)
-        return format_html(archive_link + publish_link)
+        unpublish_link = self._get_unpublish_link(obj)
+        return format_html(archive_link + publish_link + unpublish_link)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

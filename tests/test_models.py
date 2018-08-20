@@ -7,8 +7,9 @@ from cms.test_utils.testcases import CMSTestCase
 
 from freezegun import freeze_time
 
-from djangocms_versioning.constants import DRAFT
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
+from djangocms_versioning.models import Version, VersionQuerySet
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import PollContent
@@ -34,7 +35,7 @@ class CopyTestCase(CMSTestCase):
         """
         with freeze_time('2017-07-07'):
             # Make sure created in the past
-            original_version = factories.PollVersionFactory()
+            original_version = factories.PollVersionFactory(state=PUBLISHED)
         user = factories.UserFactory()
 
         new_version = original_version.copy(user)
@@ -43,6 +44,8 @@ class CopyTestCase(CMSTestCase):
         self.assertNotEqual(original_version.pk, new_version.pk)
         self.assertEqual(new_version.created, now())
         self.assertEqual(new_version.created_by, user)
+        # The state should always be DRAFT no matter what the original
+        # state was
         self.assertEqual(new_version.state, DRAFT)
 
     def test_content_object_gets_duplicated_with_default_copy(self):
@@ -107,3 +110,19 @@ class TestVersionModelProperties(CMSTestCase):
     def test_grouper(self):
         version = factories.PollVersionFactory()
         self.assertEqual(version.grouper, version.content.poll)
+
+
+class TestVersionQuerySet(CMSTestCase):
+
+    def test_version_uses_versionqueryset_as_manager(self):
+        self.assertEqual(
+            Version.objects._queryset_class,
+            VersionQuerySet,
+        )
+
+    def test_get_for_content(self):
+        version = factories.PollVersionFactory()
+        self.assertEqual(
+            Version.objects.get_for_content(version.content),
+            version,
+        )

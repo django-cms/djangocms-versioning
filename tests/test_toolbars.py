@@ -3,7 +3,6 @@ from django.test import RequestFactory
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 
-from djangocms_versioning import constants
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import (
     PollVersionFactory,

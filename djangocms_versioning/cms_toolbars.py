@@ -1,14 +1,10 @@
 from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.items import ButtonList
 from cms.toolbar_base import CMSToolbar
 from cms.toolbar_pool import toolbar_pool
-
-from djangocms_versioning.constants import DRAFT, PUBLISHED
-from djangocms_versioning.models import Version
 
 
 @toolbar_pool.register

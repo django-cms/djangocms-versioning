@@ -789,7 +789,6 @@ class PublishViewTestCase(CMSTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
-
 class EditRedirectTestCase(CMSTestCase):
 
     def setUp(self):

@@ -9,6 +9,7 @@ from freezegun import freeze_time
 
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
+from djangocms_versioning.models import Version, VersionQuerySet
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import PollContent
@@ -109,3 +110,19 @@ class TestVersionModelProperties(CMSTestCase):
     def test_grouper(self):
         version = factories.PollVersionFactory()
         self.assertEqual(version.grouper, version.content.poll)
+
+
+class TestVersionQuerySet(CMSTestCase):
+
+    def test_version_uses_versionqueryset_as_manager(self):
+        self.assertEqual(
+            Version.objects._queryset_class,
+            VersionQuerySet,
+        )
+
+    def test_get_for_content(self):
+        version = factories.PollVersionFactory()
+        self.assertEqual(
+            Version.objects.get_for_content(version.content),
+            version,
+        )

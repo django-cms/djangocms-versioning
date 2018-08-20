@@ -9,6 +9,18 @@ from django_fsm import FSMField, transition
 from . import constants
 
 
+class VersionQuerySet(models.QuerySet):
+
+    def get_for_content(self, content_object):
+        """Returns Version object corresponding to provided content object
+        """
+        content_type = ContentType.objects.get_for_model(content_object)
+        return self.get(
+            object_id=content_object.pk,
+            content_type=content_type,
+        )
+
+
 class Version(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
@@ -21,6 +33,7 @@ class Version(models.Model):
     content = GenericForeignKey('content_type', 'object_id')
     state = FSMField(
         default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
+    objects = VersionQuerySet.as_manager()
 
     class Meta:
         unique_together = ("content_type", "object_id")

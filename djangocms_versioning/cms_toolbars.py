@@ -48,10 +48,7 @@ class VersioningToolbar(CMSToolbar):
         if self.toolbar.edit_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
-            content_type = ContentType.objects.get_for_model(
-                self.toolbar.obj)
-            version = Version.objects.get(
-                object_id=self.toolbar.obj.pk, content_type=content_type)
+            version = Version.objects.get_for_content(self.toolbar.obj)
             publish_url = reverse('admin:{app}_{model}_publish'.format(
                 app=proxy_model._meta.app_label,
                 model=proxy_model.__name__.lower(),
@@ -75,10 +72,7 @@ class VersioningToolbar(CMSToolbar):
         if self.toolbar.content_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
-            content_type = ContentType.objects.get_for_model(
-                self.toolbar.obj)
-            version = Version.objects.get(
-                object_id=self.toolbar.obj.pk, content_type=content_type)
+            version = Version.objects.get_for_content(self.toolbar.obj)
             edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
                 app=proxy_model._meta.app_label,
                 model=proxy_model.__name__.lower(),

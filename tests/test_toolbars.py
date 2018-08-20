@@ -5,6 +5,7 @@ from cms.toolbar.toolbar import CMSToolbar
 
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import (
+    BlogPostVersionFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -95,6 +96,24 @@ class VersioningToolbarTestCase(CMSTestCase):
         buttons = toolbar.toolbar.get_right_items()
         self.assertListEqual(buttons, [])
 
+    def test_url_for_publish_uses_version_id_not_content_id(self):
+        """Regression test for a bug. Make sure than when we generate
+        the publish url, we use the id of the version record, not the
+        id of the content record.
+        """
+        # All versions are stored in the version table so increase the
+        # id of version id sequence by creating a blogpost version
+        BlogPostVersionFactory()
+        # Now create a poll version - the poll content and version id
+        # will be different.
+        version = PollVersionFactory()
+        toolbar = self._get_toolbar(version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        publish_button = toolbar.toolbar.get_right_items()[0].buttons[0]
+        self.assertEqual(publish_button.url, self._get_publish_url(version))
+
     def test_edit_in_toolbar_in_preview_mode(self):
         version = PollVersionFactory()
         toolbar = self._get_toolbar(version.content, preview_mode=True)
@@ -136,3 +155,21 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         buttons = toolbar.toolbar.get_right_items()
         self.assertListEqual(buttons, [])
+
+    def test_url_for_edit_uses_version_id_not_content_id(self):
+        """Regression test for a bug. Make sure than when we generate
+        the edit url, we use the id of the version record, not the
+        id of the content record.
+        """
+        # All versions are stored in the version table so increase the
+        # id of version id sequence by creating a blogpost version
+        BlogPostVersionFactory()
+        # Now create a poll version - the poll content and version id
+        # will be different.
+        version = PollVersionFactory()
+        toolbar = self._get_toolbar(version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        edit_button = toolbar.toolbar.get_right_items()[0].buttons[0]
+        self.assertEqual(edit_button.url, self._get_edit_url(version))

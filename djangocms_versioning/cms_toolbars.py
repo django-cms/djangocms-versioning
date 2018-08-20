@@ -1,10 +1,13 @@
 from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.items import ButtonList
 from cms.toolbar_base import CMSToolbar
 from cms.toolbar_pool import toolbar_pool
+
+from djangocms_versioning.models import Version
 
 
 @toolbar_pool.register
@@ -45,10 +48,14 @@ class VersioningToolbar(CMSToolbar):
         if self.toolbar.edit_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
+            content_type = ContentType.objects.get_for_model(
+                self.toolbar.obj)
+            version = Version.objects.get(
+                object_id=self.toolbar.obj.pk, content_type=content_type)
             publish_url = reverse('admin:{app}_{model}_publish'.format(
                 app=proxy_model._meta.app_label,
                 model=proxy_model.__name__.lower(),
-            ), args=(self.toolbar.obj.pk,))
+            ), args=(version.pk,))
             item.add_button(
                 _('Publish'),
                 url=publish_url,
@@ -68,10 +75,14 @@ class VersioningToolbar(CMSToolbar):
         if self.toolbar.content_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
+            content_type = ContentType.objects.get_for_model(
+                self.toolbar.obj)
+            version = Version.objects.get(
+                object_id=self.toolbar.obj.pk, content_type=content_type)
             edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
                 app=proxy_model._meta.app_label,
                 model=proxy_model.__name__.lower(),
-            ), args=(self.toolbar.obj.pk,))
+            ), args=(version.pk,))
             item.add_button(
                 _('Edit'),
                 url=edit_url,

@@ -114,7 +114,7 @@ class VersionAdmin(admin.ModelAdmin):
             # Don't display the link if it can't be archived
             return ''
         archive_url = reverse('admin:{app}_{model}_archive'.format(
-            app=obj._meta.app_label, model=self.model.__name__.lower(),
+            app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/archive_icon.html',
@@ -128,7 +128,7 @@ class VersionAdmin(admin.ModelAdmin):
             # Don't display the link if it can't be published
             return ''
         publish_url = reverse('admin:{app}_{model}_publish'.format(
-            app=obj._meta.app_label, model=self.model.__name__.lower(),
+            app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/publish_icon.html',
@@ -141,17 +141,16 @@ class VersionAdmin(admin.ModelAdmin):
         if obj.state == PUBLISHED:
             pks_for_grouper = obj.versionable.for_grouper(
                 obj.grouper).values_list('pk', flat=True)
-            content_type = ContentType.objects.get_for_model(obj.content)
             drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper, content_type=content_type,
+                object_id__in=pks_for_grouper, content_type=obj.content_type,
                 state=DRAFT)
             if drafts.exists():
                 return ''
         elif not obj.state == DRAFT:
-            # Don't display the link if it can't be archived
+            # Don't display the link if it's a draft
             return ''
         edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-            app=obj._meta.app_label, model=self.model.__name__.lower(),
+            app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/edit_icon.html',

@@ -142,7 +142,7 @@ class VersionAdmin(admin.ModelAdmin):
             # Don't display the link if it can't be unpublished
             return ''
         unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
-            app=obj._meta.app_label, model=self.model.__name__.lower(),
+            app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/unpublish_icon.html',

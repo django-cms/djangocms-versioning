@@ -56,7 +56,7 @@ class VersioningToolbar(CMSToolbar):
                 _('Publish'),
                 url=publish_url,
                 disabled=False,
-                extra_classes=['cms-btn-action'],
+                extra_classes=['cms-btn-action', 'cms-versioning-js-publish-btn'],
             )
             self.toolbar.add_item(item)
 
@@ -80,7 +80,7 @@ class VersioningToolbar(CMSToolbar):
                 _('Edit'),
                 url=edit_url,
                 disabled=False,
-                extra_classes=['cms-btn-action'],
+                extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
             )
             self.toolbar.add_item(item)
 

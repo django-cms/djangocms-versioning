@@ -135,6 +135,20 @@ class VersionAdmin(admin.ModelAdmin):
             {'publish_url': publish_url}
         )
 
+    def _get_unpublish_link(self, obj):
+        """Helper function to get the html link to the unpublish action
+        """
+        if not obj.state == PUBLISHED:
+            # Don't display the link if it can't be unpublished
+            return ''
+        unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
+            app=obj._meta.app_label, model=self.model._meta.model_name,
+        ), args=(obj.pk,))
+        return render_to_string(
+            'djangocms_versioning/admin/unpublish_icon.html',
+            {'unpublish_url': unpublish_url}
+        )
+
     def _get_edit_link(self, obj):
         """Helper function to get the html link to the edit action
         """
@@ -162,8 +176,10 @@ class VersionAdmin(admin.ModelAdmin):
         """
         archive_link = self._get_archive_link(obj)
         publish_link = self._get_publish_link(obj)
+        unpublish_link = self._get_unpublish_link(obj)
         edit_link = self._get_edit_link(obj)
-        return format_html(archive_link + publish_link + edit_link)
+        return format_html(
+            archive_link + publish_link + unpublish_link + edit_link)
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -233,6 +249,38 @@ class VersionAdmin(admin.ModelAdmin):
         version.publish(request.user)
         # Display message
         messages.success(request, "Version published")
+        # Redirect
+        url = reverse('admin:{app}_{model}_changelist'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        )) + '?grouper=' + str(version.grouper.pk)
+        return redirect(url)
+
+    def unpublish_view(self, request, object_id):
+        """Unpublishes the specified version and redirects back to the
+        version changelist
+        """
+        # FIXME: We should be using POST only for this, but some frontend
+        # issues need to be solved first. The code below just needs to
+        # be uncommented and a test is also already written (but currently
+        # being skipped) to handle the POST-only approach
+
+        # This view always changes data so only POST requests should work
+        # if request.method != 'POST':
+        #     raise Http404
+
+        # Check version exists
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        # Raise 404 if not in published status
+        if version.state != PUBLISHED:
+            raise Http404
+        # Unpublish the version
+        version.unpublish(request.user)
+        # Display message
+        messages.success(request, "Version unpublished")
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -311,6 +359,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/publish/$',
                 self.admin_site.admin_view(self.publish_view),
                 name='{}_{}_publish'.format(*info),
+            ),
+            url(
+                r'^(.+)/unpublish/$',
+                self.admin_site.admin_view(self.unpublish_view),
+                name='{}_{}_unpublish'.format(*info),
             ),
             url(
                 r'^(.+)/edit-redirect/$',

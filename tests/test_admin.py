@@ -717,6 +717,9 @@ class ArchiveViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.ARCHIVED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
@@ -841,6 +844,9 @@ class PublishViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
+        # status hasn't changed
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 

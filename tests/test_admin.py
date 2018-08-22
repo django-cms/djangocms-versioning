@@ -1195,8 +1195,7 @@ class VersionChangeViewTestCase(CMSTestCase):
     def test_change_view_returns_200_for_draft(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.DRAFT)
-        url = self.get_admin_url(
-            PollContent, 'change', content.pk)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
 
         with self.login_user_context(self.staff_user):
             response = self.client.get(url)
@@ -1206,8 +1205,7 @@ class VersionChangeViewTestCase(CMSTestCase):
     def test_change_view_returns_404_for_published(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.PUBLISHED)
-        url = self.get_admin_url(
-            PollContent, 'change', content.pk)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
 
         with self.login_user_context(self.staff_user):
             response = self.client.get(url)
@@ -1217,8 +1215,7 @@ class VersionChangeViewTestCase(CMSTestCase):
     def test_change_view_returns_404_for_unpublished(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.UNPUBLISHED)
-        url = self.get_admin_url(
-            PollContent, 'change', content.pk)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
 
         with self.login_user_context(self.staff_user):
             response = self.client.get(url)
@@ -1228,10 +1225,23 @@ class VersionChangeViewTestCase(CMSTestCase):
     def test_change_view_returns_404_for_archived(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.ARCHIVED)
-        url = self.get_admin_url(
-            PollContent, 'change', content.pk)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
 
         with self.login_user_context(self.staff_user):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
+
+    @patch('django.contrib.messages.add_message')
+    def test_change_view_redirects_for_nonexistent_object(self, mocked_messages):
+        url = self.get_admin_url(PollContent, 'change', 144)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?')

@@ -47,9 +47,10 @@ class VersioningAdminMixin:
         # a draft
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
         content_obj = self.get_object(request, unquote(object_id), to_field)
-        version = Version.objects.get_for_content(content_obj)
-        if version.state != DRAFT:
-            raise Http404
+        if content_obj is not None:
+            version = Version.objects.get_for_content(content_obj)
+            if version.state != DRAFT:
+                raise Http404
         return super().change_view(
             request, object_id, form_url='', extra_context=None)
 

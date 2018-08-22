@@ -79,9 +79,9 @@ class VersionAdmin(admin.ModelAdmin):
     actions = None
 
     list_display = (
-        'pk',
+        'nr',
         'created',
-        'content_link',
+        'created_by',
         'state',
         'state_actions',
     )
@@ -93,19 +93,12 @@ class VersionAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 
-    def content_link(self, obj):
-        content = obj.content
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=content._meta.app_label,
-            model=content._meta.model_name,
-        ), args=[content.pk])
-        return format_html(
-            '<a href="{url}">{label}</a>',
-            url=url,
-            label=content,
-        )
-    content_link.short_description = _('Content')
-    content_link.admin_order_field = 'content'
+    def nr(self, obj):
+        """Get the identifier of the version. Might be something other
+        than the pk eventually.
+        """
+        return obj.pk
+    nr.admin_order_field = 'pk'
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action
@@ -179,7 +172,8 @@ class VersionAdmin(admin.ModelAdmin):
         unpublish_link = self._get_unpublish_link(obj)
         edit_link = self._get_edit_link(obj)
         return format_html(
-            archive_link + publish_link + unpublish_link + edit_link)
+            edit_link + publish_link + unpublish_link + archive_link)
+    state_actions.short_description = 'actions'
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

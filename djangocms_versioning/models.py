@@ -27,6 +27,7 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
+        verbose_name='author'
     )
     content_type = models.ForeignKey(
         ContentType,
@@ -35,7 +36,11 @@ class Version(models.Model):
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')
     state = FSMField(
-        default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
+        default=constants.DRAFT,
+        choices=constants.VERSION_STATES,
+        verbose_name='status',
+        protected=True,
+    )
     objects = VersionQuerySet.as_manager()
 
     class Meta:

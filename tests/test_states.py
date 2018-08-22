@@ -80,6 +80,28 @@ class TestVersionState(CMSTestCase):
             Version.objects.exclude(pk=version.pk).filter(state=constants.ARCHIVED).count(),
             0)
 
+    def test_new_draft_doesnt_change_status_of_drafts_of_other_content_types(self):
+        """Regression test for a bug in which filtering byt content_type
+        was missed in the query that chooses versions to archive,
+        thereby archiving all versions with a certain object_id, not
+        just the versions we want to archive.
+        """
+        pv = factories.PollVersionFactory(
+            state=constants.DRAFT, content__id=11)
+        bv = factories.BlogPostVersionFactory(
+            state=constants.DRAFT, content__id=11)
+
+        version = Version.objects.create(
+            content=factories.PollContentFactory(poll=pv.content.poll),
+            created_by=factories.UserFactory(),
+            state=constants.DRAFT)
+
+        # Only poll version was changed
+        pv_ = Version.objects.get(pk=pv.pk)
+        self.assertEqual(pv_.state, constants.ARCHIVED)
+        bv_ = Version.objects.get(pk=bv.pk)
+        self.assertEqual(bv_.state, constants.DRAFT)
+
     def test_new_published_version_causes_old_published_versions_to_change_to_unpublished(self):
         """When versions relating to the same grouper have a new published
         version created, all old published version should be marked unpublished
@@ -133,6 +155,28 @@ class TestVersionState(CMSTestCase):
         self.assertEqual(
             Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
             0)
+
+    def test_new_published_version_doesnt_change_status_of_other_content_types(self):
+        """Regression test for a bug in which filtering byt content_type
+        was missed in the query that chooses versions to unpublish,
+        thereby unpublishing all versions with a certain object_id, not
+        just the versions we want to unpublish.
+        """
+        pv = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__id=11)
+        bv = factories.BlogPostVersionFactory(
+            state=constants.PUBLISHED, content__id=11)
+        version = factories.PollVersionFactory(
+            content__poll=pv.content.poll, state=constants.DRAFT)
+        user = factories.UserFactory()
+
+        version.publish(user)
+
+        # Only poll version was changed
+        pv_ = Version.objects.get(pk=pv.pk)
+        self.assertEqual(pv_.state, constants.UNPUBLISHED)
+        bv_ = Version.objects.get(pk=bv.pk)
+        self.assertEqual(bv_.state, constants.PUBLISHED)
 
     def test_draft_can_change_to_archived(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)

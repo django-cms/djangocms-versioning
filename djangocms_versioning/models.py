@@ -49,7 +49,8 @@ class Version(models.Model):
             pks_for_grouper = self.versionable.for_grouper(
                 self.grouper).values_list('pk', flat=True)
             to_archive = Version.objects.exclude(pk=self.pk).filter(
-                state=constants.DRAFT, object_id__in=pks_for_grouper)
+                state=constants.DRAFT, object_id__in=pks_for_grouper,
+                content_type=self.content_type)
             for version in to_archive:
                 version.archive(self.created_by)
 
@@ -123,7 +124,8 @@ class Version(models.Model):
         pks_for_grouper = self.versionable.for_grouper(
             self.grouper).values_list('pk', flat=True)
         to_unpublish = Version.objects.exclude(pk=self.pk).filter(
-            state=constants.PUBLISHED, object_id__in=pks_for_grouper)
+            state=constants.PUBLISHED, object_id__in=pks_for_grouper,
+            content_type=self.content_type)
         for version in to_unpublish:
             version.unpublish(user)
 

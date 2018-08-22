@@ -1,7 +1,7 @@
 from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
-from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.options import IncorrectLookupParameters, TO_FIELD_VAR
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
@@ -21,7 +21,8 @@ GROUPER_PARAM = 'grouper'
 
 
 class VersioningAdminMixin:
-    """Mixin providing versioning functionality to admin classes.
+    """Mixin providing versioning functionality to admin classes of
+    content models.
     """
     def save_model(self, request, obj, form, change):
         """
@@ -40,6 +41,17 @@ class VersioningAdminMixin:
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         versionable = versioning_extension.versionables_by_content[queryset.model]
         return queryset.filter(pk__in=versionable.distinct_groupers())
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # Raise 404 if the version associated with the object is not
+        # a draft
+        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
+        content_obj = self.get_object(request, unquote(object_id), to_field)
+        version = Version.objects.get_for_content(content_obj)
+        if version.state != DRAFT:
+            raise Http404
+        return super().change_view(
+            request, object_id, form_url='', extra_context=None)
 
 
 class VersionChangeList(ChangeList):

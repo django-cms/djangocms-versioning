@@ -1,1 +1,2 @@
-<a href="{{unpublish_url}}">Unpublish</a>
+{% load static i18n %}
+<a class="btn cms-versioning-action-btn js-versioning-action" href="{{ unpublish_url }}" title="{% trans "Unpublish" %}"><img src="{% static 'djangocms_versioning/svg/unpublish.svg' %}"></a>

@@ -88,6 +88,13 @@ class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
 
+    class Media:
+        js = ('djangocms_versioning/js/actions.js',)
+        css = {
+            'all': ('djangocms_versioning/css/actions.css',)
+        }
+
+
     # disable delete action
     actions = None
 

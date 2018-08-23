@@ -1,1 +1,2 @@
-<a href="{{edit_url}}">Edit</a>
+{% load static i18n %}
+<a class="btn cms-versioning-action-btn js-versioning-action" href="{{ edit_url }}" title="{% trans "Edit" %}"><img src="{% static 'djangocms_versioning/svg/edit.svg' %}"></a>

@@ -91,7 +91,7 @@ class TestVersionState(CMSTestCase):
         bv = factories.BlogPostVersionFactory(
             state=constants.DRAFT, content__id=11)
 
-        version = Version.objects.create(
+        Version.objects.create(
             content=factories.PollContentFactory(poll=pv.content.poll),
             created_by=factories.UserFactory(),
             state=constants.DRAFT)

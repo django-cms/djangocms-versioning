@@ -20,6 +20,13 @@ class VersionQuerySet(models.QuerySet):
             content_type=content_type,
         )
 
+    def filter_by_grouper(self, versionable, grouper_object):
+        """Returns a list of Version objects for the provided grouper
+        object
+        """
+        content_objects = versionable.for_grouper(grouper_object)
+        return self.filter(object_id__in=content_objects)
+
 
 class Version(models.Model):
 

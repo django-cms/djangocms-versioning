@@ -143,3 +143,22 @@ class TestVersionQuerySet(CMSTestCase):
             transform=lambda o: o.pk,
             ordered=False
         )
+
+    def test_filter_by_grouper_doesnt_include_other_content_types(self):
+        """Regression test for a bug in which filtering by content_type
+        field was missed in the query
+        """
+        pv = factories.PollVersionFactory(content__id=11)
+        factories.BlogPostVersionFactory(content__id=11)
+        versionable = PollsCMSConfig.versioning[0]
+
+        versions_for_grouper = Version.objects.filter_by_grouper(
+            versionable, pv.content.poll)
+
+        # Only poll version included
+        self.assertQuerysetEqual(
+            versions_for_grouper,
+            [pv.pk],
+            transform=lambda o: o.pk,
+            ordered=False
+        )

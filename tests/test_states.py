@@ -81,7 +81,7 @@ class TestVersionState(CMSTestCase):
             0)
 
     def test_new_draft_doesnt_change_status_of_drafts_of_other_content_types(self):
-        """Regression test for a bug in which filtering byt content_type
+        """Regression test for a bug in which filtering by content_type
         was missed in the query that chooses versions to archive,
         thereby archiving all versions with a certain object_id, not
         just the versions we want to archive.

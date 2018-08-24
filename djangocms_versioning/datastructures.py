@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max
 from django.utils.functional import cached_property
 
@@ -7,6 +8,14 @@ from .models import Version
 class VersionableItem:
 
     def __init__(self, content_model, grouper_field_name, copy_function):
+        # We require get_absolute_url to be implemented on content models
+        # because it is needed for django-cms's preview endpoint, which
+        # we use to generate version comparisons
+        if not hasattr(content_model, 'get_absolute_url'):
+            error_msg = "{} needs to implement get_absolute_url".format(
+                    content_model.__name__)
+            raise ImproperlyConfigured(error_msg)
+
         self.content_model = content_model
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()

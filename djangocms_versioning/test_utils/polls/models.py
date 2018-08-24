@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class Poll(models.Model):
@@ -15,6 +16,9 @@ class PollContent(models.Model):
 
     def __str__(self):
         return self.text
+
+    def get_absolute_url(self):
+        return reverse('admin:polls_pollcontent_changelist')
 
 
 class Answer(models.Model):

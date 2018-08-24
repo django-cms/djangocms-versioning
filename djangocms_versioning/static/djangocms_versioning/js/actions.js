@@ -2,7 +2,7 @@
     $(function () {
         // it is not possible to put a form inside a form, so
         // the versioning actions have to create their own form on click
-        $('.js-versioning-action').on('click', function (e) {
+        $('.js-versioning-action, .cms-versioning-js-publish-btn, .cms-versioning-js-edit-btn').on('click', function (e) {
             e.preventDefault();
 
             var action = $(e.currentTarget);
@@ -14,4 +14,4 @@
             fakeForm.appendTo(document.body).submit();
         });
     });
-})(django.jQuery);
+})(typeof django !== 'undefined' && django.jQuery || typeof CMS !== 'undefined' && CMS.$);

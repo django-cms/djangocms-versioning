@@ -11,6 +11,8 @@ from djangocms_versioning.models import Version
 
 @toolbar_pool.register
 class VersioningToolbar(CMSToolbar):
+    class Media:
+        js = ('djangocms_versioning/js/actions.js',)
 
     def _get_versionable(self):
         """Helper method to get the versionable for the content type

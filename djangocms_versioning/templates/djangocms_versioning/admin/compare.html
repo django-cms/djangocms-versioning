@@ -1,0 +1,46 @@
+{% load l10n i18n cms_tags cms_static static sekizai_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compare {{ v1 }} {{ v1.created }}{% if v2 %} to {{ v2 }} {{ v2.created }}{% endif %}</title>
+    <link rel="stylesheet" href="{% static_with_version "cms/css/cms.base.css" %}" />
+    <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
+</head>
+<body>
+    <div id="cms-top" class="cms cms-reset" data-compare='{
+        {% if v2_preview_url %}
+            "v2_url": "{{ v2_preview_url }}",
+        {% endif %}
+        {% if v2 %}
+        "v2_description": "{{ v2 }} {{ v2.created }}",
+        {% endif %}
+        "v1_url": "{{ v1_preview_url }}",
+        "v1_description": "{{ v1 }} {{ v1.created }}"
+    }'>
+        <div class="cms-toolbar">
+            <div class="cms-versioning-controls">
+                <select class="js-cms-versioning-version cms-select">
+                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
+                    {% for version in version_list %}
+                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} {{ version.created }}</option>
+                    {% endfor %}
+                </select>
+                <div class="cms-tooblar-item cms-toolbar-item-buttons" style="display: none;">
+                    <div class="cms-btn-group">
+                        <a href="#"
+                            class="cms-btn cms-btn-active js-cms-versioning-control js-cms-versioning-control-visual">
+                            {% trans "Visual" %}
+                        </a>
+                        <a href="#" class="cms-btn js-cms-versioning-control js-cms-versioning-control-source">
+                            {% trans "Source" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="{% static 'djangocms_versioning/js/dist/bundle.versioning.min.js' %}"></script>
+</body>
+</html>

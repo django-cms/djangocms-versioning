@@ -20,14 +20,19 @@
     }'>
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
+                <span class="cms-versioning-title">
+                {% blocktrans  %}
+                    Comparing {{ v1 }} {{ v1.created }} with
+                {% endblocktrans %}
+                </span>
                 <select class="js-cms-versioning-version cms-select">
                     <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
                     {% for version in version_list %}
                         <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} {{ version.created }}</option>
                     {% endfor %}
                 </select>
-                <div class="cms-tooblar-item cms-toolbar-item-buttons" style="display: none;">
-                    <div class="cms-btn-group">
+                <div class="cms-tooblar-item cms-toolbar-item-buttons">
+                    <div class="cms-btn-group" style="display: none;">
                         <a href="#"
                             class="cms-btn cms-btn-active js-cms-versioning-control js-cms-versioning-control-visual">
                             {% trans "Visual" %}

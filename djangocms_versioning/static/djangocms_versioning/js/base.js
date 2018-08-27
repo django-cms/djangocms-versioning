@@ -142,7 +142,7 @@ const initControls = () => {
     });
 };
 
-const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons').show();
+const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
 
 $(function() {
     initControls();

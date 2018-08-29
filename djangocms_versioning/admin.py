@@ -1,3 +1,5 @@
+from cms.utils.helpers import is_editable_model
+
 from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
@@ -9,6 +11,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
@@ -33,13 +36,13 @@ class VersioningAdminMixin:
             # create a new version object and save it
             Version.objects.create(content=obj, created_by=request.user)
 
-    def get_queryset(self, request):
-        """Limit query to most recent content versions
-        """
-        queryset = super().get_queryset(request)
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[queryset.model]
-        return queryset.filter(pk__in=versionable.distinct_groupers())
+    # def get_queryset(self, request):
+    #     """Limit query to most recent content versions
+    #     """
+    #     queryset = super().get_queryset(request)
+    #     versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+    #     versionable = versioning_extension.versionables_by_content[queryset.model]
+    #     return queryset.filter(pk__in=versionable.distinct_groupers())
 
 
 class VersionChangeList(ChangeList):
@@ -95,10 +98,19 @@ class VersionAdmin(admin.ModelAdmin):
 
     def content_link(self, obj):
         content = obj.content
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=content._meta.app_label,
-            model=content._meta.model_name,
-        ), args=[content.pk])
+        if self.is_content_model_frontend_editable:
+            url = reverse(
+                'admin:cms_placeholder_render_object_preview',
+                args=[
+                    obj.content_type_id,
+                    content.pk,
+                ],
+            )
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=content._meta.app_label,
+                model=content._meta.model_name,
+            ), args=[content.pk])
         return format_html(
             '<a href="{url}">{label}</a>',
             url=url,
@@ -106,6 +118,10 @@ class VersionAdmin(admin.ModelAdmin):
         )
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
+
+    @cached_property
+    def is_content_model_frontend_editable(self):
+        return is_editable_model(self.model._source_model)
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action
@@ -326,10 +342,19 @@ class VersionAdmin(admin.ModelAdmin):
         elif version.state != DRAFT:
             raise Http404
         # Redirect
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=version.content._meta.app_label,
-            model=version.content._meta.model_name,
-        ), args=(version.content.pk,))
+        if self.is_content_model_frontend_editable:
+            url = reverse(
+                'admin:cms_placeholder_render_object_edit',
+                args=[
+                    version.content_type_id,
+                    version.object_id,
+                ],
+            )
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=version.content._meta.app_label,
+                model=version.content._meta.model_name,
+            ), args=(version.content.pk,))
         return redirect(url)
 
     def changelist_view(self, request, extra_context=None):

@@ -44,14 +44,14 @@ class VersionableItem:
 
         Useful for listing, e.g. all Polls.
         """
-        inner = self.content_model.objects.values(
+        inner = self.content_model._base_manager.values(
             self.grouper_field.name,
         ).annotate(Max('pk')).values('pk__max')
-        return self.content_model.objects.filter(id__in=inner)
+        return self.content_model._base_manager.filter(id__in=inner)
 
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
-        return self.content_model.objects.filter(**{self.grouper_field.name: grouper})
+        return self.content_model._base_manager.filter(**{self.grouper_field.name: grouper})
 
 
 def default_copy(original_content):

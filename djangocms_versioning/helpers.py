@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 
 from .admin import VersionAdmin, VersioningAdminMixin
+from .managers import PublishedContentManagerMixin
 
 
 def versioning_admin_factory(admin_class):
@@ -84,3 +85,28 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     )
 
     admin_site.register(versionable.version_model_proxy, ProxiedAdmin)
+
+
+def published_content_manager_factory(manager):
+    """A class factory returning manager class with overriden
+    versioning functionality.
+
+    :param manager: Existing manager class
+    :return: A subclass of `PublishedContentManagerMixin` and `manager`
+    """
+    return type(
+        'Published' + manager.__name__,
+        (PublishedContentManagerMixin, manager),
+        {'use_in_migrations': False},
+    )
+
+
+def replace_default_manager(model):
+    if isinstance(model.objects, PublishedContentManagerMixin):
+        return
+    manager = published_content_manager_factory(model.objects.__class__)()
+    model._meta.local_managers = [
+        manager for manager in model._meta.local_managers
+        if manager.name != 'objects'
+    ]
+    model.add_to_class('objects', manager)

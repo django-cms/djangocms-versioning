@@ -100,6 +100,122 @@ class CopyTestCase(CMSTestCase):
 
         self.assertEqual(new_version.content.pk, new_content.pk)
 
+    @freeze_time(None)
+    def test_page_content_object_gets_duplicated(self):
+        """The implementation of versioning for PageContent correctly
+        copies the PageContent object
+        """
+        with freeze_time('2017-07-07'):
+            # Make sure created in the past
+            original_version = factories.PageVersionFactory()
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        # Created a new content record
+        self.assertNotEqual(
+            original_version.content.pk,
+            new_version.content.pk,
+        )
+        # Has the same fields as the original version
+        self.assertEqual(
+            original_version.content.title,
+            new_version.content.title,
+        )
+        self.assertEqual(
+            original_version.content.language,
+            new_version.content.language,
+        )
+        self.assertEqual(
+            original_version.content.creation_date,
+            new_version.content.creation_date,
+        )
+        self.assertEqual(
+            original_version.content.created_by,
+            new_version.content.created_by,
+        )
+        self.assertEqual(new_version.content.changed_date, now())
+        self.assertEqual(
+            original_version.content.changed_by,
+            new_version.content.changed_by,
+        )
+        self.assertEqual(
+            original_version.content.in_navigation,
+            new_version.content.in_navigation,
+        )
+        self.assertEqual(
+            original_version.content.soft_root,
+            new_version.content.soft_root,
+        )
+        self.assertEqual(
+            original_version.content.template,
+            new_version.content.template,
+        )
+        self.assertEqual(
+            original_version.content.limit_visibility_in_menu,
+            new_version.content.limit_visibility_in_menu,
+        )
+        self.assertEqual(
+            original_version.content.xframe_options,
+            new_version.content.xframe_options,
+        )
+        self.assertEqual(
+            original_version.content.page,
+            new_version.content.page,
+        )
+
+    def test_placeholders_are_copied(self):
+        """The implementation of versioning for PageContent correctly
+        copies placeholders
+        """
+        original_placeholders = factories.PlaceholderFactory.create_batch(2)
+        original_version = factories.PageVersionFactory(
+            content__placeholders=original_placeholders)
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        new_placeholders = new_version.content.placeholders.all()
+        self.assertEqual(new_placeholders.count(), 2)
+        self.assertNotEqual(
+            new_placeholders[0].pk,
+            original_placeholders[0].pk
+        )
+        self.assertEqual(
+            new_placeholders[0].slot,
+            original_placeholders[0].slot
+        )
+        self.assertEqual(
+            new_placeholders[0].default_width,
+            original_placeholders[0].default_width
+        )
+        self.assertNotEqual(
+            new_placeholders[1].pk,
+            original_placeholders[1].pk
+        )
+        self.assertEqual(
+            new_placeholders[1].slot,
+            original_placeholders[1].slot
+        )
+        self.assertEqual(
+            new_placeholders[1].default_width,
+            original_placeholders[1].default_width
+        )
+
+    def test_text_plugins_are_copied(self):
+        """The implementation of versioning for PageContent correctly
+        copies text plugins
+        """
+        placeholder = factories.PlaceholderFactory()
+        original_version = factories.PageVersionFactory(
+            content__placeholders=[placeholder])
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        # TODO
+
+
 
 class TestVersionModelProperties(CMSTestCase):
 

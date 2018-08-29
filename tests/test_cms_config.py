@@ -6,11 +6,15 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test.utils import ignore_warnings
 
 from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
+from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import VersioningCMSExtension
+from djangocms_versioning.cms_config import (
+    VersioningCMSConfig,
+    VersioningCMSExtension,
+)
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
@@ -24,7 +28,7 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
-class CMSConfigUnitTestCase(CMSTestCase):
+class VersioningExtensionUnitTestCase(CMSTestCase):
 
     def test_missing_cms_config_attribute(self):
         """
@@ -157,14 +161,15 @@ class VersioningIntegrationTestCase(CMSTestCase):
         """Check that all version models defined in cms_config.py
         are collected into a list
         """
-        setup_cms_apps()  # discover and run all cms_config.py files
+        #~ setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
+        page_versionable = VersioningCMSConfig.versioning[0]
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [poll_versionable, blog_versionable, comment_versionable]
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable]
         )
 
     def test_admin_classes_reregistered(self):
@@ -173,6 +178,13 @@ class VersioningIntegrationTestCase(CMSTestCase):
         subclass of VersioningAdminMixin
         """
         setup_cms_apps()  # discover and run all cms_config.py files
+        # TODO: Awaiting FIL-313 to land on core
+        # Check PageContent has had its admin class modified
+        # self.assertIn(PageContent, admin.site._registry)
+        # self.assertIn(
+        #     VersioningAdminMixin,
+        #     admin.site._registry[PageContent].__class__.mro()
+        # )
         # Check PollContent has had its admin class modified
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(

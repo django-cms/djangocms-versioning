@@ -3,7 +3,8 @@ import collections
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
 
-from cms.app_base import CMSAppExtension
+from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.models import PageContent, Placeholder
 
 from .datastructures import VersionableItem
 from .helpers import register_versionadmin_proxy, replace_admin_for_models
@@ -61,3 +62,41 @@ class VersioningCMSExtension(CMSAppExtension):
         self.handle_versioning_setting(cms_config)
         self.handle_admin_classes(cms_config)
         self.handle_version_admin(cms_config)
+
+
+def copy_page_content(original_content):
+    """Copy the PageContent object and deepcopy its
+    placeholders and plugins
+    """
+    content_fields = {
+        field.name: getattr(original_content, field.name)
+        for field in PageContent._meta.fields
+        # don't copy primary key because we're creating a new obj
+        if PageContent._meta.pk.name != field.name
+    }
+    new_placeholders = []
+    for placeholder in original_content.placeholders.all():
+        placeholder_fields = {
+            field.name: getattr(placeholder, field.name)
+            for field in Placeholder._meta.fields
+            # don't copy primary key because we're creating a new obj
+            if Placeholder._meta.pk.name != field.name
+        }
+        new_placeholders.append(
+            Placeholder.objects.create(**placeholder_fields))
+    new_content = PageContent.objects.create(**content_fields)
+    new_content.placeholders.add(*new_placeholders)
+    return new_content
+
+
+class VersioningCMSConfig(CMSAppConfig):
+    """Implement versioning for core cms models
+    """
+    djangocms_versioning_enabled = True
+    versioning = [
+        VersionableItem(
+            content_model=PageContent,
+            grouper_field_name='page',
+            copy_function=copy_page_content,
+        ),
+    ]

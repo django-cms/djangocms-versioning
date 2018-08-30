@@ -208,12 +208,15 @@ class CopyTestCase(CMSTestCase):
         copies text plugins
         """
         placeholder = factories.PlaceholderFactory()
+        original_version = factories.PageVersionFactory(
+            content__placeholders=[placeholder])
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_plugins = factories.TextPluginFactory.create_batch(
-                2, placeholder=placeholder)
-        original_version = factories.PageVersionFactory(
-            content__placeholders=[placeholder])
+                2,
+                placeholder=placeholder,
+                language=original_version.content.language
+            )
         user = factories.UserFactory()
 
         new_version = original_version.copy(user)

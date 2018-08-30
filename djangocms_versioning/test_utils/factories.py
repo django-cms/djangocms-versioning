@@ -176,11 +176,22 @@ class PlaceholderFactory(factory.django.DjangoModelFactory):
         model = Placeholder
 
 
+def get_plugin_position(plugin):
+    """Helper function to correctly calculate the plugin position.
+    Use this in plugin factory classes
+    """
+    offset = plugin.placeholder.get_last_plugin_position(
+        plugin.language) or 0
+    return offset + 1
+
+
 class TextPluginFactory(factory.django.DjangoModelFactory):
+    # TODO: Fix so that language is never taken randomly but from
+    # the plugin's relationships
     language = factory.fuzzy.FuzzyChoice(['en', 'fr', 'it'])
     placeholder = factory.SubFactory(PlaceholderFactory)
     parent = None
-    position = FuzzyInteger(0, 25)
+    position = factory.LazyAttribute(get_plugin_position)
     plugin_type = 'TextPlugin'
     body = factory.fuzzy.FuzzyText(length=50)
 

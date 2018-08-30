@@ -67,6 +67,25 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_setting(cms_config)
 
+    def test_raises_exception_if_content_class_already_registered(self):
+        """Tests ImproperlyConfigured exception is raised if the same
+        content class is registered twice
+        """
+        extension = VersioningCMSExtension()
+        poll_versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        poll_versionable2 = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable, poll_versionable2]
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extension.handle_versioning_setting(cms_config)
+
     def test_versionables_list_created(self):
         """Test handle_versioning_setting method adds all the
         models into the versionables list

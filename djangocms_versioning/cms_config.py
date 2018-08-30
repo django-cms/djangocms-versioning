@@ -35,10 +35,16 @@ class VersioningCMSExtension(CMSAppExtension):
         if not isinstance(cms_config.versioning, collections.abc.Iterable):
             raise ImproperlyConfigured(
                 "versioning not defined as an iterable")
+        registered_models = []
         for versionable in cms_config.versioning:
             if not isinstance(versionable, VersionableItem):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
+            if versionable.content_model in registered_models:
+                raise ImproperlyConfigured(
+                    "{!r} has already been registered".format(versionable.content_model))
+            registered_models.append(versionable.content_model)
+        # Checks passed. Add versionables to our master list
         self.versionables.extend(cms_config.versioning)
 
     def handle_admin_classes(self, cms_config):

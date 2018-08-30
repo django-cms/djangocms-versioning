@@ -1,10 +1,13 @@
 import warnings
+from contextlib import contextmanager
 
 from django.contrib import admin
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
 from .admin import VersionAdmin, VersioningAdminMixin
 from .managers import PublishedContentManagerMixin
+from .models import Version
 
 
 def versioning_admin_factory(admin_class):
@@ -104,9 +107,30 @@ def published_content_manager_factory(manager):
 def replace_default_manager(model):
     if isinstance(model.objects, PublishedContentManagerMixin):
         return
+    model.add_to_class('_original_manager', model.objects.__class__())
     manager = published_content_manager_factory(model.objects.__class__)()
     model._meta.local_managers = [
         manager for manager in model._meta.local_managers
         if manager.name != 'objects'
     ]
     model.add_to_class('objects', manager)
+
+
+def inject_generic_relation_to_version(model):
+    model.add_to_class('versions', GenericRelation(Version))
+
+
+@contextmanager
+def override_default_manager(model, manager):
+    original_manager = model.objects
+    model._meta.local_managers = [
+        manager for manager in model._meta.local_managers
+        if manager.name != 'objects'
+    ]
+    model.add_to_class('objects', manager)
+    yield
+    model._meta.local_managers = [
+        manager for manager in model._meta.local_managers
+        if manager.name != 'objects'
+    ]
+    model.add_to_class('objects', original_manager)

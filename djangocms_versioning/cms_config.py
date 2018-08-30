@@ -7,7 +7,12 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent
 
 from .datastructures import VersionableItem, default_copy
-from .helpers import register_versionadmin_proxy, replace_admin_for_models, replace_default_manager
+from .helpers import (
+    inject_generic_relation_to_version,
+    register_versionadmin_proxy,
+    replace_admin_for_models,
+    replace_default_manager,
+)
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -66,12 +71,16 @@ class VersioningCMSExtension(CMSAppExtension):
             register_versionadmin_proxy(versionable)
 
     def handle_content_model_generic_relation(self, cms_config):
-        from django.contrib.contenttypes.fields import GenericRelation
-        from .models import Version
+        """Adds `versions` GenericRelation field to all provided
+        content models.
+        """
         for versionable in cms_config.versioning:
-            versionable.content_model.add_to_class('versions', GenericRelation(Version))
+            inject_generic_relation_to_version(versionable.content_model)
 
     def handle_content_model_manager(self, cms_config):
+        """Replaces default manager in provided content models with
+        one inheriting from PublishedContentManagerMixin.
+        """
         for versionable in cms_config.versioning:
             replace_default_manager(versionable.content_model)
 

@@ -310,8 +310,10 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_content_link(self):
         version = factories.PollVersionFactory(content__text='test4')
+        version_model_proxy = [
+            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
         self.assertEqual(
-            self.site._registry[Version].content_link(version),
+            admin.site._registry[version_model_proxy].content_link(version),
             '<a href="{url}">{label}</a>'.format(
                 url='/en/admin/polls/pollcontent/1/change/',
                 label='test4',

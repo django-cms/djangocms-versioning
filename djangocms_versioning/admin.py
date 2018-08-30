@@ -1,17 +1,17 @@
 from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
-from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.options import IncorrectLookupParameters, TO_FIELD_VAR
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _
 
 from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
@@ -22,7 +22,8 @@ GROUPER_PARAM = 'grouper'
 
 
 class VersioningAdminMixin:
-    """Mixin providing versioning functionality to admin classes.
+    """Mixin providing versioning functionality to admin classes of
+    content models.
     """
     def save_model(self, request, obj, form, change):
         """
@@ -43,6 +44,18 @@ class VersioningAdminMixin:
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         versionable = versioning_extension.versionables_by_content[queryset.model]
         return queryset.filter(pk__in=versionable.distinct_groupers())
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # Raise 404 if the version associated with the object is not
+        # a draft
+        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
+        content_obj = self.get_object(request, unquote(object_id), to_field)
+        if content_obj is not None:
+            version = Version.objects.get_for_content(content_obj)
+            if version.state != DRAFT:
+                raise Http404
+        return super().change_view(
+            request, object_id, form_url='', extra_context=None)
 
 
 class VersionChangeList(ChangeList):
@@ -68,23 +81,31 @@ class VersionChangeList(ChangeList):
             grouper = int(request.GET.get(GROUPER_PARAM))
         except (TypeError, ValueError):
             raise IncorrectLookupParameters("Missing grouper")
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[self.model_admin.model._source_model]
-        content_objects = versionable.for_grouper(grouper)
-        return qs.filter(object_id__in=content_objects)
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_content[
+            self.model_admin.model._source_model]
+        return qs.filter_by_grouper(versionable, grouper)
 
 
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
 
+    class Media:
+        js = ('djangocms_versioning/js/actions.js',)
+        css = {
+            'all': ('djangocms_versioning/css/actions.css',)
+        }
+
+
     # disable delete action
     actions = None
 
     list_display = (
-        'pk',
+        'nr',
         'created',
-        'content_link',
+        'created_by',
         'state',
         'state_actions',
     )
@@ -96,19 +117,12 @@ class VersionAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 
-    def content_link(self, obj):
-        content = obj.content
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=content._meta.app_label,
-            model=content._meta.model_name,
-        ), args=[content.pk])
-        return format_html(
-            '<a href="{url}">{label}</a>',
-            url=url,
-            label=content,
-        )
-    content_link.short_description = _('Content')
-    content_link.admin_order_field = 'content'
+    def nr(self, obj):
+        """Get the identifier of the version. Might be something other
+        than the pk eventually.
+        """
+        return obj.pk
+    nr.admin_order_field = 'pk'
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action
@@ -182,7 +196,8 @@ class VersionAdmin(admin.ModelAdmin):
         unpublish_link = self._get_unpublish_link(obj)
         edit_link = self._get_edit_link(obj)
         return format_html(
-            archive_link + publish_link + unpublish_link + edit_link)
+            edit_link + publish_link + unpublish_link + archive_link)
+    state_actions.short_description = 'actions'
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -335,6 +350,42 @@ class VersionAdmin(admin.ModelAdmin):
         ), args=(version.content.pk,))
         return redirect(url)
 
+    def compare_view(self, request, object_id):
+        """Compares two versions
+        """
+        # Get version 1 (the version we're comparing against)
+        v1 = self.get_object(request, unquote(object_id))
+        if v1 is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+        v1_preview_url = reverse(
+            'admin:cms_placeholder_render_object_preview',
+            args=(v1.content_type_id, v1.object_id))
+        # Get the list of versions for the grouper. This is for use
+        # in the dropdown to choose a version.
+        version_list = Version.objects.filter_by_grouper(
+            v1.versionable, v1.grouper)
+        # Add the above to context
+        context = {
+            'version_list': version_list,
+            'v1': v1,
+            'v1_preview_url': v1_preview_url,
+        }
+        # Now check if version 2 has been specified and add to context
+        # if yes
+        if 'compare_to' in request.GET:
+            v2 = self.get_object(request, unquote(request.GET['compare_to']))
+            if v2 is None:
+                return self._get_obj_does_not_exist_redirect(
+                    request, self.model._meta, request.GET['compare_to'])
+            else:
+                context['v2'] = v2
+                context['v2_preview_url'] = reverse(
+                    'admin:cms_placeholder_render_object_preview',
+                    args=(v2.content_type_id, v2.object_id))
+        return TemplateResponse(
+            request, 'djangocms_versioning/admin/compare.html', context)
+
     def changelist_view(self, request, extra_context=None):
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
@@ -372,6 +423,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/edit-redirect/$',
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name='{}_{}_edit_redirect'.format(*info),
+            ),
+            url(
+                r'^(.+)/compare/$',
+                self.admin_site.admin_view(self.compare_view),
+                name='{}_{}_compare'.format(*info),
             ),
         ] + super().get_urls()
 

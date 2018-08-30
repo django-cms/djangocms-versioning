@@ -320,6 +320,11 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
+    def test_version_nr(self):
+        version = factories.PollVersionFactory(id=413)
+        nr = self.site._registry[Version].nr(version)
+        self.assertEqual(nr, 413)
+
 
 class StateActionsTestCase(CMSTestCase):
 
@@ -1130,6 +1135,128 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
 
+class CompareViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
+    def test_compare_view_doesnt_allow_user_without_staff_permissions(self):
+        version = factories.PollVersionFactory()
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare', version.pk)
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
+
+    def test_compare_view_has_version_data_in_context_when_no_get_param(self):
+        """When the url for the compare view has no additional params
+        version 2 can't be in the context (since we don't know what it
+        is yet). So checking we have version 1 and a list of versions
+        for the dropdown in context.
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(
+            2, content__poll=poll)
+        factories.PollVersionFactory()  # different grouper
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare', versions[0].pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+
+        context = response.context
+        self.assertIn('v1', context)
+        self.assertEqual(context['v1'], versions[0])
+        self.assertIn('v1_preview_url', context)
+        v1_preview_url = reverse(
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[0].content_type_id, versions[0].object_id))
+        self.assertEqual(context['v1_preview_url'], v1_preview_url)
+        self.assertNotIn('v2', context)
+        self.assertNotIn('v2_preview_url', context)
+        self.assertIn('version_list', context)
+        self.assertQuerysetEqual(
+            context['version_list'],
+            [versions[0].pk, versions[1].pk],
+            transform=lambda o: o.pk,
+            ordered=False
+        )
+
+    def test_compare_view_has_version_data_in_context_when_version2_in_get_param(self):
+        """When the url for the compare view does have the compare_to
+        GET param we should have all the same params in context as in
+        the test above and also version 2.
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(
+            3, content__poll=poll)
+        factories.PollVersionFactory()  # different grouper
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare', versions[0].pk)
+        url += '?compare_to=%d' % versions[1].pk
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+
+        context = response.context
+        self.assertIn('v1', context)
+        self.assertEqual(context['v1'], versions[0])
+        self.assertIn('v1_preview_url', context)
+        v1_preview_url = reverse(
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[0].content_type_id, versions[0].object_id))
+        self.assertEqual(context['v1_preview_url'], v1_preview_url)
+        self.assertIn('v2', context)
+        self.assertEqual(context['v2'], versions[1])
+        self.assertIn('v2_preview_url', context)
+        v2_preview_url = reverse(
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[1].content_type_id, versions[1].object_id))
+        self.assertEqual(context['v2_preview_url'], v2_preview_url)
+        self.assertIn('version_list', context)
+        self.assertQuerysetEqual(
+            context['version_list'],
+            [versions[0].pk, versions[1].pk, versions[2].pk],
+            transform=lambda o: o.pk,
+            ordered=False
+        )
+
+    @patch('django.contrib.messages.add_message')
+    def test_edit_compare_view_handles_nonexistent_v1(self, mocked_messages):
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare', 89)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
+
+    @patch('django.contrib.messages.add_message')
+    def test_edit_compare_view_handles_nonexistent_v2(self, mocked_messages):
+        version = factories.PollVersionFactory()
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare', version.pk)
+        url += '?compare_to=134'
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content version with ID "134" doesn\'t exist. Perhaps it was deleted?')
+
+
 class VersionChangeListTestCase(CMSTestCase):
 
     def setUp(self):
@@ -1186,3 +1313,64 @@ class VersionChangeListTestCase(CMSTestCase):
             transform=lambda x: x.pk,
             ordered=False
         )
+
+
+class VersionChangeViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.staff_user = self.get_superuser()
+
+    def test_change_view_returns_200_for_draft(self):
+        content = factories.PollContentWithVersionFactory(
+            version__state=constants.DRAFT)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_change_view_returns_404_for_published(self):
+        content = factories.PollContentWithVersionFactory(
+            version__state=constants.PUBLISHED)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_change_view_returns_404_for_unpublished(self):
+        content = factories.PollContentWithVersionFactory(
+            version__state=constants.UNPUBLISHED)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_change_view_returns_404_for_archived(self):
+        content = factories.PollContentWithVersionFactory(
+            version__state=constants.ARCHIVED)
+        url = self.get_admin_url(PollContent, 'change', content.pk)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    @patch('django.contrib.messages.add_message')
+    def test_change_view_redirects_for_nonexistent_object(self, mocked_messages):
+        url = self.get_admin_url(PollContent, 'change', 144)
+
+        with self.login_user_context(self.staff_user):
+            response = self.client.get(url)
+
+        self.assertRedirects(response, '/en/admin/', target_status_code=302)
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?')

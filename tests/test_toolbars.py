@@ -64,7 +64,9 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertEqual(publish_button.name, 'Publish')
         self.assertEqual(publish_button.url, self._get_publish_url(version))
         self.assertFalse(publish_button.disabled)
-        self.assertListEqual(publish_button.extra_classes, ['cms-btn-action'])
+        self.assertListEqual(
+            publish_button.extra_classes,
+            ['cms-btn-action', 'cms-versioning-js-publish-btn'])
 
     def test_publish_not_in_toolbar_in_preview_mode(self):
         version = PollVersionFactory()
@@ -124,7 +126,9 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertEqual(edit_button.name, 'Edit')
         self.assertEqual(edit_button.url, self._get_edit_url(version))
         self.assertFalse(edit_button.disabled)
-        self.assertListEqual(edit_button.extra_classes, ['cms-btn-action'])
+        self.assertListEqual(
+            edit_button.extra_classes,
+            ['cms-btn-action', 'cms-versioning-js-edit-btn'])
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
         version = PollVersionFactory()

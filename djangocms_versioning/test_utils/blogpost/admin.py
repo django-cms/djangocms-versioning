@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.blogpost import models
 
 
-admin.site.register(BlogContent)
+admin.site.register(models.BlogPost)
+admin.site.register(models.BlogContent)

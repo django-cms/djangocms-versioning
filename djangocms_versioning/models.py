@@ -20,6 +20,16 @@ class VersionQuerySet(models.QuerySet):
             content_type=content_type,
         )
 
+    def filter_by_grouper(self, versionable, grouper_object):
+        """Returns a list of Version objects for the provided grouper
+        object
+        """
+        content_objects = versionable.for_grouper(grouper_object)
+        content_type = ContentType.objects.get_for_model(
+            versionable.content_model)
+        return self.filter(
+            object_id__in=content_objects, content_type=content_type)
+
 
 class Version(models.Model):
 
@@ -27,6 +37,7 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
+        verbose_name='author'
     )
     content_type = models.ForeignKey(
         ContentType,
@@ -35,7 +46,11 @@ class Version(models.Model):
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey('content_type', 'object_id')
     state = FSMField(
-        default=constants.DRAFT, choices=constants.VERSION_STATES, protected=True)
+        default=constants.DRAFT,
+        choices=constants.VERSION_STATES,
+        verbose_name='status',
+        protected=True,
+    )
     objects = VersionQuerySet.as_manager()
 
     class Meta:
@@ -49,7 +64,8 @@ class Version(models.Model):
             pks_for_grouper = self.versionable.for_grouper(
                 self.grouper).values_list('pk', flat=True)
             to_archive = Version.objects.exclude(pk=self.pk).filter(
-                state=constants.DRAFT, object_id__in=pks_for_grouper)
+                state=constants.DRAFT, object_id__in=pks_for_grouper,
+                content_type=self.content_type)
             for version in to_archive:
                 version.archive(self.created_by)
 
@@ -123,7 +139,8 @@ class Version(models.Model):
         pks_for_grouper = self.versionable.for_grouper(
             self.grouper).values_list('pk', flat=True)
         to_unpublish = Version.objects.exclude(pk=self.pk).filter(
-            state=constants.PUBLISHED, object_id__in=pks_for_grouper)
+            state=constants.PUBLISHED, object_id__in=pks_for_grouper,
+            content_type=self.content_type)
         for version in to_unpublish:
             version.unpublish(user)
 

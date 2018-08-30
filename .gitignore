@@ -11,3 +11,4 @@ local.sqlite
 .coverage
 htmlcov/
 .python-version
+!djangocms_versioning/static/djangocms_versioning/js/dist

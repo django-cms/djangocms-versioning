@@ -10,7 +10,10 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import VersioningCMSExtension
+from djangocms_versioning.cms_config import (
+    VersioningCMSConfig,
+    VersioningCMSExtension,
+)
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
@@ -159,12 +162,13 @@ class VersioningIntegrationTestCase(CMSTestCase):
         """
         setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
+        pagecontent_versionable = VersioningCMSConfig.versioning[0]
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [poll_versionable, blog_versionable, comment_versionable]
+            [pagecontent_versionable, poll_versionable, blog_versionable, comment_versionable]
         )
 
     def test_admin_classes_reregistered(self):

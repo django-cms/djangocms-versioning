@@ -237,10 +237,7 @@ class CopyTestCase(CMSTestCase):
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_plugins = factories.TextPluginFactory.create_batch(
-                2,
-                placeholder=placeholder,
-                language=original_version.content.language
-            )
+                2, placeholder=placeholder)
         user = factories.UserFactory()
 
         new_version = original_version.copy(user)

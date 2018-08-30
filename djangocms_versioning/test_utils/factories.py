@@ -184,10 +184,18 @@ def get_plugin_position(plugin):
     return offset + 1
 
 
+def get_plugin_language(plugin):
+    """Helper function to get the language from a plugin's relationships.
+    Use this in plugin factory classes
+    """
+    if plugin.placeholder.source:
+        return plugin.placeholder.source.language
+    # NOTE: If plugin.placeholder.source is None then language will
+    # also be None unless set manually
+
+
 class TextPluginFactory(factory.django.DjangoModelFactory):
-    # TODO: Fix so that language is never taken randomly but from
-    # the plugin's relationships
-    language = factory.fuzzy.FuzzyChoice(['en', 'fr', 'it'])
+    language = factory.LazyAttribute(get_plugin_language)
     placeholder = factory.SubFactory(PlaceholderFactory)
     parent = None
     position = factory.LazyAttribute(get_plugin_position)

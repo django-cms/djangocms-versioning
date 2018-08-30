@@ -168,9 +168,10 @@ class CopyTestCase(CMSTestCase):
         """The implementation of versioning for PageContent correctly
         copies placeholders
         """
-        original_placeholders = factories.PlaceholderFactory.create_batch(2)
-        original_version = factories.PageVersionFactory(
-            content__placeholders=original_placeholders)
+        original_version = factories.PageVersionFactory()
+        original_placeholders = factories.PlaceholderFactory.create_batch(
+            2, source=original_version.content)
+        original_version.content.placeholders.add(*original_placeholders)
         user = factories.UserFactory()
 
         new_version = original_version.copy(user)
@@ -189,6 +190,10 @@ class CopyTestCase(CMSTestCase):
             new_placeholders[0].default_width,
             original_placeholders[0].default_width
         )
+        self.assertEqual(
+            new_placeholders[0].source,
+            new_version.content
+        )
         self.assertNotEqual(
             new_placeholders[1].pk,
             original_placeholders[1].pk
@@ -201,15 +206,34 @@ class CopyTestCase(CMSTestCase):
             new_placeholders[1].default_width,
             original_placeholders[1].default_width
         )
+        self.assertEqual(
+            new_placeholders[1].source,
+            new_version.content
+        )
+
+    def test_if_source_field_none_then_set_new_source_field_to_none_also(self):
+        """Placeholder.source can be None. In such cases it's probably
+        best to retain None rather than assign the new content object.
+        """
+        original_version = factories.PageVersionFactory()
+        original_placeholder = factories.PlaceholderFactory(source=None)
+        original_version.content.placeholders.add(original_placeholder)
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        new_placeholder = new_version.content.placeholders.get()
+        self.assertIsNone(new_placeholder.source)
 
     @freeze_time(None)
     def test_text_plugins_are_copied(self):
         """The implementation of versioning for PageContent correctly
         copies text plugins
         """
-        placeholder = factories.PlaceholderFactory()
-        original_version = factories.PageVersionFactory(
-            content__placeholders=[placeholder])
+        original_version = factories.PageVersionFactory()
+        placeholder = factories.PlaceholderFactory(
+            source=original_version.content)
+        original_version.content.placeholders.add(placeholder)
         with freeze_time('2017-07-07'):
             # Make sure created in the past
             original_plugins = factories.TextPluginFactory.create_batch(
@@ -278,9 +302,10 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(new_plugins[1].changed_date, now())
 
     def test_copy_plugins_method_used(self):
-        placeholder = factories.PlaceholderFactory()
-        original_version = factories.PageVersionFactory(
-            content__placeholders=[placeholder])
+        original_version = factories.PageVersionFactory()
+        placeholder = factories.PlaceholderFactory(
+            source=original_version.content)
+        original_version.content.placeholders.add(placeholder)
         user = factories.UserFactory()
 
         with patch('djangocms_versioning.cms_config.Placeholder.copy_plugins') as mocked_copy:

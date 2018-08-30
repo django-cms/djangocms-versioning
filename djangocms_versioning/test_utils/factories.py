@@ -120,6 +120,12 @@ class BlogContentWithVersionFactory(BlogContentFactory):
 class TreeNodeFactory(factory.django.DjangoModelFactory):
     site = factory.fuzzy.FuzzyChoice(Site.objects.all())
     depth = 0
+    # NOTE: Generating path this way is probably not a good way of
+    # doing it, but seems to work for our present tests which only
+    # really need a tree node to exist and not throw unique constraint
+    # errors on this field. If the data in this model starts mattering
+    # in our tests then something more will need to be done here.
+    path = FuzzyText(length=8, chars=string.digits)
 
     class Meta:
         model = TreeNode
@@ -151,15 +157,6 @@ class PageContentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PageContent
 
-    @factory.post_generation
-    def placeholders(self, create, placeholders, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if placeholders:
-            self.placeholders.add(*placeholders)
-
 
 class PageVersionFactory(AbstractVersionFactory):
     content = factory.SubFactory(PageContentFactory)
@@ -171,6 +168,8 @@ class PageVersionFactory(AbstractVersionFactory):
 class PlaceholderFactory(factory.django.DjangoModelFactory):
     default_width = FuzzyInteger(0, 25)
     slot = FuzzyText(length=2, chars=string.digits)
+    # NOTE: When using this factory you will probably want to set
+    # the source field manually
 
     class Meta:
         model = Placeholder

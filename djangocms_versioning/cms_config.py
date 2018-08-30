@@ -82,8 +82,9 @@ def copy_page_content(original_content):
             # don't copy primary key because we're creating a new obj
             if Placeholder._meta.pk.name != field.name
         }
-        new_placeholders.append(
-            Placeholder.objects.create(**placeholder_fields))
+        new_placeholder = Placeholder.objects.create(**placeholder_fields)
+        placeholder.copy_plugins(new_placeholder)
+        new_placeholders.append(new_placeholder)
     new_content = PageContent.objects.create(**content_fields)
     new_content.placeholders.add(*new_placeholders)
     return new_content

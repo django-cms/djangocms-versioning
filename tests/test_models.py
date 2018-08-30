@@ -202,19 +202,89 @@ class CopyTestCase(CMSTestCase):
             original_placeholders[1].default_width
         )
 
+    @freeze_time(None)
     def test_text_plugins_are_copied(self):
         """The implementation of versioning for PageContent correctly
         copies text plugins
         """
         placeholder = factories.PlaceholderFactory()
+        with freeze_time('2017-07-07'):
+            # Make sure created in the past
+            original_plugins = factories.TextPluginFactory.create_batch(
+                2, placeholder=placeholder)
         original_version = factories.PageVersionFactory(
             content__placeholders=[placeholder])
         user = factories.UserFactory()
 
         new_version = original_version.copy(user)
 
-        # TODO
+        new_plugins = new_version.content.placeholders.get(
+            ).cmsplugin_set.all()
+        self.assertEqual(new_plugins.count(), 2)
+        self.assertNotEqual(
+            new_plugins[0].pk,
+            original_plugins[0].pk
+        )
+        self.assertEqual(
+            new_plugins[0].language,
+            original_plugins[0].language
+        )
+        self.assertIsNone(new_plugins[0].parent)
+        self.assertEqual(
+            new_plugins[0].position,
+            original_plugins[0].position
+        )
+        self.assertEqual(
+            new_plugins[0].plugin_type,
+            original_plugins[0].plugin_type
+        )
+        self.assertEqual(
+            new_plugins[0].djangocms_text_ckeditor_text.body,
+            original_plugins[0].djangocms_text_ckeditor_text.body
+        )
+        self.assertEqual(
+            new_plugins[0].creation_date,
+            original_plugins[0].creation_date
+        )
+        self.assertEqual(new_plugins[0].changed_date, now())
+        self.assertNotEqual(
+            new_plugins[1].pk,
+            original_plugins[1].pk
+        )
+        self.assertEqual(
+            new_plugins[1].language,
+            original_plugins[1].language
+        )
+        self.assertIsNone(new_plugins[1].parent)
+        self.assertEqual(
+            new_plugins[1].position,
+            original_plugins[1].position
+        )
+        self.assertEqual(
+            new_plugins[1].plugin_type,
+            original_plugins[1].plugin_type
+        )
+        self.assertEqual(
+            new_plugins[1].djangocms_text_ckeditor_text.body,
+            original_plugins[1].djangocms_text_ckeditor_text.body
+        )
+        self.assertEqual(
+            new_plugins[1].creation_date,
+            original_plugins[1].creation_date
+        )
+        self.assertEqual(new_plugins[1].changed_date, now())
 
+    def test_copy_plugins_method_used(self):
+        placeholder = factories.PlaceholderFactory()
+        original_version = factories.PageVersionFactory(
+            content__placeholders=[placeholder])
+        user = factories.UserFactory()
+
+        with patch('djangocms_versioning.cms_config.Placeholder.copy_plugins') as mocked_copy:
+            new_version = original_version.copy(user)
+
+        new_placeholder = new_version.content.placeholders.get()
+        mocked_copy.assert_called_once_with(new_placeholder)
 
 
 class TestVersionModelProperties(CMSTestCase):

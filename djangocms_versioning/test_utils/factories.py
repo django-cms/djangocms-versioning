@@ -9,8 +9,9 @@ from cms.models import Page, PageContent, Placeholder, TreeNode
 import factory
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
-from djangocms_versioning.models import Version
+from djangocms_text_ckeditor.models import Text
 
+from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
 
@@ -173,3 +174,15 @@ class PlaceholderFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Placeholder
+
+
+class TextPluginFactory(factory.django.DjangoModelFactory):
+    language = factory.fuzzy.FuzzyChoice(['en', 'fr', 'it'])
+    placeholder = factory.SubFactory(PlaceholderFactory)
+    parent = None
+    position = FuzzyInteger(0, 25)
+    plugin_type = 'TextPlugin'
+    body = factory.fuzzy.FuzzyText(length=50)
+
+    class Meta:
+        model = Text

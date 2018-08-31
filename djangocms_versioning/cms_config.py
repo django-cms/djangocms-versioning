@@ -110,7 +110,7 @@ class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
     djangocms_versioning_enabled = getattr(
-        settings, 'VERSIONING_CORE_MODELS_ENABLED', True)
+        settings, 'VERSIONING_CMS_MODELS_ENABLED', True)
     versioning = [
         VersionableItem(
             content_model=PageContent,

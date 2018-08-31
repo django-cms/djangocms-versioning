@@ -102,7 +102,7 @@ but there are many cases in which you may need to implement your own, these are:
 
 
 # Overriding how versioning handles core cms models
-By default versioning assumes that the VERSIONING_CORE_MODELS_ENABLED setting
+By default versioning assumes that the VERSIONING_CMS_MODELS_ENABLED setting
 is set to True. If you set this to False it will not register any models
 from django-cms for versioning. If you set this to False you are free to
 register these models again yourself with different options.

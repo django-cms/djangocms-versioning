@@ -98,7 +98,6 @@ class VersionAdmin(admin.ModelAdmin):
             'all': ('djangocms_versioning/css/actions.css',)
         }
 
-
     # disable delete action
     actions = None
 

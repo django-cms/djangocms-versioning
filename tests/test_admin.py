@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
+from cms.toolbar.utils import get_object_edit_url
 from cms.utils.urlutils import admin_reverse
 
 import pytz
@@ -23,6 +24,7 @@ from djangocms_versioning.admin import (
     VersionChangeList,
     VersioningAdminMixin,
 )
+from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -1094,23 +1096,21 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertFalse(Version.objects.exclude(
             pk=draft.pk).filter(state=constants.DRAFT).exists())
 
-    # FIXME: Requires an editable model
     def test_edit_redirect_view_editable_object_endpoint(self):
         """
         An editable object should use the correct cms editable endpoint
         """
-
-        poll_version = factories.PollVersionFactory()
-
+        pagecontent = factories.PageVersionFactory()
+        versionable_pagecontent = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk
+            versionable_pagecontent.version_model_proxy, 'edit_redirect', pagecontent.pk
         )
+        target_url = get_object_edit_url(pagecontent.content)
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.resolver_match.url_name, '')
+        self.assertRedirects(response, target_url, target_status_code=302)
 
     def test_edit_redirect_view_non_editable_object_endpoint(self):
         """
@@ -1120,12 +1120,12 @@ class EditRedirectTestCase(CMSTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk
         )
+        target_url = (self.get_admin_url(PollContent, 'change', poll_version.content.pk))
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.resolver_match.url_name, 'djangocms_versioning_pollcontentversion_edit_redirect')
+        self.assertRedirects(response, target_url, target_status_code=302)
 
     @patch('django.contrib.messages.add_message')
     def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):

@@ -1094,6 +1094,39 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertFalse(Version.objects.exclude(
             pk=draft.pk).filter(state=constants.DRAFT).exists())
 
+    # FIXME: Requires an editable model
+    def test_edit_redirect_view_editable_object_endpoint(self):
+        """
+        An editable object should use the correct cms editable endpoint
+        """
+
+        poll_version = factories.PollVersionFactory()
+
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.resolver_match.url_name, '')
+
+    def test_edit_redirect_view_non_editable_object_endpoint(self):
+        """
+        A non editable object should use the correct internally generated endpoint
+        """
+        poll_version = factories.PollVersionFactory()
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.resolver_match.url_name, 'djangocms_versioning_pollcontentversion_edit_redirect')
+
     @patch('django.contrib.messages.add_message')
     def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):
         url = self.get_admin_url(

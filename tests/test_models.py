@@ -100,6 +100,217 @@ class CopyTestCase(CMSTestCase):
 
         self.assertEqual(new_version.content.pk, new_content.pk)
 
+    @freeze_time(None)
+    def test_page_content_object_gets_duplicated(self):
+        """The implementation of versioning for PageContent correctly
+        copies the PageContent object
+        """
+        with freeze_time('2017-07-07'):
+            # Make sure created in the past
+            original_version = factories.PageVersionFactory()
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        # Created a new content record
+        self.assertNotEqual(
+            original_version.content.pk,
+            new_version.content.pk,
+        )
+        # Has the same fields as the original version
+        self.assertEqual(
+            original_version.content.title,
+            new_version.content.title,
+        )
+        self.assertEqual(
+            original_version.content.language,
+            new_version.content.language,
+        )
+        self.assertEqual(
+            original_version.content.creation_date,
+            new_version.content.creation_date,
+        )
+        self.assertEqual(
+            original_version.content.created_by,
+            new_version.content.created_by,
+        )
+        self.assertEqual(new_version.content.changed_date, now())
+        self.assertEqual(
+            original_version.content.changed_by,
+            new_version.content.changed_by,
+        )
+        self.assertEqual(
+            original_version.content.in_navigation,
+            new_version.content.in_navigation,
+        )
+        self.assertEqual(
+            original_version.content.soft_root,
+            new_version.content.soft_root,
+        )
+        self.assertEqual(
+            original_version.content.template,
+            new_version.content.template,
+        )
+        self.assertEqual(
+            original_version.content.limit_visibility_in_menu,
+            new_version.content.limit_visibility_in_menu,
+        )
+        self.assertEqual(
+            original_version.content.xframe_options,
+            new_version.content.xframe_options,
+        )
+        self.assertEqual(
+            original_version.content.page,
+            new_version.content.page,
+        )
+
+    def test_placeholders_are_copied(self):
+        """The implementation of versioning for PageContent correctly
+        copies placeholders
+        """
+        original_version = factories.PageVersionFactory()
+        original_placeholders = factories.PlaceholderFactory.create_batch(
+            2, source=original_version.content)
+        original_version.content.placeholders.add(*original_placeholders)
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        new_placeholders = new_version.content.placeholders.all()
+        self.assertEqual(new_placeholders.count(), 2)
+        self.assertNotEqual(
+            new_placeholders[0].pk,
+            original_placeholders[0].pk
+        )
+        self.assertEqual(
+            new_placeholders[0].slot,
+            original_placeholders[0].slot
+        )
+        self.assertEqual(
+            new_placeholders[0].default_width,
+            original_placeholders[0].default_width
+        )
+        self.assertEqual(
+            new_placeholders[0].source,
+            new_version.content
+        )
+        self.assertNotEqual(
+            new_placeholders[1].pk,
+            original_placeholders[1].pk
+        )
+        self.assertEqual(
+            new_placeholders[1].slot,
+            original_placeholders[1].slot
+        )
+        self.assertEqual(
+            new_placeholders[1].default_width,
+            original_placeholders[1].default_width
+        )
+        self.assertEqual(
+            new_placeholders[1].source,
+            new_version.content
+        )
+
+    def test_if_source_field_none_then_set_new_source_field_to_none_also(self):
+        """Placeholder.source can be None. In such cases it's probably
+        best to retain None rather than assign the new content object.
+        """
+        original_version = factories.PageVersionFactory()
+        original_placeholder = factories.PlaceholderFactory(source=None)
+        original_version.content.placeholders.add(original_placeholder)
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        new_placeholder = new_version.content.placeholders.get()
+        self.assertIsNone(new_placeholder.source)
+
+    @freeze_time(None)
+    def test_text_plugins_are_copied(self):
+        """The implementation of versioning for PageContent correctly
+        copies text plugins
+        """
+        original_version = factories.PageVersionFactory()
+        placeholder = factories.PlaceholderFactory(
+            source=original_version.content)
+        original_version.content.placeholders.add(placeholder)
+        with freeze_time('2017-07-07'):
+            # Make sure created in the past
+            original_plugins = factories.TextPluginFactory.create_batch(
+                2, placeholder=placeholder)
+        user = factories.UserFactory()
+
+        new_version = original_version.copy(user)
+
+        new_plugins = new_version.content.placeholders.get(
+            ).cmsplugin_set.all()
+        self.assertEqual(new_plugins.count(), 2)
+        self.assertNotEqual(
+            new_plugins[0].pk,
+            original_plugins[0].pk
+        )
+        self.assertEqual(
+            new_plugins[0].language,
+            original_plugins[0].language
+        )
+        self.assertIsNone(new_plugins[0].parent)
+        self.assertEqual(
+            new_plugins[0].position,
+            original_plugins[0].position
+        )
+        self.assertEqual(
+            new_plugins[0].plugin_type,
+            original_plugins[0].plugin_type
+        )
+        self.assertEqual(
+            new_plugins[0].djangocms_text_ckeditor_text.body,
+            original_plugins[0].djangocms_text_ckeditor_text.body
+        )
+        self.assertEqual(
+            new_plugins[0].creation_date,
+            original_plugins[0].creation_date
+        )
+        self.assertEqual(new_plugins[0].changed_date, now())
+        self.assertNotEqual(
+            new_plugins[1].pk,
+            original_plugins[1].pk
+        )
+        self.assertEqual(
+            new_plugins[1].language,
+            original_plugins[1].language
+        )
+        self.assertIsNone(new_plugins[1].parent)
+        self.assertEqual(
+            new_plugins[1].position,
+            original_plugins[1].position
+        )
+        self.assertEqual(
+            new_plugins[1].plugin_type,
+            original_plugins[1].plugin_type
+        )
+        self.assertEqual(
+            new_plugins[1].djangocms_text_ckeditor_text.body,
+            original_plugins[1].djangocms_text_ckeditor_text.body
+        )
+        self.assertEqual(
+            new_plugins[1].creation_date,
+            original_plugins[1].creation_date
+        )
+        self.assertEqual(new_plugins[1].changed_date, now())
+
+    def test_copy_plugins_method_used(self):
+        original_version = factories.PageVersionFactory()
+        placeholder = factories.PlaceholderFactory(
+            source=original_version.content)
+        original_version.content.placeholders.add(placeholder)
+        user = factories.UserFactory()
+
+        with patch('djangocms_versioning.cms_config.Placeholder.copy_plugins') as mocked_copy:
+            new_version = original_version.copy(user)
+
+        new_placeholder = new_version.content.placeholders.get()
+        mocked_copy.assert_called_once_with(new_placeholder)
+
 
 class TestVersionModelProperties(CMSTestCase):
 

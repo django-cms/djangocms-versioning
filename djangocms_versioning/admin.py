@@ -345,7 +345,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Redirect
         # If the object is editable the cms editable view should be used, with the toolbar.
         if is_editable_model(version.content):
-            url = get_object_edit_url(version.content)
+            url = get_object_edit_url(version.content.__class__)
         # Or else, the standard edit view should be used
         else:
             url = reverse('admin:{app}_{model}_change'.format(

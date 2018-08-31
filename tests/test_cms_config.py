@@ -3,12 +3,8 @@ from unittest.mock import Mock, patch
 from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.test.utils import ignore_warnings
 
-from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
-from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
-from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import (
@@ -165,22 +161,14 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         )
 
 
-@ignore_warnings(module='djangocms_versioning.helpers')
+# NOTE: These tests simply test what has already happened on start up
+# when the app registry has been instantiated.
 class VersioningIntegrationTestCase(CMSTestCase):
-
-    def setUp(self):
-        # The results of get_cms_extension_apps and get_cms_config_apps
-        # are cached. Clear this cache because installed apps change
-        # between tests and therefore unlike in a live environment,
-        # results of this function can change between tests
-        get_cms_extension_apps.cache_clear()
-        get_cms_config_apps.cache_clear()
 
     def test_all_versionables_collected(self):
         """Check that all version models defined in cms_config.py
         are collected into a list
         """
-        #~ setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
         page_versionable = VersioningCMSConfig.versioning[0]
         poll_versionable = PollsCMSConfig.versioning[0]
@@ -196,7 +184,6 @@ class VersioningIntegrationTestCase(CMSTestCase):
         with the admin have their admin class overridden with a
         subclass of VersioningAdminMixin
         """
-        setup_cms_apps()  # discover and run all cms_config.py files
         # TODO: Awaiting FIL-313 to land on core
         # Check PageContent has had its admin class modified
         # self.assertIn(PageContent, admin.site._registry)
@@ -226,8 +213,6 @@ class VersioningIntegrationTestCase(CMSTestCase):
         there's a version proxy registered with the admin
         subclassing VersionAdmin
         """
-        setup_cms_apps()
-
         version_proxies = [
             model for model in admin.site._registry if issubclass(model, Version)
         ]

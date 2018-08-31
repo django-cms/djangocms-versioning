@@ -1,5 +1,6 @@
 import collections
 
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
 
@@ -107,7 +108,8 @@ def copy_page_content(original_content):
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
-    djangocms_versioning_enabled = True
+    djangocms_versioning_enabled = getattr(
+        settings, 'VERSIONING_CORE_MODELS_ENABLED', True)
     versioning = [
         VersionableItem(
             content_model=PageContent,

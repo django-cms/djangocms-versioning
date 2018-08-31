@@ -99,3 +99,11 @@ but there are many cases in which you may need to implement your own, these are:
     will take care of this.
     - If other models have reverse relationships to your content model.
     - If your content model contains a generic foreign key.
+
+
+# Overriding how versioning handles core cms models
+By default versioning assumes that the VERSIONING_CORE_MODELS_ENABLED setting
+is set to True. If you set this to False it will not register any models
+from django-cms for versioning. If you set this to False you are free to
+register these models again yourself with different options.
+See djangocms_versioning.cms_config.VersioningCMSConfig for reference.

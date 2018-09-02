@@ -120,17 +120,17 @@ def inject_generic_relation_to_version(model):
     model.add_to_class('versions', GenericRelation(Version))
 
 
+def _set_default_manager(model, manager):
+    model._meta.local_managers = [
+        m for m in model._meta.local_managers
+        if m.name != 'objects'
+    ]
+    model.add_to_class('objects', manager)
+
+
 @contextmanager
 def override_default_manager(model, manager):
     original_manager = model.objects
-    model._meta.local_managers = [
-        manager for manager in model._meta.local_managers
-        if manager.name != 'objects'
-    ]
-    model.add_to_class('objects', manager)
+    _set_default_manager(model, manager)
     yield
-    model._meta.local_managers = [
-        manager for manager in model._meta.local_managers
-        if manager.name != 'objects'
-    ]
-    model.add_to_class('objects', original_manager)
+    _set_default_manager(model, original_manager)

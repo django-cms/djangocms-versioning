@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from django.apps import apps
 
 from cms.plugin_rendering import ContentRenderer
@@ -11,19 +9,6 @@ def get_versionable_for_grouper(model):
     versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
     if versioning_extension.is_grouper_model_versioned(model):
         return versioning_extension.versionables_by_grouper[model]
-
-
-@lru_cache()
-def preview_mode_active(toolbar):
-    if not toolbar.show_toolbar:
-        return False
-
-    if toolbar.structure_mode_active:
-        return True
-
-    if toolbar._resolver_match:
-        return toolbar._resolver_match.url_name == 'cms_placeholder_render_object_preview'
-    return False
 
 
 class VersionRenderer(ContentRenderer):
@@ -39,7 +24,7 @@ class VersionRenderer(ContentRenderer):
             versionable = get_versionable_for_grouper(field.rel.model)
             if not versionable:
                 continue
-            if self.toolbar.edit_mode_active or preview_mode_active(self.toolbar):
+            if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
                 qs = versionable.content_model._base_manager.filter(
                     versions__state__in=(DRAFT, PUBLISHED),
                 ).order_by('versions__state')

@@ -10,7 +10,8 @@ class MonkeypatchTestCase(CMSTestCase):
         """Test that cms.toolbar.toolbar.CMSToolbar.content_renderer
         is replaced with a property returning VersionRenderer
         """
+        request = self.get_request('/')
         self.assertEqual(
-            CMSToolbar(None).content_renderer.__class__,
+            CMSToolbar(request).content_renderer.__class__,
             VersionRenderer,
         )

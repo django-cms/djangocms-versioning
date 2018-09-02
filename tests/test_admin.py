@@ -308,18 +308,6 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertTrue(qs._prefetch_done)
         self.assertIn('content', qs._prefetch_related_lookups)
 
-    def test_content_link(self):
-        version = factories.PollVersionFactory(content__text='test4')
-        version_model_proxy = [
-            i for i in admin.site._registry if i.__name__ == 'PollContentVersion'][0]
-        self.assertEqual(
-            admin.site._registry[version_model_proxy].content_link(version),
-            '<a href="{url}">{label}</a>'.format(
-                url='/en/admin/polls/pollcontent/1/change/',
-                label='test4',
-            ),
-        )
-
     def test_version_nr(self):
         version = factories.PollVersionFactory(id=413)
         nr = self.site._registry[Version].nr(version)

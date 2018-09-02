@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='version',
             name='state',
-            field=django_fsm.FSMField(choices=[('draft', 'Draft'), ('published', 'Published'), ('unpublished', 'Unpublished'), ('archived', 'Archived')], default='draft', max_length=50, protected=True),
+            field=django_fsm.FSMField(choices=[('draft', 'Draft'), ('published', 'Published'), ('unpublished', 'Unpublished'), ('archived', 'Archived')], default='draft', max_length=50, protected=True, verbose_name='status'),
         ),
         migrations.AddField(
             model_name='statetracking',

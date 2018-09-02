@@ -5,8 +5,8 @@ from .models import Text
 
 
 @plugin_pool.register_plugin
-class TextPlugin(CMSPluginBase):
+class SimpleTextPlugin(CMSPluginBase):
     model = Text
-    name = 'Text'
-    allow_children = True
+    name = 'SimpleText'
+    allow_children = False
     render_template = 'text/text.html'

@@ -36,7 +36,7 @@ class VersionableItem:
             model_name,
             (Version, ),
             {
-                'Meta': type('Meta', (), {'proxy': True}),
+                'Meta': type('Meta', (), {'proxy': True, 'managed': False}),
                 '__module__': __name__,
                 '_source_model': self.content_model,
             },

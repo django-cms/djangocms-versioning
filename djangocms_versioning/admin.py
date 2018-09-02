@@ -13,6 +13,9 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.html import format_html
 
+from cms.toolbar.utils import get_object_edit_url
+from cms.utils.helpers import is_editable_model
+
 from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
 from .models import Version
@@ -97,7 +100,6 @@ class VersionAdmin(admin.ModelAdmin):
         css = {
             'all': ('djangocms_versioning/css/actions.css',)
         }
-
 
     # disable delete action
     actions = None
@@ -344,10 +346,15 @@ class VersionAdmin(admin.ModelAdmin):
         elif version.state != DRAFT:
             raise Http404
         # Redirect
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=version.content._meta.app_label,
-            model=version.content._meta.model_name,
-        ), args=(version.content.pk,))
+        # If the object is editable the cms editable view should be used, with the toolbar.
+        if is_editable_model(version.content.__class__):
+            url = get_object_edit_url(version.content)
+        # Or else, the standard edit view should be used
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=version.content._meta.app_label,
+                model=version.content._meta.model_name,
+            ), args=(version.content.pk,))
         return redirect(url)
 
     def compare_view(self, request, object_id):

@@ -24,7 +24,7 @@ class VersionableItemTestCase(CMSTestCase):
         # NOTE: Answer doesn't have get_absolute_url so this should
         # throw an exception
         with self.assertRaises(ImproperlyConfigured):
-            answer_versionable = VersionableItem(
+            VersionableItem(
                 content_model=Answer, grouper_field_name='poll_content',
                 copy_function=default_copy)
 

@@ -6,6 +6,7 @@ isort
 factory-boy
 freezegun
 mock
+https://github.com/divio/djangocms-text-ckeditor/archive/support/4.0.x.zip
 
 # libraries specified in setup.py
 django-fsm>=2.6,<2.7

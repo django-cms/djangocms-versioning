@@ -7,7 +7,7 @@ from django.utils.functional import cached_property
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 
-from .datastructures import VersionableItem, default_copy
+from .datastructures import VersionableItem
 from .helpers import (
     inject_generic_relation_to_version,
     register_versionadmin_proxy,

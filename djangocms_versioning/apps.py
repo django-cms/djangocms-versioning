@@ -7,4 +7,4 @@ class VersioningConfig(AppConfig):
     verbose_name = _('django CMS Versioning')
 
     def ready(self):
-        from . import monkeypatch
+        from . import monkeypatch  # noqa: F401

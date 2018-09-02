@@ -13,7 +13,6 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.functional import cached_property
 from django.utils.html import format_html
 
 from cms.toolbar.utils import get_object_edit_url

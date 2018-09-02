@@ -1,7 +1,7 @@
+from django.utils.functional import cached_property
+
 from cms.models import titlemodels
 from cms.toolbar import toolbar
-
-from django.utils.functional import cached_property
 
 from .plugin_rendering import VersionRenderer
 

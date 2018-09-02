@@ -1,7 +1,10 @@
 from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
-from django.contrib.admin.options import IncorrectLookupParameters, TO_FIELD_VAR
+from django.contrib.admin.options import (
+    TO_FIELD_VAR,
+    IncorrectLookupParameters,
+)
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType

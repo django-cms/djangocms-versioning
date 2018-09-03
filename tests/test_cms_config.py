@@ -3,14 +3,14 @@ from unittest.mock import Mock, patch
 from django.apps import apps
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.test.utils import ignore_warnings
 
-from cms.app_registration import get_cms_config_apps, get_cms_extension_apps
 from cms.test_utils.testcases import CMSTestCase
-from cms.utils.setup import setup_cms_apps
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import VersioningCMSExtension
+from djangocms_versioning.cms_config import (
+    VersioningCMSConfig,
+    VersioningCMSExtension,
+)
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.cms_config import (
@@ -24,7 +24,7 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
-class CMSConfigUnitTestCase(CMSTestCase):
+class VersioningExtensionUnitTestCase(CMSTestCase):
 
     def test_missing_cms_config_attribute(self):
         """
@@ -62,6 +62,50 @@ class CMSConfigUnitTestCase(CMSTestCase):
                           versioning=['aaa', {}])
         with self.assertRaises(ImproperlyConfigured):
             extensions.handle_versioning_setting(cms_config)
+
+    def test_raises_exception_if_content_class_already_registered_in_same_config(self):
+        """Tests ImproperlyConfigured exception is raised if the same
+        content class is registered twice in the same config file
+        """
+        extension = VersioningCMSExtension()
+        poll_versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        poll_versionable2 = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable, poll_versionable2]
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extension.handle_versioning_setting(cms_config)
+
+    def test_raises_exception_if_content_class_already_registered_in_different_config(self):
+        """Tests ImproperlyConfigured exception is raised if the same
+        content class is registered twice in different config files
+        """
+        extension = VersioningCMSExtension()
+        poll_versionable = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        poll_versionable2 = VersionableItem(
+            content_model=PollContent, grouper_field_name='poll',
+            copy_function=default_copy)
+        cms_config1 = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable]
+        )
+        cms_config2 = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable2]
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extension.handle_versioning_setting(cms_config1)
+            extension.handle_versioning_setting(cms_config2)
 
     def test_versionables_list_created(self):
         """Test handle_versioning_setting method adds all the
@@ -142,29 +186,22 @@ class CMSConfigUnitTestCase(CMSTestCase):
         )
 
 
-@ignore_warnings(module='djangocms_versioning.helpers')
+# NOTE: These tests simply test what has already happened on start up
+# when the app registry has been instantiated.
 class VersioningIntegrationTestCase(CMSTestCase):
-
-    def setUp(self):
-        # The results of get_cms_extension_apps and get_cms_config_apps
-        # are cached. Clear this cache because installed apps change
-        # between tests and therefore unlike in a live environment,
-        # results of this function can change between tests
-        get_cms_extension_apps.cache_clear()
-        get_cms_config_apps.cache_clear()
 
     def test_all_versionables_collected(self):
         """Check that all version models defined in cms_config.py
         are collected into a list
         """
-        setup_cms_apps()  # discover and run all cms_config.py files
         app = apps.get_app_config('djangocms_versioning')
+        page_versionable = VersioningCMSConfig.versioning[0]
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [poll_versionable, blog_versionable, comment_versionable]
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable]
         )
 
     def test_admin_classes_reregistered(self):
@@ -172,7 +209,13 @@ class VersioningIntegrationTestCase(CMSTestCase):
         with the admin have their admin class overridden with a
         subclass of VersioningAdminMixin
         """
-        setup_cms_apps()  # discover and run all cms_config.py files
+        # TODO: Awaiting FIL-313 to land on core
+        # Check PageContent has had its admin class modified
+        # self.assertIn(PageContent, admin.site._registry)
+        # self.assertIn(
+        #     VersioningAdminMixin,
+        #     admin.site._registry[PageContent].__class__.mro()
+        # )
         # Check PollContent has had its admin class modified
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
@@ -195,8 +238,6 @@ class VersioningIntegrationTestCase(CMSTestCase):
         there's a version proxy registered with the admin
         subclassing VersionAdmin
         """
-        setup_cms_apps()
-
         version_proxies = [
             model for model in admin.site._registry if issubclass(model, Version)
         ]

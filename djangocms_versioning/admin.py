@@ -12,6 +12,9 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.html import format_html
 
+from cms.toolbar.utils import get_object_edit_url
+from cms.utils.helpers import is_editable_model
+
 from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
 from .models import Version
@@ -203,13 +206,23 @@ class VersionAdmin(admin.ModelAdmin):
     state_actions.short_description = 'actions'
 
     def compare_versions_action(self, request, queryset):
-
+        """
+        Redirects to a compare versions view based on a users choice
+        """
         # Validate that only two versions are selected
-        if len(queryset) is not 2:
-            self.message_user(request, message="No mate")
-        # Build the link for the version comparison
-        for version in queryset:
-            print("version")
+        if queryset.count() is not 2:
+            # FIXME: Needs to be multilingual
+            message = "Two versions have to be selected"
+            return self.message_user(request, message, level=messages.ERROR)
+
+        # Build the link for the version comparison of the two selected versions
+        url = reverse('admin:{app}_{model}_compare'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        ), args=(queryset[0].pk,))
+        url += '?compare_to=%d' % queryset[1].pk
+
+        return redirect(url)
 
     compare_versions_action.short_description = "Compare versions"
 
@@ -358,10 +371,15 @@ class VersionAdmin(admin.ModelAdmin):
         elif version.state != DRAFT:
             raise Http404
         # Redirect
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=version.content._meta.app_label,
-            model=version.content._meta.model_name,
-        ), args=(version.content.pk,))
+        # If the object is editable the cms editable view should be used, with the toolbar.
+        if is_editable_model(version.content.__class__):
+            url = get_object_edit_url(version.content)
+        # Or else, the standard edit view should be used
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=version.content._meta.app_label,
+                model=version.content._meta.model_name,
+            ), args=(version.content.pk,))
         return redirect(url)
 
     def compare_view(self, request, object_id):

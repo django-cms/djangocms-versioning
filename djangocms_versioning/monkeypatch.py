@@ -12,7 +12,7 @@ def content_renderer(self):
 
 pagecontent_unique_together = tuple(
     set(titlemodels.PageContent._meta.unique_together) -
-    set(('language', 'page'))
+    set((('language', 'page'), ))
 )
 
 toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)

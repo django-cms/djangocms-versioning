@@ -8,6 +8,12 @@ HELPER_SETTINGS = {
         'djangocms_versioning.test_utils.text',
         'djangocms_versioning.test_utils.people',
     ],
+    'MIGRATION_MODULES': {
+        'auth': None,
+        'cms': None,
+        'menus': None,
+        'djangocms_versioning': None,
+    },
     'CMS_PERMISSION': True,
     'LANGUAGES': (
         ('en', 'English'),

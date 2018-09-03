@@ -30,9 +30,9 @@ class VersionRenderer(ContentRenderer):
                 ).order_by('versions__state')
             else:
                 qs = versionable.content_model.objects.all()
-            qs = qs.filter(
-                **{versionable.grouper_field_name: getattr(instance, field.name)},
-            )
+            qs = qs.filter(**{
+                versionable.grouper_field_name: getattr(instance, field.name)
+            })
             prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
             related_field = getattr(instance, field.name)
             related_field._prefetched_objects_cache = prefetch_cache

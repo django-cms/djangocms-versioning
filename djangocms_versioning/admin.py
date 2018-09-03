@@ -95,9 +95,8 @@ class VersionAdmin(admin.ModelAdmin):
             'all': ('djangocms_versioning/css/actions.css',)
         }
 
-
-    # disable delete action
-    actions = None
+    # register custom actions
+    actions = ['compare_versions_action']
 
     list_display = (
         'nr',
@@ -113,6 +112,13 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # disable delete action
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     def nr(self, obj):
         """Get the identifier of the version. Might be something other
@@ -195,6 +201,17 @@ class VersionAdmin(admin.ModelAdmin):
         return format_html(
             edit_link + publish_link + unpublish_link + archive_link)
     state_actions.short_description = 'actions'
+
+    def compare_versions_action(self, request, queryset):
+
+        # Validate that only two versions are selected
+        if len(queryset) is not 2:
+            self.message_user(request, message="No mate")
+        # Build the link for the version comparison
+        for version in queryset:
+            print("version")
+
+    compare_versions_action.short_description = "Compare versions"
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

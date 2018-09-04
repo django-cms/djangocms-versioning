@@ -1,0 +1,7 @@
+<h3>Question: {{ content }}</h3>
+
+<ul>
+{% for answer in content.answer_set.all %}
+<li>{{ answer }}</li>
+{% endfor %}
+</ul>

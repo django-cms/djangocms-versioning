@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import PollContent, Poll, Answer
+from .models import Answer, Poll, PollContent
 
 
 @admin.register(PollContent)

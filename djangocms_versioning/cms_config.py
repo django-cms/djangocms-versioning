@@ -8,7 +8,12 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 
 from .datastructures import VersionableItem
-from .helpers import register_versionadmin_proxy, replace_admin_for_models
+from .helpers import (
+    inject_generic_relation_to_version,
+    register_versionadmin_proxy,
+    replace_admin_for_models,
+    replace_default_manager,
+)
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -24,6 +29,13 @@ class VersioningCMSExtension(CMSAppExtension):
         """Checks if provided content model supports versioning.
         """
         return content_model in self.versionables_by_content
+
+    @cached_property
+    def versionables_by_grouper(self):
+        return {versionable.grouper_model: versionable for versionable in self.versionables}
+
+    def is_grouper_model_versioned(self, grouper_model):
+        return grouper_model in self.versionables_by_grouper
 
     def handle_versioning_setting(self, cms_config):
         """Check the versioning setting has been correctly set
@@ -66,10 +78,26 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             register_versionadmin_proxy(versionable)
 
+    def handle_content_model_generic_relation(self, cms_config):
+        """Adds `versions` GenericRelation field to all provided
+        content models.
+        """
+        for versionable in cms_config.versioning:
+            inject_generic_relation_to_version(versionable.content_model)
+
+    def handle_content_model_manager(self, cms_config):
+        """Replaces default manager in provided content models with
+        one inheriting from PublishedContentManagerMixin.
+        """
+        for versionable in cms_config.versioning:
+            replace_default_manager(versionable.content_model)
+
     def configure_app(self, cms_config):
         self.handle_versioning_setting(cms_config)
         self.handle_admin_classes(cms_config)
         self.handle_version_admin(cms_config)
+        self.handle_content_model_generic_relation(cms_config)
+        self.handle_content_model_manager(cms_config)
 
 
 def copy_page_content(original_content):

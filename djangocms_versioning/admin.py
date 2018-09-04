@@ -1,7 +1,10 @@
 from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
-from django.contrib.admin.options import IncorrectLookupParameters, TO_FIELD_VAR
+from django.contrib.admin.options import (
+    TO_FIELD_VAR,
+    IncorrectLookupParameters,
+)
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
@@ -40,7 +43,9 @@ class VersioningAdminMixin:
     def get_queryset(self, request):
         """Limit query to most recent content versions
         """
-        queryset = super().get_queryset(request)
+        from .helpers import override_default_manager
+        with override_default_manager(self.model, self.model._original_manager):
+            queryset = super().get_queryset(request)
         versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
         versionable = versioning_extension.versionables_by_content[queryset.model]
         return queryset.filter(pk__in=versionable.distinct_groupers())

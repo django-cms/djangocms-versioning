@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.translation import ugettext, ugettext_lazy as _
 
 from cms.toolbar.utils import get_object_edit_url
 from cms.utils.helpers import is_editable_model
@@ -212,8 +213,8 @@ class VersionAdmin(admin.ModelAdmin):
         # Validate that only two versions are selected
         if queryset.count() is not 2:
             # FIXME: Needs to be multilingual
-            message = "Two versions have to be selected"
-            return self.message_user(request, message, level=messages.ERROR)
+            messages.error(request, _("Two versions have to be selected."))
+            return
 
         # Build the link for the version comparison of the two selected versions
         url = reverse('admin:{app}_{model}_compare'.format(
@@ -261,7 +262,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Archive the version
         version.archive(request.user)
         # Display message
-        messages.success(request, "Version archived")
+        messages.success(request, _("Version archived"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -293,7 +294,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Publish the version
         version.publish(request.user)
         # Display message
-        messages.success(request, "Version published")
+        messages.success(request, _("Version published"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -325,7 +326,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Unpublish the version
         version.unpublish(request.user)
         # Display message
-        messages.success(request, "Version unpublished")
+        messages.success(request, _("Version unpublished"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,

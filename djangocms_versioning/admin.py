@@ -5,7 +5,7 @@ from django.contrib.admin.options import IncorrectLookupParameters, TO_FIELD_VAR
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -213,14 +213,9 @@ class VersionAdmin(admin.ModelAdmin):
         """Archives the specified version and redirects back to the
         version changelist
         """
-        # FIXME: We should be using POST only for this, but some frontend
-        # issues need to be solved first. The code below just needs to
-        # be uncommented and a test is also already written (but currently
-        # being skipped) to handle the POST-only approach
-
         # This view always changes data so only POST requests should work
-        # if request.method != 'POST':
-        #     raise Http404
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -245,14 +240,9 @@ class VersionAdmin(admin.ModelAdmin):
         """Publishes the specified version and redirects back to the
         version changelist
         """
-        # FIXME: We should be using POST only for this, but some frontend
-        # issues need to be solved first. The code below just needs to
-        # be uncommented and a test is also already written (but currently
-        # being skipped) to handle the POST-only approach
-
         # This view always changes data so only POST requests should work
-        # if request.method != 'POST':
-        #     raise Http404
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -277,14 +267,9 @@ class VersionAdmin(admin.ModelAdmin):
         """Unpublishes the specified version and redirects back to the
         version changelist
         """
-        # FIXME: We should be using POST only for this, but some frontend
-        # issues need to be solved first. The code below just needs to
-        # be uncommented and a test is also already written (but currently
-        # being skipped) to handle the POST-only approach
-
         # This view always changes data so only POST requests should work
-        # if request.method != 'POST':
-        #     raise Http404
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -309,14 +294,9 @@ class VersionAdmin(admin.ModelAdmin):
         """Redirects to the admin change view and creates a draft version
         if no draft exists yet.
         """
-        # FIXME: We should be using POST only for this, but some frontend
-        # issues need to be solved first. The code below just needs to
-        # be uncommented and a test is also already written (but currently
-        # being skipped) to handle the POST-only approach
-
         # This view always changes data so only POST requests should work
-        # if request.method != 'POST':
-        #     raise Http404
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         version = self.get_object(request, unquote(object_id))
         if version is None:

@@ -1,6 +1,5 @@
 import datetime
 import warnings
-from unittest import skip
 from unittest.mock import Mock, patch
 
 from django.contrib import admin
@@ -704,7 +703,6 @@ class ArchiveViewTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    @skip("Awaiting frontend work before this can be fixed")
     def test_archive_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
@@ -713,10 +711,10 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
-        self.assertEqual(poll_version_.state, constants.ARCHIVED)
+        self.assertEqual(poll_version_.state, constants.DRAFT)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
@@ -831,7 +829,6 @@ class PublishViewTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    @skip("Awaiting frontend work before this can be fixed")
     def test_publish_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
@@ -840,10 +837,10 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
-        self.assertEqual(poll_version_.state, constants.PUBLISHED)
+        self.assertEqual(poll_version_.state, constants.DRAFT)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
@@ -955,7 +952,6 @@ class UnpublishViewTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    @skip("Awaiting frontend work before this can be fixed")
     def test_unpublish_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
@@ -964,7 +960,7 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
@@ -1142,7 +1138,6 @@ class EditRedirectTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    @skip("Awaiting frontend work before this can be fixed")
     def test_edit_redirect_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
@@ -1151,7 +1146,7 @@ class EditRedirectTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 

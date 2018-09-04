@@ -712,6 +712,7 @@ class ArchiveViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
+        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)
@@ -838,6 +839,7 @@ class PublishViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
+        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)
@@ -961,6 +963,7 @@ class UnpublishViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
+        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
@@ -1147,6 +1150,7 @@ class EditRedirectTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
+        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 

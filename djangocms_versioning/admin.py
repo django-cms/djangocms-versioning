@@ -215,7 +215,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'])
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -242,7 +242,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'])
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -269,7 +269,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'])
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -296,7 +296,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'])
+            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
 
         version = self.get_object(request, unquote(object_id))
         if version is None:

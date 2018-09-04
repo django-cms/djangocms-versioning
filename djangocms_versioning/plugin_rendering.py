@@ -25,6 +25,10 @@ class VersionRenderer(ContentRenderer):
             if not versionable:
                 continue
             if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
+                # FIXME Currently this leaves multiple content object
+                # for a single grouper and is potentially dangerous
+                # if content should have some unique constraint
+                # (for example ('page', 'language') for PageContent).
                 qs = versionable.content_model._base_manager.filter(
                     versions__state__in=(DRAFT, PUBLISHED),
                 ).order_by('versions__state')

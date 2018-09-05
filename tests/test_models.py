@@ -211,20 +211,6 @@ class CopyTestCase(CMSTestCase):
             new_version.content
         )
 
-    def test_if_source_field_none_then_set_new_source_field_to_none_also(self):
-        """Placeholder.source can be None. In such cases it's probably
-        best to retain None rather than assign the new content object.
-        """
-        original_version = factories.PageVersionFactory()
-        original_placeholder = factories.PlaceholderFactory(source=None)
-        original_version.content.placeholders.add(original_placeholder)
-        user = factories.UserFactory()
-
-        new_version = original_version.copy(user)
-
-        new_placeholder = new_version.content.placeholders.get()
-        self.assertIsNone(new_placeholder.source)
-
     @freeze_time(None)
     def test_text_plugins_are_copied(self):
         """The implementation of versioning for PageContent correctly

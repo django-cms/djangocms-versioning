@@ -7,9 +7,8 @@ from django.contrib.sites.models import Site
 from cms.models import Page, PageContent, Placeholder, TreeNode
 
 import factory
-from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
-
 from djangocms_text_ckeditor.models import Text
+from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version
 from .blogpost.models import BlogContent, BlogPost

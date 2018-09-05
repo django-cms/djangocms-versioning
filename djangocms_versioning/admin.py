@@ -105,7 +105,7 @@ class VersionAdmin(admin.ModelAdmin):
         }
 
     # register custom actions
-    actions = ['compare_versions_action']
+    actions = ['compare_versions']
 
     list_display = (
         'nr',
@@ -211,14 +211,13 @@ class VersionAdmin(admin.ModelAdmin):
             edit_link + publish_link + unpublish_link + archive_link)
     state_actions.short_description = 'actions'
 
-    def compare_versions_action(self, request, queryset):
+    def compare_versions(self, request, queryset):
         """
         Redirects to a compare versions view based on a users choice
         """
         # Validate that only two versions are selected
-        if queryset.count() is not 2:
-            # FIXME: Needs to be multilingual
-            messages.error(request, _("Two versions have to be selected."))
+        if queryset.count() != 2:
+            self.message_user(request, _("Exactly two versions need to be selected."))
             return
 
         # Build the link for the version comparison of the two selected versions
@@ -230,7 +229,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return redirect(url)
 
-    compare_versions_action.short_description = "Compare versions"
+    compare_versions.short_description = _("Compare versions")
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

@@ -1408,13 +1408,13 @@ class VersionChangeViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             data = {
-                'action': 'compare_versions_action',
+                'action': 'compare_versions',
                 admin.ACTION_CHECKBOX_NAME: ['2'],
                 'post': 'yes',
             }
             response = self.client.post(endpoint, data, follow=True)
 
-        self.assertContains(response, "Two versions have to be selected.")
+        self.assertContains(response, "Exactly two versions need to be selected.")
 
     def test_change_view_action_compare_versions_two_selected(self):
         """
@@ -1433,7 +1433,7 @@ class VersionChangeViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             data = {
-                'action': 'compare_versions_action',
+                'action': 'compare_versions',
                 admin.ACTION_CHECKBOX_NAME: ['1', '2'],
                 'post': 'yes',
             }
@@ -1454,10 +1454,10 @@ class VersionChangeViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             data = {
-                'action': 'compare_versions_action',
+                'action': 'compare_versions',
                 admin.ACTION_CHECKBOX_NAME: ['1', '2', '3'],
                 'post': 'yes',
             }
             response = self.client.post(endpoint, data, follow=True)
 
-        self.assertContains(response, "Two versions have to be selected.")
+        self.assertContains(response, "Exactly two versions need to be selected.")

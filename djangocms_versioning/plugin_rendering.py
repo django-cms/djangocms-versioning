@@ -1,6 +1,7 @@
 from django.apps import apps
 
 from cms.plugin_rendering import ContentRenderer
+from cms.utils.placeholder import rescan_placeholders_for_obj
 
 from .constants import DRAFT, PUBLISHED
 
@@ -41,3 +42,26 @@ class VersionRenderer(ContentRenderer):
             related_field = getattr(instance, field.name)
             related_field._prefetched_objects_cache = prefetch_cache
         return super().render_plugin(instance, context, placeholder, editable)
+
+    def render_obj_placeholder(self, slot, context, inherit,
+                               nodelist=None, editable=True):
+        # FIXME This is an ad-hoc solution for page-specific rendering
+        # code, which by default doesn't work well with versioning.
+        # Remove this method once the issue is fixed.
+        from cms.models import Placeholder
+
+        current_obj = self.toolbar.get_object()
+
+        # Not page, therefore we will use toolbar object as
+        # the current object and render the placeholder
+        rescan_placeholders_for_obj(current_obj)
+        placeholder = Placeholder.objects.get_for_obj(current_obj).get(slot=slot)
+        content = self.render_placeholder(
+            placeholder,
+            context=context,
+            page=current_obj,
+            editable=editable,
+            use_cache=True,
+            nodelist=None,
+        )
+        return content

@@ -210,7 +210,7 @@ class VersionAdmin(admin.ModelAdmin):
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._source_model)(),
+            form=grouper_form_factory(self.model._source_model, request.LANGUAGE_CODE)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 

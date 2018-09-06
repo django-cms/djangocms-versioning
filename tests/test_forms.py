@@ -14,8 +14,7 @@ class GrouperFormTestCase(CMSTestCase):
 
     def test_factory(self):
         pv = factories.PollVersionFactory()
-
-        form_class = grouper_form_factory(PollContent)
+        form_class = grouper_form_factory(PollContent, language='en')
 
         self.assertIn(forms.Form, form_class.mro())
         self.assertEqual(form_class.__name__, 'PollContentGrouperForm')
@@ -29,6 +28,6 @@ class GrouperFormTestCase(CMSTestCase):
         """Test that grouper_form_factory is cached
         and return value is created once."""
         self.assertEqual(
-            id(grouper_form_factory(PollContent)),
-            id(grouper_form_factory(PollContent)),
+            id(grouper_form_factory(PollContent, language='en')),
+            id(grouper_form_factory(PollContent, language='en')),
         )

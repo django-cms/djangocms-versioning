@@ -1,4 +1,3 @@
-from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max
 from django.utils.functional import cached_property
@@ -8,7 +7,7 @@ from .models import Version
 
 class VersionableItem:
 
-    def __init__(self, content_model, grouper_field_name, copy_function, grouper_selector_control=forms.ModelChoiceField):
+    def __init__(self, content_model, grouper_field_name, copy_function, grouper_selector_option_label=False):
         # We require get_absolute_url to be implemented on content models
         # because it is needed for django-cms's preview endpoint, which
         # we use to generate version comparisons
@@ -20,8 +19,8 @@ class VersionableItem:
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
-        # Set the grouper selector control
-        self.grouper_selector_control = grouper_selector_control
+        # Set the grouper selector label
+        self.grouper_selector_option_label = grouper_selector_option_label
         self.copy_function = copy_function
 
     def _get_grouper_field(self):
@@ -65,11 +64,6 @@ class VersionableItem:
         """Returns all `Content` objects for specified grouper object."""
         return self.content_model._base_manager.filter(**{self.grouper_field.name: grouper})
 
-"""
-Remove for PR
-def default_grouper_label(grouper_model):
-    return grouper_model._meta.verbose_name
-"""
 
 def default_copy(original_content):
     """Copy all fields of the original content object exactly as they are

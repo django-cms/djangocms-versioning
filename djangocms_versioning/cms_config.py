@@ -135,9 +135,11 @@ def copy_page_content(original_content):
     return new_content
 
 
-class PageContentChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return "{title} ({path})".format(**{'title': obj.get_title(), 'path': obj.get_path('en')})
+def label_from_instance(obj):
+    """
+    Override the label for each grouper select option
+    """
+    return "{title} ({path})".format(title=obj.get_title(), path=obj.get_path('en'))
 
 
 class VersioningCMSConfig(CMSAppConfig):
@@ -150,6 +152,6 @@ class VersioningCMSConfig(CMSAppConfig):
             content_model=PageContent,
             grouper_field_name='page',
             copy_function=copy_page_content,
-            grouper_selector_control=PageContentChoiceField,
+            grouper_selector_option_label=label_from_instance,
         ),
     ]

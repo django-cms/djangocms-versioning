@@ -14,8 +14,9 @@ from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 
-from cms.toolbar.utils import get_object_edit_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 
 from .constants import DRAFT, PUBLISHED
@@ -109,6 +110,7 @@ class VersionAdmin(admin.ModelAdmin):
     list_display = (
         'nr',
         'created',
+        'content_link',
         'created_by',
         'state',
         'state_actions',
@@ -127,6 +129,27 @@ class VersionAdmin(admin.ModelAdmin):
         """
         return obj.pk
     nr.admin_order_field = 'pk'
+
+    def content_link(self, obj):
+        content = obj.content
+
+        # If the object is editable the preview view should be used.
+        if is_editable_model(content.__class__):
+            url = get_object_preview_url(content)
+        # Or else, the standard change view should be used
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=content._meta.app_label,
+                model=content._meta.model_name,
+            ), args=[content.pk])
+
+        return format_html(
+            '<a href="{url}">{label}</a>',
+            url=url,
+            label=content,
+        )
+    content_link.short_description = _('Content')
+    content_link.admin_order_field = 'content'
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action

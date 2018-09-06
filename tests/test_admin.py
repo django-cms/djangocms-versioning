@@ -314,6 +314,35 @@ class VersionAdminTestCase(CMSTestCase):
         nr = self.site._registry[Version].nr(version)
         self.assertEqual(nr, 413)
 
+    def test_content_link_editable_object(self):
+        """
+        The link returned is the change url for an editable object
+        """
+        version = factories.PageVersionFactory(content__title='mypage')
+        preview_url = admin_reverse(
+            'cms_placeholder_render_object_preview',
+            args=(version.content_type_id, version.object_id))
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
+            '<a href="{url}">{label}</a>'.format(
+                url=preview_url,
+                label=version.content,
+            ),
+        )
+
+    def test_content_link_non_editable_object(self):
+        """
+        The link returned is the change url for a non editable object
+        """
+        version = factories.PollVersionFactory(content__text='test4')
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
+            '<a href="{url}">{label}</a>'.format(
+                url='/en/admin/polls/pollcontent/1/change/',
+                label='test4',
+            ),
+        )
+
 
 class StateActionsTestCase(CMSTestCase):
 

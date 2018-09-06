@@ -134,6 +134,22 @@ def copy_page_content(original_content):
     return new_content
 
 
+def on_page_content_publish(version):
+    page = version.content.page
+    language = version.content.language
+    page._update_url_path(language)
+    page._update_url_path_recursive(language)
+    page.clear_cache(menu=True)
+
+
+def on_page_content_unpublish(version):
+    page = version.content.page
+    language = version.content.language
+    page.update_urls(language, path=None)
+    page._update_url_path_recursive(language)
+    page.clear_cache(menu=True)
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -144,5 +160,7 @@ class VersioningCMSConfig(CMSAppConfig):
             content_model=PageContent,
             grouper_field_name='page',
             copy_function=copy_page_content,
+            on_publish=on_page_content_publish,
+            on_unpublish=on_page_content_unpublish,
         ),
     ]

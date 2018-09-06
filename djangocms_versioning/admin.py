@@ -130,7 +130,6 @@ class VersionAdmin(admin.ModelAdmin):
         return obj.pk
     nr.admin_order_field = 'pk'
 
-    # make it behave similarly to url in edit_redirect_view (so if model is editable, link to get_object_preview_url, otherwise link to admin change view)
     def content_link(self, obj):
         content = obj.content
 

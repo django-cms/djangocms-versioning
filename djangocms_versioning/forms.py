@@ -18,7 +18,7 @@ def grouper_form_factory(content_model):
         content_model.__name__ + 'GrouperForm',
         (forms.Form,),
         {
-            'grouper': forms.ModelChoiceField(
+            'grouper': versionable.grouper_selector_control(
                 queryset=versionable.grouper_model.objects.all(),
                 label=versionable.grouper_model._meta.verbose_name,
             )

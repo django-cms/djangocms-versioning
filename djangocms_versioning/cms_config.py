@@ -1,5 +1,6 @@
 import collections
 
+from django import forms
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
@@ -134,6 +135,11 @@ def copy_page_content(original_content):
     return new_content
 
 
+class PageContentChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "{title} ({path})".format(**{'title': obj.get_title(), 'path': obj.get_path('en')})
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -144,5 +150,6 @@ class VersioningCMSConfig(CMSAppConfig):
             content_model=PageContent,
             grouper_field_name='page',
             copy_function=copy_page_content,
+            grouper_selector_control=PageContentChoiceField,
         ),
     ]

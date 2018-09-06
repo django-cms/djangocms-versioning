@@ -143,6 +143,9 @@ class Version(models.Model):
             content_type=self.content_type)
         for version in to_unpublish:
             version.unpublish(user)
+        on_publish = self.versionable.on_publish
+        if on_publish:
+            on_publish(self)
 
     @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
     def _set_publish(self, user):
@@ -164,6 +167,9 @@ class Version(models.Model):
             new_state=constants.UNPUBLISHED,
             user=user
         )
+        on_unpublish = self.versionable.on_unpublish
+        if on_unpublish:
+            on_unpublish(self)
 
     @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
     def _set_unpublish(self, user):

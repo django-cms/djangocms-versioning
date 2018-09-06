@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 from django.utils.functional import cached_property
 
+from cms import cms_wizards
 from cms.models import titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
@@ -11,6 +12,9 @@ from cms.toolbar import toolbar
 from .constants import PUBLISHED
 from .models import Version
 from .plugin_rendering import VersionRenderer
+
+
+cms_extension = apps.get_app_config('cms').cms_extension
 
 
 def content_renderer(self):
@@ -53,6 +57,24 @@ def pre_page_operation_handler(sender, **kwargs):
         page.clear_cache(menu=True)
 
 
+class CreateCMSPageForm(cms_wizards.cms_page_wizard.form):
+
+    def save(self, *args, **kwargs):
+        new_page = super(CreateCMSPageForm, self).save(*args, **kwargs)
+        page_content = new_page.title_cache[self._language]
+        Version.objects.create(content=page_content, created_by=self._request.user)
+        return new_page
+
+
+class CreateCMSSubPageForm(cms_wizards.cms_subpage_wizard.form):
+
+    def save(self, *args, **kwargs):
+        new_page = super(CreateCMSSubPageForm, self).save(*args, **kwargs)
+        page_content = new_page.title_cache[self._language]
+        Version.objects.create(content=page_content, created_by=self._request.user)
+        return new_page
+
+
 pagecontent_unique_together = tuple(
     set(titlemodels.PageContent._meta.unique_together) -
     set((('language', 'page'), ))
@@ -60,3 +82,5 @@ pagecontent_unique_together = tuple(
 
 toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)
 titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
+cms_extension.wizards[cms_wizards.cms_page_wizard.id].form = CreateCMSPageForm
+cms_extension.wizards[cms_wizards.cms_subpage_wizard.id].form = CreateCMSSubPageForm

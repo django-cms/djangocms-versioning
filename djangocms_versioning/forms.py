@@ -3,16 +3,6 @@ from functools import lru_cache
 from django import forms
 from django.apps import apps
 
-"""
-pass request language
-by default __str__ is used for choice labels
-you can create a new class based on ModelChoiceField
-override to_field_name
-to check if versionableitem for that model specifies a label function
-if so, use that function, otherwise fallback to default behaviour
-so you’d add a new function to pagecontent’s versionableitem
-that would return a label based on provided object
-"""
 
 class VersionContentChoiceField(forms.ModelChoiceField):
 

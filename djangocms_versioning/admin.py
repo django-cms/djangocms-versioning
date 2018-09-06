@@ -104,8 +104,8 @@ class VersionAdmin(admin.ModelAdmin):
             'all': ('djangocms_versioning/css/actions.css',)
         }
 
-    # disable delete action
-    actions = None
+    # register custom actions
+    actions = ['compare_versions']
 
     list_display = (
         'nr',
@@ -122,6 +122,13 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # disable delete action
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     def nr(self, obj):
         """Get the identifier of the version. Might be something other
@@ -226,6 +233,26 @@ class VersionAdmin(admin.ModelAdmin):
             edit_link + publish_link + unpublish_link + archive_link)
     state_actions.short_description = 'actions'
 
+    def compare_versions(self, request, queryset):
+        """
+        Redirects to a compare versions view based on a users choice
+        """
+        # Validate that only two versions are selected
+        if queryset.count() != 2:
+            self.message_user(request, _("Exactly two versions need to be selected."))
+            return
+
+        # Build the link for the version comparison of the two selected versions
+        url = reverse('admin:{app}_{model}_compare'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        ), args=(queryset[0].pk,))
+        url += '?compare_to=%d' % queryset[1].pk
+
+        return redirect(url)
+
+    compare_versions.short_description = _("Compare versions")
+
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
         to show versions of.
@@ -256,7 +283,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Archive the version
         version.archive(request.user)
         # Display message
-        messages.success(request, "Version archived")
+        messages.success(request, _("Version archived"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -283,7 +310,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Publish the version
         version.publish(request.user)
         # Display message
-        messages.success(request, "Version published")
+        messages.success(request, _("Version published"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -310,7 +337,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Unpublish the version
         version.unpublish(request.user)
         # Display message
-        messages.success(request, "Version unpublished")
+        messages.success(request, _("Version unpublished"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,

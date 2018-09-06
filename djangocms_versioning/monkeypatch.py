@@ -16,6 +16,7 @@ from .plugin_rendering import VersionRenderer
 
 cms_extension = apps.get_app_config('cms').cms_extension
 
+
 def content_renderer(self):
     return VersionRenderer(request=self.request)
 

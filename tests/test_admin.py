@@ -1431,7 +1431,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         to compare
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
         querystring = '?grouper={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
 
@@ -1450,7 +1450,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         The user is redirectd to the compare view with two versions selected
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
         querystring = '?grouper={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
         success_redirect = self.get_admin_url(
@@ -1477,7 +1477,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         to compare
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
         querystring = '?grouper={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
 

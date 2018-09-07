@@ -7,7 +7,11 @@ from .models import Version
 
 class VersionableItem:
 
-    def __init__(self, content_model, grouper_field_name, copy_function, grouper_selector_option_label=False):
+    def __init__(
+        self, content_model, grouper_field_name,
+        copy_function, on_publish=None, on_unpublish=None,
+        grouper_selector_option_label=False
+    ):
         # We require get_absolute_url to be implemented on content models
         # because it is needed for django-cms's preview endpoint, which
         # we use to generate version comparisons
@@ -22,6 +26,8 @@ class VersionableItem:
         # Set the grouper selector label
         self.grouper_selector_option_label = grouper_selector_option_label
         self.copy_function = copy_function
+        self.on_publish = on_publish
+        self.on_unpublish = on_unpublish
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)

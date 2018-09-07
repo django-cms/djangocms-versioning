@@ -142,6 +142,22 @@ def label_from_instance(obj, language):
     return "{title} ({path})".format(title=obj.get_title(language), path=obj.get_path(language))
 
 
+def on_page_content_publish(version):
+    page = version.content.page
+    language = version.content.language
+    page._update_url_path(language)
+    page._update_url_path_recursive(language)
+    page.clear_cache(menu=True)
+
+
+def on_page_content_unpublish(version):
+    page = version.content.page
+    language = version.content.language
+    page.update_urls(language, path=None)
+    page._update_url_path_recursive(language)
+    page.clear_cache(menu=True)
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -153,5 +169,7 @@ class VersioningCMSConfig(CMSAppConfig):
             grouper_field_name='page',
             copy_function=copy_page_content,
             grouper_selector_option_label=label_from_instance,
+            on_publish=on_page_content_publish,
+            on_unpublish=on_page_content_unpublish,
         ),
     ]

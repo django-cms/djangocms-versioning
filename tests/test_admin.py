@@ -314,6 +314,35 @@ class VersionAdminTestCase(CMSTestCase):
         nr = self.site._registry[Version].nr(version)
         self.assertEqual(nr, 413)
 
+    def test_content_link_editable_object(self):
+        """
+        The link returned is the change url for an editable object
+        """
+        version = factories.PageVersionFactory(content__title='mypage')
+        preview_url = admin_reverse(
+            'cms_placeholder_render_object_preview',
+            args=(version.content_type_id, version.object_id))
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
+            '<a href="{url}">{label}</a>'.format(
+                url=preview_url,
+                label=version.content,
+            ),
+        )
+
+    def test_content_link_non_editable_object(self):
+        """
+        The link returned is the change url for a non editable object
+        """
+        version = factories.PollVersionFactory(content__text='test4')
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
+            '<a href="{url}">{label}</a>'.format(
+                url='/en/admin/polls/pollcontent/1/change/',
+                label='test4',
+            ),
+        )
+
 
 class StateActionsTestCase(CMSTestCase):
 
@@ -975,6 +1004,7 @@ class EditRedirectTestCase(CMSTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
+        self.superuser = self.get_superuser()
 
     def test_edit_redirect_view_doesnt_allow_user_without_staff_permissions(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -1106,7 +1136,7 @@ class EditRedirectTestCase(CMSTestCase):
         )
         target_url = get_object_edit_url(pagecontent.content)
 
-        with self.login_user_context(self.get_superuser()):
+        with self.login_user_context(self.superuser):
             response = self.client.post(url)
 
         self.assertRedirects(response, target_url, target_status_code=302)
@@ -1121,7 +1151,7 @@ class EditRedirectTestCase(CMSTestCase):
         )
         target_url = (self.get_admin_url(PollContent, 'change', poll_version.content.pk))
 
-        with self.login_user_context(self.get_superuser()):
+        with self.login_user_context(self.superuser):
             response = self.client.post(url)
 
         self.assertRedirects(response, target_url, target_status_code=302)
@@ -1339,14 +1369,14 @@ class VersionChangeViewTestCase(CMSTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
-        self.staff_user = self.get_superuser()
+        self.superuser = self.get_superuser()
 
     def test_change_view_returns_200_for_draft(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.DRAFT)
         url = self.get_admin_url(PollContent, 'change', content.pk)
 
-        with self.login_user_context(self.staff_user):
+        with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1356,7 +1386,7 @@ class VersionChangeViewTestCase(CMSTestCase):
             version__state=constants.PUBLISHED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
 
-        with self.login_user_context(self.staff_user):
+        with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
@@ -1366,7 +1396,7 @@ class VersionChangeViewTestCase(CMSTestCase):
             version__state=constants.UNPUBLISHED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
 
-        with self.login_user_context(self.staff_user):
+        with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
@@ -1376,7 +1406,7 @@ class VersionChangeViewTestCase(CMSTestCase):
             version__state=constants.ARCHIVED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
 
-        with self.login_user_context(self.staff_user):
+        with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 404)
@@ -1385,7 +1415,7 @@ class VersionChangeViewTestCase(CMSTestCase):
     def test_change_view_redirects_for_nonexistent_object(self, mocked_messages):
         url = self.get_admin_url(PollContent, 'change', 144)
 
-        with self.login_user_context(self.staff_user):
+        with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
         self.assertRedirects(response, '/en/admin/', target_status_code=302)
@@ -1394,3 +1424,69 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][2],
             'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?')
+
+    def test_change_view_action_compare_versions_one_selected(self):
+        """
+        A validation message is shown when one versioning option is selected
+        to compare
+        """
+        poll = factories.PollFactory()
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
+
+        with self.login_user_context(self.superuser):
+            data = {
+                'action': 'compare_versions',
+                admin.ACTION_CHECKBOX_NAME: ['2'],
+                'post': 'yes',
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertContains(response, "Exactly two versions need to be selected.")
+
+    def test_change_view_action_compare_versions_two_selected(self):
+        """
+        The user is redirectd to the compare view with two versions selected
+        """
+        poll = factories.PollFactory()
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
+        success_redirect = self.get_admin_url(
+            self.versionable.version_model_proxy,
+            'compare',
+            2,
+        )
+        success_redirect += '?compare_to=1'
+
+        with self.login_user_context(self.superuser):
+            data = {
+                'action': 'compare_versions',
+                admin.ACTION_CHECKBOX_NAME: ['1', '2'],
+                'post': 'yes',
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertNotContains(response, "Two versions have to be selected.")
+        self.assertRedirects(response, success_redirect, status_code=302)
+
+    def test_change_view_action_compare_versions_three_selected(self):
+        """
+        A validation message is shown when three versioning options are selected
+        to compare
+        """
+        poll = factories.PollFactory()
+        factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
+
+        with self.login_user_context(self.superuser):
+            data = {
+                'action': 'compare_versions',
+                admin.ACTION_CHECKBOX_NAME: ['1', '2', '3'],
+                'post': 'yes',
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertContains(response, "Exactly two versions need to be selected.")

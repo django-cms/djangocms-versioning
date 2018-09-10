@@ -1,5 +1,6 @@
 import collections
 
+from django import forms
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
@@ -134,6 +135,13 @@ def copy_page_content(original_content):
     return new_content
 
 
+def label_from_instance(obj, language):
+    """
+    Override the label for each grouper select option
+    """
+    return "{title} ({path})".format(title=obj.get_title(language), path=obj.get_path(language))
+
+
 def on_page_content_publish(version):
     page = version.content.page
     language = version.content.language
@@ -160,6 +168,7 @@ class VersioningCMSConfig(CMSAppConfig):
             content_model=PageContent,
             grouper_field_name='page',
             copy_function=copy_page_content,
+            grouper_selector_option_label=label_from_instance,
             on_publish=on_page_content_publish,
             on_unpublish=on_page_content_unpublish,
         ),

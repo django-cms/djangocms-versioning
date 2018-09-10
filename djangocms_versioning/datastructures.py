@@ -10,6 +10,7 @@ class VersionableItem:
     def __init__(
         self, content_model, grouper_field_name,
         copy_function, on_publish=None, on_unpublish=None,
+        grouper_selector_option_label=False
     ):
         # We require get_absolute_url to be implemented on content models
         # because it is needed for django-cms's preview endpoint, which
@@ -18,10 +19,12 @@ class VersionableItem:
             error_msg = "{} needs to implement get_absolute_url".format(
                     content_model.__name__)
             raise ImproperlyConfigured(error_msg)
-
         self.content_model = content_model
+        # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
+        # Set the grouper selector label
+        self.grouper_selector_option_label = grouper_selector_option_label
         self.copy_function = copy_function
         self.on_publish = on_publish
         self.on_unpublish = on_unpublish
@@ -47,7 +50,7 @@ class VersionableItem:
             },
         )
         return ProxyVersion
-
+    
     @property
     def grouper_model(self):
         return self.grouper_field.remote_field.model

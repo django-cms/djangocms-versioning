@@ -17,6 +17,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
 from cms.utils.helpers import is_editable_model
 
 from .constants import DRAFT, PUBLISHED
@@ -257,10 +258,11 @@ class VersionAdmin(admin.ModelAdmin):
         """Displays an intermediary page to select a grouper object
         to show versions of.
         """
+        language = get_language_from_request(request)
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._source_model)(),
+            form=grouper_form_factory(self.model._source_model, language)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 

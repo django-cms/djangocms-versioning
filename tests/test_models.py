@@ -329,10 +329,8 @@ class TestVersionQuerySet(CMSTestCase):
         versions = factories.PollVersionFactory.create_batch(
             2, content__poll=poll)  # same grouper
         factories.PollVersionFactory()  # different grouper
-        versionable = PollsCMSConfig.versioning[0]
 
-        versions_for_grouper = Version.objects.filter_by_grouper(
-            versionable, poll)
+        versions_for_grouper = Version.objects.filter_by_grouper(poll)
 
         self.assertQuerysetEqual(
             versions_for_grouper,
@@ -347,10 +345,10 @@ class TestVersionQuerySet(CMSTestCase):
         """
         pv = factories.PollVersionFactory(content__id=11)
         factories.BlogPostVersionFactory(content__id=11)
-        versionable = PollsCMSConfig.versioning[0]
 
         versions_for_grouper = Version.objects.filter_by_grouper(
-            versionable, pv.content.poll)
+            pv.content.poll,
+        )
 
         # Only poll version included
         self.assertQuerysetEqual(

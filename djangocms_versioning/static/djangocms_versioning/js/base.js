@@ -18,7 +18,7 @@ const getCurrentMarkup = () => {
 
 const getPublishedMarkup = () => {
     return $.ajax({
-        url: getData('v2_url')
+        url: getData('v1_url')
     }).then(markup => markup);
 };
 

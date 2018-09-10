@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.utils import get_object_edit_url
 from cms.utils.helpers import is_editable_model
@@ -220,7 +221,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -233,7 +234,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Archive the version
         version.archive(request.user)
         # Display message
-        messages.success(request, "Version archived")
+        messages.success(request, _("Version archived"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -247,7 +248,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -260,7 +261,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Publish the version
         version.publish(request.user)
         # Display message
-        messages.success(request, "Version published")
+        messages.success(request, _("Version published"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -274,7 +275,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -287,7 +288,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Unpublish the version
         version.unpublish(request.user)
         # Display message
-        messages.success(request, "Version unpublished")
+        messages.success(request, _("Version unpublished"))
         # Redirect
         url = reverse('admin:{app}_{model}_changelist'.format(
             app=self.model._meta.app_label,
@@ -301,7 +302,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         version = self.get_object(request, unquote(object_id))
         if version is None:

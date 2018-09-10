@@ -10,6 +10,7 @@ class VersionableItem:
     def __init__(
         self, content_model, grouper_field_name,
         copy_function, on_publish=None, on_unpublish=None,
+        on_draft_create=None,
     ):
         # We require get_absolute_url to be implemented on content models
         # because it is needed for django-cms's preview endpoint, which
@@ -25,6 +26,7 @@ class VersionableItem:
         self.copy_function = copy_function
         self.on_publish = on_publish
         self.on_unpublish = on_unpublish
+        self.on_draft_create = on_draft_create
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)

@@ -68,6 +68,9 @@ class Version(models.Model):
                 content_type=self.content_type)
             for version in to_archive:
                 version.archive(self.created_by)
+            on_draft_create = self.versionable.on_draft_create
+            if on_draft_create:
+                on_draft_create(self)
 
     @property
     def versionable(self):

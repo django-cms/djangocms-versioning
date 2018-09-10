@@ -150,6 +150,11 @@ def on_page_content_unpublish(version):
     page.clear_cache(menu=True)
 
 
+def on_page_content_draft_create(version):
+    page = version.content.page
+    page.clear_cache(menu=True)
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -162,5 +167,6 @@ class VersioningCMSConfig(CMSAppConfig):
             copy_function=copy_page_content,
             on_publish=on_page_content_publish,
             on_unpublish=on_page_content_unpublish,
+            on_draft_create=on_page_content_draft_create,
         ),
     ]

@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from django_fsm import FSMField, transition
+from django_fsm import FSMField, can_proceed, transition
 
 from . import constants
 
@@ -127,6 +127,9 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    def can_be_published(self):
+        return can_proceed(self._set_publish)
 
     def publish(self, user):
         """Change state to PUBLISHED and unpublish currently

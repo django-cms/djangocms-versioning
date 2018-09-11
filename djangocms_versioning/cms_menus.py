@@ -115,38 +115,22 @@ def _create_node_for_page_content_version(renderer, version):
 
 
 def _generate_ancestor_hierarchy(page_nodes):
-    from cms.models import Page
     menu_nodes = []
     node_id_to_page = {}
 
-    # try:
-    #     home_page_content = [
-    #         n.page_content for n in page_nodes
-    #         if n.page_content.page.is_home
-    #     ][0]
-    # except IndexError:
-    #     home_page_content = None
+    for page_node in page_nodes.copy():
+        node = page_node['node']
+        page = page_node['page']
+        page_tree_node = page.node
+        parent_id = node_id_to_page.get(page_tree_node.parent_id)
 
-    for node in page_nodes.copy():
-        page = Page.objects.get(pk=node.id)
-        page_node = page.node
-        parent_id = node_id_to_page.get(page_node.parent_id)
-
-        if page_node.parent_id and not parent_id:
+        if page_tree_node.parent_id and not parent_id:
             # If the parent page is not available (unpublished, etc..),
             # we skip adding the menu node.
             continue
 
-        # cut_homepage = home_page_content and not home_page_content.in_navigation
-        #
-        # if cut_homepage and parent_id == home_page_content.page.pk:
-        #     # When the homepage is hidden from navigation,
-        #     # we need to cut all its direct children from it.
-        #     node.parent_id = None
-        # else:
-        #     node.parent_id = parent_id
         node.parent_id = parent_id
-        node_id_to_page[page_node.pk] = page.pk
+        node_id_to_page[page_tree_node.pk] = page.pk
         menu_nodes.append(node)
     return menu_nodes
 
@@ -165,7 +149,7 @@ class CMSVersionedMenu(Menu):
         cms_extension = apps.get_app_config('djangocms_versioning').cms_extension
         page_content_versions = []
 
-        # Get the latest draft and published version for each visible page
+        # Get the latest draft and published version for each visible page.
         for page in pages:
             versionable_item = cms_extension.versionables_by_grouper[page.__class__]
             page_contents = (
@@ -215,10 +199,10 @@ class CMSVersionedMenu(Menu):
 
         for version in page_content_versions:
             n = _create_node_for_page_content_version(self.renderer, version)
-            menu_nodes.append(n)
+            menu_nodes.append({'page': version['page'], 'node': n})
 
-        # We now set the parent_id for each visible node to
-        # generate the menu hierarchy.
+        # Set the parent_id for each node in order to generate
+        # the menu hierarchy and return the nodes.
         return _generate_ancestor_hierarchy(menu_nodes)
 
 
@@ -236,11 +220,12 @@ class VisibleNodesModifier(Modifier):
             edit_or_preview = toolbar.edit_mode_active or toolbar.preview_mode_active
             page_nodes = [n for n in nodes if n.attr['is_page']]
             menu_nodes = []
+            home_page_content = None
 
             for node in page_nodes.copy():
-                # Always try to return draft version if in edit/preview mode;
-                # if not fallback to published if any.
-                # If NOT in edit/preview mode always return published version.
+                # Always try to get the draft version if in edit/preview mode.
+                # Fallback to published if no draft is found.
+                # If NOT in edit/preview mode, always get published version.
                 if edit_or_preview and node.draft_page_content:
                     state = constants.DRAFT
                     page_content = node.draft_page_content
@@ -249,12 +234,20 @@ class VisibleNodesModifier(Modifier):
                     page_content = node.published_page_content
 
                 if not page_content:
-                    # This will be the case where user has requested published
-                    # version but only has draft.
+                    # This will be the case where request is public and the
+                    # current node only has a draft version.
+                    continue
+
+                if not page_content.in_navigation:
+                    # User has selected not show in navigation.
+                    # Check whether current node is home page. This will be used to
+                    # cut the direct children of the home page.
+                    if page_content.page.is_home:
+                        home_page_content = page_content
                     continue
 
                 # Set title and url.
-                node.title = page_content.menu_title or page_content.title + '-' + state + '-' + page_content.page.node.path
+                node.title = page_content.menu_title or page_content.title
 
                 if state == constants.DRAFT:
                     node.url = get_object_preview_url(page_content)
@@ -262,15 +255,21 @@ class VisibleNodesModifier(Modifier):
                     node.url = page_content.get_absolute_url()
 
                 # Set redirect_url attr.
-                # node.attr['redirect_url'] = page_content.redirect_url
+                node.attr['redirect_url'] = page_content.redirect
 
-                # Lastly we need to remove the draft children
-                # for the node if on public mode.
+                # Next we need to remove the draft children
+                # for the node when on public mode.
                 if not edit_or_preview:
                     for child in node.children.copy():
                         if not child.published_page_content:
                             node.children.remove(child)
 
+                # When the homepage is hidden from navigation,
+                # we need to cut all its direct children from it.
+                if home_page_content and home_page_content.page.pk == node.parent_id:
+                    node.parent_id = None
+
+                # All good.
                 menu_nodes.append(node)
             return menu_nodes
         return nodes

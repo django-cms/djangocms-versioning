@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from django_fsm import can_proceed, FSMField, transition
+from django_fsm import FSMField, can_proceed, transition
 
 from . import constants
 

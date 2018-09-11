@@ -50,7 +50,7 @@ class VersionableItem:
             },
         )
         return ProxyVersion
-    
+
     @property
     def grouper_model(self):
         return self.grouper_field.remote_field.model

@@ -128,6 +128,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         return obj.pk
     nr.admin_order_field = 'pk'
+    nr.short_description = _('version number')
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action
@@ -202,7 +203,7 @@ class VersionAdmin(admin.ModelAdmin):
         edit_link = self._get_edit_link(obj)
         return format_html(
             edit_link + publish_link + unpublish_link + archive_link)
-    state_actions.short_description = 'actions'
+    state_actions.short_description = _('actions')
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

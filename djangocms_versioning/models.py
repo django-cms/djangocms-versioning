@@ -20,10 +20,15 @@ class VersionQuerySet(models.QuerySet):
             content_type=content_type,
         )
 
-    def filter_by_grouper(self, versionable, grouper_object):
+    def filter_by_grouper(self, grouper_object):
         """Returns a list of Version objects for the provided grouper
         object
         """
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_grouper[
+            grouper_object.__class__
+        ]
         content_objects = versionable.for_grouper(grouper_object)
         content_type = ContentType.objects.get_for_model(
             versionable.content_model)

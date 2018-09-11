@@ -242,7 +242,6 @@ class TestVersionState(CMSTestCase):
 
     def test_published_cant_be_published(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
-        user = factories.UserFactory()
         self.assertFalse(version.can_be_published())
 
     def test_unpublished_cant_change_to_published(self):

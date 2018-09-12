@@ -22,7 +22,7 @@ class VersionRenderer(ContentRenderer):
             if f.is_relation and not f.auto_created
         ]
         for field in candidate_fields:
-            versionable = get_versionable_for_grouper(field.rel.model)
+            versionable = get_versionable_for_grouper(field.remote_field.model)
             if not versionable:
                 continue
             if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:

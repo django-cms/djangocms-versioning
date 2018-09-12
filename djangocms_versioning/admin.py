@@ -411,7 +411,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'admin:cms_placeholder_render_object_preview',
                 args=(v1.content_type_id, v1.object_id),
             ),
-            **persist_params,
+            **persist_params
         )
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
@@ -436,7 +436,7 @@ class VersionAdmin(admin.ModelAdmin):
                         'admin:cms_placeholder_render_object_preview',
                         args=(v2.content_type_id, v2.object_id),
                     ),
-                    **persist_params,
+                    **persist_params
                 )
         return TemplateResponse(
             request, 'djangocms_versioning/admin/compare.html', context)

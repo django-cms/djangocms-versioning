@@ -324,7 +324,7 @@ class VersionAdminTestCase(CMSTestCase):
             args=(version.content_type_id, version.object_id))
         self.assertEqual(
             self.site._registry[Version].content_link(version),
-            '<a href="{url}">{label}</a>'.format(
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
                 url=preview_url,
                 label=version.content,
             ),
@@ -337,7 +337,7 @@ class VersionAdminTestCase(CMSTestCase):
         version = factories.PollVersionFactory(content__text='test4')
         self.assertEqual(
             self.site._registry[Version].content_link(version),
-            '<a href="{url}">{label}</a>'.format(
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
                 url='/en/admin/polls/pollcontent/1/change/',
                 label='test4',
             ),

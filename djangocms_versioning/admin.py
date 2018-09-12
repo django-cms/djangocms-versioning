@@ -154,7 +154,7 @@ class VersionAdmin(admin.ModelAdmin):
             ), args=[content.pk])
 
         return format_html(
-            '<a href="{url}">{label}</a>',
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
             url=url,
             label=content,
         )

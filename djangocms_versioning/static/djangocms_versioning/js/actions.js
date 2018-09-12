@@ -1,4 +1,8 @@
 (function($) {
+    if (!$) {
+        return;
+    }
+
     $(function() {
         // it is not possible to put a form inside a form, so
         // the versioning actions have to create their own form on click
@@ -18,5 +22,12 @@
 
                 fakeForm.appendTo(document.body).submit();
             });
+
+        $('.js-versioning-close-sideframe').on('click', function () {
+            try {
+                window.top.CMS.$('.cms-sideframe-close').trigger('click.cms.sideframe');
+            } catch (e) {}
+        });
     });
-})((typeof django !== 'undefined' && django.jQuery) || (typeof CMS !== 'undefined' && CMS.$));
+
+})((typeof django !== 'undefined' && django.jQuery) || (typeof CMS !== 'undefined' && CMS.$) || false);

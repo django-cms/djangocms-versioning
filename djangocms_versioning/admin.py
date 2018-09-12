@@ -19,7 +19,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
+from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
+from cms.utils.urlutils import add_url_parameters
 
 from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
@@ -401,9 +403,16 @@ class VersionAdmin(admin.ModelAdmin):
         if v1 is None:
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id)
-        v1_preview_url = reverse(
-            'admin:cms_placeholder_render_object_preview',
-            args=(v1.content_type_id, v1.object_id))
+        persist_params = {
+            get_cms_setting('CMS_TOOLBAR_URL__PERSIST'): 0,
+        }
+        v1_preview_url = add_url_parameters(
+            reverse(
+                'admin:cms_placeholder_render_object_preview',
+                args=(v1.content_type_id, v1.object_id),
+            ),
+            **persist_params,
+        )
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
         version_list = Version.objects.filter_by_grouper(v1.grouper)
@@ -422,9 +431,13 @@ class VersionAdmin(admin.ModelAdmin):
                     request, self.model._meta, request.GET['compare_to'])
             else:
                 context['v2'] = v2
-                context['v2_preview_url'] = reverse(
-                    'admin:cms_placeholder_render_object_preview',
-                    args=(v2.content_type_id, v2.object_id))
+                context['v2_preview_url'] = add_url_parameters(
+                    reverse(
+                        'admin:cms_placeholder_render_object_preview',
+                        args=(v2.content_type_id, v2.object_id),
+                    ),
+                    **persist_params,
+                )
         return TemplateResponse(
             request, 'djangocms_versioning/admin/compare.html', context)
 

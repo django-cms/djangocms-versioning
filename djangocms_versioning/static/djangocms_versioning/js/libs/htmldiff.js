@@ -78,7 +78,10 @@
      *    null otherwise
      */
     function isStartOfAtomicTag(word) {
-        var result = /^(<(iframe|object|math|svg|script|video)|^<[\s\S]*?data-cms-diff-ignore[\s\S]*>$)/.exec(word);
+        var result = /^<(iframe|object|math|svg|script|video)/.exec(word);
+        if (!result) {
+            result = /^<([\S]*?)[\s\S]*?data-cms-diff-ignore[\s\S]*>$/.exec(word);
+        }
         return result && result[1];
     }
 

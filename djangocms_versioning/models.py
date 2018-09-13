@@ -120,6 +120,9 @@ class Version(models.Model):
             new_state=constants.ARCHIVED,
             user=user
         )
+        on_archive = self.versionable.on_archive
+        if on_archive:
+            on_archive(self)
 
     @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def _set_archive(self, user):

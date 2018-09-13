@@ -124,21 +124,30 @@ def _create_node_for_page_content_version(version):
     )
 
 
-def _generate_ancestor_hierarchy(page_nodes):
-    menu_nodes = []
+def _generate_ancestor_hierarchy(menu_nodes, page_contents):
     node_id_to_page = {}
     homepage_page_content = None
 
-    for page_node in page_nodes:
-        node = page_node['node']
-        page_content = page_node['page_content']
+    for node in menu_nodes.copy():
+        if not hasattr(node, 'is_page') or not node.is_page:
+            # We skip making any changes to nodes that are not is_page.
+            continue
+
+        try:
+            page_content = page_contents[node.id]
+        except KeyError:
+            # If page_content not found then remove that node.
+            menu_nodes.remove(node)
+            continue
+
         page = page_content.page
         page_tree_node = page.node
         parent_id = node_id_to_page.get(page_tree_node.parent_id)
 
         if page_tree_node.parent_id and not parent_id:
-            # If the parent page is not available (unpublished, etc..),
+            # If the parent page is not available,
             # we skip adding the menu node.
+            menu_nodes.remove(node)
             continue
 
         if not homepage_page_content:
@@ -159,9 +168,8 @@ def _generate_ancestor_hierarchy(page_nodes):
         if not page_content.in_navigation:
             # User has selected not show in navigation,
             # we skip adding the menu node.
+            menu_nodes.remove(node)
             continue
-
-        menu_nodes.append(node)
     return menu_nodes
 
 
@@ -247,10 +255,13 @@ class VisibleNodesModifier(Modifier):
         menu_renderer = menu_pool.get_renderer(request)
 
         if not post_cut:
-            page_nodes = [n for n in nodes if n.is_page]
-            menu_nodes = []
+            page_contents = {}
 
-            for node in page_nodes:
+            for node in nodes:
+                if not hasattr(node, 'is_page') or not node.is_page:
+                    # We skip making any changes to nodes that are not is_page.
+                    continue
+
                 # Always try to get the draft version if in edit/preview mode.
                 # Fallback to published if no draft is found.
                 # If NOT in edit/preview mode, always get published version.
@@ -277,14 +288,13 @@ class VisibleNodesModifier(Modifier):
                 # Set attrs.
                 node.attr = _get_attrs_for_node(menu_renderer, page_content)
 
-                # All good.
-                menu_nodes.append({'node': node, 'page_content': page_content})
+                # All good so we will add page_content for hierarchy generation.
+                page_contents.update({node.id: page_content})
 
             # Set the parent_id for each node in order to generate
             # the menu hierarchy and return the nodes.
-            menu_nodes = _generate_ancestor_hierarchy(menu_nodes)
-            menu_nodes = _build_nodes_inner_for_one_menu(menu_nodes, self.__class__)
-            return menu_nodes
+            nodes = _generate_ancestor_hierarchy(nodes, page_contents)
+            nodes = _build_nodes_inner_for_one_menu(nodes, self.__class__)
         return nodes
 
 

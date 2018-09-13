@@ -10,10 +10,7 @@ from cms.cms_menus import CMSMenu
 
 from menus.menu_pool import menu_pool
 
-from djangocms_versioning.cms_menus import (
-    CMSVersionedMenu,
-    VisibleNodesModifier,
-)
+from djangocms_versioning.cms_menus import CMSVersionedMenu
 from djangocms_versioning.test_utils.factories import PageVersionFactory
 
 
@@ -74,15 +71,12 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         if kwargs.get('edit_mode', False):
             toolbar.edit_mode_active = True
             toolbar.preview_mode_active = False
-            toolbar.content_mode_active = False
         elif kwargs.get('preview_mode', False):
             toolbar.edit_mode_active = False
             toolbar.preview_mode_active = True
-            toolbar.content_mode_active = False
         else:
             toolbar.edit_mode_active = False
             toolbar.preview_mode_active = False
-            toolbar.content_mode_active = True
 
         request.toolbar = toolbar
         context = {'request': request}
@@ -107,11 +101,6 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         registered_menus = menu_pool.get_registered_menus(for_rendering=True)
         self.assertNotIn(CMSMenu.__name__, registered_menus)
         self.assertIn(CMSVersionedMenu.__name__, registered_menus)
-
-    def test_visible_node_modifier_is_first(self):
-        menu_pool.discover_menus()
-        registered_modifiers = menu_pool.get_registered_modifiers()
-        self.assertEqual(registered_modifiers[0], VisibleNodesModifier)
 
     def test_no_menu_if_no_published_pages_in_public_mode(self):
         context = self._render_menu()
@@ -282,8 +271,8 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         # Make some changes to the new drafts (Just to verify).
         _page_2_new_draft.content.title = 'page_content_2_new_draft'
         _page_2_new_draft.content.save()
-        _page_2_new_draft.content.title = 'page_content_2_2_new_draft'
-        _page_2_new_draft.content.save()
+        _page_2_2_new_draft.content.title = 'page_content_2_2_new_draft'
+        _page_2_2_new_draft.content.save()
 
         context = self._render_menu(preview_mode=True)
         nodes = context['children']

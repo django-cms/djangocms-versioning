@@ -8,6 +8,10 @@ from cms.models import titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 from cms.toolbar import toolbar
+from cms.toolbar.utils import get_toolbar_from_request
+from cms.utils.conf import get_cms_setting
+
+from menus.menu_pool import MenuRenderer
 
 from .constants import PUBLISHED
 from .models import Version
@@ -80,7 +84,26 @@ pagecontent_unique_together = tuple(
     set((('language', 'page'), ))
 )
 
+
+def menu_renderer_cache_key(self):
+    prefix = get_cms_setting('CACHE_PREFIX')
+
+    key = '%smenu_nodes_%s_%s' % (prefix, self.request_language, self.site.pk)
+
+    if self.request.user.is_authenticated:
+        key += '_%s_user' % self.request.user.pk
+
+    request_toolbar = get_toolbar_from_request(self.request)
+
+    if request_toolbar.edit_mode_active or request_toolbar.preview_mode_active:
+        key += ':draft'
+    else:
+        key += ':public'
+    return key
+
+
 toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)
 titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
 cms_extension.wizards[cms_wizards.cms_page_wizard.id].form = CreateCMSPageForm
 cms_extension.wizards[cms_wizards.cms_subpage_wizard.id].form = CreateCMSSubPageForm
+MenuRenderer.cache_key = property(menu_renderer_cache_key)

@@ -8,6 +8,7 @@ from django.contrib.admin.options import (
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -84,15 +85,16 @@ class VersionChangeList(ChangeList):
         along with filter choices.
         """
         qs = super().get_queryset(request)
+        content_model = self.model_admin.model._source_model
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_content[content_model]
         try:
-            grouper = int(request.GET.get(GROUPER_PARAM))
-        except (TypeError, ValueError):
+            grouper = versionable.grouper_model.objects.get(
+                pk=int(request.GET.get(GROUPER_PARAM)),
+            )
+        except (ObjectDoesNotExist, TypeError, ValueError):
             raise IncorrectLookupParameters("Missing grouper")
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[
-            self.model_admin.model._source_model]
-        return qs.filter_by_grouper(versionable, grouper)
+        return qs.filter_by_grouper(grouper)
 
 
 class VersionAdmin(admin.ModelAdmin):
@@ -152,7 +154,7 @@ class VersionAdmin(admin.ModelAdmin):
             ), args=[content.pk])
 
         return format_html(
-            '<a href="{url}">{label}</a>',
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
             url=url,
             label=content,
         )
@@ -404,8 +406,7 @@ class VersionAdmin(admin.ModelAdmin):
             args=(v1.content_type_id, v1.object_id))
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
-        version_list = Version.objects.filter_by_grouper(
-            v1.versionable, v1.grouper)
+        version_list = Version.objects.filter_by_grouper(v1.grouper)
         # Add the above to context
         context = {
             'version_list': version_list,

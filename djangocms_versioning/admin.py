@@ -231,7 +231,6 @@ class VersionAdmin(admin.ModelAdmin):
             self._get_archive_link,
             self._get_publish_link,
             self._get_unpublish_link,
-            self._get_archive_link,
         ]
 
     def state_actions(self, obj):

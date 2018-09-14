@@ -95,10 +95,8 @@ def menu_renderer_cache_key(self):
 
     request_toolbar = get_toolbar_from_request(self.request)
 
-    if request_toolbar.edit_mode_active:
-        key += ':edit'
-    elif request_toolbar.preview_mode_active:
-        key += ':preview'
+    if request_toolbar.edit_mode_active or request_toolbar.preview_mode_active:
+        key += ':draft'
     else:
         key += ':public'
     return key

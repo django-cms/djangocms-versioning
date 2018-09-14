@@ -58,6 +58,10 @@ class Version(models.Model):
     )
     objects = VersionQuerySet.as_manager()
 
+    @property
+    def number(self):
+        return self.pk
+
     class Meta:
         unique_together = ("content_type", "object_id")
 

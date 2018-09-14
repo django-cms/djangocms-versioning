@@ -11,6 +11,7 @@ from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url
+from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import admin_reverse
 
 import pytz
@@ -1220,10 +1221,11 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn('v1', context)
         self.assertEqual(context['v1'], versions[0])
         self.assertIn('v1_preview_url', context)
+        params = '?' + get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
-        self.assertEqual(context['v1_preview_url'], v1_preview_url)
+        self.assertEqual(context['v1_preview_url'], v1_preview_url + params)
         self.assertNotIn('v2', context)
         self.assertNotIn('v2_preview_url', context)
         self.assertIn('version_list', context)
@@ -1258,14 +1260,15 @@ class CompareViewTestCase(CMSTestCase):
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
-        self.assertEqual(context['v1_preview_url'], v1_preview_url)
+        params = '?' + get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
+        self.assertEqual(context['v1_preview_url'], v1_preview_url + params)
         self.assertIn('v2', context)
         self.assertEqual(context['v2'], versions[1])
         self.assertIn('v2_preview_url', context)
         v2_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[1].content_type_id, versions[1].object_id))
-        self.assertEqual(context['v2_preview_url'], v2_preview_url)
+        self.assertEqual(context['v2_preview_url'], v2_preview_url + params)
         self.assertIn('version_list', context)
         self.assertQuerysetEqual(
             context['version_list'],

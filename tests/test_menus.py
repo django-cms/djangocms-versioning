@@ -254,11 +254,11 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         nodes = context['children']
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
-        self._assert_node(nodes[1], self._page_2, False)
+        self._assert_node(nodes[1], self._page_2)
         children = nodes[1].children
         self.assertEqual(len(children), 2)
         self._assert_node(children[0], self._page_2_1)
-        self._assert_node(children[1], self._page_2_2, False)
+        self._assert_node(children[1], self._page_2_2)
         self._assert_node(nodes[2], self._page_3)
 
     def test_show_draft_nodes_if_draft_exist_in_non_public_mode(self):

@@ -128,9 +128,9 @@ class CMSVersionedMenu(Menu):
                 edit_or_preview and
                 version.state == constants.PUBLISHED
             ):
-                # Page content is already added. This is the case where
-                # you have both draft and published and in edit/preview mode we give
-                # priority to draft which is already sorted by the query.
+                # Page content is already added. This is the case where you
+                # have both draft and published and in edit/preview mode.
+                # We give priority to draft which is already sorted by the query.
                 # Therefore we ignore the published version.
                 continue
 
@@ -143,10 +143,8 @@ class CMSVersionedMenu(Menu):
                 continue
 
             # Construct the url based on the toolbar mode.
-            if edit_or_preview and version.state == constants.DRAFT:
+            if edit_or_preview:
                 url = get_object_preview_url(page_content)
-            elif edit_or_preview and version.state == constants.PUBLISHED:
-                url = page_content.get_absolute_url()
             else:
                 url = page_content.get_absolute_url()
 

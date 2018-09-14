@@ -83,10 +83,10 @@ class CMSVersionedMenu(Menu):
     def get_nodes(self, request):
         site = self.renderer.site
         language = self.renderer.request_language
-        pages = get_page_queryset(site)
-        pages = get_visible_nodes(request, pages, site)
+        pages_qs = get_page_queryset(site)
+        visible_pages_for_user = get_visible_nodes(request, pages_qs, site)
 
-        if not pages:
+        if not visible_pages_for_user:
             return []
 
         cms_extension = apps.get_app_config('djangocms_versioning').cms_extension
@@ -112,16 +112,24 @@ class CMSVersionedMenu(Menu):
             ._base_manager
             .filter(
                 language=language,
-                page__id__in=[p.pk for p in pages],
+                page__in=pages_qs,
                 versions__state__in=states,
             )
             .order_by('page__node__path', 'versions__state')
+            .select_related('page', 'page__node')
+            .prefetch_related('versions')
         )
         added_pages = []
 
         for page_content in versioned_page_contents:
             page = page_content.page
-            version = page_content.versions.all().first()
+
+            if page not in visible_pages_for_user:
+                # The page is restricted for the user.
+                # Therefore we avoid adding it to the menu.
+                continue
+
+            version = page_content.versions.all()[0]
 
             if (
                 page.pk in added_pages and

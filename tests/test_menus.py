@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.test import RequestFactory
+from django.test.utils import override_settings
 
 from cms import constants as cms_constants
 from cms.test_utils.testcases import CMSTestCase
@@ -11,7 +12,10 @@ from cms.cms_menus import CMSMenu
 from menus.menu_pool import menu_pool
 
 from djangocms_versioning.cms_menus import CMSVersionedMenu
-from djangocms_versioning.test_utils.factories import PageVersionFactory
+from djangocms_versioning.test_utils.factories import (
+    PageVersionFactory,
+    UserFactory,
+)
 
 
 class CMSVersionedMenuTestCase(CMSTestCase):
@@ -61,10 +65,14 @@ class CMSVersionedMenuTestCase(CMSTestCase):
             content__page__node__path='0003',
         )
 
-    def _render_menu(self, **kwargs):
+    def _render_menu(self, user=None, **kwargs):
         request = RequestFactory().get('/')
-        is_auth_user = kwargs.get('is_auth_user', True)
-        request.user = self.get_superuser() if is_auth_user else AnonymousUser()
+
+        if not user:
+            is_auth_user = kwargs.get('is_auth_user', True)
+            user = self.get_superuser() if is_auth_user else AnonymousUser()
+
+        request.user = user
         request.session = {}
         toolbar = CMSToolbar(request)
 
@@ -303,3 +311,44 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         nodes = context['children']
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_1, False)
+
+    @override_settings(CMS_PUBLIC_FOR='staff')
+    def test_show_menu_only_visible_for_user(self):
+        from django.contrib.auth.models import Group
+        from cms.models import ACCESS_PAGE, PagePermission
+
+        group = Group.objects.create(name='test_group')
+        user = UserFactory()
+        user.groups.add(group)
+        q_args = {
+            'grant_on': ACCESS_PAGE,
+            'group': group,
+        }
+        # Restrict pages for the user so that we can test
+        # whether the can_view=True only pages are visible in the menu.
+        PagePermission.objects.create(
+            **q_args, can_view=False, page=self._page_1.content.page
+        )
+        PagePermission.objects.create(
+            **q_args, can_view=True, page=self._page_2.content.page
+        )
+        PagePermission.objects.create(
+            **q_args, can_view=False, page=self._page_2_1.content.page
+        )
+        PagePermission.objects.create(
+            **q_args, can_view=True, page=self._page_2_2.content.page
+        )
+        PagePermission.objects.create(
+            **q_args, can_view=True, page=self._page_3.content.page
+        )
+
+        context = self._render_menu(user=user, preview_mode=True)
+        nodes = context['children']
+        # At this point, only Page 2, Page 2_2 and Page 3 should
+        # be rendered in the menu.
+        self.assertEqual(len(nodes), 2)
+        self._assert_node(nodes[0], self._page_2)
+        children = nodes[0].children
+        self.assertEqual(len(children), 1)
+        self._assert_node(children[0], self._page_2_2)
+        self._assert_node(nodes[1], self._page_3)

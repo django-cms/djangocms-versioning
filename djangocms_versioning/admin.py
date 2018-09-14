@@ -8,15 +8,17 @@ from django.contrib.admin.options import (
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
-from cms.toolbar.utils import get_object_edit_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
 from cms.utils.helpers import is_editable_model
 
 from .constants import DRAFT, PUBLISHED
@@ -83,15 +85,16 @@ class VersionChangeList(ChangeList):
         along with filter choices.
         """
         qs = super().get_queryset(request)
+        content_model = self.model_admin.model._source_model
+        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_content[content_model]
         try:
-            grouper = int(request.GET.get(GROUPER_PARAM))
-        except (TypeError, ValueError):
+            grouper = versionable.grouper_model.objects.get(
+                pk=int(request.GET.get(GROUPER_PARAM)),
+            )
+        except (ObjectDoesNotExist, TypeError, ValueError):
             raise IncorrectLookupParameters("Missing grouper")
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[
-            self.model_admin.model._source_model]
-        return qs.filter_by_grouper(versionable, grouper)
+        return qs.filter_by_grouper(grouper)
 
 
 class VersionAdmin(admin.ModelAdmin):
@@ -104,12 +107,13 @@ class VersionAdmin(admin.ModelAdmin):
             'all': ('djangocms_versioning/css/actions.css',)
         }
 
-    # disable delete action
-    actions = None
+    # register custom actions
+    actions = ['compare_versions']
 
     list_display = (
         'nr',
         'created',
+        'content_link',
         'created_by',
         'state',
         'state_actions',
@@ -122,6 +126,13 @@ class VersionAdmin(admin.ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # disable delete action
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
     def nr(self, obj):
         """Get the identifier of the version. Might be something other
         than the pk eventually.
@@ -129,6 +140,27 @@ class VersionAdmin(admin.ModelAdmin):
         return obj.pk
     nr.admin_order_field = 'pk'
     nr.short_description = _('version number')
+
+    def content_link(self, obj):
+        content = obj.content
+
+        # If the object is editable the preview view should be used.
+        if is_editable_model(content.__class__):
+            url = get_object_preview_url(content)
+        # Or else, the standard change view should be used
+        else:
+            url = reverse('admin:{app}_{model}_change'.format(
+                app=content._meta.app_label,
+                model=content._meta.model_name,
+            ), args=[content.pk])
+
+        return format_html(
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
+            url=url,
+            label=content,
+        )
+    content_link.short_description = _('Content')
+    content_link.admin_order_field = 'content'
 
     def _get_archive_link(self, obj):
         """Helper function to get the html link to the archive action
@@ -194,25 +226,53 @@ class VersionAdmin(admin.ModelAdmin):
             {'edit_url': edit_url}
         )
 
+    def get_state_actions(self):
+        return [
+            self._get_edit_link,
+            self._get_archive_link,
+            self._get_publish_link,
+            self._get_unpublish_link,
+        ]
+
     def state_actions(self, obj):
         """Display links to state change endpoints
         """
-        archive_link = self._get_archive_link(obj)
-        publish_link = self._get_publish_link(obj)
-        unpublish_link = self._get_unpublish_link(obj)
-        edit_link = self._get_edit_link(obj)
-        return format_html(
-            edit_link + publish_link + unpublish_link + archive_link)
+        return format_html_join(
+            '',
+            '{}',
+            ((action(obj), ) for action in self.get_state_actions()),
+        )
     state_actions.short_description = _('actions')
+
+    def compare_versions(self, request, queryset):
+        """
+        Redirects to a compare versions view based on a users choice
+        """
+        # Validate that only two versions are selected
+        if queryset.count() != 2:
+            self.message_user(request, _("Exactly two versions need to be selected."))
+            return
+
+        # Build the link for the version comparison of the two selected versions
+        url = reverse('admin:{app}_{model}_compare'.format(
+            app=self.model._meta.app_label,
+            model=self.model._meta.model_name,
+        ), args=(queryset[0].pk,))
+        url += '?compare_to=%d' % queryset[1].pk
+
+        return redirect(url)
+
+    compare_versions.short_description = _("Compare versions")
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
         to show versions of.
         """
+        language = get_language_from_request(request)
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._source_model)(),
+            form=grouper_form_factory(self.model._source_model, language)(),
         )
         return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
 
@@ -354,8 +414,7 @@ class VersionAdmin(admin.ModelAdmin):
             args=(v1.content_type_id, v1.object_id))
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
-        version_list = Version.objects.filter_by_grouper(
-            v1.versionable, v1.grouper)
+        version_list = Version.objects.filter_by_grouper(v1.grouper)
         # Add the above to context
         context = {
             'version_list': version_list,

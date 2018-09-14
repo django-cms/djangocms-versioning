@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from django_fsm import FSMField, transition
+from django_fsm import FSMField, can_proceed, transition
 
 from . import constants
 
@@ -21,10 +21,15 @@ class VersionQuerySet(models.QuerySet):
             content_type=content_type,
         )
 
-    def filter_by_grouper(self, versionable, grouper_object):
+    def filter_by_grouper(self, grouper_object):
         """Returns a list of Version objects for the provided grouper
         object
         """
+        versioning_extension = apps.get_app_config(
+            'djangocms_versioning').cms_extension
+        versionable = versioning_extension.versionables_by_grouper[
+            grouper_object.__class__
+        ]
         content_objects = versionable.for_grouper(grouper_object)
         content_type = ContentType.objects.get_for_model(
             versionable.content_model)
@@ -53,6 +58,10 @@ class Version(models.Model):
         protected=True,
     )
     objects = VersionQuerySet.as_manager()
+
+    @property
+    def number(self):
+        return self.pk
 
     class Meta:
         unique_together = ("content_type", "object_id")
@@ -123,6 +132,9 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    def can_be_published(self):
+        return can_proceed(self._set_publish)
 
     def publish(self, user):
         """Change state to PUBLISHED and unpublish currently

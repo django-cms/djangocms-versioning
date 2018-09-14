@@ -357,3 +357,7 @@ class TestVersionQuerySet(CMSTestCase):
             transform=lambda o: o.pk,
             ordered=False
         )
+
+    def test_version_number(self):
+        pv = factories.PollVersionFactory(content__id=11)
+        self.assertEqual(pv.number, pv.pk)

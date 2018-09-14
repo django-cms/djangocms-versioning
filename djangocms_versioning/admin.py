@@ -14,7 +14,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -225,15 +225,22 @@ class VersionAdmin(admin.ModelAdmin):
             {'edit_url': edit_url}
         )
 
+    def get_state_actions(self):
+        return [
+            self._get_edit_link,
+            self._get_archive_link,
+            self._get_publish_link,
+            self._get_unpublish_link,
+        ]
+
     def state_actions(self, obj):
         """Display links to state change endpoints
         """
-        archive_link = self._get_archive_link(obj)
-        publish_link = self._get_publish_link(obj)
-        unpublish_link = self._get_unpublish_link(obj)
-        edit_link = self._get_edit_link(obj)
-        return format_html(
-            edit_link + publish_link + unpublish_link + archive_link)
+        return format_html_join(
+            '',
+            '{}',
+            ((action(obj), ) for action in self.get_state_actions()),
+        )
     state_actions.short_description = 'actions'
 
     def compare_versions(self, request, queryset):

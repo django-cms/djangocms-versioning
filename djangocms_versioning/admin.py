@@ -139,6 +139,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         return obj.pk
     nr.admin_order_field = 'pk'
+    nr.short_description = _('version number')
 
     def content_link(self, obj):
         content = obj.content
@@ -241,7 +242,7 @@ class VersionAdmin(admin.ModelAdmin):
             '{}',
             ((action(obj), ) for action in self.get_state_actions()),
         )
-    state_actions.short_description = 'actions'
+    state_actions.short_description = _('actions')
 
     def compare_versions(self, request, queryset):
         """
@@ -281,7 +282,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -308,7 +309,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -335,7 +336,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -362,7 +363,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], 'This view only supports POST method.')
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         version = self.get_object(request, unquote(object_id))
         if version is None:

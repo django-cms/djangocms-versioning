@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
@@ -42,7 +43,7 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        verbose_name='author'
+        verbose_name=_('author')
     )
     content_type = models.ForeignKey(
         ContentType,
@@ -53,7 +54,7 @@ class Version(models.Model):
     state = FSMField(
         default=constants.DRAFT,
         choices=constants.VERSION_STATES,
-        verbose_name='status',
+        verbose_name=_('status'),
         protected=True,
     )
     objects = VersionQuerySet.as_manager()

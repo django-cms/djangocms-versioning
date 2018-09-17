@@ -35,4 +35,4 @@ class PollPlugin(CMSPlugin):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.poll
+        return str(self.poll)

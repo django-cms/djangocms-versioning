@@ -107,13 +107,14 @@ def published_content_manager_factory(manager):
 def replace_default_manager(model):
     if isinstance(model.objects, PublishedContentManagerMixin):
         return
-    model.add_to_class('_original_manager', model.objects.__class__())
-    manager = published_content_manager_factory(model.objects.__class__)()
+    original_manager = model.objects.__class__
+    manager = published_content_manager_factory(original_manager)()
     model._meta.local_managers = [
         manager for manager in model._meta.local_managers
         if manager.name != 'objects'
     ]
     model.add_to_class('objects', manager)
+    model.add_to_class('_original_manager', original_manager())
 
 
 def inject_generic_relation_to_version(model):

@@ -6,7 +6,6 @@ from cms.cms_menus import CMSMenu, get_visible_nodes
 from cms.models import Page
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
-
 from menus.base import Menu, NavigationNode
 from menus.menu_pool import menu_pool
 

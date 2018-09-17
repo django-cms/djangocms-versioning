@@ -4,11 +4,10 @@ from django.test import RequestFactory
 from django.test.utils import override_settings
 
 from cms import constants as cms_constants
+from cms.cms_menus import CMSMenu
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_preview_url
-from cms.cms_menus import CMSMenu
-
 from menus.menu_pool import menu_pool
 
 from djangocms_versioning.cms_menus import CMSVersionedMenu
@@ -327,19 +326,19 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         # Restrict pages for the user so that we can test
         # whether the can_view=True only pages are visible in the menu.
         PagePermission.objects.create(
-            **q_args, can_view=False, page=self._page_1.content.page
+            can_view=False, page=self._page_1.content.page, **q_args
         )
         PagePermission.objects.create(
-            **q_args, can_view=True, page=self._page_2.content.page
+            can_view=True, page=self._page_2.content.page, **q_args
         )
         PagePermission.objects.create(
-            **q_args, can_view=False, page=self._page_2_1.content.page
+            can_view=False, page=self._page_2_1.content.page, **q_args
         )
         PagePermission.objects.create(
-            **q_args, can_view=True, page=self._page_2_2.content.page
+            can_view=True, page=self._page_2_2.content.page, **q_args
         )
         PagePermission.objects.create(
-            **q_args, can_view=True, page=self._page_3.content.page
+            can_view=True, page=self._page_3.content.page, **q_args
         )
 
         context = self._render_menu(user=user, preview_mode=True)

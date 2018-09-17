@@ -10,7 +10,6 @@ from cms.signals import post_obj_operation
 from cms.toolbar import toolbar
 from cms.toolbar.utils import get_toolbar_from_request
 from cms.utils.conf import get_cms_setting
-
 from menus.menu_pool import MenuRenderer
 
 from .constants import PUBLISHED

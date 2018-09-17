@@ -83,7 +83,7 @@ class CMSVersionedMenu(Menu):
     def get_nodes(self, request):
         site = self.renderer.site
         language = self.renderer.request_language
-        pages_qs = get_page_queryset(site)
+        pages_qs = get_page_queryset(site).select_related('node')
         visible_pages_for_user = get_visible_nodes(request, pages_qs, site)
 
         if not visible_pages_for_user:

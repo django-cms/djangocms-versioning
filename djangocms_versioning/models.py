@@ -78,6 +78,9 @@ class Version(models.Model):
                 content_type=self.content_type)
             for version in to_archive:
                 version.archive(self.created_by)
+            on_draft_create = self.versionable.on_draft_create
+            if on_draft_create:
+                on_draft_create(self)
 
     @property
     def versionable(self):
@@ -122,6 +125,9 @@ class Version(models.Model):
             new_state=constants.ARCHIVED,
             user=user
         )
+        on_archive = self.versionable.on_archive
+        if on_archive:
+            on_archive(self)
 
     @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def _set_archive(self, user):

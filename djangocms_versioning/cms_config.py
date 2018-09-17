@@ -157,6 +157,16 @@ def on_page_content_unpublish(version):
     page.clear_cache(menu=True)
 
 
+def on_page_content_draft_create(version):
+    page = version.content.page
+    page.clear_cache(menu=True)
+
+
+def on_page_content_archive(version):
+    page = version.content.page
+    page.clear_cache(menu=True)
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -170,5 +180,7 @@ class VersioningCMSConfig(CMSAppConfig):
             grouper_selector_option_label=label_from_instance,
             on_publish=on_page_content_publish,
             on_unpublish=on_page_content_unpublish,
+            on_draft_create=on_page_content_draft_create,
+            on_archive=on_page_content_archive,
         ),
     ]

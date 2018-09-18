@@ -1,7 +1,10 @@
 import datetime
 import warnings
+from distutils.version import LooseVersion
+from unittest import skipIf
 from unittest.mock import Mock, patch
 
+import django
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
@@ -39,6 +42,9 @@ from djangocms_versioning.test_utils.polls.models import (
     Poll,
     PollContent,
 )
+
+
+DJANGO_GTE_21 = LooseVersion(django.__version__) >= LooseVersion('2.1')
 
 
 class AdminVersioningTestCase(CMSTestCase):
@@ -616,11 +622,23 @@ class VersionAdminViewTestCase(CMSTestCase):
             response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'add'))
         self.assertEqual(response.status_code, 403)
 
+    @skipIf(DJANGO_GTE_21, 'Django>=2.1')
     def test_version_editing_is_disabled(self):
         version = factories.PollVersionFactory(content__text='test5')
         with self.login_user_context(self.superuser):
             response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'change', version.pk))
         self.assertEqual(response.status_code, 403)
+
+    @skipIf(not DJANGO_GTE_21, 'Django<2.1')
+    def test_version_editing_readonly_fields(self):
+        version = factories.PollVersionFactory(content__text='test5')
+        with self.login_user_context(self.superuser):
+            response = self.client.get(self.get_admin_url(self.versionable.version_model_proxy, 'change', version.pk))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context['adminform'].fieldsets[0][1]['fields'],
+            response.context['adminform'].readonly_fields,
+        )
 
     def test_version_deleting_is_disabled(self):
         with self.login_user_context(self.superuser):

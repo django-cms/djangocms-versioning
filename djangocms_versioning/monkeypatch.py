@@ -1,9 +1,10 @@
 from django.apps import apps
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 from django.utils.functional import cached_property
 
-from cms import cms_wizards
+from cms import api
 from cms.models import titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
@@ -16,6 +17,8 @@ from .constants import PUBLISHED
 from .models import Version
 from .plugin_rendering import VersionRenderer
 
+
+User = get_user_model()
 
 cms_extension = apps.get_app_config('cms').cms_extension
 
@@ -60,22 +63,15 @@ def pre_page_operation_handler(sender, **kwargs):
         page.clear_cache(menu=True)
 
 
-class CreateCMSPageForm(cms_wizards.cms_page_wizard.form):
-
-    def save(self, *args, **kwargs):
-        new_page = super(CreateCMSPageForm, self).save(*args, **kwargs)
-        page_content = new_page.title_cache[self._language]
-        Version.objects.create(content=page_content, created_by=self._request.user)
-        return new_page
-
-
-class CreateCMSSubPageForm(cms_wizards.cms_subpage_wizard.form):
-
-    def save(self, *args, **kwargs):
-        new_page = super(CreateCMSSubPageForm, self).save(*args, **kwargs)
-        page_content = new_page.title_cache[self._language]
-        Version.objects.create(content=page_content, created_by=self._request.user)
-        return new_page
+def create_title(func):
+    def inner(language, title, page, **kwargs):
+        created_by = kwargs.get('created_by')
+        if not isinstance(created_by, User):
+            created_by = None
+        page_content = func(language, title, page, **kwargs)
+        Version.objects.create(content=page_content, created_by=created_by)
+        return page_content
+    return inner
 
 
 pagecontent_unique_together = tuple(
@@ -103,6 +99,5 @@ def menu_renderer_cache_key(self):
 
 toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)
 titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
-cms_extension.wizards[cms_wizards.cms_page_wizard.id].form = CreateCMSPageForm
-cms_extension.wizards[cms_wizards.cms_subpage_wizard.id].form = CreateCMSSubPageForm
+api.create_title = create_title(api.create_title)
 MenuRenderer.cache_key = property(menu_renderer_cache_key)

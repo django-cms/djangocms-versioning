@@ -127,7 +127,10 @@ class VersionAdmin(admin.ModelAdmin):
             return format_html_join(
                 '',
                 '{}',
-                ((action(obj, request), ) for action in self.get_state_actions()),
+                (
+                    (action(obj, request), )
+                    for action in self.get_state_actions(request)
+                ),
             )
         state_actions.short_description = _('actions')
         return state_actions
@@ -242,7 +245,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'edit_url': edit_url}
         )
 
-    def get_state_actions(self):
+    def get_state_actions(self, request):
         return [
             self._get_edit_link,
             self._get_archive_link,

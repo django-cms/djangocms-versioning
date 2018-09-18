@@ -145,6 +145,8 @@ def on_page_content_publish(version):
     page = version.content.page
     language = version.content.language
     page._update_url_path(language)
+    if page.is_home:
+        page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 

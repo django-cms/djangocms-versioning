@@ -112,14 +112,6 @@ class VersionAdmin(admin.ModelAdmin):
     # register custom actions
     actions = ['compare_versions']
 
-    list_display = (
-        'nr',
-        'created',
-        'content_link',
-        'created_by',
-        'state',
-        'state_actions',
-    )
     list_display_links = None
 
     def get_queryset(self, request):
@@ -127,6 +119,28 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
+
+    def _state_actions(self, request):
+        def state_actions(obj):
+            """Display links to state change endpoints
+            """
+            return format_html_join(
+                '',
+                '{}',
+                ((action(obj, request), ) for action in self.get_state_actions()),
+            )
+        state_actions.short_description = _('actions')
+        return state_actions
+
+    def get_list_display(self, request):
+        return (
+            'nr',
+            'created',
+            'content_link',
+            'created_by',
+            'state',
+            self._state_actions(request),
+        )
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -164,7 +178,7 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def _get_archive_link(self, obj):
+    def _get_archive_link(self, obj, request):
         """Helper function to get the html link to the archive action
         """
         if not obj.state == DRAFT:
@@ -178,7 +192,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'archive_url': archive_url}
         )
 
-    def _get_publish_link(self, obj):
+    def _get_publish_link(self, obj, request):
         """Helper function to get the html link to the publish action
         """
         if not obj.state == DRAFT:
@@ -192,7 +206,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'publish_url': publish_url}
         )
 
-    def _get_unpublish_link(self, obj):
+    def _get_unpublish_link(self, obj, request):
         """Helper function to get the html link to the unpublish action
         """
         if not obj.state == PUBLISHED:
@@ -206,7 +220,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'unpublish_url': unpublish_url}
         )
 
-    def _get_edit_link(self, obj):
+    def _get_edit_link(self, obj, request):
         """Helper function to get the html link to the edit action
         """
         if obj.state == PUBLISHED:
@@ -235,16 +249,6 @@ class VersionAdmin(admin.ModelAdmin):
             self._get_publish_link,
             self._get_unpublish_link,
         ]
-
-    def state_actions(self, obj):
-        """Display links to state change endpoints
-        """
-        return format_html_join(
-            '',
-            '{}',
-            ((action(obj), ) for action in self.get_state_actions()),
-        )
-    state_actions.short_description = _('actions')
 
     def compare_versions(self, request, queryset):
         """

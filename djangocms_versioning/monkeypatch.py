@@ -68,8 +68,6 @@ def create_title(func):
         created_by = kwargs.get('created_by')
         if not isinstance(created_by, User):
             created_by = None
-        # FIXME this blows up if created_by is None
-        # allow for Version.created_by to be nullable perhaps?
         page_content = func(language, title, page, **kwargs)
         Version.objects.create(content=page_content, created_by=created_by)
         return page_content

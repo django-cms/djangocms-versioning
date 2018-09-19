@@ -66,10 +66,11 @@ def pre_page_operation_handler(sender, **kwargs):
 def create_title(func):
     def inner(language, title, page, **kwargs):
         created_by = kwargs.get('created_by')
-        if not isinstance(created_by, User):
-            created_by = None
-        # FIXME this blows up if created_by is None
-        # allow for Version.created_by to be nullable perhaps?
+        assert (
+            isinstance(created_by, User),
+            'With versioning enabled, create_title requires a User instance'
+            ' to be passed as created_by parameter'
+        )
         page_content = func(language, title, page, **kwargs)
         Version.objects.create(content=page_content, created_by=created_by)
         return page_content

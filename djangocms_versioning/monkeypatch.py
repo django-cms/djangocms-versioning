@@ -66,8 +66,7 @@ def pre_page_operation_handler(sender, **kwargs):
 def create_title(func):
     def inner(language, title, page, **kwargs):
         created_by = kwargs.get('created_by')
-        assert (
-            isinstance(created_by, User),
+        assert isinstance(created_by, User), (
             'With versioning enabled, create_title requires a User instance'
             ' to be passed as created_by parameter'
         )

@@ -11,6 +11,7 @@ from cms.signals import post_obj_operation
 from cms.toolbar import toolbar
 from cms.toolbar.utils import get_toolbar_from_request
 from cms.utils.conf import get_cms_setting
+from cms.utils.permissions import _thread_locals
 from menus.menu_pool import MenuRenderer
 
 from .constants import PUBLISHED
@@ -66,7 +67,9 @@ def pre_page_operation_handler(sender, **kwargs):
 def create_title(func):
     def inner(language, title, page, **kwargs):
         created_by = kwargs.get('created_by')
-        assert isinstance(created_by, User), (
+        if not isinstance(created_by, User):
+            created_by = getattr(_thread_locals, 'user', None)
+        assert created_by is not None, (
             'With versioning enabled, create_title requires a User instance'
             ' to be passed as created_by parameter'
         )

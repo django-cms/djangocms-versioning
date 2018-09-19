@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
+from cms.models import PageContent
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
@@ -42,6 +43,10 @@ class VersioningAdminMixin:
         """
         super().save_model(request, obj, form, change)
         if not change:
+            if isinstance(obj, PageContent):
+                # FIXME disabled version creation for `cms.PageContent`
+                # here, as it's already done in `cms.api.create_title`
+                return
             # create a new version object and save it
             Version.objects.create(content=obj, created_by=request.user)
 

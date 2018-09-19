@@ -43,7 +43,6 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        null=True,
         verbose_name=_('author')
     )
     content_type = models.ForeignKey(

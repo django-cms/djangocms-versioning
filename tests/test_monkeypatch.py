@@ -1,8 +1,5 @@
-from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
-from cms.toolbar.utils import get_object_preview_url
-from cms.wizards.wizard_base import Wizard
 
 from djangocms_versioning.plugin_rendering import VersionRenderer
 from djangocms_versioning.test_utils.factories import (
@@ -25,6 +22,9 @@ class MonkeypatchTestCase(CMSTestCase):
 
     def test_success_url_for_cms_wizard(self):
         from django import forms
+        from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
+        from cms.toolbar.utils import get_object_preview_url
+        from cms.wizards.wizard_base import Wizard
         from djangocms_versioning.test_utils.polls.models import PollContent
 
         # Test against page creations in different languages.

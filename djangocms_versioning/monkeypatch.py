@@ -5,16 +5,18 @@ from django.dispatch import receiver
 from django.utils.functional import cached_property
 
 from cms import api
+from cms.cms_wizards import CMSPageWizard, CMSSubPageWizard
 from cms.models import titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 from cms.toolbar import toolbar
-from cms.toolbar.utils import get_toolbar_from_request
+from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.permissions import _thread_locals
+from cms.wizards.wizard_base import Wizard
 from menus.menu_pool import MenuRenderer
 
-from .constants import PUBLISHED
+from .constants import DRAFT, PUBLISHED
 from .models import Version
 from .plugin_rendering import VersionRenderer
 
@@ -102,7 +104,31 @@ def menu_renderer_cache_key(self):
     return key
 
 
+def get_wizard_success_url(self, obj, **kwargs):
+    language = kwargs.get('language', None)
+    return get_object_preview_url(obj, language)
+
+
+def get_page_wizard_success_url(self, obj, **kwargs):
+    language = kwargs['language']
+    cms_extension = apps.get_app_config('djangocms_versioning').cms_extension
+    versionable_item = cms_extension.versionables_by_grouper[obj.__class__]
+    page_content = (
+        versionable_item
+        .for_grouper(obj)
+        .filter(
+            language=language,
+            versions__state=DRAFT,
+        )
+        .first()
+    )
+    return get_wizard_success_url(self, page_content, **kwargs)
+
+
 toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)
 titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
 api.create_title = create_title(api.create_title)
 MenuRenderer.cache_key = property(menu_renderer_cache_key)
+Wizard.get_success_url = get_wizard_success_url
+CMSPageWizard.get_success_url = get_page_wizard_success_url
+CMSSubPageWizard.get_success_url = get_page_wizard_success_url

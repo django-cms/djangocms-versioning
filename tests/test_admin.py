@@ -1146,7 +1146,7 @@ class EditRedirectTestCase(CMSTestCase):
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
-    def test_edit_redirect_view_cannot_be_accessed_for_published_version_when_draft_exists(self):
+    def test_edit_redirect_view_redirects_to_draft_for_published_version_when_draft_exists(self):
         published = factories.PollVersionFactory(state=constants.PUBLISHED)
         draft = factories.PollVersionFactory(
             state=constants.DRAFT, content__poll=published.content.poll)
@@ -1156,7 +1156,10 @@ class EditRedirectTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        # redirect happened
+        redirect_url = (self.get_admin_url(
+            PollContent, 'change', draft.content.pk))
+        self.assertRedirects(response, redirect_url, target_status_code=302)
         # no draft was created
         self.assertFalse(Version.objects.exclude(
             pk=draft.pk).filter(state=constants.DRAFT).exists())
@@ -1200,12 +1203,9 @@ class EditRedirectTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirects(response, '/en/admin/', target_status_code=302)
-        self.assertEqual(mocked_messages.call_count, 1)
-        self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
+        self.assertEqual(response.status_code, 404)
+        # no draft was created
+        self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
     def test_edit_redirect_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)

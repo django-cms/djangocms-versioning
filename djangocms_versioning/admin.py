@@ -363,18 +363,10 @@ class VersionAdmin(admin.ModelAdmin):
         )) + '?grouper=' + str(version.grouper.pk)
         return redirect(url)
 
-    def edit_redirect_view(self, request, object_id):
-        """Redirects to the admin change view and creates a draft version
-        if no draft exists yet.
-        """
-        # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
-
+    def _get_edit_redirect_version(self, request, object_id):
         version = self.get_object(request, unquote(object_id))
         if version is None:
-            return self._get_obj_does_not_exist_redirect(
-                request, self.model._meta, object_id)
+            return
         # If published then there's extra things to do...
         if version.state == PUBLISHED:
             # First check there is no draft record for this grouper
@@ -387,14 +379,30 @@ class VersionAdmin(admin.ModelAdmin):
                 state=DRAFT)
             if drafts.exists():
                 # There is a draft record so people should be editing
-                # the draft record not the published one. Return 404.
-                raise Http404
+                # the draft record not the published one. Redirect to draft.
+                draft = drafts.first()
+                return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
             version = version.copy(request.user)
         # Raise 404 if the version is neither draft or published
         elif version.state != DRAFT:
+            return
+        return version
+
+    def edit_redirect_view(self, request, object_id):
+        """Redirects to the admin change view and creates a draft version
+        if no draft exists yet.
+        """
+        # This view always changes data so only POST requests should work
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
+
+        version = self._get_edit_redirect_version(request, object_id)
+
+        if version is None:
             raise Http404
+
         # Redirect
         # If the object is editable the cms editable view should be used, with the toolbar.
         if is_editable_model(version.content.__class__):

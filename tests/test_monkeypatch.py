@@ -21,11 +21,10 @@ class MonkeypatchTestCase(CMSTestCase):
         )
 
     def test_success_url_for_cms_wizard(self):
-        from django import forms
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
         from cms.toolbar.utils import get_object_preview_url
-        from cms.wizards.wizard_base import Wizard
-        from djangocms_versioning.test_utils.polls.models import PollContent
+
+        from djangocms_versioning.test_utils.polls.cms_wizards import poll_wizard
 
         # Test against page creations in different languages.
         version = PageVersionFactory(content__language='en')
@@ -47,17 +46,6 @@ class MonkeypatchTestCase(CMSTestCase):
         )
 
         # Test against non-CMS model.
-        class PollForm(forms.ModelForm):
-            model = PollContent
-
-        class PollWizard(Wizard):
-            pass
-
-        poll_wizard = PollWizard(
-            title='Poll Wizard',
-            weight=120,
-            form=PollForm,
-        )
         version = PollVersionFactory()
         self.assertEqual(
             poll_wizard.get_success_url(version.content),

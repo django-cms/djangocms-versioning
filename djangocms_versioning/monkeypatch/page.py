@@ -2,30 +2,20 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
-from django.utils.functional import cached_property
 
 from cms import api
 from cms.models import titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
-from cms.toolbar import toolbar
-from cms.toolbar.utils import get_toolbar_from_request
-from cms.utils.conf import get_cms_setting
 from cms.utils.permissions import _thread_locals
-from menus.menu_pool import MenuRenderer
 
-from .constants import PUBLISHED
-from .models import Version
-from .plugin_rendering import VersionRenderer
+from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.models import Version
 
 
 User = get_user_model()
 
 cms_extension = apps.get_app_config('cms').cms_extension
-
-
-def content_renderer(self):
-    return VersionRenderer(request=self.request)
 
 
 @receiver(post_obj_operation)
@@ -77,32 +67,11 @@ def create_title(func):
         Version.objects.create(content=page_content, created_by=created_by)
         return page_content
     return inner
+api.create_title = create_title(api.create_title)
 
 
 pagecontent_unique_together = tuple(
     set(titlemodels.PageContent._meta.unique_together) -
     set((('language', 'page'), ))
 )
-
-
-def menu_renderer_cache_key(self):
-    prefix = get_cms_setting('CACHE_PREFIX')
-
-    key = '%smenu_nodes_%s_%s' % (prefix, self.request_language, self.site.pk)
-
-    if self.request.user.is_authenticated:
-        key += '_%s_user' % self.request.user.pk
-
-    request_toolbar = get_toolbar_from_request(self.request)
-
-    if request_toolbar.edit_mode_active or request_toolbar.preview_mode_active:
-        key += ':draft'
-    else:
-        key += ':public'
-    return key
-
-
-toolbar.CMSToolbar.content_renderer = cached_property(content_renderer)
 titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
-api.create_title = create_title(api.create_title)
-MenuRenderer.cache_key = property(menu_renderer_cache_key)

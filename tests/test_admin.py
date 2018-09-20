@@ -1256,7 +1256,10 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn('v1', context)
         self.assertEqual(context['v1'], versions[0])
         self.assertIn('v1_preview_url', context)
-        params = '?' + get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
+        params = (
+            '?' + get_cms_setting('CMS_TOOLBAR_URL__DISABLE') + '=1&' +
+            get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
+        )
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
@@ -1295,7 +1298,10 @@ class CompareViewTestCase(CMSTestCase):
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
-        params = '?' + get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
+        params = (
+            '?' + get_cms_setting('CMS_TOOLBAR_URL__DISABLE') + '=1&' +
+            get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
+        )
         self.assertEqual(context['v1_preview_url'], v1_preview_url + params)
         self.assertIn('v2', context)
         self.assertEqual(context['v2'], versions[1])

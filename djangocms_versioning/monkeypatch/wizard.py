@@ -10,7 +10,7 @@ from djangocms_versioning.constants import DRAFT
 def get_wizard_success_url(self, obj, **kwargs):
     language = kwargs.get('language', None)
     return get_object_preview_url(obj, language)
-Wizard.get_success_url = get_wizard_success_url
+Wizard.get_success_url = get_wizard_success_url  # noqa: E305
 
 
 def get_page_wizard_success_url(self, obj, **kwargs):
@@ -27,5 +27,5 @@ def get_page_wizard_success_url(self, obj, **kwargs):
         .first()
     )
     return get_wizard_success_url(self, page_content, **kwargs)
-CMSPageWizard.get_success_url = get_page_wizard_success_url
+CMSPageWizard.get_success_url = get_page_wizard_success_url  # noqa: E305
 CMSSubPageWizard.get_success_url = get_page_wizard_success_url

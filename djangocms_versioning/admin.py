@@ -259,6 +259,8 @@ class VersionAdmin(admin.ModelAdmin):
         """
         Redirects to a compare versions view based on a users choice
         """
+        queryset = queryset.order_by('pk')
+
         # Validate that only two versions are selected
         if queryset.count() != 2:
             self.message_user(request, _("Exactly two versions need to be selected."))

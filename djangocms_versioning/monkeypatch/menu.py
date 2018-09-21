@@ -18,4 +18,4 @@ def menu_renderer_cache_key(self):
     else:
         key += ':public'
     return key
-MenuRenderer.cache_key = property(menu_renderer_cache_key)
+MenuRenderer.cache_key = property(menu_renderer_cache_key)  # noqa: E305

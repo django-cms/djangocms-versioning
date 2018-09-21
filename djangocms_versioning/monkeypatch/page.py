@@ -67,7 +67,7 @@ def create_title(func):
         Version.objects.create(content=page_content, created_by=created_by)
         return page_content
     return inner
-api.create_title = create_title(api.create_title)
+api.create_title = create_title(api.create_title)  # noqa: E305
 
 
 pagecontent_unique_together = tuple(

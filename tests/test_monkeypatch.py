@@ -45,9 +45,9 @@ class MonkeypatchTestCase(CMSTestCase):
             get_object_preview_url(version.content, language='de')
         )
 
-        # Test against non-CMS model.
+        # Test against a model that doesn't have a PlaceholderRelationField
         version = PollVersionFactory()
         self.assertEqual(
             poll_wizard.get_success_url(version.content),
-            get_object_preview_url(version.content)
+            version.content.get_absolute_url()
         )

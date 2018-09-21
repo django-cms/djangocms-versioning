@@ -6,6 +6,8 @@ from django.utils.functional import cached_property
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
+from cms.signals import post_obj_operation
+from cms.operations import CHANGE_PAGE
 
 from .datastructures import VersionableItem
 from .helpers import (
@@ -141,7 +143,19 @@ def label_from_instance(obj, language):
     return "{title} ({path})".format(title=obj.get_title(language), path=obj.get_path(language))
 
 
+def emit_page_change(version):
+    # Trigger a post object operation
+    post_obj_operation.send(
+        sender=version.__class__,
+        operation=CHANGE_PAGE,
+        request=None,
+        token=None,
+        obj=version.content,
+    )
+
+
 def on_page_content_publish(version):
+    emit_page_change(version)
     page = version.content.page
     language = version.content.language
     page._update_url_path(language)
@@ -152,6 +166,7 @@ def on_page_content_publish(version):
 
 
 def on_page_content_unpublish(version):
+    emit_page_change(version)
     page = version.content.page
     language = version.content.language
     page.update_urls(language, path=None)
@@ -160,11 +175,13 @@ def on_page_content_unpublish(version):
 
 
 def on_page_content_draft_create(version):
+    emit_page_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
 
 
 def on_page_content_archive(version):
+    emit_page_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
 

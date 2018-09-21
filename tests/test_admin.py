@@ -3,6 +3,7 @@ import warnings
 from distutils.version import LooseVersion
 from unittest import skipIf
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlparse
 
 import django
 from django.contrib import admin
@@ -1225,10 +1226,10 @@ class CompareViewTestCase(CMSTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
-        self.disable_toolbar_params = (
-            get_cms_setting('CMS_TOOLBAR_URL__DISABLE') + '=1&' +
-            get_cms_setting('CMS_TOOLBAR_URL__PERSIST') + '=0'
-        )
+        self.disable_toolbar_params = {
+            get_cms_setting('CMS_TOOLBAR_URL__DISABLE'): '1',
+            get_cms_setting('CMS_TOOLBAR_URL__PERSIST'): '0',
+        }
 
     def test_compare_view_doesnt_allow_user_without_staff_permissions(self):
         version = factories.PollVersionFactory()
@@ -1263,9 +1264,11 @@ class CompareViewTestCase(CMSTestCase):
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
+        parsed = urlparse(context['v1_preview_url'])
+        self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
-            context['v1_preview_url'],
-            v1_preview_url + '?' + self.disable_toolbar_params,
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            self.disable_toolbar_params,
         )
         self.assertNotIn('v2', context)
         self.assertNotIn('v2_preview_url', context)
@@ -1301,9 +1304,11 @@ class CompareViewTestCase(CMSTestCase):
         v1_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[0].content_type_id, versions[0].object_id))
+        parsed = urlparse(context['v1_preview_url'])
+        self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
-            context['v1_preview_url'],
-            v1_preview_url + '?' + self.disable_toolbar_params,
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            self.disable_toolbar_params,
         )
         self.assertIn('v2', context)
         self.assertEqual(context['v2'], versions[1])
@@ -1311,9 +1316,11 @@ class CompareViewTestCase(CMSTestCase):
         v2_preview_url = reverse(
             'admin:cms_placeholder_render_object_preview',
             args=(versions[1].content_type_id, versions[1].object_id))
+        parsed = urlparse(context['v2_preview_url'])
+        self.assertEqual(parsed.path, v2_preview_url)
         self.assertEqual(
-            context['v2_preview_url'],
-            v2_preview_url + '?' + self.disable_toolbar_params,
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            self.disable_toolbar_params,
         )
         self.assertIn('version_list', context)
         self.assertQuerysetEqual(

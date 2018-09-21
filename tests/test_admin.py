@@ -1512,9 +1512,9 @@ class VersionChangeViewTestCase(CMSTestCase):
         success_redirect = self.get_admin_url(
             self.versionable.version_model_proxy,
             'compare',
-            2,
+            1,
         )
-        success_redirect += '?compare_to=1'
+        success_redirect += '?compare_to=2'
 
         with self.login_user_context(self.superuser):
             data = {

@@ -6,8 +6,8 @@ from django.utils.functional import cached_property
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
-from cms.signals import post_obj_operation
 from cms.operations import CHANGE_PAGE
+from cms.signals import post_obj_operation
 
 from .datastructures import VersionableItem
 from .helpers import (

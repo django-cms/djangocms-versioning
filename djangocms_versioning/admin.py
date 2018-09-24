@@ -259,6 +259,8 @@ class VersionAdmin(admin.ModelAdmin):
         """
         Redirects to a compare versions view based on a users choice
         """
+        queryset = queryset.order_by('pk')
+
         # Validate that only two versions are selected
         if queryset.count() != 2:
             self.message_user(request, _("Exactly two versions need to be selected."))
@@ -429,6 +431,7 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id)
         persist_params = {
+            get_cms_setting('CMS_TOOLBAR_URL__DISABLE'): 1,
             get_cms_setting('CMS_TOOLBAR_URL__PERSIST'): 0,
         }
         v1_preview_url = add_url_parameters(

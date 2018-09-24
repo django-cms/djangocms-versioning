@@ -142,9 +142,23 @@ const initControls = () => {
     });
 };
 
+// in case the view is loaded inside the cms sideframe,
+// or any link on the page that is being diffed is clicked and this bundle loads there
+const breakOutOfAnIframe = () => {
+    try {
+        window.top.CMS.API.Sideframe.close();
+    } catch (e) {}
+    setTimeout(function () {
+        if (window.parent && window.parent !== window) {
+            window.top.location.href = window.location.href;
+        }
+    }, 0);
+};
+
 const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
 
 $(function() {
+    breakOutOfAnIframe();
     initControls();
 
     if (getData('v2_url')) {

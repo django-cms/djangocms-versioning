@@ -20,12 +20,16 @@
                     '</form>'
                 );
 
-                fakeForm.appendTo(document.body).submit();
+                // always break out of the sideframe, cause it was never meant to open cms views inside it
+                try {
+                    window.top.CMS.API.Sideframe.close();
+                } catch (err) {}
+                fakeForm.appendTo(window.top.document.body).submit();
             });
 
         $('.js-versioning-close-sideframe').on('click', function () {
             try {
-                window.top.CMS.$('.cms-sideframe-close').trigger('click.cms.sideframe');
+                window.top.CMS.API.Sideframe.close();
             } catch (e) {}
         });
     });

@@ -143,19 +143,25 @@ def label_from_instance(obj, language):
     return "{title} ({path})".format(title=obj.get_title(language), path=obj.get_path(language))
 
 
-def emit_page_change(version):
-    # Trigger a post object operation
-    post_obj_operation.send(
-        sender=version.__class__,
-        operation=CHANGE_PAGE_TRANSLATION,
-        request=None,
-        token=None,
-        obj=version.content,
-    )
+def emit_page_content_change(version):
+    """
+    Sends a page content change signal for djangocms-internalsearch
+    if installed. It is used for re-indexing version state info
+    """
+    try:
+        from djangocms_internalsearch.signals import page_content_change_signal
+    except ImportError:
+        page_content_change_signal = None
+
+    if page_content_change_signal:
+        page_content_change_signal.send(
+            sender=version.__class__,
+            page_content_object=version.content,
+        )
 
 
 def on_page_content_publish(version):
-    emit_page_change(version)
+    emit_page_content_change(version)
     page = version.content.page
     language = version.content.language
     page._update_url_path(language)
@@ -166,7 +172,7 @@ def on_page_content_publish(version):
 
 
 def on_page_content_unpublish(version):
-    emit_page_change(version)
+    emit_page_content_change(version)
     page = version.content.page
     language = version.content.language
     page.update_urls(language, path=None)
@@ -175,13 +181,13 @@ def on_page_content_unpublish(version):
 
 
 def on_page_content_draft_create(version):
-    emit_page_change(version)
+    emit_page_content_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
 
 
 def on_page_content_archive(version):
-    emit_page_change(version)
+    emit_page_content_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
 

@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
-from cms.operations import CHANGE_PAGE
+from cms.operations import CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 
 from .datastructures import VersionableItem
@@ -147,7 +147,7 @@ def emit_page_change(version):
     # Trigger a post object operation
     post_obj_operation.send(
         sender=version.__class__,
-        operation=CHANGE_PAGE,
+        operation=CHANGE_PAGE_TRANSLATION,
         request=None,
         token=None,
         obj=version.content,

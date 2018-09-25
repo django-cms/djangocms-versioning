@@ -147,11 +147,11 @@ def emit_page_content_change(version):
     if installed. It is used for re-indexing version state info
     """
     try:
-        from djangocms_internalsearch.signals import content_object_change_signal
+        from djangocms_internalsearch.signals import content_object_state_change
     except ImportError:
         return
 
-    content_object_change_signal.send(
+    content_object_state_change.send(
         sender=version.__class__,
         content_object=version.content,
     )

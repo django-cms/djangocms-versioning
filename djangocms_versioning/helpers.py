@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
-from .admin import VersionAdmin, VersioningAdminMixin
 from .managers import PublishedContentManagerMixin
 from .models import Version
 
@@ -17,6 +16,7 @@ def versioning_admin_factory(admin_class):
     :param admin_class: Existing admin class
     :return: A subclass of `VersioningAdminMixin` and `admin_class`
     """
+    from .admin import VersioningAdminMixin
     return type('Versioned' + admin_class.__name__, (VersioningAdminMixin, admin_class), {})
 
 
@@ -30,6 +30,7 @@ def _replace_admin_for_model(modeladmin, admin_site):
     :param model: ModelAdmin instance
     :param admin_site: AdminSite instance
     """
+    from .admin import VersioningAdminMixin
     if isinstance(modeladmin, VersioningAdminMixin):
         return
     new_admin_class = versioning_admin_factory(modeladmin.__class__)
@@ -62,6 +63,8 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     :param versionable: VersionableItem instance
     :param admin_site: AdminSite instance
     """
+    from .admin import VersionAdmin
+
     if admin_site is None:
         admin_site = admin.site
 

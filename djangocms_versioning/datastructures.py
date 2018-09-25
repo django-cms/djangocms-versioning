@@ -1,6 +1,9 @@
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max
 from django.utils.functional import cached_property
+from django.db.models import Value as V, OuterRef, Prefetch, Subquery, Max
+
+from .constants import DRAFT, PUBLISHED
+from .compat import StrIndex
 
 from .models import Version
 
@@ -72,6 +75,25 @@ class VersionableItem:
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
         return self.content_model._base_manager.filter(**{self.grouper_field.name: grouper})
+
+    def grouper_choices_queryset(self):
+        inner = self.content_model._base_manager.annotate(
+            order=StrIndex(
+                V(' '.join((DRAFT, PUBLISHED))),
+                'versions__state',
+            ),
+        ).filter(**{
+            self.grouper_field_name: OuterRef('pk'),
+        }).order_by('-order')
+        content_objects = self.content_model._base_manager.filter(
+            pk__in=self.grouper_model.objects.annotate(
+                content=Subquery(inner.values_list('pk')),
+            ).values_list('content'),
+        )
+        cache_name = self.grouper_field.remote_field.get_cache_name()
+        return self.grouper_model.objects.prefetch_related(
+            Prefetch(cache_name, queryset=content_objects),
+        )
 
 
 def default_copy(original_content):

@@ -51,9 +51,8 @@ class GrouperFormTestCase(CMSTestCase):
         """
         version = factories.PageVersionFactory()
         form_class = grouper_form_factory(PageContent, version.content.language)
-        label = "{title} ({path})".format(
+        label = "{title} (Unpublished)".format(
             title=version.content.page.get_title(version.content.language),
-            path=version.content.page.get_path(version.content.language),
         )
 
         self.assertIn(

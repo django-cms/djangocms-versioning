@@ -3,6 +3,7 @@ import collections
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
@@ -138,7 +139,10 @@ def label_from_instance(obj, language):
     """
     Override the label for each grouper select option
     """
-    return "{title} ({path})".format(title=obj.get_title(language), path=obj.get_path(language))
+    title = obj.get_title(language) or _("No available title")
+    path = obj.get_path(language)
+    path = "/{}/".format(path) if path else _("Unpublished")
+    return "{title} ({path})".format(title=title, path=path)
 
 
 def on_page_content_publish(version):

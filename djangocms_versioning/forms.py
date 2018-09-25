@@ -1,7 +1,11 @@
 from functools import lru_cache
 
+from cms.models import PageContent
+
 from django import forms
 from django.apps import apps
+
+from . import versionables
 
 
 class VersionContentChoiceField(forms.ModelChoiceField):
@@ -18,6 +22,14 @@ class VersionContentChoiceField(forms.ModelChoiceField):
             return super().label_from_instance(obj)
 
 
+class GrouperFormMixin:
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        versionable = versionables.for_content(self._content_model)
+        self.fields['grouper'].queryset = versionable.grouper_choices_queryset()
+
+
 @lru_cache()
 def grouper_form_factory(content_model, language=None):
     """Returns a form class used for selecting a grouper to see versions of.
@@ -30,8 +42,9 @@ def grouper_form_factory(content_model, language=None):
     versionable = versioning_extension.versionables_by_content[content_model]
     return type(
         content_model.__name__ + 'GrouperForm',
-        (forms.Form,),
+        (GrouperFormMixin, forms.Form,),
         {
+            '_content_model': content_model,
             'grouper': VersionContentChoiceField(
                 queryset=versionable.grouper_model.objects.all(),
                 label=versionable.grouper_model._meta.verbose_name,

@@ -158,7 +158,6 @@ def emit_page_content_change(version):
 
 
 def on_page_content_publish(version):
-    emit_page_content_change(version)
     page = version.content.page
     language = version.content.language
     page._update_url_path(language)
@@ -167,26 +166,31 @@ def on_page_content_publish(version):
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 
+    emit_page_content_change(version)
+
 
 def on_page_content_unpublish(version):
-    emit_page_content_change(version)
     page = version.content.page
     language = version.content.language
     page.update_urls(language, path=None)
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 
+    emit_page_content_change(version)
+
 
 def on_page_content_draft_create(version):
-    emit_page_content_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
+
+    emit_page_content_change(version)
 
 
 def on_page_content_archive(version):
-    emit_page_content_change(version)
     page = version.content.page
     page.clear_cache(menu=True)
+
+    emit_page_content_change(version)
 
 
 class VersioningCMSConfig(CMSAppConfig):

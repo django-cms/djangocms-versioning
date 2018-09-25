@@ -89,7 +89,7 @@ class VersionableItem:
                 content=Subquery(inner.values_list('pk')),
             ).values_list('content'),
         )
-        cache_name = self.grouper_field.remote_field.get_cache_name()
+        cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model.objects.prefetch_related(
             Prefetch(cache_name, queryset=content_objects),
         )

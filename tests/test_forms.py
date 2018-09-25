@@ -1,6 +1,6 @@
 from django import forms
 
-from cms.models import PageContent
+from cms.models import PageContent, PageUrl
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.forms import grouper_form_factory
@@ -45,16 +45,34 @@ class GrouperFormTestCase(CMSTestCase):
             form_class.base_fields['grouper'].choices,
         )
 
-    def test_grouper_selector_non_default_label(self):
+    def test_grouper_selector_non_default_label_unpublished(self):
         """
         Grouper selector shows the PageContent label format when PageContent is set
         """
         version = factories.PageVersionFactory()
         form_class = grouper_form_factory(PageContent, version.content.language)
-        label = "{title} (Unpublished)".format(
-            title=version.content.page.get_title(version.content.language),
+        label = "No available title (Unpublished)"
+        self.assertIn(
+            (version.content.page.pk, label),
+            form_class.base_fields['grouper'].choices,
         )
 
+    def test_grouper_selector_non_default_label(self):
+        """
+        Grouper selector shows the PageContent label format when PageContent is set
+        """
+        version = factories.PageVersionFactory()
+        PageUrl.objects.create(
+            page=version.content.page,
+            language=version.content.language,
+            path='test',
+            slug='test',
+        )
+        version.publish(version.created_by)
+        form_class = grouper_form_factory(PageContent, version.content.language)
+        label = "{title} (/{path}/)".format(
+            title=version.content.title,
+            path=version.content.page.get_path(version.content.language))
         self.assertIn(
             (version.content.page.pk, label),
             form_class.base_fields['grouper'].choices,

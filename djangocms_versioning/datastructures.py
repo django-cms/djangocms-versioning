@@ -1,10 +1,9 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Max, OuterRef, Prefetch, Subquery, Value as V
 from django.utils.functional import cached_property
-from django.db.models import Value as V, OuterRef, Prefetch, Subquery, Max
 
-from .constants import DRAFT, PUBLISHED
 from .compat import StrIndex
-
+from .constants import DRAFT, PUBLISHED
 from .models import Version
 
 

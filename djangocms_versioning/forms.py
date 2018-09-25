@@ -1,7 +1,5 @@
 from functools import lru_cache
 
-from cms.models import PageContent
-
 from django import forms
 from django.apps import apps
 

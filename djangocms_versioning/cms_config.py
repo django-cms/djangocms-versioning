@@ -165,7 +165,6 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-
     emit_page_content_change(version)
 
 
@@ -175,21 +174,18 @@ def on_page_content_unpublish(version):
     page.update_urls(language, path=None)
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-
     emit_page_content_change(version)
 
 
 def on_page_content_draft_create(version):
     page = version.content.page
     page.clear_cache(menu=True)
-
     emit_page_content_change(version)
 
 
 def on_page_content_archive(version):
     page = version.content.page
     page.clear_cache(menu=True)
-
     emit_page_content_change(version)
 
 

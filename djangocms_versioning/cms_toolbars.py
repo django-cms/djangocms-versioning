@@ -62,7 +62,7 @@ class VersioningToolbar(CMSToolbar):
             )
             self.toolbar.add_item(item)
 
-    def _add_edit_button(self):
+    def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar
         """
         # Only add the edit button if the content type is registered
@@ -81,7 +81,7 @@ class VersioningToolbar(CMSToolbar):
             item.add_button(
                 _('Edit'),
                 url=edit_url,
-                disabled=False,
+                disabled=disabled,
                 extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
             )
             self.toolbar.add_item(item)

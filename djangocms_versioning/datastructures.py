@@ -86,7 +86,7 @@ class VersionableItem:
         }).order_by('-order')
         content_objects = self.content_model._base_manager.filter(
             pk__in=self.grouper_model.objects.annotate(
-                content=Subquery(inner.values_list('pk')),
+                content=Subquery(inner.values_list('pk')[:1]),
             ).values_list('content'),
         )
         cache_name = self.grouper_field.remote_field.get_accessor_name()

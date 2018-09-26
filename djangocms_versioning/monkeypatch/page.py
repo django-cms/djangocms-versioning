@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 
 from cms import api
-from cms.models import titlemodels
+from cms.models import pagemodel, titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 from cms.utils.permissions import _thread_locals
@@ -16,6 +16,18 @@ from djangocms_versioning.models import Version
 User = get_user_model()
 
 cms_extension = apps.get_app_config('cms').cms_extension
+
+
+def _get_title_cache(func):
+    def inner(self, language, fallback, force_reload):
+        prefetch_cache = getattr(self, '_prefetched_objects_cache', {})
+        cached_page_content = prefetch_cache.get('pagecontent_set', [])
+        for page_content in cached_page_content:
+            self.title_cache[page_content.language] = page_content
+        language = func(self, language, fallback, force_reload)
+        return language
+    return inner
+pagemodel.Page._get_title_cache = _get_title_cache(pagemodel.Page._get_title_cache)  # noqa: E305
 
 
 @receiver(post_obj_operation)

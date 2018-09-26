@@ -151,7 +151,7 @@ def _version_list_url(versionable, **params):
             app=proxy._meta.app_label,
             model=proxy._meta.model_name,
         )),
-        **params,
+        **params
     )
 
 

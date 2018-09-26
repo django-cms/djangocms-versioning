@@ -1,3 +1,4 @@
+from cms.models import Page
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 
@@ -51,3 +52,14 @@ class MonkeypatchTestCase(CMSTestCase):
             poll_wizard.get_success_url(version.content),
             version.content.get_absolute_url()
         )
+
+    def test_get_title_cache(self):
+        """Check that patched Page._get_title_cache fills
+        the title_cache with _prefetched_objects_cache data.
+        """
+        version = PageVersionFactory(content__language='en')
+        page = version.content.page
+        page._prefetched_objects_cache = {'pagecontent_set': [version.content]}
+
+        page._get_title_cache(language='en', fallback=False, force_reload=False)
+        self.assertEqual({'en': version.content}, page.title_cache)

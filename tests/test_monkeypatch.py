@@ -1,4 +1,3 @@
-from cms.models import Page
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 

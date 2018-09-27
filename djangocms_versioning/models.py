@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django_fsm import FSMField, can_proceed, transition
 
 from . import constants
+from .helpers import emit_content_change
 
 
 class VersionQuerySet(models.QuerySet):

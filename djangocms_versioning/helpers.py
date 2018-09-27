@@ -9,7 +9,6 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from .constants import GROUPER_PARAM
 from .managers import PublishedContentManagerMixin
-from .models import Version
 from .versionables import _cms_extension
 
 
@@ -125,6 +124,7 @@ def replace_default_manager(model):
 
 
 def inject_generic_relation_to_version(model):
+    from .models import Version
     model.add_to_class('versions', GenericRelation(Version))
 
 

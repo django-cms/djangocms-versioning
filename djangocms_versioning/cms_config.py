@@ -145,22 +145,6 @@ def label_from_instance(obj, language):
     return "{title} ({path})".format(title=title, path=path)
 
 
-def emit_page_content_change(version):
-    """
-    Sends a page content change signal for djangocms-internalsearch
-    if installed. It is used for re-indexing version state info
-    """
-    try:
-        from djangocms_internalsearch.signals import content_object_state_change
-    except ImportError:
-        return
-
-    content_object_state_change.send(
-        sender=version.__class__,
-        content_object=version.content,
-    )
-
-
 def on_page_content_publish(version):
     page = version.content.page
     language = version.content.language
@@ -169,7 +153,6 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
 
 
 def on_page_content_unpublish(version):
@@ -178,19 +161,16 @@ def on_page_content_unpublish(version):
     page.update_urls(language, path=None)
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
 
 
 def on_page_content_draft_create(version):
     page = version.content.page
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
 
 
 def on_page_content_archive(version):
     page = version.content.page
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
 
 
 class VersioningCMSConfig(CMSAppConfig):

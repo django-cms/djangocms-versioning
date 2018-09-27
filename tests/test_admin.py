@@ -614,10 +614,10 @@ class StateActionsTestCase(CMSTestCase):
         self.assertIn(edit_url, state_actions)
 
     def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):
-        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        version = factories.PollVersionFactory(state=constants.PUBLISHED, content__language='en')
         request = RequestFactory().get('/admin/polls/pollcontent/')
         factories.PollVersionFactory(
-            state=constants.DRAFT, content__poll=version.content.poll)
+            state=constants.DRAFT, content__poll=version.content.poll, content__language='en')
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -1182,9 +1182,9 @@ class EditRedirectTestCase(CMSTestCase):
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
     def test_edit_redirect_view_redirects_to_draft_for_published_version_when_draft_exists(self):
-        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        published = factories.PollVersionFactory(state=constants.PUBLISHED, content__language='en')
         draft = factories.PollVersionFactory(
-            state=constants.DRAFT, content__poll=published.content.poll)
+            state=constants.DRAFT, content__poll=published.content.poll, content__language='en')
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'edit_redirect', published.pk)
 

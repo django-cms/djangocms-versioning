@@ -351,6 +351,38 @@ class VersionAdminTestCase(CMSTestCase):
         )
 
 
+class VersionAdminActionsTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.version_admin = admin.site._registry[self.versionable.version_model_proxy]
+
+    def test_edit_action_link_enabled_state(self):
+        """
+        The edit action is active
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'edit_redirect', version.pk)
+
+        actual_enabled_control = self.version_admin._get_edit_link(version, request, disabled=False)
+        expected_enabled_state = "<a class=\"btn cms-versioning-action-btn js-versioning-action\" href=\"%s\" title=\"Edit\">" % draft_edit_url
+
+        self.assertIn(expected_enabled_state, actual_enabled_control)
+
+    def test_edit_action_link_disabled_state(self):
+        """
+        The edit action is disabled
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+
+        actual_disabled_control = self.version_admin._get_edit_link(version, request, disabled=True)
+        expected_disabled_control = "<a class=\"btn cms-versioning-action-btn inactive\" title=\"Edit\">"
+
+        self.assertIn(expected_disabled_control, actual_disabled_control)
+
+
 class StateActionsTestCase(CMSTestCase):
 
     def test_archive_in_state_actions_for_draft_version(self):

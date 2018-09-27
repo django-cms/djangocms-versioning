@@ -225,7 +225,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'unpublish_url': unpublish_url}
         )
 
-    def _get_edit_link(self, obj, request):
+    def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
         if obj.state == PUBLISHED:
@@ -239,12 +239,16 @@ class VersionAdmin(admin.ModelAdmin):
         elif not obj.state == DRAFT:
             # Don't display the link if it's a draft
             return ''
+
         edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/edit_icon.html',
-            {'edit_url': edit_url}
+            {
+                'edit_url': edit_url,
+                'disabled': disabled
+            }
         )
 
     def get_state_actions(self):

@@ -24,12 +24,10 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT, GROUPER_PARAM, PUBLISHED
 from .forms import grouper_form_factory
+from .helpers import version_list_url
 from .models import Version
-
-
-GROUPER_PARAM = 'grouper'
 
 
 class VersioningAdminMixin:
@@ -310,11 +308,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Display message
         messages.success(request, _("Version archived"))
         # Redirect
-        url = reverse('admin:{app}_{model}_changelist'.format(
-            app=self.model._meta.app_label,
-            model=self.model._meta.model_name,
-        )) + '?grouper=' + str(version.grouper.pk)
-        return redirect(url)
+        return redirect(version_list_url(version.content))
 
     def publish_view(self, request, object_id):
         """Publishes the specified version and redirects back to the
@@ -337,11 +331,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Display message
         messages.success(request, _("Version published"))
         # Redirect
-        url = reverse('admin:{app}_{model}_changelist'.format(
-            app=self.model._meta.app_label,
-            model=self.model._meta.model_name,
-        )) + '?grouper=' + str(version.grouper.pk)
-        return redirect(url)
+        return redirect(version_list_url(version.content))
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the
@@ -364,11 +354,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Display message
         messages.success(request, _("Version unpublished"))
         # Redirect
-        url = reverse('admin:{app}_{model}_changelist'.format(
-            app=self.model._meta.app_label,
-            model=self.model._meta.model_name,
-        )) + '?grouper=' + str(version.grouper.pk)
-        return redirect(url)
+        return redirect(version_list_url(version.content))
 
     def _get_edit_redirect_version(self, request, object_id):
         version = self.get_object(request, unquote(object_id))

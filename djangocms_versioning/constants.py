@@ -9,3 +9,5 @@ VERSION_STATES = (
     (UNPUBLISHED, 'Unpublished'),
     (ARCHIVED, 'Archived'),
 )
+
+GROUPER_PARAM = 'grouper'

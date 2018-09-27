@@ -1,6 +1,7 @@
 import warnings
 from contextlib import contextmanager
 
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -176,6 +177,18 @@ def version_list_url_for_grouper(grouper):
     })
 
 
+def is_model_in_internalsearch_registry(model):
+    try:
+        internalsearch_config = apps.get_app_config('djangocms_internalsearch')
+    except LookupError:
+        return False
+
+    return any(
+        c.model == model
+        for c in internalsearch_config.cms_extension.internalsearch_apps_config
+    )
+
+
 def emit_content_change(version):
     """
     Sends a content change signal for djangocms-internalsearch
@@ -186,11 +199,7 @@ def emit_content_change(version):
     except ImportError:
         return
 
-    from djangocms_internalsearch.helpers import get_internalsearch_model_config
-
-    try:
-        get_internalsearch_model_config(version.content.__class__)
-    except IndexError:
+    if not is_model_in_internalsearch_registry(version.content.__class__):
         # model is not registered with internal search
         return
 

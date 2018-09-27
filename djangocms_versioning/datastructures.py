@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max, OuterRef, Prefetch, Subquery, Value as V
 from django.utils.functional import cached_property
@@ -10,10 +12,10 @@ from .models import Version
 class VersionableItem:
 
     def __init__(
-        self, content_model, grouper_field_name,
-        copy_function, on_publish=None, on_unpublish=None,
-        on_draft_create=None, on_archive=None,
-        grouper_selector_option_label=False,
+        self, content_model, grouper_field_name, copy_function,
+        extra_grouping_fields=None, version_list_filter_lookups=None,
+        on_publish=None, on_unpublish=None, on_draft_create=None,
+        on_archive=None, grouper_selector_option_label=False,
     ):
         # We require get_absolute_url to be implemented on content models
         # because it is needed for django-cms's preview endpoint, which
@@ -26,8 +28,10 @@ class VersionableItem:
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
+        self.extra_grouping_fields = extra_grouping_fields or ()
         # Set the grouper selector label
         self.grouper_selector_option_label = grouper_selector_option_label
+        self.version_list_filter_lookups = version_list_filter_lookups or {}
         self.copy_function = copy_function
         self.on_publish = on_publish
         self.on_unpublish = on_unpublish
@@ -73,7 +77,22 @@ class VersionableItem:
 
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
-        return self.content_model._base_manager.filter(**{self.grouper_field.name: grouper})
+        return self.for_grouping_values(**{self.grouper_field.name: grouper})
+
+    def for_content_grouping_values(self, content):
+        return self.for_grouping_values(**self.grouping_values(content))
+
+    def for_grouping_values(self, **kwargs):
+        return self.content_model._base_manager.filter(**kwargs)
+
+    @property
+    def grouping_fields(self):
+        return chain([self.grouper_field_name], self.extra_grouping_fields)
+
+    def grouping_values(self, content):
+        return {
+            field: getattr(content, field) for field in self.grouping_fields
+        }
 
     def grouper_choices_queryset(self):
         inner = self.content_model._base_manager.annotate(
@@ -93,6 +112,9 @@ class VersionableItem:
         return self.grouper_model.objects.prefetch_related(
             Prefetch(cache_name, queryset=content_objects),
         )
+
+    def get_grouper_with_fallbacks(self, grouper_id):
+        return self.grouper_choices_queryset().filter(pk=grouper_id).first()
 
 
 def default_copy(original_content):

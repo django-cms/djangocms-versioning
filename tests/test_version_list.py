@@ -13,12 +13,12 @@ class VersionListUrlsTestCase(CMSTestCase):
         pv = factories.PollVersionFactory()
         self.assertEqual(
             version_list_url(pv.content),
-            "/en/admin/djangocms_versioning/pollcontentversion/?grouper=1",
+            "/en/admin/djangocms_versioning/pollcontentversion/?poll=1",
         )
 
     def test_version_list_url_for_grouper(self):
         pv = factories.PollVersionFactory()
         self.assertEqual(
             version_list_url_for_grouper(pv.grouper),
-            "/en/admin/djangocms_versioning/pollcontentversion/?grouper=1",
+            "/en/admin/djangocms_versioning/pollcontentversion/?poll=1",
         )

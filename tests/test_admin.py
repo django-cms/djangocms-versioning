@@ -738,7 +738,7 @@ class ArchiveViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?grouper=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_archive_view_cannot_be_accessed_for_archived_version(self):
@@ -865,7 +865,7 @@ class PublishViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?grouper=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_publish_view_cannot_be_accessed_for_archived_version(self):
@@ -992,7 +992,7 @@ class UnpublishViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?grouper=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_unpublish_view_cannot_be_accessed_for_archived_version(self):
@@ -1415,10 +1415,10 @@ class VersionChangeListTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('form', response.context)
-        self.assertIn('grouper', response.context['form'].fields)
+        self.assertIn('poll', response.context['form'].fields)
         self.assertIn(
             (pv.content.poll.pk, str(pv.content.poll)),
-            response.context['form'].fields['grouper'].choices,
+            response.context['form'].fields['poll'].choices,
         )
 
     def test_missing_grouper(self):
@@ -1438,7 +1438,7 @@ class VersionChangeListTestCase(CMSTestCase):
         factories.PollVersionFactory.create_batch(4)
 
         with self.login_user_context(self.superuser):
-            querystring = '?grouper={grouper}'.format(grouper=pv.content.poll_id)
+            querystring = '?poll={grouper}'.format(grouper=pv.content.poll_id)
             response = self.client.get(
                 self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring,
             )
@@ -1520,7 +1520,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        querystring = '?poll={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
 
         with self.login_user_context(self.superuser):
@@ -1539,7 +1539,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        querystring = '?poll={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
         success_redirect = self.get_admin_url(
             self.versionable.version_model_proxy,
@@ -1566,7 +1566,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = '?grouper={grouper}'.format(grouper=poll.pk)
+        querystring = '?poll={grouper}'.format(grouper=poll.pk)
         endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
 
         with self.login_user_context(self.superuser):

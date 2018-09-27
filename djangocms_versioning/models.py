@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -7,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
-from . import constants
+from . import constants, versionables
 from .helpers import emit_content_change
 
 
@@ -26,16 +25,18 @@ class VersionQuerySet(models.QuerySet):
         """Returns a list of Version objects for the provided grouper
         object
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_grouper[
-            grouper_object.__class__
-        ]
-        content_objects = versionable.for_grouper(grouper_object)
-        content_type = ContentType.objects.get_for_model(
-            versionable.content_model)
+        versionable = versionables.for_grouper(grouper_object)
+        return self.filter_by_grouping_fields(versionable, **{
+            versionable.grouper_field_name: grouper_object,
+        })
+
+    def filter_by_grouping_fields(self, versionable, **kwargs):
+        content_objects = versionable.for_grouping_values(**kwargs)
+        content_type = ContentType.objects.get_for_model(versionable.content_model)
         return self.filter(
-            object_id__in=content_objects, content_type=content_type)
+            object_id__in=content_objects,
+            content_type=content_type,
+        )
 
 
 class Version(models.Model):
@@ -69,13 +70,13 @@ class Version(models.Model):
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        # Only one draft version is allowed per grouper. Set all other
-        # drafts to archived
+        # Only one draft version is allowed per unique grouping values.
+        # Set all other drafts to archived
         if self.state == constants.DRAFT:
-            pks_for_grouper = self.versionable.for_grouper(
-                self.grouper).values_list('pk', flat=True)
+            pks_for_grouping_values = self.versionable.for_content_grouping_values(
+                self.content).values_list('pk', flat=True)
             to_archive = Version.objects.exclude(pk=self.pk).filter(
-                state=constants.DRAFT, object_id__in=pks_for_grouper,
+                state=constants.DRAFT, object_id__in=pks_for_grouping_values,
                 content_type=self.content_type)
             for version in to_archive:
                 version.archive(self.created_by)
@@ -89,10 +90,7 @@ class Version(models.Model):
         """Helper property to get the versionable for the content type
         of the version
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        return versioning_extension.versionables_by_content[
-            self.content.__class__]
+        return versionables.for_content(self.content)
 
     @property
     def grouper(self):
@@ -107,11 +105,7 @@ class Version(models.Model):
         Allows customization of how the content object will be copied
         when specified in cms_config.py
         """
-        content_model = self.content.__class__
-        versioning_ext = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        copy_function = versioning_ext.versionables_by_content[
-            content_model].copy_function
+        copy_function = versionables.for_content(self.content).copy_function
         new_content = copy_function(self.content)
         new_version = Version.objects.create(
             content=new_content, created_by=created_by)
@@ -156,12 +150,12 @@ class Version(models.Model):
             new_state=constants.PUBLISHED,
             user=user
         )
-        # Only one published version is allowed per grouper. Set all other
-        # published versions to unpublished
-        pks_for_grouper = self.versionable.for_grouper(
-            self.grouper).values_list('pk', flat=True)
+        # Only one published version is allowed per unique grouping values.
+        # Set all other published versions to unpublished
+        pks_for_grouping_values = self.versionable.for_content_grouping_values(
+            self.content).values_list('pk', flat=True)
         to_unpublish = Version.objects.exclude(pk=self.pk).filter(
-            state=constants.PUBLISHED, object_id__in=pks_for_grouper,
+            state=constants.PUBLISHED, object_id__in=pks_for_grouping_values,
             content_type=self.content_type)
         for version in to_unpublish:
             version.unpublish(user)

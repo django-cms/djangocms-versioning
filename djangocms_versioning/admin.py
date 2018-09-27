@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import (
@@ -24,7 +23,8 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
-from .constants import DRAFT, GROUPER_PARAM, PUBLISHED
+from . import versionables
+from .constants import DRAFT, PUBLISHED
 from .forms import grouper_form_factory
 from .helpers import version_list_url
 from .models import Version
@@ -54,8 +54,7 @@ class VersioningAdminMixin:
         from .helpers import override_default_manager
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[queryset.model]
+        versionable = versionables.for_content(queryset.model)
         return queryset.filter(pk__in=versionable.distinct_groupers())
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
@@ -74,9 +73,20 @@ class VersioningAdminMixin:
 class VersionChangeList(ChangeList):
 
     def get_filters_params(self, params=None):
+        content_model = self.model_admin.model._source_model
+        versionable = versionables.for_content(content_model)
         lookup_params = super().get_filters_params(params)
-        lookup_params.pop(GROUPER_PARAM, None)
+        lookup_params.pop(versionable.grouper_field_name, None)
         return lookup_params
+
+    def get_grouping_field_filters(self, request):
+        content_model = self.model_admin.model._source_model
+        versionable = versionables.for_content(content_model)
+        fields = versionable.grouping_fields
+        for field in fields:
+            value = request.GET.get(field)
+            if value is not None:
+                yield field, value
 
     def get_queryset(self, request):
         """Adds support for querying the version model by content grouper
@@ -89,17 +99,33 @@ class VersionChangeList(ChangeList):
         for specifying filters that work without being shown in the UI
         along with filter choices.
         """
-        qs = super().get_queryset(request)
+        queryset = super().get_queryset(request)
         content_model = self.model_admin.model._source_model
-        versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-        versionable = versioning_extension.versionables_by_content[content_model]
-        try:
-            grouper = versionable.grouper_model.objects.get(
-                pk=int(request.GET.get(GROUPER_PARAM)),
-            )
-        except (ObjectDoesNotExist, TypeError, ValueError):
+        versionable = versionables.for_content(content_model)
+        filters = dict(self.get_grouping_field_filters(request))
+        if versionable.grouper_field_name not in filters:
             raise IncorrectLookupParameters("Missing grouper")
-        return qs.filter_by_grouper(grouper)
+        return queryset.filter_by_grouping_fields(versionable, **filters)
+
+
+def fake_filter_factory(versionable, field_name):
+    field = versionable.content_model._meta.get_field(field_name)
+    lookups_ = versionable.version_list_filter_lookups[field_name]
+
+    class FakeFilter(admin.SimpleListFilter):
+        title = field.verbose_name
+        parameter_name = field_name
+
+        def lookups(self, request, model_admin):
+            if callable(lookups_):
+                return lookups_()
+            else:
+                return lookups_
+
+        def queryset(self, request, queryset):
+            return queryset
+
+    return FakeFilter
 
 
 class VersionAdmin(admin.ModelAdmin):
@@ -122,6 +148,13 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
+
+    def get_list_filter(self, request):
+        versionable = versionables.for_content(self.model._source_model)
+        return (
+            fake_filter_factory(versionable, field)
+            for field in versionable.extra_grouping_fields
+        )
 
     def _state_actions(self, request):
         def state_actions(obj):
@@ -227,8 +260,8 @@ class VersionAdmin(admin.ModelAdmin):
         """Helper function to get the html link to the edit action
         """
         if obj.state == PUBLISHED:
-            pks_for_grouper = obj.versionable.for_grouper(
-                obj.grouper).values_list('pk', flat=True)
+            pks_for_grouper = obj.versionable.for_content_grouping_values(
+                obj.content).values_list('pk', flat=True)
             drafts = Version.objects.filter(
                 object_id__in=pks_for_grouper, content_type=obj.content_type,
                 state=DRAFT)
@@ -368,8 +401,8 @@ class VersionAdmin(admin.ModelAdmin):
         if version.state == PUBLISHED:
             # First check there is no draft record for this grouper
             # already.
-            pks_for_grouper = version.versionable.for_grouper(
-                version.grouper).values_list('pk', flat=True)
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                version.content).values_list('pk', flat=True)
             content_type = ContentType.objects.get_for_model(version.content)
             drafts = Version.objects.filter(
                 object_id__in=pks_for_grouper, content_type=content_type,
@@ -467,13 +500,26 @@ class VersionAdmin(admin.ModelAdmin):
                 opts.app_label,
                 opts.model_name,
             )))
+        extra_context = extra_context or {}
+        versionable = versionables.for_content(self.model._source_model)
+        try:
+            grouper = versionable.get_grouper_with_fallbacks(
+                int(request.GET.get(versionable.grouper_field_name)),
+            )
+        except (ObjectDoesNotExist, TypeError, ValueError):
+            grouper = None
+        extra_context.update(
+            grouper=grouper,
+            title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
+        )
+
         return super().changelist_view(request, extra_context)
 
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
             url(
-                r'^grouper/$',
+                r'^select/$',
                 self.admin_site.admin_view(self.grouper_form_view),
                 name='{}_{}_grouper'.format(*info),
             ),

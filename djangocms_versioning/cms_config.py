@@ -145,9 +145,9 @@ def label_from_instance(obj, language):
     return "{title} ({path})".format(title=title, path=path)
 
 
-def emit_page_content_change(version):
+def emit_content_change(version):
     """
-    Sends a page content change signal for djangocms-internalsearch
+    Sends a content change signal for djangocms-internalsearch
     if installed. It is used for re-indexing version state info
     """
     try:
@@ -169,7 +169,7 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
+    emit_content_change(version)
 
 
 def on_page_content_unpublish(version):
@@ -178,19 +178,19 @@ def on_page_content_unpublish(version):
     page.update_urls(language, path=None)
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
+    emit_content_change(version)
 
 
 def on_page_content_draft_create(version):
     page = version.content.page
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
+    emit_content_change(version)
 
 
 def on_page_content_archive(version):
     page = version.content.page
     page.clear_cache(menu=True)
-    emit_page_content_change(version)
+    emit_content_change(version)
 
 
 class VersioningCMSConfig(CMSAppConfig):

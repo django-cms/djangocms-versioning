@@ -23,3 +23,8 @@ a.btn.cms-versioning-action-btn img {
     width: 20px;
     height: 20px;
 }
+
+a.btn.cms-versioning-action-btn.inactive {
+    opacity: 0.3;
+    filter: alpha(opacity=30);
+}

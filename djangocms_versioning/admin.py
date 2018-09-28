@@ -89,10 +89,9 @@ class VersionChangeList(ChangeList):
                 yield field, value
 
     def get_queryset(self, request):
-        """Adds support for querying the version model by content grouper
-        field using ?grouper={id}.
+        """Adds support for querying the version model by grouping fields.
 
-        Filters by the value of grouper field (specified in VersionableItem
+        Filters by the value of grouping fields (specified in VersionableItem
         definition) of content model.
 
         Functionality is implemented here, because list_filter doesn't allow
@@ -109,6 +108,9 @@ class VersionChangeList(ChangeList):
 
 
 def fake_filter_factory(versionable, field_name):
+    """Returns filters that merely expose the filtering UI,
+    without having any effect on the resulting queryset.
+    """
     field = versionable.content_model._meta.get_field(field_name)
     lookups_ = versionable.version_list_filter_lookups[field_name]
 

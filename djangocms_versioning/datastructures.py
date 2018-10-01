@@ -1,10 +1,10 @@
 from itertools import chain
 
+from django.db import models
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max, OuterRef, Prefetch, Subquery, Value as V
+from django.db.models import Case, When, Max, OuterRef, Prefetch, Subquery, Value as V
 from django.utils.functional import cached_property
 
-from .compat import StrIndex
 from .constants import DRAFT, PUBLISHED
 from .models import Version
 
@@ -100,9 +100,11 @@ class VersionableItem:
 
     def grouper_choices_queryset(self):
         inner = self.content_model._base_manager.annotate(
-            order=StrIndex(
-                V(' '.join((DRAFT, PUBLISHED))),
-                'versions__state',
+            order=Case(
+                When(versions__state=PUBLISHED, then=2),
+                When(versions__state=DRAFT, then=1),
+                default=0,
+                output_field=models.IntegerField(),
             ),
         ).filter(**{
             self.grouper_field_name: OuterRef('pk'),

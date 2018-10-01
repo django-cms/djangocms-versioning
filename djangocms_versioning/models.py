@@ -9,10 +9,12 @@ from django_fsm import FSMField, can_proceed, transition
 
 from . import constants
 
+
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
 
 class VersionQuerySet(models.QuerySet):
 

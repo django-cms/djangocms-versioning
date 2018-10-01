@@ -21,17 +21,6 @@ class VersionableItemTestCase(CMSTestCase):
     def setUp(self):
         self.initial_version = PollVersionFactory()
 
-    def test_raises_exception_if_content_model_does_not_have_url_method(self):
-        """Tests ImproperlyConfigured exception is raised if a content
-        model does not have get_absolute_url implemented
-        """
-        # NOTE: Answer doesn't have get_absolute_url so this should
-        # throw an exception
-        with self.assertRaises(ImproperlyConfigured):
-            VersionableItem(
-                content_model=Answer, grouper_field_name='poll_content',
-                copy_function=default_copy)
-
     def test_distinct_groupers(self):
         latest_poll1_version = PollVersionFactory(
             content__poll=self.initial_version.content.poll,

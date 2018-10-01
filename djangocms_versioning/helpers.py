@@ -174,27 +174,3 @@ def version_list_url_for_grouper(grouper):
     return _version_list_url(versionable, **{
         GROUPER_PARAM: str(grouper.pk)
     })
-
-
-def emit_content_change(version):
-    """
-    Sends a content change signal for djangocms-internalsearch
-    if installed. It is used for re-indexing version state info
-    """
-    try:
-        from djangocms_internalsearch.signals import content_object_state_change
-    except ImportError:
-        return
-
-    from djangocms_internalsearch.helpers import get_internalsearch_model_config
-
-    try:
-        get_internalsearch_model_config(version.content.__class__)
-    except IndexError:
-        # model is not registered with internal search
-        return
-
-    content_object_state_change.send(
-        sender=version.__class__,
-        content_object=version.content,
-    )

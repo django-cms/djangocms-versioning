@@ -7,7 +7,6 @@ from django.contrib.admin.options import (
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -504,16 +503,18 @@ class VersionAdmin(admin.ModelAdmin):
             )))
         extra_context = extra_context or {}
         versionable = versionables.for_content(self.model._source_model)
+
         try:
             grouper = versionable.get_grouper_with_fallbacks(
                 int(request.GET.get(versionable.grouper_field_name)),
             )
-        except (ObjectDoesNotExist, TypeError, ValueError):
+        except (TypeError, ValueError):
             grouper = None
-        extra_context.update(
-            grouper=grouper,
-            title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
-        )
+        if grouper:
+            extra_context.update(
+                grouper=grouper,
+                title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
+            )
 
         return super().changelist_view(request, extra_context)
 

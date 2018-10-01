@@ -72,9 +72,13 @@ class VersionableItem:
         return self.for_grouping_values(**{self.grouper_field.name: grouper})
 
     def for_content_grouping_values(self, content):
+        """Returns all `Content` objects based on all grouping values
+        in specified content object."""
         return self.for_grouping_values(**self.grouping_values(content))
 
     def for_grouping_values(self, **kwargs):
+        """Returns all `Content` objects based on all specified
+        grouping values."""
         return self.content_model._base_manager.filter(**kwargs)
 
     @property

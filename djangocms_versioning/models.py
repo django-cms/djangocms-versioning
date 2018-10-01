@@ -8,6 +8,7 @@ from django_fsm import FSMField, can_proceed, transition
 
 from . import constants, versionables
 
+
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:

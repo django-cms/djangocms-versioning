@@ -1,1 +1,1 @@
-from . import menu, page, toolbar, wizard  # noqa: F401
+from . import checks, menu, page, toolbar, wizard  # noqa: F401

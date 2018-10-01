@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from .constants import GROUPER_PARAM
+from .constants import DRAFT, GROUPER_PARAM
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
@@ -174,3 +174,15 @@ def version_list_url_for_grouper(grouper):
     return _version_list_url(versionable, **{
         GROUPER_PARAM: str(grouper.pk)
     })
+
+
+def is_content_editable(placeholder, user):
+    """A helper method for monkey patch to check version is in edit state
+
+    :param placeholder: current placeholder
+    :param user: user object
+    :return: Boolean
+    """
+    from .models import Version
+    version = Version.objects.get_for_content(placeholder.source)
+    return version.state == DRAFT

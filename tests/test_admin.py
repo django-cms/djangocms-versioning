@@ -368,8 +368,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
         actual_enabled_control = self.version_admin._get_edit_link(version, request, disabled=False)
         expected_enabled_state = (
-            "<a class=\"btn cms-versioning-action-btn js-versioning-action\" href=\"%s\" "
-            "title=\"Edit\">" % draft_edit_url)
+            '<a class="btn cms-versioning-action-btn js-versioning-action" href="%s" title="Edit">'
+        ) % draft_edit_url
 
         self.assertIn(expected_enabled_state, actual_enabled_control)
 

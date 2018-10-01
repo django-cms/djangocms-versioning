@@ -43,7 +43,7 @@ class CheckDraftEditableTestCase(CMSTestCase):
 
 class CheckInjectTestCase(CMSTestCase):
 
-    def test_lock_check_is_injected_into_default_checks(self):
+    def test_draft_state_check_is_injected_into_default_checks(self):
         self.assertIn(
             is_content_editable,
             PlaceholderRelationField.default_checks,

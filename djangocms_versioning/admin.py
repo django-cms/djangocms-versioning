@@ -75,9 +75,9 @@ class VersionChangeList(ChangeList):
     def get_filters_params(self, params=None):
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
-        lookup_params = super().get_filters_params(params)
-        lookup_params.pop(versionable.grouper_field_name, None)
-        return lookup_params
+        filter_params = super().get_filters_params(params)
+        filter_params.pop(versionable.grouper_field_name, None)
+        return filter_params
 
     def get_grouping_field_filters(self, request):
         content_model = self.model_admin.model._source_model

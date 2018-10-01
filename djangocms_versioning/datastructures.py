@@ -1,8 +1,8 @@
 from itertools import chain
 
-from django.db import models
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Case, When, Max, OuterRef, Prefetch, Subquery, Value as V
+from django.db import models
+from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
 from .constants import DRAFT, PUBLISHED

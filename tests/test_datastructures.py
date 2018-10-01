@@ -1,7 +1,6 @@
 import copy
 
 from django.apps import apps
-from django.core.exceptions import ImproperlyConfigured
 
 from cms.test_utils.testcases import CMSTestCase
 
@@ -9,28 +8,13 @@ from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
-from djangocms_versioning.test_utils.polls.models import (
-    Answer,
-    Poll,
-    PollContent,
-)
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
 class VersionableItemTestCase(CMSTestCase):
 
     def setUp(self):
         self.initial_version = PollVersionFactory()
-
-    def test_raises_exception_if_content_model_does_not_have_url_method(self):
-        """Tests ImproperlyConfigured exception is raised if a content
-        model does not have get_absolute_url implemented
-        """
-        # NOTE: Answer doesn't have get_absolute_url so this should
-        # throw an exception
-        with self.assertRaises(ImproperlyConfigured):
-            VersionableItem(
-                content_model=Answer, grouper_field_name='poll_content',
-                copy_function=default_copy)
 
     def test_distinct_groupers(self):
         latest_poll1_version = PollVersionFactory(

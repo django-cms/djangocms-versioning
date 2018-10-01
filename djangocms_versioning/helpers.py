@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from .constants import DRAFT
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
@@ -177,25 +178,13 @@ def version_list_url_for_grouper(grouper):
     })
 
 
-def emit_content_change(version):
+def is_content_editable(placeholder, user):
+    """A helper method for monkey patch to check version is in edit state
+
+    :param placeholder: current placeholder
+    :param user: user object
+    :return: Boolean
     """
-    Sends a content change signal for djangocms-internalsearch
-    if installed. It is used for re-indexing version state info
-    """
-    try:
-        from djangocms_internalsearch.signals import content_object_state_change
-    except ImportError:
-        return
-
-    from djangocms_internalsearch.helpers import get_internalsearch_model_config
-
-    try:
-        get_internalsearch_model_config(version.content.__class__)
-    except IndexError:
-        # model is not registered with internal search
-        return
-
-    content_object_state_change.send(
-        sender=version.__class__,
-        content_object=version.content,
-    )
+    from .models import Version
+    version = Version.objects.get_for_content(placeholder.source)
+    return version.state == DRAFT

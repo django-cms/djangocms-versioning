@@ -391,14 +391,14 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert_redirect', version.pk)
+        draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', version.pk)
 
-        actual_enabled_control = self.version_admin._get_revert_link(version, request, disabled=False)
+        actual_enabled_control = self.version_admin._get_revert_link(version, request)
 
         expected_enabled_state = (
             '<a class="btn cms-versioning-action-btn js-versioning-action" href="%s" title="Revert">'
         ) % draft_edit_url
-        self.assertIn(expected_enabled_state, actual_enabled_control)
+        self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
 
     def test_revert_action_link_for_draft__state(self):
         """
@@ -406,11 +406,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get('/admin/polls/pollcontent/')
-
-        actual_disabled_control = self.version_admin._get_revert_link(version, request, disabled=False)
+        actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
 
-        self.assertIn(expected_disabled_control, actual_disabled_control)
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
     def test_revert_action_link_for_unpublished__state(self):
         """
@@ -418,10 +417,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        actual_disabled_control = self.version_admin._get_revert_link(version, request, disabled=False)
+        actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
 
-        self.assertIn(expected_disabled_control, actual_disabled_control)
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
     def test_revert_action_link_disabled_state(self):
         """
@@ -438,12 +437,11 @@ class VersionAdminActionsTestCase(CMSTestCase):
         version.copy(user)
 
         request = RequestFactory().get('/admin/polls/pollcontent/')
-
-        actual_disabled_control = self.version_admin._get_revert_link(version, request, disabled=False)
+        actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = "<a class=\"btn cms-versioning-action-btn inactive\" " \
                                     "title=\"Draft already exists, revert action not possible\">"
 
-        self.assertIn(expected_disabled_control, actual_disabled_control)
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
 
 class StateActionsTestCase(CMSTestCase):

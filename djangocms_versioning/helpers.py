@@ -4,7 +4,10 @@ from contextlib import contextmanager
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 
+from cms.toolbar.utils import get_object_edit_url
+from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from .constants import DRAFT, GROUPER_PARAM
@@ -186,3 +189,18 @@ def is_content_editable(placeholder, user):
     from .models import Version
     version = Version.objects.get_for_content(placeholder.source)
     return version.state == DRAFT
+
+
+def get_editable_url(version):
+    """If the object is editable the cms editable view should be used, with the toolbar.
+       This method is provides the URL for it.
+    """
+    if is_editable_model(version.content.__class__):
+        url = get_object_edit_url(version.content)
+    # Or else, the standard edit view should be used
+    else:
+        url = reverse('admin:{app}_{model}_change'.format(
+            app=version.content._meta.app_label,
+            model=version.content._meta.model_name,
+        ), args=(version.content.pk,))
+    return url

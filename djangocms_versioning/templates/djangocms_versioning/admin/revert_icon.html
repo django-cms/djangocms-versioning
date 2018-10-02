@@ -1,1 +1,9 @@
-{% load static i18n %}<a {% if disable_revert_link %}class="btn cms-versioning-action-btn inactive" title="{% trans 'Draft already exists, revert action not possible' %}"{% else %}class="btn cms-versioning-action-btn js-versioning-action" href="{{ revert_url }}" title="{% trans 'Revert' %}"{% endif %}> <img src="{% static 'djangocms_versioning/svg/undo.svg' %}"></a>
+{% load static i18n %}
+{% spaceless %}
+<a
+{% if disable_revert_link %} class="btn cms-versioning-action-btn inactive" title="{% trans 'Draft already exists, revert action not possible' %}"
+{% else %} class="btn cms-versioning-action-btn js-versioning-action" href="{{ revert_url }}" title="{% trans 'Revert' %}"{% endif %}>
+ <img src="{% static 'djangocms_versioning/svg/undo.svg' %}">
+</a>
+{% endspaceless %}
+

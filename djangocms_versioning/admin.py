@@ -16,16 +16,16 @@ from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.toolbar.utils import get_object_preview_url
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
-from .constants import DRAFT, PUBLISHED
+from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .forms import grouper_form_factory
-from .helpers import version_list_url
+from .helpers import get_editable_url, version_list_url
 from .models import Version
 
 
@@ -283,12 +283,43 @@ class VersionAdmin(admin.ModelAdmin):
             }
         )
 
+    def _get_revert_link(self, obj, request):
+        """Helper function to get the html link to the revert action
+        """
+        if obj.state in (UNPUBLISHED, ARCHIVED):
+            pks_for_grouper = obj.versionable.for_content_grouping_values(
+                obj.content).values_list('pk', flat=True)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=obj.content_type,
+                state=DRAFT)
+        else:
+            # Don't display the link if it's a draft or published
+            return ''
+
+        if drafts.exists():
+            disable = True
+            revert_url = ''
+        else:
+            disable = False
+            revert_url = reverse('admin:{app}_{model}_revert'.format(
+                app=obj._meta.app_label, model=self.model._meta.model_name,
+            ), args=(obj.pk,))
+
+        return render_to_string(
+            'djangocms_versioning/admin/revert_icon.html',
+            {
+                'revert_url': revert_url,
+                'disable': disable
+            }
+        )
+
     def get_state_actions(self):
         return [
             self._get_edit_link,
             self._get_archive_link,
             self._get_publish_link,
             self._get_unpublish_link,
+            self._get_revert_link,
         ]
 
     def compare_versions(self, request, queryset):
@@ -435,16 +466,36 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         # Redirect
-        # If the object is editable the cms editable view should be used, with the toolbar.
-        if is_editable_model(version.content.__class__):
-            url = get_object_edit_url(version.content)
-        # Or else, the standard edit view should be used
-        else:
-            url = reverse('admin:{app}_{model}_change'.format(
-                app=version.content._meta.app_label,
-                model=version.content._meta.model_name,
-            ), args=(version.content.pk,))
-        return redirect(url)
+        return redirect(get_editable_url(version.content))
+
+    def revert_view(self, request, object_id):
+        """Redirects to the admin change view and creates a draft version
+        if no draft exists yet.
+        """
+        version = self.get_object(request, unquote(object_id))
+
+        if version is None:
+            raise Http404
+
+        pks_for_grouper = version.versionable.for_content_grouping_values(
+            version.content).values_list('pk', flat=True)
+
+        drafts = Version.objects.filter(
+            object_id__in=pks_for_grouper, content_type=version.content_type,
+            state=DRAFT)
+
+        if drafts.exists():
+            # There is a draft record and someone try to reach revert URL
+            # should raise 404.
+            raise Http404
+
+        if version.state not in (UNPUBLISHED, ARCHIVED):
+            # if version state not unpublished or archived then raise 404
+            raise Http404
+
+        version = version.copy(request.user)
+        # Redirect
+        return redirect(version_list_url(version.content))
 
     def compare_view(self, request, object_id):
         """Compares two versions
@@ -545,6 +596,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/edit-redirect/$',
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name='{}_{}_edit_redirect'.format(*info),
+            ),
+            url(
+                r'^(.+)/revert/$',
+                self.admin_site.admin_view(self.revert_view),
+                name='{}_{}_revert'.format(*info),
             ),
             url(
                 r'^(.+)/compare/$',

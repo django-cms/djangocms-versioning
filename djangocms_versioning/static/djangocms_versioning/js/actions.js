@@ -19,7 +19,7 @@
                         '">' +
                     '</form>'
                 );
-                var keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') !== -1
+                var keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') !== -1;
                 // always break out of the sideframe, cause it was never meant to open cms views inside it
                 try {
                     if (!keepSideFrame)
@@ -28,12 +28,11 @@
                     }
                 } catch (err) {}
                 if (keepSideFrame) {
-                   var document = window.document
+                    var body = window.document.body;
+                } else {
+                    var body = window.top.document.body;
                 }
-                else {
-                   var document = window.top.document
-                }
-                fakeForm.appendTo(document.body).submit();
+                fakeForm.appendTo(body).submit();
             });
 
         $('.js-versioning-close-sideframe').on('click', function () {

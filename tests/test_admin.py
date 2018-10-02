@@ -441,8 +441,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get('/admin/polls/pollcontent/')
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = (
-        '<a class="btn cms-versioning-action-btn js-versioning-keep-sideframe inactive"'
-        ' title="Draft already exists, revert action not possible">'
+            '<a class="btn cms-versioning-action-btn js-versioning-keep-sideframe inactive"'
+            ' title="Draft already exists, revert action not possible">'
         )
 
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))

@@ -1,4 +1,5 @@
 from django.test import RequestFactory
+from django.utils.translation import ugettext_lazy as _
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
@@ -22,7 +23,11 @@ class VersioningToolbarTestCase(CMSTestCase):
         request.session = {}
         cms_toolbar = CMSToolbar(request)
         toolbar = VersioningToolbar(
-            request, toolbar=cms_toolbar, is_current_app=True, app_path='/')
+            request,
+            toolbar=cms_toolbar,
+            is_current_app=True,
+            app_path='/'
+        )
         toolbar.toolbar.obj = content_obj
         if kwargs.get('edit_mode', False):
             toolbar.toolbar.edit_mode_active = True
@@ -177,3 +182,21 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         edit_button = toolbar.toolbar.get_right_items()[0].buttons[0]
         self.assertEqual(edit_button.url, self._get_edit_url(version))
+
+    def test_default_edit_button_from_cms_is_replaced(self):
+        """
+        The default CMS button does not exist when versioning is installed
+        """
+        version = PollVersionFactory()
+        toolbar = self._get_toolbar(version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+        # Try and locate any edit buttons
+        found = []
+        for button_list in toolbar.toolbar.get_right_items():
+            found = found + [button for button in button_list.buttons if button.name == _('Edit')]
+
+        # Only one edit button exists
+        self.assertEqual(len(found), 1)
+        # The only edit button that exists is the versioning button
+        self.assertEqual(found[0].url, self._get_edit_url(version))

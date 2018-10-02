@@ -86,7 +86,21 @@ class VersioningToolbar(CMSToolbar):
             )
             self.toolbar.add_item(item)
 
+    def _remove_cms_edit_button(self):
+        """
+        Find and remove the edit edit button with the CMS.
+        """
+        # Loop through each button container
+        for button_list in self.toolbar.get_right_items():
+
+            # Try and locate an edit button
+            found = [button for button in button_list.buttons if button.name == _('Edit')]
+            if found:
+                self._remove_item(found[0])
+                return
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
+        self._remove_cms_edit_button()
         self._add_edit_button()
         self._add_publish_button()

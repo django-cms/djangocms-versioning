@@ -448,7 +448,6 @@ class VersionAdmin(admin.ModelAdmin):
         """Redirects to the admin change view and creates a draft version
         if no draft exists yet.
         """
-        # This view always changes data so only POST requests should work
         version = self.get_object(request, unquote(object_id))
         version = version.copy(request.user)
 

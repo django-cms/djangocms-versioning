@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
+from cms.utils.i18n import get_language_tuple
 
 from .datastructures import VersionableItem
 from .helpers import (
@@ -182,6 +183,10 @@ class VersioningCMSConfig(CMSAppConfig):
         VersionableItem(
             content_model=PageContent,
             grouper_field_name='page',
+            extra_grouping_fields=['language'],
+            version_list_filter_lookups={
+                'language': get_language_tuple,
+            },
             copy_function=copy_page_content,
             grouper_selector_option_label=label_from_instance,
             on_publish=on_page_content_publish,

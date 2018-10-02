@@ -19,10 +19,10 @@ class GrouperFormTestCase(CMSTestCase):
 
         self.assertIn(forms.Form, form_class.mro())
         self.assertEqual(form_class.__name__, 'PollContentGrouperForm')
-        self.assertIn('grouper', form_class.base_fields)
+        self.assertIn('poll', form_class.base_fields)
         self.assertIn(
             (pv.content.poll.pk, str(pv.content.poll)),
-            form_class.base_fields['grouper'].choices,
+            form_class.base_fields['poll'].choices,
         )
 
     def test_factory_cache(self):
@@ -42,7 +42,7 @@ class GrouperFormTestCase(CMSTestCase):
 
         self.assertIn(
             (version.content.poll.pk, str(version.content.poll)),
-            form_class.base_fields['grouper'].choices,
+            form_class.base_fields['poll'].choices,
         )
 
     def test_grouper_selector_non_default_label_unpublished(self):
@@ -54,7 +54,7 @@ class GrouperFormTestCase(CMSTestCase):
         label = "No available title (Unpublished)"
         self.assertIn(
             (version.content.page.pk, label),
-            form_class.base_fields['grouper'].choices,
+            form_class.base_fields['page'].choices,
         )
 
     def test_grouper_selector_non_default_label(self):
@@ -75,5 +75,5 @@ class GrouperFormTestCase(CMSTestCase):
             path=version.content.page.get_path(version.content.language))
         self.assertIn(
             (version.content.page.pk, label),
-            form_class.base_fields['grouper'].choices,
+            form_class.base_fields['page'].choices,
         )

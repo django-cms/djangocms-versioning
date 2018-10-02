@@ -10,7 +10,7 @@ from cms.toolbar.utils import get_object_edit_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from .constants import DRAFT, GROUPER_PARAM
+from .constants import DRAFT
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
@@ -84,16 +84,18 @@ def register_versionadmin_proxy(versionable, admin_site=None):
         )
         return
 
-    class ProxiedAdmin(VersionAdmin):
+    class VersionProxyAdminMixin(VersionAdmin):
 
         def get_queryset(self, request):
             content_type = ContentType.objects.get_for_model(self.model._source_model)
             return super().get_queryset(request).filter(
                 content_type=content_type,
             )
-    ProxiedAdmin.__name__ = (
-        versionable.grouper_model.__name__ +
-        VersionAdmin.__name__
+
+    ProxiedAdmin = type(
+        versionable.grouper_model.__name__ + VersionAdmin.__name__,
+        (VersionProxyAdminMixin, admin.ModelAdmin),
+        {},
     )
 
     admin_site.register(versionable.version_model_proxy, ProxiedAdmin)
@@ -165,7 +167,7 @@ def version_list_url(content):
     versionable = _cms_extension().versionables_by_content[content.__class__]
     grouper = getattr(content, versionable.grouper_field_name)
     return _version_list_url(versionable, **{
-        GROUPER_PARAM: str(grouper.pk)
+        versionable.grouper_field_name: str(grouper.pk)
     })
 
 
@@ -175,7 +177,7 @@ def version_list_url_for_grouper(grouper):
     """
     versionable = _cms_extension().versionables_by_grouper[grouper.__class__]
     return _version_list_url(versionable, **{
-        GROUPER_PARAM: str(grouper.pk)
+        versionable.grouper_field_name: str(grouper.pk)
     })
 
 

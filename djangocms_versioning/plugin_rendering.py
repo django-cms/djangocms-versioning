@@ -26,10 +26,6 @@ class VersionRenderer(ContentRenderer):
             if not versionable:
                 continue
             if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
-                # FIXME Currently this leaves multiple content object
-                # for a single grouper and is potentially dangerous
-                # if content should have some unique constraint
-                # (for example ('page', 'language') for PageContent).
                 qs = versionable.content_model._base_manager.filter(
                     versions__state__in=(DRAFT, PUBLISHED),
                 ).order_by('versions__state')
@@ -37,9 +33,14 @@ class VersionRenderer(ContentRenderer):
                 qs = versionable.content_model.objects.all()
             related_field = getattr(instance, field.name)
             if related_field:
-                qs = qs.filter(**{
-                    versionable.grouper_field_name: related_field
-                })
+                filters = {
+                    versionable.grouper_field_name: related_field,
+                }
+                # TODO Figure out grouping values-awareness
+                # for extra fields other than hardcoded 'language'
+                if 'language' in versionable.extra_grouping_fields:
+                    filters['language'] = self.toolbar.request_language
+                qs = qs.filter(**filters)
                 prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
                 related_field._prefetched_objects_cache = prefetch_cache
         return super().render_plugin(instance, context, placeholder, editable)

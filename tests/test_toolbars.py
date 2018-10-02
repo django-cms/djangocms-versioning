@@ -1,12 +1,17 @@
 from django.test import RequestFactory
 from django.utils.translation import ugettext_lazy as _
 
+from cms.api import create_page
+from cms.cms_toolbars import PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 
+from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
+    PageVersionFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -41,6 +46,25 @@ class VersioningToolbarTestCase(CMSTestCase):
             toolbar.toolbar.edit_mode_active = False
             toolbar.toolbar.content_mode_active = False
             toolbar.toolbar.structure_mode_active = True
+        return toolbar
+
+    def _get_placeholder_toolbar(self, content_obj, **kwargs):
+
+        request = RequestFactory().get('/')
+        request.user = self.get_superuser()
+        request.session = {}
+        request.current_page = content_obj.page
+        cms_toolbar = CMSToolbar(request)
+        toolbar = PlaceholderToolbar(
+            request,
+            toolbar=cms_toolbar,
+            is_current_app=True,
+            app_path='/'
+        )
+        toolbar.toolbar.edit_mode_active = False
+        toolbar.toolbar.content_mode_active = True
+        toolbar.toolbar.preview_mode_active = True
+        toolbar.toolbar.structure_mode_active = False
         return toolbar
 
     def _get_publish_url(self, version):
@@ -183,20 +207,50 @@ class VersioningToolbarTestCase(CMSTestCase):
         edit_button = toolbar.toolbar.get_right_items()[0].buttons[0]
         self.assertEqual(edit_button.url, self._get_edit_url(version))
 
-    def test_default_edit_button_from_cms_is_replaced(self):
+    def test_default_cms_edit_button_is_replaced_by_versioning_edit_button(self):
         """
-        The default CMS button does not exist when versioning is installed
+        The versioning edit button is available on the toolbar
+        when versioning is installed.
         """
-        version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        pagecontent = PageVersionFactory(content__template="")
+        url = get_object_preview_url(pagecontent.content)
 
-        toolbar.post_template_populate()
-        # Try and locate any edit buttons
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.post(url)
+
+        toolbar = response.wsgi_request.toolbar
+        # Locate any edit buttons
         found = []
-        for button_list in toolbar.toolbar.get_right_items():
+        for button_list in toolbar.get_right_items():
             found = found + [button for button in button_list.buttons if button.name == _('Edit')]
 
         # Only one edit button exists
         self.assertEqual(len(found), 1)
         # The only edit button that exists is the versioning button
-        self.assertEqual(found[0].url, self._get_edit_url(version))
+        self.assertEqual(found[0].url, self._get_edit_url(pagecontent.content))
+
+    def test_default_edit_button_from_cms_exists(self):
+        """
+        The default toolbar Edit button exists in the location
+        that versioning expects
+
+        If this test fails the location of the default edit button
+        has changed and versioning may no longer replace the button
+        correctly
+        """
+        pagecontent = PageVersionFactory(content__template="")
+        url = get_object_preview_url(pagecontent.content)
+
+        toolbar = self._get_placeholder_toolbar(pagecontent.content)
+        toolbar.populate()
+        toolbar.post_template_populate()
+
+        # Locate any edit buttons
+        found = []
+        for button_list in toolbar.toolbar.get_right_items():
+            found = found + [button for button in button_list.buttons if button.name == _('Edit')]
+
+        # Only one edit button should exist
+        self.assertEqual(len(found), 1)
+        # The only edit button that exists is the default cms button
+        self.assertEqual(found[0].url, self._get_edit_url(pagecontent))

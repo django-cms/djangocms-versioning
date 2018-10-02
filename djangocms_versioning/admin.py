@@ -259,7 +259,7 @@ class VersionAdmin(admin.ModelAdmin):
                 object_id__in=pks_for_grouper, content_type=obj.content_type,
                 state=DRAFT)
         else:
-            # Don't display  =the link if it's a draft
+            # Don't display  =the link if it's a draft or published
             return ''
 
         if drafts.exists():

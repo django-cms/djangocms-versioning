@@ -28,7 +28,7 @@
                     }
                 } catch (err) {}
                 if (keepSideFrame) {
-                  var document = window.document
+                   var document = window.document
                 }
                 else {
                    var document = window.top.document

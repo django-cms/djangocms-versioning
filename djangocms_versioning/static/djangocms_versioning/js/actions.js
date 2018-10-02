@@ -22,7 +22,7 @@
 
                 // always break out of the sideframe, cause it was never meant to open cms views inside it
                 try {
-                    if (action.attr('title') != 'Revert')
+                    if (action.attr('class').indexOf('js-versioning-keep-sideframe') === -1)
                     {
                         window.top.CMS.API.Sideframe.close();
                     }

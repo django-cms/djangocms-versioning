@@ -368,7 +368,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
         actual_enabled_control = self.version_admin._get_edit_link(version, request, disabled=False)
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action" href="%s" title="Edit">'
+            '<a class="btn cms-versioning-action-btn js-versioning-action"'
+            ' href="%s" title="Edit">'
         ) % draft_edit_url
 
         self.assertIn(expected_enabled_state, actual_enabled_control)
@@ -381,7 +382,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get('/admin/polls/pollcontent/')
 
         actual_disabled_control = self.version_admin._get_edit_link(version, request, disabled=True)
-        expected_disabled_control = "<a class=\"btn cms-versioning-action-btn inactive\" title=\"Edit\">"
+        expected_disabled_control = '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
 
@@ -396,7 +397,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action" href="%s" title="Revert">'
+            '<a class="btn cms-versioning-action-btn js-versioning-action js-versioning-keep-sideframe" href="%s" '
+            'title="Revert">'
         ) % draft_edit_url
         self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
 
@@ -438,8 +440,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
         request = RequestFactory().get('/admin/polls/pollcontent/')
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
-        expected_disabled_control = "<a class=\"btn cms-versioning-action-btn inactive\" " \
-                                    "title=\"Draft already exists, revert action not possible\">"
+        expected_disabled_control = (
+        '<a class="btn cms-versioning-action-btn js-versioning-keep-sideframe inactive"'
+        ' title="Draft already exists, revert action not possible">'
+        )
 
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 

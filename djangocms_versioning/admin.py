@@ -263,10 +263,10 @@ class VersionAdmin(admin.ModelAdmin):
             return ''
 
         if drafts.exists():
-            disable_revert_link = True
+            disable = True
             revert_url = ''
         else:
-            disable_revert_link = False
+            disable = False
             revert_url = reverse('admin:{app}_{model}_revert'.format(
                 app=obj._meta.app_label, model=self.model._meta.model_name,
             ), args=(obj.pk,))
@@ -275,7 +275,7 @@ class VersionAdmin(admin.ModelAdmin):
             'djangocms_versioning/admin/revert_icon.html',
             {
                 'revert_url': revert_url,
-                'disable_revert_link': disable_revert_link
+                'disable': disable
             }
         )
 
@@ -432,7 +432,7 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         # Redirect
-        return redirect(get_editable_url(version))
+        return redirect(get_editable_url(version.content))
 
     def revert_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
@@ -450,11 +450,18 @@ class VersionAdmin(admin.ModelAdmin):
             object_id__in=pks_for_grouper, content_type=version.content_type,
             state=DRAFT)
 
-        if not drafts.exists() and version.state in (UNPUBLISHED, ARCHIVED):
-            version = version.copy(request.user)
+        if drafts.exists():
+            # There is a draft record and someone try to reach revert URL
+            # should raise 404.
+            raise Http404
 
+        if version.state not in (UNPUBLISHED, ARCHIVED):
+            # if version state not unpublished or archived then raise 404
+            raise Http404
+
+        version = version.copy(request.user)
         # Redirect
-        return redirect(get_editable_url(version))
+        return redirect(version_list_url(version.content))
 
     def compare_view(self, request, object_id):
         """Compares two versions

@@ -191,16 +191,16 @@ def is_content_editable(placeholder, user):
     return version.state == DRAFT
 
 
-def get_editable_url(version):
+def get_editable_url(content_obj):
     """If the object is editable the cms editable view should be used, with the toolbar.
        This method is provides the URL for it.
     """
-    if is_editable_model(version.content.__class__):
-        url = get_object_edit_url(version.content)
+    if is_editable_model(content_obj.__class__):
+        url = get_object_edit_url(content_obj)
     # Or else, the standard edit view should be used
     else:
         url = reverse('admin:{app}_{model}_change'.format(
-            app=version.content._meta.app_label,
-            model=version.content._meta.model_name,
-        ), args=(version.content.pk,))
+            app=content_obj._meta.app_label,
+            model=content_obj._meta.model_name,
+        ), args=(content_obj.pk,))
     return url

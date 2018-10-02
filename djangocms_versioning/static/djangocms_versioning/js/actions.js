@@ -19,19 +19,19 @@
                         '">' +
                     '</form>'
                 );
-                keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') === -1
+                var keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') !== -1
                 // always break out of the sideframe, cause it was never meant to open cms views inside it
                 try {
-                    if (keepSideFrame)
+                    if (!keepSideFrame)
                     {
                         window.top.CMS.API.Sideframe.close();
                     }
                 } catch (err) {}
                 if (keepSideFrame) {
-                   document = window.document
+                  var document = window.document
                 }
                 else {
-                   document = window.top.document
+                   var document = window.top.document
                 }
                 fakeForm.appendTo(document.body).submit();
             });

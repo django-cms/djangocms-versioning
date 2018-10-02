@@ -22,7 +22,10 @@
 
                 // always break out of the sideframe, cause it was never meant to open cms views inside it
                 try {
-                    window.top.CMS.API.Sideframe.close();
+                    if (action.attr('title') != 'Revert')
+                    {
+                        window.top.CMS.API.Sideframe.close();
+                    }
                 } catch (err) {}
                 fakeForm.appendTo(window.top.document.body).submit();
             });

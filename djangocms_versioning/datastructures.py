@@ -1,7 +1,9 @@
-from django.db.models import Max, OuterRef, Prefetch, Subquery, Value as V
+from itertools import chain
+
+from django.db import models
+from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
-from .compat import StrIndex
 from .constants import DRAFT, PUBLISHED
 from .models import Version
 
@@ -9,17 +11,19 @@ from .models import Version
 class VersionableItem:
 
     def __init__(
-        self, content_model, grouper_field_name,
-        copy_function, on_publish=None, on_unpublish=None,
-        on_draft_create=None, on_archive=None,
-        grouper_selector_option_label=False,
+        self, content_model, grouper_field_name, copy_function,
+        extra_grouping_fields=None, version_list_filter_lookups=None,
+        on_publish=None, on_unpublish=None, on_draft_create=None,
+        on_archive=None, grouper_selector_option_label=False,
     ):
         self.content_model = content_model
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
+        self.extra_grouping_fields = extra_grouping_fields or ()
         # Set the grouper selector label
         self.grouper_selector_option_label = grouper_selector_option_label
+        self.version_list_filter_lookups = version_list_filter_lookups or {}
         self.copy_function = copy_function
         self.on_publish = on_publish
         self.on_unpublish = on_unpublish
@@ -65,13 +69,38 @@ class VersionableItem:
 
     def for_grouper(self, grouper):
         """Returns all `Content` objects for specified grouper object."""
-        return self.content_model._base_manager.filter(**{self.grouper_field.name: grouper})
+        return self.for_grouping_values(**{self.grouper_field.name: grouper})
+
+    def for_content_grouping_values(self, content):
+        """Returns all `Content` objects based on all grouping values
+        in specified content object."""
+        return self.for_grouping_values(**self.grouping_values(content))
+
+    def for_grouping_values(self, **kwargs):
+        """Returns all `Content` objects based on all specified
+        grouping values."""
+        return self.content_model._base_manager.filter(**kwargs)
+
+    @property
+    def grouping_fields(self):
+        return chain([self.grouper_field_name], self.extra_grouping_fields)
+
+    def grouping_values(self, content):
+        fields = (
+            field + '_id' if content._meta.get_field(field).is_relation else field
+            for field in self.grouping_fields
+        )
+        return {
+            field: getattr(content, field) for field in fields
+        }
 
     def grouper_choices_queryset(self):
         inner = self.content_model._base_manager.annotate(
-            order=StrIndex(
-                V(' '.join((DRAFT, PUBLISHED))),
-                'versions__state',
+            order=Case(
+                When(versions__state=PUBLISHED, then=2),
+                When(versions__state=DRAFT, then=1),
+                default=0,
+                output_field=models.IntegerField(),
             ),
         ).filter(**{
             self.grouper_field_name: OuterRef('pk'),
@@ -85,6 +114,9 @@ class VersionableItem:
         return self.grouper_model.objects.prefetch_related(
             Prefetch(cache_name, queryset=content_objects),
         )
+
+    def get_grouper_with_fallbacks(self, grouper_id):
+        return self.grouper_choices_queryset().filter(pk=grouper_id).first()
 
 
 def default_copy(original_content):

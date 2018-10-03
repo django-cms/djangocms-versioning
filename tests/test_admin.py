@@ -800,11 +800,19 @@ class ArchiveViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version archived")
         # Redirect happened
-        redirect_url = (self.get_admin_url(
-            self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk)
-            + '&language=' + poll_version.content.language)
-        self.assertRedirects(response, redirect_url, target_status_code=302)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": str(poll_version_.content.poll.pk),
+                "language": poll_version.content.language,
+            },
+        )
 
     def test_archive_view_cannot_be_accessed_for_archived_version(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
@@ -928,11 +936,19 @@ class PublishViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version published")
         # Redirect happened
-        redirect_url = (self.get_admin_url(
-            self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk)
-            + '&language=' + poll_version.content.language)
-        self.assertRedirects(response, redirect_url, target_status_code=302)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": str(poll_version_.content.poll.pk),
+                "language": poll_version.content.language,
+            },
+        )
 
     def test_publish_view_cannot_be_accessed_for_archived_version(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
@@ -1056,11 +1072,19 @@ class UnpublishViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version unpublished")
         # Redirect happened
-        redirect_url = (self.get_admin_url(
-            self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk)
-            + '&language=' + poll_version.content.language)
-        self.assertRedirects(response, redirect_url, target_status_code=302)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": str(poll_version_.content.poll.pk),
+                "language": poll_version.content.language,
+            },
+        )
 
     def test_unpublish_view_cannot_be_accessed_for_archived_version(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)

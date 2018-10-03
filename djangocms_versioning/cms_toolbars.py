@@ -96,7 +96,6 @@ class VersioningToolbar(CMSToolbar):
             # Try and locate an edit button
             found = [button for button in button_list.buttons if button.name == _('Edit')]
             if found:
-                #self._remove_item(found[0])
                 button_list.buttons.remove(found[0])
                 return
 

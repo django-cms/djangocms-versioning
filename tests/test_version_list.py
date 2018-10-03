@@ -1,3 +1,5 @@
+from urllib.parse import urlparse, parse_qs
+
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.helpers import (
@@ -10,10 +12,19 @@ from djangocms_versioning.test_utils import factories
 class VersionListUrlsTestCase(CMSTestCase):
 
     def test_version_list_url(self):
-        pv = factories.PollVersionFactory()
+        pv = factories.PollVersionFactory(content__language="en")
+        url = version_list_url(pv.content)
+        parsed = urlparse(url)
         self.assertEqual(
-            version_list_url(pv.content),
-            "/en/admin/djangocms_versioning/pollcontentversion/?poll=1",
+            parsed.path,
+            "/en/admin/djangocms_versioning/pollcontentversion/",
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": "1",
+                "language": "en",
+            },
         )
 
     def test_version_list_url_for_grouper(self):

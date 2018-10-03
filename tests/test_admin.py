@@ -802,7 +802,8 @@ class ArchiveViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk)
+            + '&language=' + poll_version.content.language)
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_archive_view_cannot_be_accessed_for_archived_version(self):
@@ -929,7 +930,8 @@ class PublishViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk)
+            + '&language=' + poll_version.content.language)
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_publish_view_cannot_be_accessed_for_archived_version(self):
@@ -1056,7 +1058,8 @@ class UnpublishViewTestCase(CMSTestCase):
         # Redirect happened
         redirect_url = (self.get_admin_url(
             self.versionable.version_model_proxy, 'changelist')
-            + '?poll=' + str(poll_version_.content.poll.pk))
+            + '?poll=' + str(poll_version_.content.poll.pk)
+            + '&language=' + poll_version.content.language)
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
     def test_unpublish_view_cannot_be_accessed_for_archived_version(self):

@@ -165,10 +165,10 @@ def version_list_url(content):
     filtered by `content`'s grouper
     """
     versionable = _cms_extension().versionables_by_content[content.__class__]
-    grouper = getattr(content, versionable.grouper_field_name)
-    return _version_list_url(versionable, **{
-        versionable.grouper_field_name: str(grouper.pk)
-    })
+    return _version_list_url(
+        versionable,
+        **versionable.grouping_values(content, relation_suffix=False),
+    )
 
 
 def version_list_url_for_grouper(grouper):

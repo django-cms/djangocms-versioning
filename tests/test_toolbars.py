@@ -1,11 +1,10 @@
 from django.test import RequestFactory
 from django.utils.translation import ugettext_lazy as _
 
-from cms.api import create_page
 from cms.cms_toolbars import PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.toolbar.utils import get_object_preview_url
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.cms_toolbars import VersioningToolbar
@@ -54,31 +53,30 @@ class VersioningToolbarTestCase(CMSTestCase):
         request.user = self.get_superuser()
         request.session = {}
         request.current_page = content_obj.page
-        cms_toolbar = CMSToolbar(request)
+        request.toolbar = CMSToolbar(request)
         toolbar = PlaceholderToolbar(
             request,
-            toolbar=cms_toolbar,
+            toolbar=request.toolbar,
             is_current_app=True,
             app_path='/'
         )
+        toolbar.toolbar.obj = content_obj
+
         toolbar.toolbar.edit_mode_active = False
         toolbar.toolbar.content_mode_active = True
-        toolbar.toolbar.preview_mode_active = True
         toolbar.toolbar.structure_mode_active = False
         return toolbar
 
-    def _get_publish_url(self, version):
+    def _get_publish_url(self, version, versionable=PollsCMSConfig.versioning[0]):
         """Helper method to return the expected publish url
         """
-        versionable = PollsCMSConfig.versioning[0]
         admin_url = self.get_admin_url(
             versionable.version_model_proxy, 'publish', version.pk)
         return admin_url
 
-    def _get_edit_url(self, version):
+    def _get_edit_url(self, version, versionable=PollsCMSConfig.versioning[0]):
         """Helper method to return the expected edit redirect url
         """
-        versionable = PollsCMSConfig.versioning[0]
         admin_url = self.get_admin_url(
             versionable.version_model_proxy, 'edit_redirect', version.pk)
         return admin_url
@@ -214,6 +212,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         """
         pagecontent = PageVersionFactory(content__template="")
         url = get_object_preview_url(pagecontent.content)
+        edit_url = self._get_edit_url(pagecontent.content, VersioningCMSConfig.versioning[0])
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
@@ -227,7 +226,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         # Only one edit button exists
         self.assertEqual(len(found), 1)
         # The only edit button that exists is the versioning button
-        self.assertEqual(found[0].url, self._get_edit_url(pagecontent.content))
+        self.assertEqual(found[0].url, edit_url)
 
     def test_default_edit_button_from_cms_exists(self):
         """
@@ -235,11 +234,11 @@ class VersioningToolbarTestCase(CMSTestCase):
         that versioning expects
 
         If this test fails the location of the default edit button
-        has changed and versioning may no longer replace the button
+        may have changed and versioning may no longer replace the button
         correctly
         """
         pagecontent = PageVersionFactory(content__template="")
-        url = get_object_preview_url(pagecontent.content)
+        edit_url = self._get_edit_url(pagecontent.content, VersioningCMSConfig.versioning[0])
 
         toolbar = self._get_placeholder_toolbar(pagecontent.content)
         toolbar.populate()
@@ -250,7 +249,6 @@ class VersioningToolbarTestCase(CMSTestCase):
         for button_list in toolbar.toolbar.get_right_items():
             found = found + [button for button in button_list.buttons if button.name == _('Edit')]
 
-        # Only one edit button should exist
+        # The only edit button that exists is the default cms button and not the versioning edit button
         self.assertEqual(len(found), 1)
-        # The only edit button that exists is the default cms button
-        self.assertEqual(found[0].url, self._get_edit_url(pagecontent))
+        self.assertNotEqual(found[0].url, edit_url)

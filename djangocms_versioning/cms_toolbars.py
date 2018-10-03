@@ -12,7 +12,6 @@ from .helpers import version_list_url
 
 
 VERSIONING_MENU_IDENTIFIER = 'version'
-VERSIONING_MENU_MANAGE_VERSION_IDENTIFIER = 'manage-versions'
 
 
 @toolbar_pool.register

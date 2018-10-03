@@ -89,7 +89,7 @@ class Version(models.Model):
             if on_draft_create:
                 on_draft_create(self)
             if emit_content_change:
-                emit_content_change(self)
+                emit_content_change(self.content)
 
     @property
     def versionable(self):
@@ -131,7 +131,7 @@ class Version(models.Model):
         if on_archive:
             on_archive(self)
         if emit_content_change:
-            emit_content_change(self)
+            emit_content_change(self.content)
 
     @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
     def _set_archive(self, user):
@@ -170,7 +170,7 @@ class Version(models.Model):
         if on_publish:
             on_publish(self)
         if emit_content_change:
-            emit_content_change(self)
+            emit_content_change(self.content)
 
     @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
     def _set_publish(self, user):
@@ -196,7 +196,7 @@ class Version(models.Model):
         if on_unpublish:
             on_unpublish(self)
         if emit_content_change:
-            emit_content_change(self)
+            emit_content_change(self.content)
 
     @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
     def _set_unpublish(self, user):

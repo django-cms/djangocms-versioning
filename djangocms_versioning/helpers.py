@@ -167,7 +167,7 @@ def version_list_url(content):
     versionable = _cms_extension().versionables_by_content[content.__class__]
     return _version_list_url(
         versionable,
-        **versionable.grouping_values(content, relation_suffix=False),
+        **versionable.grouping_values(content, relation_suffix=False)
     )
 
 

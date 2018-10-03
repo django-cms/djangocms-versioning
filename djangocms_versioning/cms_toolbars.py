@@ -3,14 +3,13 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from cms.toolbar.items import ButtonList
-from cms.toolbar_base import CMSToolbar
+from cms.cms_toolbars import PlaceholderToolbar
 from cms.toolbar_pool import toolbar_pool
 
 from djangocms_versioning.models import Version
 
 
-@toolbar_pool.register
-class VersioningToolbar(CMSToolbar):
+class VersioningToolbar(PlaceholderToolbar):
     class Media:
         js = ('djangocms_versioning/js/actions.js',)
 
@@ -62,45 +61,37 @@ class VersioningToolbar(CMSToolbar):
             )
             self.toolbar.add_item(item)
 
+    def add_edit_button(self):
+        """
+        Only override the CMS versioning button when the object is versionable
+        """
+        if not self._is_versioned():
+            # Show the standard cms edit button for non versionable objects
+            return super(VersioningToolbar, self).add_edit_button()
+        return self._add_edit_button()
+
     def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar
         """
-        # Only add the edit button if the content type is registered
-        # with versioning
-        if not self._is_versioned():
-            return
-        # Add the edit button if in preview mode
-        if self.toolbar.content_mode_active:
-            item = ButtonList(side=self.toolbar.RIGHT)
-            proxy_model = self._get_proxy_model()
-            version = Version.objects.get_for_content(self.toolbar.obj)
-            edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-                app=proxy_model._meta.app_label,
-                model=proxy_model.__name__.lower(),
-            ), args=(version.pk,))
-            item.add_button(
-                _('Edit'),
-                url=edit_url,
-                disabled=disabled,
-                extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
-            )
-            self.toolbar.add_item(item)
-
-    def _remove_cms_edit_button(self):
-        """
-        Find and remove the edit edit button with the CMS.
-        """
-        # Loop through each button container
-        for button_list in self.toolbar.get_right_items():
-
-            # Try and locate an edit button
-            found = [button for button in button_list.buttons if button.name == _('Edit')]
-            if found:
-                button_list.buttons.remove(found[0])
-                return
+        item = ButtonList(side=self.toolbar.RIGHT)
+        proxy_model = self._get_proxy_model()
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
+            app=proxy_model._meta.app_label,
+            model=proxy_model.__name__.lower(),
+        ), args=(version.pk,))
+        item.add_button(
+            _('Edit'),
+            url=edit_url,
+            disabled=disabled,
+            extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
+        )
+        self.toolbar.add_item(item)
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
-        self._remove_cms_edit_button()
-        self._add_edit_button()
         self._add_publish_button()
+
+
+toolbar_pool.unregister(PlaceholderToolbar)
+toolbar_pool.register(VersioningToolbar)

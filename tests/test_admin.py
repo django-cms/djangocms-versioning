@@ -392,12 +392,13 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', version.pk)
+        draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert_confirm', version.pk)
 
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action js-versioning-keep-sideframe" href="%s" '
+            '<a class="btn cms-versioning-action-btn js-versioning-action js-versioning-keep-sideframe" '
+            'href="%s" '
             'title="Revert">'
         ) % draft_edit_url
         self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))

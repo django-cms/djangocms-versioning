@@ -73,7 +73,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if not self._is_versioned():
             # Show the standard cms edit button for non versionable objects
             return super(VersioningToolbar, self).add_edit_button()
-        return self._add_edit_button()
+        self._add_edit_button()
 
     def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar

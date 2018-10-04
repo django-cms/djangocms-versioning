@@ -29,11 +29,16 @@ class VersioningToolbarTestCase(CMSTestCase):
         request.session = {}
         request.current_page = None if not hasattr(content_obj, 'page') else content_obj.page
         request.toolbar = CMSToolbar(request)
-        toolbar = VersioningToolbar(
+        # Get the toolbar class to use
+        if kwargs.get('toolbar_class', False):
+            toolbar_class = kwargs.get('toolbar_class')
+        else:
+            toolbar_class = VersioningToolbar
+        toolbar = toolbar_class(
             request,
             toolbar=request.toolbar,
             is_current_app=True,
-            app_path='/'
+            app_path='/',
         )
         toolbar.toolbar.obj = content_obj
         if kwargs.get('edit_mode', False):
@@ -48,27 +53,6 @@ class VersioningToolbarTestCase(CMSTestCase):
             toolbar.toolbar.edit_mode_active = False
             toolbar.toolbar.content_mode_active = False
             toolbar.toolbar.structure_mode_active = True
-        toolbar.populate()
-        return toolbar
-
-    def _get_placeholder_toolbar(self, content_obj, **kwargs):
-
-        request = RequestFactory().get('/')
-        request.user = self.get_superuser()
-        request.session = {}
-        request.current_page = content_obj.page
-        request.toolbar = CMSToolbar(request)
-        toolbar = PlaceholderToolbar(
-            request,
-            toolbar=request.toolbar,
-            is_current_app=True,
-            app_path='/'
-        )
-        toolbar.toolbar.obj = content_obj
-        # Set the preview mode
-        toolbar.toolbar.edit_mode_active = False
-        toolbar.toolbar.content_mode_active = True
-        toolbar.toolbar.structure_mode_active = False
         toolbar.populate()
         return toolbar
 
@@ -268,7 +252,11 @@ class VersioningToolbarTestCase(CMSTestCase):
         pagecontent = PageVersionFactory(content__template="")
         edit_url = self._get_edit_url(pagecontent.content, VersioningCMSConfig.versioning[0])
 
-        toolbar = self._get_placeholder_toolbar(pagecontent.content)
+        toolbar = self._get_toolbar(
+            pagecontent.content,
+            toolbar_class=PlaceholderToolbar,
+            preview_mode=True,
+        )
         toolbar.post_template_populate()
 
         # Locate any edit buttons

@@ -11,9 +11,8 @@ from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     PageVersionFactory,
-    PlaceholderFactory,
+    FancyPollFactory,
     PollVersionFactory,
-    TextPluginFactory,
     UserFactory,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -239,13 +238,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         # The only edit button that exists is the versioning button
         self.assertEqual(found[0].url, edit_url)
 
-    """
     def test_default_cms_edit_button_is_used_for_non_versioned_model(self):
-        
+        """
         The default cms edit button is present for a default model
-        
-        url = get_object_preview_url(text)
-        edit_url = get_object_edit_url(text)
+        """
+        unversionedpoll = FancyPollFactory()
+        url = get_object_preview_url(unversionedpoll)
+        edit_url = get_object_edit_url(unversionedpoll)
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
@@ -258,9 +257,8 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         # Only one edit button exists
         self.assertEqual(len(found), 1)
-        # The only edit button that exists is the versioning button
+        # The only edit button that exists is the standard cms button
         self.assertEqual(found[0].url, edit_url)
-    """
 
     def test_default_edit_button_from_cms_exists(self):
         """

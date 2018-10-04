@@ -32,10 +32,10 @@ class TestVersionState(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(
-            3, state=constants.DRAFT, content__poll=poll)
+            3, state=constants.DRAFT, content__poll=poll, content__language='en')
 
         version = Version.objects.create(
-            content=factories.PollContentFactory(poll=poll),
+            content=factories.PollContentFactory(poll=poll, language='en'),
             created_by=factories.UserFactory(),
             state=constants.DRAFT)
 
@@ -87,12 +87,12 @@ class TestVersionState(CMSTestCase):
         just the versions we want to archive.
         """
         pv = factories.PollVersionFactory(
-            state=constants.DRAFT, content__id=11)
+            state=constants.DRAFT, content__id=11, content__language='en',)
         bv = factories.BlogPostVersionFactory(
             state=constants.DRAFT, content__id=11)
 
         Version.objects.create(
-            content=factories.PollContentFactory(poll=pv.content.poll),
+            content=factories.PollContentFactory(poll=pv.content.poll, language='en',),
             created_by=factories.UserFactory(),
             state=constants.DRAFT)
 
@@ -108,10 +108,10 @@ class TestVersionState(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(
-            3, state=constants.PUBLISHED, content__poll=poll)
+            3, state=constants.PUBLISHED, content__poll=poll, content__language='en')
         user = factories.UserFactory()
         version = factories.PollVersionFactory(
-            state=constants.DRAFT, content__poll=poll)
+            state=constants.DRAFT, content__poll=poll, content__language='en',)
 
         version.publish(user)
 
@@ -128,9 +128,15 @@ class TestVersionState(CMSTestCase):
         published version created, then this should not change the other
         published versions' status to unpublished.
         """
-        factories.PollVersionFactory(state=constants.PUBLISHED)
+        factories.PollVersionFactory(
+            state=constants.PUBLISHED,
+            content__language='en',
+        )
         user = factories.UserFactory()
-        version = factories.PollVersionFactory(state=constants.DRAFT)
+        version = factories.PollVersionFactory(
+            state=constants.DRAFT,
+            content__language='en',
+        )
 
         version.publish(user)
 
@@ -143,11 +149,22 @@ class TestVersionState(CMSTestCase):
         states, these should not change upon creating a new published version
         """
         poll = factories.PollFactory()
-        factories.PollVersionFactory(state=constants.DRAFT, content__poll=poll)
-        factories.PollVersionFactory(state=constants.ARCHIVED, content__poll=poll)
+        factories.PollVersionFactory(
+            state=constants.DRAFT,
+            content__poll=poll,
+            content__language='en',
+        )
+        factories.PollVersionFactory(
+            state=constants.ARCHIVED,
+            content__poll=poll,
+            content__language='en',
+        )
         user = factories.UserFactory()
         version = factories.PollVersionFactory(
-            content__poll=poll, state=constants.DRAFT)
+            state=constants.DRAFT,
+            content__poll=poll,
+            content__language='en',
+        )
 
         version.publish(user)
 
@@ -163,11 +180,14 @@ class TestVersionState(CMSTestCase):
         just the versions we want to unpublish.
         """
         pv = factories.PollVersionFactory(
-            state=constants.PUBLISHED, content__id=11)
+            state=constants.PUBLISHED, content__id=11, content__language='en')
         bv = factories.BlogPostVersionFactory(
             state=constants.PUBLISHED, content__id=11)
         version = factories.PollVersionFactory(
-            content__poll=pv.content.poll, state=constants.DRAFT)
+            state=constants.DRAFT,
+            content__poll=pv.content.poll,
+            content__language='en',
+        )
         user = factories.UserFactory()
 
         version.publish(user)

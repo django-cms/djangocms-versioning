@@ -8,6 +8,11 @@ from cms.toolbar_pool import toolbar_pool
 
 from djangocms_versioning.models import Version
 
+from .helpers import version_list_url
+
+
+VERSIONING_MENU_IDENTIFIER = 'version'
+
 
 class VersioningToolbar(PlaceholderToolbar):
     class Media:
@@ -88,9 +93,26 @@ class VersioningToolbar(PlaceholderToolbar):
         )
         self.toolbar.add_item(item)
 
+    def _add_versioning_menu(self):
+        """ Helper method to add version menu in the toolbar
+        """
+        # Check if object is registred with versioning otherwise dont add
+        if not self._is_versioned():
+            return
+
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        if version is None:
+            return
+
+        versioning_menu = self.toolbar.get_or_create_menu(
+            VERSIONING_MENU_IDENTIFIER, _('Versions'), disabled=False)
+        url = version_list_url(version.content)
+        versioning_menu.add_sideframe_item(_('Manage Versions'), url=url)
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
         self._add_publish_button()
+        self._add_versioning_menu()
 
 
 toolbar_pool.unregister(PlaceholderToolbar)

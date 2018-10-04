@@ -8,6 +8,7 @@ from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.cms_toolbars import VersioningToolbar
+from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     PageVersionFactory,
@@ -278,3 +279,36 @@ class VersioningToolbarTestCase(CMSTestCase):
         # The only edit button that exists is the default cms button and not the versioning edit button
         self.assertEqual(len(found), 1)
         self.assertNotEqual(found[0].url, edit_url)
+
+    def test_version_menu_for_non_version_content(self):
+        # User objects are not registered with versioning, so attempting
+        # to populate toolbar shouldn't contain a version menu
+        toolbar = self._get_toolbar(UserFactory(), edit_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+        self.assertIsNone(version_menu)
+
+    def test_version_menu_for_version_content(self):
+        # Versioned item should have versioning menu
+        version = PollVersionFactory()
+        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+        self.assertEqual(version_menu.get_items()[0].name, 'Manage Versions...')
+
+    def test_version_menu_for_none_version(self):
+        # Version menu shouldnt be generated if version is None
+        version = None
+        toolbar = self._get_toolbar(version, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+        self.assertIsNone(version_menu)
+
+    def test_version_menu_and_url_for_version_content(self):
+        # Versioned item should have versioning menu and url should be version list url
+        version = PollVersionFactory()
+        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+        self.assertIsNotNone(version_menu)
+        self.assertEqual(version_menu.get_items()[0].url, version_list_url(version.content))

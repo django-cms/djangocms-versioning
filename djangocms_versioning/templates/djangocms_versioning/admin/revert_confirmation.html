@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+{% block title %}{% trans "Revert Confirmation" %}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media }}
+    <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }}
+delete-confirmation{%endblock %}
+
+{% block content %}
+    <p>{% blocktrans with escaped_object=object %}Are you sure you want revert to this <strong>{{ object_name }}</strong>? {% endblocktrans %}</p>
+    <h2>{{ object_name }}</h2>
+   <br/>
+    <a href="{{ cancel_url }}" class="button cancel-link">{% trans "No, take me back" %}</a>
+    <a href="{{ revert_url }}" class="button confirm-link right" >{% trans 'Yes, I\'m sure' %}</a>
+
+{% endblock %}
+
+
+

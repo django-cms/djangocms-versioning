@@ -301,7 +301,7 @@ class VersionAdmin(admin.ModelAdmin):
             revert_url = ''
         else:
             disable = False
-            revert_url = reverse('admin:{app}_{model}_revert'.format(
+            revert_url = reverse('admin:{app}_{model}_revert_confirm'.format(
                 app=obj._meta.app_label, model=self.model._meta.model_name,
             ), args=(obj.pk,))
 
@@ -468,6 +468,20 @@ class VersionAdmin(admin.ModelAdmin):
         # Redirect
         return redirect(get_editable_url(version.content))
 
+    def revert_confirm_view(self, request, object_id):
+        version = self.get_object(request, unquote(object_id))
+        context = dict(
+            object_name=version.content,
+            object_id=object_id,
+            rever_url=reverse('admin:{app}_{model}_revert'.format(
+                app=self.model._meta.app_label,
+                model=self.model._meta.model_name,
+            ), args=(version.content.pk,)),
+            cancel_url=version_list_url(version.content),
+        )
+        return TemplateResponse(
+            request, 'djangocms_versioning/admin/revert_confirmation.html', context)
+
     def revert_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
         if no draft exists yet.
@@ -596,6 +610,11 @@ class VersionAdmin(admin.ModelAdmin):
                 r'^(.+)/edit-redirect/$',
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name='{}_{}_edit_redirect'.format(*info),
+            ),
+            url(
+                r'^(.+)/revert_confirm/$',
+                self.admin_site.admin_view(self.revert_confirm_view),
+                name='{}_{}_revert_confirm'.format(*info),
             ),
             url(
                 r'^(.+)/revert/$',

@@ -85,13 +85,14 @@ class VersionableItem:
     def grouping_fields(self):
         return chain([self.grouper_field_name], self.extra_grouping_fields)
 
-    def grouping_values(self, content):
-        fields = (
-            field + '_id' if content._meta.get_field(field).is_relation else field
-            for field in self.grouping_fields
-        )
+    def grouping_values(self, content, relation_suffix=True):
+        def suffix(field, allow=True):
+            if allow and content._meta.get_field(field).is_relation:
+                return field + '_id'
+            return field
         return {
-            field: getattr(content, field) for field in fields
+            suffix(field, allow=relation_suffix): getattr(content, suffix(field))
+            for field in self.grouping_fields
         }
 
     def grouper_choices_queryset(self):

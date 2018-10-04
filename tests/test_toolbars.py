@@ -11,8 +11,8 @@ from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
-    PageVersionFactory,
     FancyPollFactory,
+    PageVersionFactory,
     PollVersionFactory,
     UserFactory,
 )

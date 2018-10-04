@@ -2,8 +2,8 @@ from django.apps import apps
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from cms.toolbar.items import ButtonList
 from cms.cms_toolbars import PlaceholderToolbar
+from cms.toolbar.items import ButtonList
 from cms.toolbar_pool import toolbar_pool
 
 from djangocms_versioning.models import Version

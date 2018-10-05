@@ -10,16 +10,24 @@ from .models import Version
 from .helpers import get_content_types_with_subclasses
 
 
-class VersionableItem:
+
+class BaseVersionableItem:
+    concrete = False
+
+    def __init__(self, content_model):
+        self.content_model = content_model
+
+
+class VersionableItem(BaseVersionableItem):
+    concrete = True
 
     def __init__(
         self, content_model, grouper_field_name, copy_function,
         extra_grouping_fields=None, version_list_filter_lookups=None,
         on_publish=None, on_unpublish=None, on_draft_create=None,
         on_archive=None, grouper_selector_option_label=False,
-        register_version_admin=True,
     ):
-        self.content_model = content_model
+        super().__init__(content_model)
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
@@ -32,7 +40,6 @@ class VersionableItem:
         self.on_unpublish = on_unpublish
         self.on_draft_create = on_draft_create
         self.on_archive = on_archive
-        self.register_version_admin = register_version_admin
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
@@ -135,6 +142,16 @@ class PolymorphicVersionableItem(VersionableItem):
 
     def _get_content_types(self):
         return get_content_types_with_subclasses([self.content_model])
+
+
+class VersionableItemAlias(BaseVersionableItem):
+
+    def __init__(self, content_model, to):
+        super().__init__(content_model)
+        self.to = to
+
+    def __getattr__(self, name):
+        return getattr(self.to, name)
 
 
 def default_copy(original_content):

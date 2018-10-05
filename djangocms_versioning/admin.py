@@ -215,7 +215,7 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def _get_archive_link(self, obj, request):
+    def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
         if not obj.state == DRAFT:
@@ -226,7 +226,10 @@ class VersionAdmin(admin.ModelAdmin):
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/archive_icon.html',
-            {'archive_url': archive_url}
+            {
+                'archive_url': archive_url,
+                'disabled': disabled
+            }
         )
 
     def _get_publish_link(self, obj, request):

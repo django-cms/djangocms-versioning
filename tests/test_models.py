@@ -358,16 +358,48 @@ class TestVersionQuerySet(CMSTestCase):
             ordered=False
         )
 
-    def test_version_number(self):
+    def test_version_number_for_sequentially_created_versions(self):
+        """
+        An object being updated in sequential order without any other object versions
+        increments for each version
+        """
+        poll_1 = factories.PollFactory()
+
+        p1_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language='en')
+        p1_version_2 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language='en')
+        p1_version_3 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language='en')
+        p1_version_4 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language='en')
+
+        self.assertEqual(p1_version_1.number, 1)
+        self.assertEqual(p1_version_2.number, 2)
+        self.assertEqual(p1_version_3.number, 3)
+        self.assertEqual(p1_version_4.number, 4)
+
+    def test_version_number_for_multiple_sources_created_versions(self):
+        """
+        Different objects being updated at similar times makes no difference to the version numbers
+        P1 and P2 checks are mixed because versions can be created for different groupers at different times
+        """
         poll_1 = factories.PollFactory()
         poll_2 = factories.PollFactory()
-        # P1 and P2 checks are mixed because versions can be created for different groupers at different times
-        p1_version_1 = factories.PollVersionFactory(content__poll=poll_1)
-        p1_version_2 = factories.PollVersionFactory(content__poll=poll_1)
-        p2_version_1 = factories.PollVersionFactory(content__poll=poll_2)
-        p1_version_3 = factories.PollVersionFactory(content__poll=poll_1)
-        p2_version_2 = factories.PollVersionFactory(content__poll=poll_2)
-        p1_version_4 = factories.PollVersionFactory(content__poll=poll_1)
+        language = 'en'
+
+        p1_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language)
+        p1_version_2 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language)
+        p2_version_1 = factories.PollVersionFactory(
+            content__poll=poll_2, content__language=language)
+        p1_version_3 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language)
+        p2_version_2 = factories.PollVersionFactory(
+            content__poll=poll_2, content__language=language)
+        p1_version_4 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language)
 
         # Poll 1 checks
         self.assertEqual(p1_version_1.number, 1)
@@ -377,3 +409,34 @@ class TestVersionQuerySet(CMSTestCase):
         # Poll 2 checks
         self.assertEqual(p2_version_1.number, 1)
         self.assertEqual(p2_version_2.number, 2)
+
+    def test_version_number_for_multiple_sources_created_versions_with_languages(self):
+        """
+        The same object with different laguages being updated at similar times
+        makes no difference to the version numbers
+        """
+        poll_1 = factories.PollFactory()
+        language_1 = 'en'
+        language_2 = 'it'
+
+        lang1_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_1)
+        lang1_version_2 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_1)
+        lang2_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_2)
+        lang1_version_3 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_1)
+        lang2_version_2 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_2)
+        lang1_version_4 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_1)
+
+        # Language 1 checks
+        self.assertEqual(lang1_version_1.number, 1)
+        self.assertEqual(lang1_version_2.number, 2)
+        self.assertEqual(lang1_version_3.number, 3)
+        self.assertEqual(lang1_version_4.number, 4)
+        # Language 2 checks
+        self.assertEqual(lang2_version_1.number, 1)
+        self.assertEqual(lang2_version_2.number, 2)

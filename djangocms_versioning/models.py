@@ -98,7 +98,16 @@ class Version(models.Model):
         """
         Create a version number for each version
         """
-        self.number =  Version.objects.filter_by_grouper(self.grouper).count() + 1
+        # Get the latest version object
+        grouping_values = self.versionable.grouping_values(self.content)
+        latest_version = Version.objects.filter_by_grouping_fields(
+            self.versionable, **grouping_values
+        ).order_by('-pk').first()
+        # If no previous version exists start at 1
+        if not latest_version:
+            self.number = 1
+        else:
+            self.number = latest_version.number + 1
 
     @property
     def versionable(self):

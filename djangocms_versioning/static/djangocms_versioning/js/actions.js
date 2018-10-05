@@ -11,12 +11,12 @@
                 e.preventDefault();
 
                 var action = $(e.currentTarget);
-
+                var formMethod = action.attr('class').indexOf('cms-action-method-get') !== -1 ? 'GET': 'POST';
+                var csrfToken = formMethod == 'GET' ? '' : '<input type="hidden" name="csrfmiddlewaretoken" value="' +
+                            document.cookie.match(/csrftoken=([^;]*);?/)[1] + '">';
                 var fakeForm = $(
-                    '<form style="display: none" action="' + action.attr('href') + '" method="POST">"' +
-                        '<input type="hidden" name="csrfmiddlewaretoken" value="' +
-                            document.cookie.match(/csrftoken=([^;]*);?/)[1] +
-                        '">' +
+                    '<form style="display: none" action="' + action.attr('href') + '" method="' +
+                           formMethod + '">' + csrfToken +
                     '</form>'
                 );
                 var keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') !== -1;

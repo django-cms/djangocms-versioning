@@ -52,6 +52,7 @@ class Version(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('author')
     )
+    number = models.PositiveIntegerField(default=1)
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,
@@ -66,14 +67,16 @@ class Version(models.Model):
     )
     objects = VersionQuerySet.as_manager()
 
-    @property
-    def number(self):
-        return self.pk
-
     class Meta:
         unique_together = ("content_type", "object_id")
 
     def save(self, **kwargs):
+
+        # On version creation
+        if not self.pk:
+            # Set the version number
+            self.set_version_number()
+
         super().save(**kwargs)
         # Only one draft version is allowed per unique grouping values.
         # Set all other drafts to archived
@@ -90,6 +93,12 @@ class Version(models.Model):
                 on_draft_create(self)
             if emit_content_change:
                 emit_content_change(self.content)
+
+    def set_version_number(self):
+        """
+        Create a version number for each version
+        """
+        self.number =  Version.objects.filter_by_grouper(self.grouper).count() + 1
 
     @property
     def versionable(self):

@@ -190,7 +190,7 @@ class VersionAdmin(admin.ModelAdmin):
         """Get the identifier of the version. Might be something other
         than the pk eventually.
         """
-        return obj.pk
+        return obj.number
     nr.admin_order_field = 'pk'
     nr.short_description = _('version number')
 

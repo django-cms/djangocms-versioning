@@ -359,5 +359,21 @@ class TestVersionQuerySet(CMSTestCase):
         )
 
     def test_version_number(self):
-        pv = factories.PollVersionFactory(content__id=11)
-        self.assertEqual(pv.number, pv.pk)
+        poll_1 = factories.PollFactory()
+        poll_2 = factories.PollFactory()
+        # P1 and P2 checks are mixed because versions can be created for different groupers at different times
+        p1_version_1 = factories.PollVersionFactory(content__poll=poll_1)
+        p1_version_2 = factories.PollVersionFactory(content__poll=poll_1)
+        p2_version_1 = factories.PollVersionFactory(content__poll=poll_2)
+        p1_version_3 = factories.PollVersionFactory(content__poll=poll_1)
+        p2_version_2 = factories.PollVersionFactory(content__poll=poll_2)
+        p1_version_4 = factories.PollVersionFactory(content__poll=poll_1)
+
+        # Poll 1 checks
+        self.assertEqual(p1_version_1.number, 1)
+        self.assertEqual(p1_version_2.number, 2)
+        self.assertEqual(p1_version_3.number, 3)
+        self.assertEqual(p1_version_4.number, 4)
+        # Poll 2 checks
+        self.assertEqual(p2_version_1.number, 1)
+        self.assertEqual(p2_version_2.number, 2)

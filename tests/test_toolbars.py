@@ -27,7 +27,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         request = RequestFactory().get('/')
         request.user = self.get_superuser()
         request.session = {}
-        request.current_page = None if not hasattr(content_obj, 'page') else content_obj.page
+        request.current_page = getattr(content_obj, 'page', None)
         request.toolbar = CMSToolbar(request)
         # Get the toolbar class to use
         if kwargs.get('toolbar_class', False):

@@ -2,8 +2,8 @@ from django.apps import apps
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from cms.cms_toolbars import PlaceholderToolbar
 from cms.toolbar.items import ButtonList
-from cms.toolbar_base import CMSToolbar
 from cms.toolbar_pool import toolbar_pool
 
 from djangocms_versioning.models import Version
@@ -14,8 +14,7 @@ from .helpers import version_list_url
 VERSIONING_MENU_IDENTIFIER = 'version'
 
 
-@toolbar_pool.register
-class VersioningToolbar(CMSToolbar):
+class VersioningToolbar(PlaceholderToolbar):
     class Media:
         js = ('djangocms_versioning/js/actions.js',)
 
@@ -67,29 +66,32 @@ class VersioningToolbar(CMSToolbar):
             )
             self.toolbar.add_item(item)
 
+    def add_edit_button(self):
+        """
+        Only override the CMS versioning button when the object is versionable
+        """
+        if not self._is_versioned():
+            # Show the standard cms edit button for non versionable objects
+            return super().add_edit_button()
+        self._add_edit_button()
+
     def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar
         """
-        # Only add the edit button if the content type is registered
-        # with versioning
-        if not self._is_versioned():
-            return
-        # Add the edit button if in preview mode
-        if self.toolbar.content_mode_active:
-            item = ButtonList(side=self.toolbar.RIGHT)
-            proxy_model = self._get_proxy_model()
-            version = Version.objects.get_for_content(self.toolbar.obj)
-            edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-                app=proxy_model._meta.app_label,
-                model=proxy_model.__name__.lower(),
-            ), args=(version.pk,))
-            item.add_button(
-                _('Edit'),
-                url=edit_url,
-                disabled=disabled,
-                extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
-            )
-            self.toolbar.add_item(item)
+        item = ButtonList(side=self.toolbar.RIGHT)
+        proxy_model = self._get_proxy_model()
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
+            app=proxy_model._meta.app_label,
+            model=proxy_model.__name__.lower(),
+        ), args=(version.pk,))
+        item.add_button(
+            _('Edit'),
+            url=edit_url,
+            disabled=disabled,
+            extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
+        )
+        self.toolbar.add_item(item)
 
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
@@ -109,6 +111,9 @@ class VersioningToolbar(CMSToolbar):
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
-        self._add_edit_button()
         self._add_publish_button()
         self._add_versioning_menu()
+
+
+toolbar_pool.unregister(PlaceholderToolbar)
+toolbar_pool.register(VersioningToolbar)

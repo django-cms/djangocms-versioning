@@ -1,11 +1,13 @@
 from itertools import chain
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
 from .constants import DRAFT, PUBLISHED
 from .models import Version
+from .helpers import get_content_types_with_subclasses
 
 
 class VersionableItem:
@@ -15,6 +17,7 @@ class VersionableItem:
         extra_grouping_fields=None, version_list_filter_lookups=None,
         on_publish=None, on_unpublish=None, on_draft_create=None,
         on_archive=None, grouper_selector_option_label=False,
+        register_version_admin=True,
     ):
         self.content_model = content_model
         # Set the grouper field
@@ -29,6 +32,7 @@ class VersionableItem:
         self.on_unpublish = on_unpublish
         self.on_draft_create = on_draft_create
         self.on_archive = on_archive
+        self.register_version_admin = register_version_admin
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
@@ -118,6 +122,19 @@ class VersionableItem:
 
     def get_grouper_with_fallbacks(self, grouper_id):
         return self.grouper_choices_queryset().filter(pk=grouper_id).first()
+
+    def _get_content_types(self):
+        return [ContentType.objects.get_for_model(self.content_model).pk]
+
+    @cached_property
+    def content_types(self):
+        return self._get_content_types()
+
+
+class PolymorphicVersionableItem(VersionableItem):
+
+    def _get_content_types(self):
+        return get_content_types_with_subclasses([self.content_model])
 
 
 def default_copy(original_content):

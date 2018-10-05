@@ -87,9 +87,8 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     class VersionProxyAdminMixin(VersionAdmin):
 
         def get_queryset(self, request):
-            content_type = ContentType.objects.get_for_model(self.model._source_model)
             return super().get_queryset(request).filter(
-                content_type=content_type,
+                content_type__in=versionable.content_types,
             )
 
     ProxiedAdmin = type(
@@ -206,3 +205,20 @@ def get_editable_url(content_obj):
             model=content_obj._meta.model_name,
         ), args=(content_obj.pk,))
     return url
+
+
+# TODO Based on polymorphic.query_translate._get_mro_content_type_ids,
+# can use that when polymorphic gets a new release
+def get_content_types_with_subclasses(models, using=None):
+    content_types = set()
+    for model in models:
+        content_type = ContentType.objects.db_manager(
+            using,
+        ).get_for_model(model, for_concrete_model=False)
+        content_types.add(content_type.pk)
+        subclasses = model.__subclasses__()
+        if subclasses:
+            content_types.update(
+                get_content_types_with_subclasses(subclasses, using),
+            )
+    return content_types

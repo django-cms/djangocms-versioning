@@ -78,7 +78,8 @@ class VersioningCMSExtension(CMSAppExtension):
         that specific content type are shown.
         """
         for versionable in cms_config.versioning:
-            register_versionadmin_proxy(versionable)
+            if versionable.register_version_admin:
+                register_versionadmin_proxy(versionable)
 
     def handle_content_model_generic_relation(self, cms_config):
         """Adds `versions` GenericRelation field to all provided

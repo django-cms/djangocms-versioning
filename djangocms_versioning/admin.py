@@ -303,9 +303,9 @@ class VersionAdmin(admin.ModelAdmin):
             disable = False
             revert_url = reverse(
                 'admin:{app}_{model}_revert'.format(
-                        app=obj._meta.app_label,
-                        model=self.model._meta.model_name,
-                        ),
+                    app=obj._meta.app_label,
+                    model=self.model._meta.model_name,
+                    ),
                 args=(obj.pk,))
 
         return render_to_string(
@@ -478,6 +478,25 @@ class VersionAdmin(admin.ModelAdmin):
 
         version = self.get_object(request, unquote(object_id))
 
+        if version is None:
+            raise Http404
+
+        if version.state not in (UNPUBLISHED, ARCHIVED):
+            # if version state not unpublished or archived then raise 404
+            raise Http404
+
+        pks_for_grouper = version.versionable.for_content_grouping_values(
+            version.content).values_list('pk', flat=True)
+
+        drafts = Version.objects.filter(
+            object_id__in=pks_for_grouper, content_type=version.content_type,
+            state=DRAFT)
+
+        if drafts.exists():
+            # There is a draft record and someone try to reach revert URL
+            # should raise 404.
+            raise Http404
+
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
@@ -488,29 +507,10 @@ class VersionAdmin(admin.ModelAdmin):
                         model=self.model._meta.model_name,
                         ),
                     args=(version.content.pk,)),
-                cancel_url=version_list_url(version.content),
+                back_url=version_list_url(version.content),
             )
             return render(request, 'djangocms_versioning/admin/revert_confirmation.html', context)
         else:
-            if version is None:
-                raise Http404
-
-            pks_for_grouper = version.versionable.for_content_grouping_values(
-                version.content).values_list('pk', flat=True)
-
-            drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper, content_type=version.content_type,
-                state=DRAFT)
-
-            if drafts.exists():
-                # There is a draft record and someone try to reach revert URL
-                # should raise 404.
-                raise Http404
-
-            if version.state not in (UNPUBLISHED, ARCHIVED):
-                # if version state not unpublished or archived then raise 404
-                raise Http404
-
             version = version.copy(request.user)
             # Redirect
             return redirect(version_list_url(version.content))

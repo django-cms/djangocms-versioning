@@ -13,16 +13,15 @@
 delete-confirmation{%endblock %}
 
 {% block content %}
-    <p>{% blocktrans with escaped_object=object %}Are you sure you want revert to following version?
-        {% endblocktrans %}</p>
+    <p>{% trans "Are you sure you want revert to following version?" %} </p>
     <h2>{{ object_name }}</h2>
 
-<form action="{{ revert_url }}" method="POST">
+<form action="{% if revert_url %} {{ revert_url }} {% else %} {{ back_url }} {% endif %}" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link"
             type="submit"
             value="{% trans 'Yes, I\'m sure' %}"/>
-    <a href="{{ cancel_url }}">
+    <a href="{{ back_url }}">
         <input type="button"
                class="button"
                value="{% trans 'No, take me back' %}" />

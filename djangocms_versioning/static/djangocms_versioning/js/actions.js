@@ -11,7 +11,7 @@
                 e.preventDefault();
 
                 var action = $(e.currentTarget);
-                var formMethod = action.attr('class').indexOf('cms-action-method-get') !== -1 ? 'GET': 'POST';
+                var formMethod = action.attr('class').indexOf('cms-form-get-method') !== -1 ? 'GET': 'POST';
                 var csrfToken = formMethod == 'GET' ? '' : '<input type="hidden" name="csrfmiddlewaretoken" value="' +
                             document.cookie.match(/csrftoken=([^;]*);?/)[1] + '">';
                 var fakeForm = $(

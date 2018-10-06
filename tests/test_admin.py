@@ -397,7 +397,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-action-method-get cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'

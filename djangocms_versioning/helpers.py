@@ -1,3 +1,4 @@
+import copy
 import warnings
 from contextlib import contextmanager
 
@@ -137,7 +138,9 @@ def _set_default_manager(model, manager):
         m for m in model._meta.local_managers
         if m.name != 'objects'
     ]
-    model.add_to_class('objects', manager)
+    manager_ = copy.copy(manager)
+    manager_.name = 'objects'
+    model.add_to_class('objects', manager_)
 
 
 @contextmanager

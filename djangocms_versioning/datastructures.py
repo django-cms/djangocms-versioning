@@ -6,9 +6,8 @@ from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
 from .constants import DRAFT, PUBLISHED
-from .models import Version
 from .helpers import get_content_types_with_subclasses
-
+from .models import Version
 
 
 class BaseVersionableItem:

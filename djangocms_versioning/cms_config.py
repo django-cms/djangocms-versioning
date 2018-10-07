@@ -57,7 +57,10 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(
-                    "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(versionable))
+                    "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(
+                        versionable,
+                    ),
+                )
             # NOTE: Do not use the cached property here as this is
             # still changing and needs to be calculated on the fly
             registered_so_far = [v.content_model for v in self.versionables]

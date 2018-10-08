@@ -393,7 +393,7 @@ class VersionAdmin(admin.ModelAdmin):
             # Archive the version
             version.archive(request.user)
             # Display message
-            messages.success(request, _("Version archived"))
+            self.message_user(request, _("Version archived"))
         # Redirect
         return redirect(version_list_url(version.content))
 

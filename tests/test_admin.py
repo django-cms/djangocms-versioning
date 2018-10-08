@@ -777,7 +777,7 @@ class ArchiveViewTestCase(CMSTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
     @freeze_time(None)
-    @patch('django.contrib.messages.success')
+    @patch('django.contrib.admin.ModelAdmin.message_user')
     def test_archive_view_sets_state_and_redirects(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(

@@ -152,10 +152,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_list_filter(self, request):
         versionable = versionables.for_content(self.model._source_model)
-        return (
+        return [
             fake_filter_factory(versionable, field)
             for field in versionable.extra_grouping_fields
-        )
+        ]
 
     def _state_actions(self, request):
         def state_actions(obj):

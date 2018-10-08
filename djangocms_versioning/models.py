@@ -36,6 +36,9 @@ class VersionQuerySet(models.QuerySet):
         })
 
     def filter_by_grouping_fields(self, versionable, **kwargs):
+        """Returns a list of Version objects for the provided grouper
+        object with all of the related fields applied (unique grouper version list)
+        """
         content_objects = versionable.for_grouping_values(**kwargs)
         content_type = ContentType.objects.get_for_model(versionable.content_model)
         return self.filter(
@@ -52,7 +55,7 @@ class Version(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('author')
     )
-    number = models.PositiveIntegerField(default=1)
+    number = models.CharField(max_length=11)
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,
@@ -107,7 +110,7 @@ class Version(models.Model):
         if not latest_version:
             self.number = 1
         else:
-            self.number = latest_version.number + 1
+            self.number = int(latest_version.number) + 1
 
     @property
     def versionable(self):

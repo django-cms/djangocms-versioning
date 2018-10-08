@@ -16,19 +16,15 @@ delete-confirmation{%endblock %}
     <p>{% trans "Are you sure you want unpublish following version? This will remove page from live website" %} </p>
     <h2>{{ object_name }}</h2>
 
-<form action="{% if unpublish_url %} {{ unpublish_url }} {% else %} {{ back_url }} {% endif %}" method="POST">
+<form action="" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link"
             type="submit"
-            value="{% trans 'Yes, I\'m sure' %}"/>
+            value="{% trans 'Yes, I\'m sure' %}">
     <a href="{{ back_url }}">
         <input type="button"
                class="button"
-               value="{% trans 'No, take me back' %}" />
+               value="{% trans 'No, take me back' %}">
     </a>
 </form>
-
 {% endblock %}
-
-
-

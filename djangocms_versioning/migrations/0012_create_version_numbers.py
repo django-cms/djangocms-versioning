@@ -23,7 +23,7 @@ def forwards(app_registry, schema_editor):
 
     # For each registered version model
     for versionable in versioning_extension.versionables:
-
+        # For each distinct grouper, unique to the grouping field values
         for content in _distinct_groupers(versionable):
 
             fields = versionable.grouping_values(content)

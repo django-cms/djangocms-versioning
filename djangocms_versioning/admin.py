@@ -152,10 +152,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_list_filter(self, request):
         versionable = versionables.for_content(self.model._source_model)
-        return (
+        return [
             fake_filter_factory(versionable, field)
             for field in versionable.extra_grouping_fields
-        )
+        ]
 
     def _state_actions(self, request):
         def state_actions(obj):
@@ -215,7 +215,7 @@ class VersionAdmin(admin.ModelAdmin):
     content_link.short_description = _('Content')
     content_link.admin_order_field = 'content'
 
-    def _get_archive_link(self, obj, request):
+    def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
         if not obj.state == DRAFT:
@@ -226,7 +226,10 @@ class VersionAdmin(admin.ModelAdmin):
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/archive_icon.html',
-            {'archive_url': archive_url}
+            {
+                'archive_url': archive_url,
+                'disabled': disabled
+            }
         )
 
     def _get_publish_link(self, obj, request):

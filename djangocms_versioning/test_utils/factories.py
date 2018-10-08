@@ -13,6 +13,7 @@ from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
+from .unversioned_editable_app.models import FancyPoll
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -210,3 +211,10 @@ class TextPluginFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Text
+
+
+class FancyPollFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=24)
+
+    class Meta:
+        model = FancyPoll

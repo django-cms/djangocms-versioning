@@ -7,6 +7,7 @@ HELPER_SETTINGS = {
         'djangocms_versioning.test_utils.blogpost',
         'djangocms_versioning.test_utils.text',
         'djangocms_versioning.test_utils.people',
+        'djangocms_versioning.test_utils.unversioned_editable_app',
     ],
     'MIGRATION_MODULES': {
         'auth': None,

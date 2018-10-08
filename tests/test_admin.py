@@ -876,7 +876,7 @@ class ArchiveViewTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    def test_archive_view_cant_be_accessed_by_get_request(self):
+    def test_archive_view_can_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
@@ -884,9 +884,8 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
-        # status hasn't changed
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['REQUEST_METHOD'], 'GET')
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)
         # no status change has been tracked
@@ -1145,7 +1144,7 @@ class UnpublishViewTestCase(CMSTestCase):
             mocked_messages.call_args[0][2],
             'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?')
 
-    def test_unpublish_view_cant_be_accessed_by_get_request(self):
+    def test_unpublish_view_can_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
@@ -1153,8 +1152,8 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get('allow'), ('Allow', 'POST'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['REQUEST_METHOD'], 'GET')
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)

@@ -455,6 +455,8 @@ class StateActionsTestCase(CMSTestCase):
     def test_archive_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        # assigning author to request user so action can be available
+        request.user = version.created_by
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -464,12 +466,12 @@ class StateActionsTestCase(CMSTestCase):
             args=(version.pk,))
 
         state_actions = admin.site._registry[version_model_proxy]._state_actions(request)(version)
-
         self.assertIn(archive_url, state_actions)
 
     def test_archive_not_in_state_actions_for_archived_version(self):
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -485,6 +487,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_archive_not_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -500,6 +503,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_archive_not_in_state_actions_for_unpublished_version(self):
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -515,6 +519,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_publish_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -530,6 +535,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_publish_not_in_state_actions_for_archived_version(self):
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -545,6 +551,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_publish_not_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -560,6 +567,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_publish_not_in_state_actions_for_unpublished_version(self):
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -575,6 +583,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_unpublish_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -590,6 +599,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_unpublish_not_in_state_actions_for_archived_version(self):
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -605,6 +615,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_unpublish_not_in_state_actions_for_unpublished_version(self):
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -620,6 +631,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_unpublish_not_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -635,6 +647,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -650,6 +663,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_not_in_state_actions_for_archived_version(self):
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -665,6 +679,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -680,6 +695,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED, content__language='en')
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         factories.PollVersionFactory(
             state=constants.DRAFT, content__poll=version.content.poll, content__language='en')
         # Get the version model proxy from the main admin site
@@ -697,6 +713,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_not_in_state_actions_for_unpublished_version(self):
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = factories.UserFactory()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [

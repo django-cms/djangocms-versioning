@@ -1,5 +1,5 @@
 {% load static i18n %}
-
+{% spaceless %}
 {% if disabled %}
 <a class="btn cms-versioning-action-btn inactive" title="{% trans "Edit" %}">
 {% else %}
@@ -7,3 +7,4 @@
 {% endif %}
     <img src="{% static 'djangocms_versioning/svg/edit.svg' %}">
 </a>
+{% endspaceless %}

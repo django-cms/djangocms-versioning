@@ -416,7 +416,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Publish the version
         version.publish(request.user)
         # Display message
-        messages.success(request, _("Version published"))
+        self.message_user(request, _("Version published"))
         # Redirect
         return redirect(version_list_url(version.content))
 
@@ -450,7 +450,7 @@ class VersionAdmin(admin.ModelAdmin):
             # Unpublish the version
             version.unpublish(request.user)
             # Display message
-            messages.success(request, _("Version unpublished"))
+            self.message_user(request, _("Version unpublished"))
         # Redirect
         return redirect(version_list_url(version.content))
 

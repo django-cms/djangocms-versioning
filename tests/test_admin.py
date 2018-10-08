@@ -317,11 +317,6 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertTrue(qs._prefetch_done)
         self.assertIn('content', qs._prefetch_related_lookups)
 
-    def test_version_nr(self):
-        version = factories.PollVersionFactory(id=413)
-        nr = self.site._registry[Version].nr(version)
-        self.assertEqual(nr, 413)
-
     def test_content_link_editable_object(self):
         """
         The link returned is the change url for an editable object

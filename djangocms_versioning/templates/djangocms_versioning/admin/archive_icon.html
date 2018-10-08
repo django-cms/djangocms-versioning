@@ -1,2 +1,9 @@
 {% load static i18n %}
-<a class="btn cms-versioning-action-btn js-versioning-action" href="{{ archive_url }}" title="{% trans "Archive" %}"><img src="{% static 'djangocms_versioning/svg/archive.svg' %}"></a>
+
+{% if disabled %}
+<a class="btn cms-versioning-action-btn inactive" title="{% trans 'Archive' %}">
+{% else %}
+<a class="btn cms-versioning-action-btn js-versioning-action" href="{{ archive_url }}" title="{% trans 'Archive' %}">
+{% endif %}
+    <img src="{% static 'djangocms_versioning/svg/archive.svg' %}">
+</a>

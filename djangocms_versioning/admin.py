@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin.options import (
     TO_FIELD_VAR,
     IncorrectLookupParameters,
@@ -304,15 +304,18 @@ class VersionAdmin(admin.ModelAdmin):
             revert_url = ''
         else:
             disable = False
-            revert_url = reverse('admin:{app}_{model}_revert'.format(
-                app=obj._meta.app_label, model=self.model._meta.model_name,
-            ), args=(obj.pk,))
+            revert_url = reverse(
+                'admin:{app}_{model}_revert'.format(
+                    app=obj._meta.app_label,
+                    model=self.model._meta.model_name,
+                    ),
+                args=(obj.pk,))
 
         return render_to_string(
             'djangocms_versioning/admin/revert_icon.html',
             {
                 'revert_url': revert_url,
-                'disable': disable
+                'disable': disable,
             }
         )
 
@@ -363,9 +366,6 @@ class VersionAdmin(admin.ModelAdmin):
         """Archives the specified version and redirects back to the
         version changelist
         """
-        # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -375,10 +375,25 @@ class VersionAdmin(admin.ModelAdmin):
         # Raise 404 if not in draft status
         if version.state != DRAFT:
             raise Http404
-        # Archive the version
-        version.archive(request.user)
-        # Display message
-        messages.success(request, _("Version archived"))
+
+        if request.method != 'POST':
+            context = dict(
+                object_name=version.content,
+                object_id=object_id,
+                archive_url=reverse(
+                    'admin:{app}_{model}_archive'.format(
+                        app=self.model._meta.app_label,
+                        model=self.model._meta.model_name,
+                    ),
+                    args=(version.content.pk,)),
+                back_url=version_list_url(version.content),
+            )
+            return render(request, 'djangocms_versioning/admin/archive_confirmation.html', context)
+        else:
+            # Archive the version
+            version.archive(request.user)
+            # Display message
+            self.message_user(request, _("Version archived"))
         # Redirect
         return redirect(version_list_url(version.content))
 
@@ -401,7 +416,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Publish the version
         version.publish(request.user)
         # Display message
-        messages.success(request, _("Version published"))
+        self.message_user(request, _("Version published"))
         # Redirect
         return redirect(version_list_url(version.content))
 
@@ -409,10 +424,6 @@ class VersionAdmin(admin.ModelAdmin):
         """Unpublishes the specified version and redirects back to the
         version changelist
         """
-        # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
-
         # Check version exists
         version = self.get_object(request, unquote(object_id))
         if version is None:
@@ -421,10 +432,25 @@ class VersionAdmin(admin.ModelAdmin):
         # Raise 404 if not in published status
         if version.state != PUBLISHED:
             raise Http404
-        # Unpublish the version
-        version.unpublish(request.user)
-        # Display message
-        messages.success(request, _("Version unpublished"))
+        # This view always changes data so only POST requests should work
+        if request.method != 'POST':
+            context = dict(
+                object_name=version.content,
+                object_id=object_id,
+                unpublish_url=reverse(
+                    'admin:{app}_{model}_unpublish'.format(
+                        app=self.model._meta.app_label,
+                        model=self.model._meta.model_name,
+                    ),
+                    args=(version.content.pk,)),
+                back_url=version_list_url(version.content),
+            )
+            return render(request, 'djangocms_versioning/admin/unpublish_confirmation.html', context)
+        else:
+            # Unpublish the version
+            version.unpublish(request.user)
+            # Display message
+            self.message_user(request, _("Version unpublished"))
         # Redirect
         return redirect(version_list_url(version.content))
 
@@ -476,13 +502,15 @@ class VersionAdmin(admin.ModelAdmin):
         if no draft exists yet.
         """
         version = self.get_object(request, unquote(object_id))
-
         if version is None:
+            raise Http404
+
+        if version.state not in (UNPUBLISHED, ARCHIVED):
+            # if version state not unpublished or archived then raise 404
             raise Http404
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
             version.content).values_list('pk', flat=True)
-
         drafts = Version.objects.filter(
             object_id__in=pks_for_grouper, content_type=version.content_type,
             state=DRAFT)
@@ -492,13 +520,23 @@ class VersionAdmin(admin.ModelAdmin):
             # should raise 404.
             raise Http404
 
-        if version.state not in (UNPUBLISHED, ARCHIVED):
-            # if version state not unpublished or archived then raise 404
-            raise Http404
-
-        version = version.copy(request.user)
-        # Redirect
-        return redirect(version_list_url(version.content))
+        if request.method != 'POST':
+            context = dict(
+                object_name=version.content,
+                object_id=object_id,
+                revert_url=reverse(
+                    'admin:{app}_{model}_revert'.format(
+                        app=self.model._meta.app_label,
+                        model=self.model._meta.model_name,
+                        ),
+                    args=(version.content.pk,)),
+                back_url=version_list_url(version.content),
+            )
+            return render(request, 'djangocms_versioning/admin/revert_confirmation.html', context)
+        else:
+            version = version.copy(request.user)
+            # Redirect
+            return redirect(version_list_url(version.content))
 
     def compare_view(self, request, object_id):
         """Compares two versions

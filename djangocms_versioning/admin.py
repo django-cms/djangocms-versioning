@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin.options import (
     TO_FIELD_VAR,
     IncorrectLookupParameters,

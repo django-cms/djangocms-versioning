@@ -12,8 +12,8 @@
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
 
 {% block content %}
-    <p>{% trans "Are you sure you want to unpublish following version?" %} </p>
-    <h2>{{ object_name }}</h2>
+<p>{% trans "Are you sure you want to unpublish following version?" %} </p>
+<h2>{{ object_name }}</h2>
 
 <form action="" method="POST">
     {% csrf_token %}

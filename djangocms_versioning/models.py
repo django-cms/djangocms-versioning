@@ -36,6 +36,9 @@ class VersionQuerySet(models.QuerySet):
         })
 
     def filter_by_grouping_fields(self, versionable, **kwargs):
+        """Returns a list of Version objects for the provided grouper
+        object with all of the related fields applied (unique grouper version list)
+        """
         content_objects = versionable.for_grouping_values(**kwargs)
         content_type = ContentType.objects.get_for_model(versionable.content_model)
         return self.filter(
@@ -52,6 +55,7 @@ class Version(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('author')
     )
+    number = models.CharField(max_length=11)
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.PROTECT,
@@ -66,14 +70,16 @@ class Version(models.Model):
     )
     objects = VersionQuerySet.as_manager()
 
-    @property
-    def number(self):
-        return self.pk
-
     class Meta:
         unique_together = ("content_type", "object_id")
 
     def save(self, **kwargs):
+
+        # On version creation
+        if not self.pk:
+            # Set the version number
+            self.number = self.make_version_number()
+
         super().save(**kwargs)
         # Only one draft version is allowed per unique grouping values.
         # Set all other drafts to archived
@@ -90,6 +96,20 @@ class Version(models.Model):
                 on_draft_create(self)
             if emit_content_change:
                 emit_content_change(self.content)
+
+    def make_version_number(self):
+        """
+        Create a version number for each version
+        """
+        # Get the latest version object
+        grouping_values = self.versionable.grouping_values(self.content)
+        latest_version = Version.objects.filter_by_grouping_fields(
+            self.versionable, **grouping_values
+        ).order_by('-pk').first()
+        # If no previous version exists start at 1
+        if not latest_version:
+            return 1
+        return int(latest_version.number) + 1
 
     @property
     def versionable(self):

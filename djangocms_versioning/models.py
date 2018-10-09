@@ -78,7 +78,7 @@ class Version(models.Model):
         # On version creation
         if not self.pk:
             # Set the version number
-            self.set_version_number()
+            self.number = self.make_version_number()
 
         super().save(**kwargs)
         # Only one draft version is allowed per unique grouping values.
@@ -97,7 +97,7 @@ class Version(models.Model):
             if emit_content_change:
                 emit_content_change(self.content)
 
-    def set_version_number(self):
+    def make_version_number(self):
         """
         Create a version number for each version
         """
@@ -108,9 +108,8 @@ class Version(models.Model):
         ).order_by('-pk').first()
         # If no previous version exists start at 1
         if not latest_version:
-            self.number = 1
-        else:
-            self.number = int(latest_version.number) + 1
+            return 1
+        return int(latest_version.number) + 1
 
     @property
     def versionable(self):

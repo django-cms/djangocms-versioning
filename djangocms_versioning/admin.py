@@ -1,10 +1,7 @@
 from django.conf.urls import url
-from django.contrib import admin
-from django.contrib.admin.options import (
-    TO_FIELD_VAR,
-    IncorrectLookupParameters,
-)
-from django.contrib.admin.utils import unquote
+from django.contrib import admin, messages
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseNotAllowed
@@ -48,25 +45,23 @@ class VersioningAdminMixin:
             Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
-        """Limit query to most recent content versions
-        """
         from .helpers import override_default_manager
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
-        versionable = versionables.for_content(queryset.model)
-        return queryset.filter(pk__in=versionable.distinct_groupers())
+        if request.resolver_match.url_name.endswith('_changelist'):
+            versionable = versionables.for_content(queryset.model)
+            return queryset.filter(pk__in=versionable.distinct_groupers())
+        return queryset
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        # Raise 404 if the version associated with the object is not
-        # a draft
-        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
-        content_obj = self.get_object(request, unquote(object_id), to_field)
-        if content_obj is not None:
-            version = Version.objects.get_for_content(content_obj)
-            if version.state != DRAFT:
-                raise Http404
-        return super().change_view(
-            request, object_id, form_url='', extra_context=None)
+    def _can_modify_version(self, version, user):
+        return version.state == DRAFT
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            version = Version.objects.get_for_content(obj)
+            if not self._can_modify_version(version, request.user):
+                return flatten_fieldsets(self.get_fieldsets(request, obj))
+        return super().get_readonly_fields(request, obj)
 
 
 class VersionChangeList(ChangeList):

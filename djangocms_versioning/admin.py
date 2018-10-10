@@ -246,7 +246,7 @@ class VersionAdmin(admin.ModelAdmin):
             {'publish_url': publish_url}
         )
 
-    def _get_unpublish_link(self, obj, request):
+    def _get_unpublish_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the unpublish action
         """
         if not obj.state == PUBLISHED:
@@ -257,7 +257,10 @@ class VersionAdmin(admin.ModelAdmin):
         ), args=(obj.pk,))
         return render_to_string(
             'djangocms_versioning/admin/unpublish_icon.html',
-            {'unpublish_url': unpublish_url}
+            {
+                'unpublish_url': unpublish_url,
+                'disabled': disabled,
+            }
         )
 
     def _get_edit_link(self, obj, request, disabled=False):

@@ -138,12 +138,19 @@ class VersionableItem(BaseVersionableItem):
 
 
 class PolymorphicVersionableItem(VersionableItem):
+    """VersionableItem for use by base polymorphic class
+    (for example filer.File).
+    """
 
     def _get_content_types(self):
         return get_content_types_with_subclasses([self.content_model])
 
 
 class VersionableItemAlias(BaseVersionableItem):
+    """VersionableItem that points to a different VersionableItem,
+    so that all operations are executed in context of
+    the other VersionableItem.
+    """
 
     def __init__(self, content_model, to):
         super().__init__(content_model)

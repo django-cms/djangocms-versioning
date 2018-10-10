@@ -151,6 +151,14 @@ def override_default_manager(model, manager):
     _set_default_manager(model, original_manager)
 
 
+@contextmanager
+def nonversioned_manager(model):
+    manager_cls = model.objects.__class__
+    manager_cls.versioning_enabled = False
+    yield
+    manager_cls.versioning_enabled = True
+
+
 def _version_list_url(versionable, **params):
     proxy = versionable.version_model_proxy
     return add_url_parameters(

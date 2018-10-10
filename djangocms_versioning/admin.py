@@ -20,6 +20,7 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
+from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .forms import grouper_form_factory
 from .helpers import get_editable_url, version_list_url
@@ -57,11 +58,21 @@ class VersioningAdminMixin:
         return version.state == DRAFT
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
+        if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             if not self._can_modify_version(version, request.user):
-                return flatten_fieldsets(self.get_fieldsets(request, obj))
+                if self.fields:
+                    return self.fields
+                if self.fieldsets:
+                    return flatten_fieldsets(self.fieldsets)
+                return self.form.declared_fields
         return super().get_readonly_fields(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj and DJANGO_GTE_21:
+            version = Version.objects.get_for_content(obj)
+            return self._can_modify_version(version, request.user)
+        return super().has_change_permission(request, obj)
 
 
 class VersionChangeList(ChangeList):

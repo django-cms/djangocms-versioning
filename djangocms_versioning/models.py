@@ -72,6 +72,9 @@ class Version(models.Model):
     class Meta:
         unique_together = ("content_type", "object_id")
 
+    def __str__(self):
+        return "Version #{}".format(self.pk)
+
     def save(self, **kwargs):
 
         # On version creation

@@ -172,8 +172,11 @@ class VersionAdmin(admin.ModelAdmin):
 
     list_display_links = None
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('content')
+    # FIXME disabled until GenericRelation attached to content models gets
+    # fixed to include subclass (polymorphic) support
+    #
+    # def get_queryset(self, request):
+    #     return super().get_queryset(request).prefetch_related('content')
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList

@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
@@ -27,6 +27,22 @@ from .helpers import get_editable_url, version_list_url
 from .models import Version
 
 
+class VersioningChangeListMixin:
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        versionable = versionables.for_content(queryset.model)
+        return queryset.filter(pk__in=versionable.distinct_groupers())
+
+
+def versioning_change_list_factory(ChangeList):
+    return type(
+        'Versioned' + ChangeList.__name__,
+        (VersioningChangeListMixin, ChangeList),
+        {},
+    )
+
+
 class VersioningAdminMixin:
     """Mixin providing versioning functionality to admin classes of
     content models.
@@ -49,10 +65,11 @@ class VersioningAdminMixin:
         from .helpers import override_default_manager
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
-        if request.resolver_match.url_name.endswith('_changelist'):
-            versionable = versionables.for_content(queryset.model)
-            return queryset.filter(pk__in=versionable.distinct_groupers())
         return queryset
+
+    def get_changelist(self, request, **kwargs):
+        ChangeList = super().get_changelist(request, **kwargs)
+        return versioning_change_list_factory(ChangeList)
 
     def _can_modify_version(self, version, user):
         return version.state == DRAFT
@@ -65,7 +82,12 @@ class VersioningAdminMixin:
                     return self.fields
                 if self.fieldsets:
                     return flatten_fieldsets(self.fieldsets)
-                return self.form.declared_fields
+                if self.form.declared_fields:
+                    return self.form.declared_fields
+                return list(set(
+                    [field.name for field in self.opts.local_fields] +
+                    [field.name for field in self.opts.local_many_to_many]
+                ))
         return super().get_readonly_fields(request, obj)
 
     def has_change_permission(self, request, obj=None):

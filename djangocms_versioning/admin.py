@@ -514,7 +514,7 @@ class VersionAdmin(admin.ModelAdmin):
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
-                draft_version=draft_version and True or False,
+                draft_version=draft_version,
                 object_id=object_id,
                 revert_url=reverse(
                     'admin:{app}_{model}_revert'.format(

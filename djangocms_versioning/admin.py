@@ -292,33 +292,21 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_revert_link(self, obj, request):
         """Helper function to get the html link to the revert action
         """
-        if obj.state in (UNPUBLISHED, ARCHIVED):
-            pks_for_grouper = obj.versionable.for_content_grouping_values(
-                obj.content).values_list('pk', flat=True)
-            drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper, content_type=obj.content_type,
-                state=DRAFT)
-        else:
+        if obj.state not in (UNPUBLISHED, ARCHIVED):
             # Don't display the link if it's a draft or published
             return ''
 
-        if drafts.exists():
-            disable = True
-            revert_url = ''
-        else:
-            disable = False
-            revert_url = reverse(
-                'admin:{app}_{model}_revert'.format(
-                    app=obj._meta.app_label,
-                    model=self.model._meta.model_name,
-                    ),
-                args=(obj.pk,))
+        revert_url = reverse(
+            'admin:{app}_{model}_revert'.format(
+                app=obj._meta.app_label,
+                model=self.model._meta.model_name,
+            ),
+            args=(obj.pk,))
 
         return render_to_string(
             'djangocms_versioning/admin/revert_icon.html',
             {
                 'revert_url': revert_url,
-                'disable': disable,
             }
         )
 
@@ -505,6 +493,7 @@ class VersionAdmin(admin.ModelAdmin):
         if no draft exists yet.
         """
         version = self.get_object(request, unquote(object_id))
+
         if version is None:
             raise Http404
 
@@ -518,14 +507,14 @@ class VersionAdmin(admin.ModelAdmin):
             object_id__in=pks_for_grouper, content_type=version.content_type,
             state=DRAFT)
 
+        draft_version = None
         if drafts.exists():
-            # There is a draft record and someone try to reach revert URL
-            # should raise 404.
-            raise Http404
+            draft_version = drafts.first()
 
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
+                draft_exist=draft_version and True or False,
                 object_id=object_id,
                 revert_url=reverse(
                     'admin:{app}_{model}_revert'.format(
@@ -537,6 +526,13 @@ class VersionAdmin(admin.ModelAdmin):
             )
             return render(request, 'djangocms_versioning/admin/revert_confirmation.html', context)
         else:
+
+            if draft_version and request.POST.get('archive'):
+                draft_version.archive(request.user)
+
+            if draft_version and request.POST.get('discard'):
+                draft_version.delete()
+
             version = version.copy(request.user)
             # Redirect
             return redirect(version_list_url(version.content))

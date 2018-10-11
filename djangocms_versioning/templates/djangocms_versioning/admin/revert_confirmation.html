@@ -18,7 +18,7 @@
 
 <form action="" method="POST">
     {% csrf_token %}
-    {% if draft_exist %}
+    {% if draft_version %}
     <input  class="button revert-button confirm-link"
             type="submit"
             name="discard"

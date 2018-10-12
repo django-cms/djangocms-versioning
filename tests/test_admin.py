@@ -399,7 +399,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         ) % draft_edit_url
         self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
 
-    def test_revert_action_link_for_draft__state(self):
+    def test_revert_action_link_for_draft_state(self):
         """
         The revert url should be null for draft state
         """
@@ -407,10 +407,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get('/admin/polls/pollcontent/')
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
-
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
-    def test_revert_action_link_for_unpublished__state(self):
+    def test_revert_action_link_for_published_state(self):
         """
         The revert url should be null for unpublished state
         """
@@ -418,29 +417,26 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get('/admin/polls/pollcontent/')
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
-
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
-    def test_revert_action_link_disabled_state(self):
+    def test_revert_action_link_for_archive_state(self):
         """
-        The edit action is disabled
+        The revert url should be null for unpublished state
         """
-        poll = factories.PollFactory()
-        factories.PollVersionFactory.create_batch(
-            3, state=constants.PUBLISHED, content__poll=poll)
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         user = factories.UserFactory()
-        version = factories.PollVersionFactory(
-            state=constants.UNPUBLISHED, content__poll=poll)
-
-        # created draft version from version
-        version.copy(user)
-
+        archive_version = version.copy(user)
+        archive_version.archive(user)
         request = RequestFactory().get('/admin/polls/pollcontent/')
-        actual_disabled_control = self.version_admin._get_revert_link(version, request)
+        request.user = user
+        actual_disabled_control = self.version_admin._get_revert_link(archive_version, request)
+        draft_revert_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', archive_version.pk)
         expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn js-versioning-keep-sideframe inactive"'
-            ' title="Draft already exists, revert action not possible">'
-        )
+            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            'js-versioning-keep-sideframe" '
+            'href="%s" '
+            'title="Revert">'
+        ) % draft_revert_url
 
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 

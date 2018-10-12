@@ -5,6 +5,7 @@
 {% block extrahead %}
     {{ block.super }}
     {{ media }}
+    <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
     <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
 {% endblock %}
 
@@ -17,9 +18,21 @@
 
 <form action="" method="POST">
     {% csrf_token %}
-    <input  class="button confirm-link"
+    {% if draft_version %}
+    <input  class="button revert-button confirm-link"
             type="submit"
+            name="discard"
+            value="{% trans 'Discard existing draft and Revert' %}">
+    <input  class="button revert-button confirm-link"
+            name="archive"
+            type="submit"
+            value="{% trans 'Archive existing draft and Revert' %}">
+    {% else %}
+    <input  class="button revert-button confirm-link"
+            type="submit"
+            name="revert"
             value="{% trans 'Yes, I\'m sure' %}">
+    {% endif %}
     <a href="{{ back_url }}">
         <input type="button"
                class="button"

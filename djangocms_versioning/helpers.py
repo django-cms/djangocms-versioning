@@ -1,6 +1,7 @@
 import warnings
 from contextlib import contextmanager
 
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -12,7 +13,8 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from .constants import DRAFT
 from .managers import PublishedContentManagerMixin
-from .versionables import _cms_extension
+from .models import Version
+from .versionables import _cms_extension, for_content
 
 
 def versioning_admin_factory(admin_class):
@@ -206,3 +208,21 @@ def get_editable_url(content_obj):
             model=content_obj._meta.model_name,
         ), args=(content_obj.pk,))
     return url
+
+
+def is_latest_version(content_obj):
+    """Returns True if the object is the latest version in its group, False otherwise.
+    If content_obj is not versioned it returns False
+    """
+    versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
+    if versioning_extension.is_content_model_versioned(content_obj.__class__):
+        versionable = for_content(content_obj)
+        grouping_values = versionable.grouping_values(content_obj)
+        latest_version = Version.objects.filter_by_grouping_fields(
+            versionable, **grouping_values
+        ).order_by('-pk').first()
+
+        version = Version.objects.get_for_content(content_obj)
+        return latest_version.number == version.number
+    else:
+        return False

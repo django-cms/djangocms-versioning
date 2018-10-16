@@ -13,7 +13,9 @@
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
 
 {% block content %}
-<p>{% trans "Are you sure you want to revert the following version?" %} </p>
+<p>
+    {% trans "Reverting to this version may cause loss of an existing draft version. Please select an option to continue" %}
+</p>
 <h2>{{ object_name }}</h2>
 
 <form action="" method="POST">

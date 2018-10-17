@@ -13,8 +13,8 @@
 
 {% block content %}
 <p>{% trans "Are you sure you want to archive following version?" %}</p>
-<h2>{{ object_name }}</h2>
-<h3>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h3>
+<h3>{{ object_name }}</h3>
+<h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
 <form action="" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link"

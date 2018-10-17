@@ -21,23 +21,23 @@
 <form action="" method="POST">
     {% csrf_token %}
     {% if draft_version %}
-    <input  class="button revert-button confirm-link"
+    <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             type="submit"
             name="discard"
             value="{% trans 'Discard existing draft and Revert' %}">
-    <input  class="button revert-button confirm-link"
+    <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             name="archive"
             type="submit"
             value="{% trans 'Archive existing draft and Revert' %}">
     {% else %}
-    <input  class="button revert-button confirm-link"
+    <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             type="submit"
             name="revert"
             value="{% trans 'Yes, I\'m sure' %}">
     {% endif %}
     <a href="{{ back_url }}">
         <input type="button"
-               class="button"
+               class="button js-versioning-keep-sideframe"
                value="{% trans 'No, take me back' %}">
     </a>
 </form>

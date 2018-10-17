@@ -3,9 +3,7 @@ from django.test import RequestFactory
 from cms.toolbar.toolbar import CMSToolbar
 
 from djangocms_versioning.cms_toolbars import VersioningToolbar
-from djangocms_versioning.test_utils.factories import (
-    UserFactory,
-)
+from djangocms_versioning.test_utils.factories import UserFactory
 
 
 def get_toolbar(content_obj, user=None, **kwargs):

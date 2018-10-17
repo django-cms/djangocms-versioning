@@ -14,8 +14,8 @@
 {% block content %}
 <p>{% trans "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}
 </p>
-<h2>{{ object_name }} ({% trans "Version number: " %} {{ version_number }})</h2>
-
+<h2>{{ object_name }}</h2>
+<h3>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h3>
 <form action="" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link"

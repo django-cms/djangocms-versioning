@@ -16,8 +16,8 @@
 <p>
     {% trans "Reverting to this version may cause loss of an existing draft version. Please select an option to continue" %}
 </p>
-<h2>{{ object_name }} ({% trans "Version number: " %} {{ version_number }})</h2>
-
+<h2>{{ object_name }}</h2>
+<h3>{% blocktrans %}Version number: {{ version_number }}{% endblocktrans %}</h3>
 <form action="" method="POST">
     {% csrf_token %}
     {% if draft_version %}

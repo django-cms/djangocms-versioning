@@ -1,13 +1,8 @@
-from django.test import RequestFactory
-from django.utils.translation import ugettext_lazy as _
-
 from cms.cms_toolbars import PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
-from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
-from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
@@ -17,44 +12,14 @@ from djangocms_versioning.test_utils.factories import (
     UserFactory,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
+from djangocms_versioning.test_utils.test_helpers import (
+    find_toolbar_buttons,
+    get_toolbar,
+    toolbar_button_exists,
+)
 
 
 class VersioningToolbarTestCase(CMSTestCase):
-
-    def _get_toolbar(self, content_obj, **kwargs):
-        """Helper method to set up the toolbar
-        """
-        request = RequestFactory().get('/')
-        request.user = self.get_superuser()
-        request.session = {}
-        request.current_page = getattr(content_obj, 'page', None)
-        request.toolbar = CMSToolbar(request)
-        # Get the toolbar class to use
-        if kwargs.get('toolbar_class', False):
-            toolbar_class = kwargs.get('toolbar_class')
-        else:
-            toolbar_class = VersioningToolbar
-        toolbar = toolbar_class(
-            request,
-            toolbar=request.toolbar,
-            is_current_app=True,
-            app_path='/',
-        )
-        toolbar.toolbar.obj = content_obj
-        if kwargs.get('edit_mode', False):
-            toolbar.toolbar.edit_mode_active = True
-            toolbar.toolbar.content_mode_active = False
-            toolbar.toolbar.structure_mode_active = False
-        elif kwargs.get('preview_mode', False):
-            toolbar.toolbar.edit_mode_active = False
-            toolbar.toolbar.content_mode_active = True
-            toolbar.toolbar.structure_mode_active = False
-        elif kwargs.get('structure_mode', False):
-            toolbar.toolbar.edit_mode_active = False
-            toolbar.toolbar.content_mode_active = False
-            toolbar.toolbar.structure_mode_active = True
-        toolbar.populate()
-        return toolbar
 
     def _get_publish_url(self, version, versionable=PollsCMSConfig.versioning[0]):
         """Helper method to return the expected publish url
@@ -72,11 +37,11 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_in_toolbar_in_edit_mode(self):
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, edit_mode=True)
+        toolbar = get_toolbar(version.content, edit_mode=True)
 
         toolbar.post_template_populate()
+        publish_button = find_toolbar_buttons('Publish', toolbar.toolbar)[0]
 
-        publish_button = toolbar.toolbar.get_right_items()[1].buttons[0]
         self.assertEqual(publish_button.name, 'Publish')
         self.assertEqual(publish_button.url, self._get_publish_url(version))
         self.assertFalse(publish_button.disabled)
@@ -86,35 +51,32 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_publish_not_in_toolbar_in_preview_mode(self):
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, preview_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Publish'], [])
+        self.assertFalse(
+            toolbar_button_exists('Publish', toolbar.toolbar))
 
     def test_publish_not_in_toolbar_in_structure_mode(self):
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, structure_mode=True)
+        toolbar = get_toolbar(version.content, structure_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Publish'], [])
+        self.assertFalse(
+            toolbar_button_exists('Publish', toolbar.toolbar))
 
     def test_dont_add_publish_for_models_not_registered_with_versioning(self):
         # User objects are not registered with versioning, so attempting
         # to populate a user toolbar should not attempt to add a publish
         # button
-        toolbar = self._get_toolbar(UserFactory(), edit_mode=True)
+        toolbar = get_toolbar(UserFactory(), edit_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Publish'], [])
+        self.assertFalse(
+            toolbar_button_exists('Publish', toolbar.toolbar))
 
     def test_url_for_publish_uses_version_id_not_content_id(self):
         """Regression test for a bug. Make sure than when we generate
@@ -127,21 +89,19 @@ class VersioningToolbarTestCase(CMSTestCase):
         # Now create a poll version - the poll content and version id
         # will be different.
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, edit_mode=True)
-
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), edit_mode=True)
         toolbar.post_template_populate()
+        publish_button = find_toolbar_buttons('Publish', toolbar.toolbar)[0]
 
-        # Look for the publish buttons in the list
-        publish_button = toolbar.toolbar.get_right_items()[1].buttons[0]
         self.assertEqual(publish_button.url, self._get_publish_url(version))
 
     def test_edit_in_toolbar_in_preview_mode(self):
         version = PageVersionFactory(content__template="")
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
 
         toolbar.post_template_populate()
+        edit_button = find_toolbar_buttons('Edit', toolbar.toolbar)[0]
 
-        edit_button = toolbar.toolbar.get_right_items()[1].buttons[0]
         self.assertEqual(edit_button.name, 'Edit')
         self.assertEqual(edit_button.url, self._get_edit_url(version, VersioningCMSConfig.versioning[0]))
         self.assertFalse(edit_button.disabled)
@@ -151,35 +111,32 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, edit_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), edit_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Edit'], [])
+        self.assertFalse(
+            toolbar_button_exists('Edit', toolbar.toolbar))
 
     def test_edit_not_in_toolbar_in_structure_mode(self):
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, structure_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), structure_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Edit'], [])
+        self.assertFalse(
+            toolbar_button_exists('Edit', toolbar.toolbar))
 
     def test_dont_add_edit_for_models_not_registered_with_versioning(self):
         # User objects are not registered with versioning, so attempting
         # to populate a user toolbar should not attempt to add a edit
         # button
-        toolbar = self._get_toolbar(UserFactory(), preview_mode=True)
+        toolbar = get_toolbar(UserFactory(), user=self.get_superuser(), preview_mode=True)
 
         toolbar.post_template_populate()
 
-        buttons = toolbar.toolbar.get_right_items()[0].buttons
-        self.assertListEqual(
-            [b for b in buttons if b.name == 'Edit'], [])
+        self.assertFalse(
+            toolbar_button_exists('Edit', toolbar.toolbar))
 
     def test_url_for_edit_uses_version_id_not_content_id(self):
         """Regression test for a bug. Make sure than when we generate
@@ -192,12 +149,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         # Now create a page version - the page content and version id
         # will be different.
         version = PageVersionFactory(content__template="")
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         edit_url = self._get_edit_url(version, VersioningCMSConfig.versioning[0])
 
         toolbar.post_template_populate()
 
-        edit_button = toolbar.toolbar.get_right_items()[1].buttons[0]
+        edit_button = find_toolbar_buttons('Edit', toolbar.toolbar)[0]
         self.assertEqual(edit_button.url, edit_url)
 
     def test_default_cms_edit_button_is_replaced_by_versioning_edit_button(self):
@@ -212,16 +169,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
-        toolbar = response.wsgi_request.toolbar
-        # Locate any edit buttons
-        found = []
-        for button_list in toolbar.get_right_items():
-            found = found + [button for button in button_list.buttons if button.name == _('Edit')]
+        found_button_list = find_toolbar_buttons('Edit', response.wsgi_request.toolbar)
 
         # Only one edit button exists
-        self.assertEqual(len(found), 1)
+        self.assertEqual(len(found_button_list), 1)
         # The only edit button that exists is the versioning button
-        self.assertEqual(found[0].url, edit_url)
+        self.assertEqual(found_button_list[0].url, edit_url)
 
     def test_default_cms_edit_button_is_used_for_non_versioned_model(self):
         """
@@ -234,16 +187,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
-        toolbar = response.wsgi_request.toolbar
-        # Locate any edit buttons
-        found = []
-        for button_list in toolbar.get_right_items():
-            found = found + [button for button in button_list.buttons if button.name == _('Edit')]
+        found_button_list = find_toolbar_buttons('Edit', response.wsgi_request.toolbar)
 
         # Only one edit button exists
-        self.assertEqual(len(found), 1)
+        self.assertEqual(len(found_button_list), 1)
         # The only edit button that exists is the standard cms button
-        self.assertEqual(found[0].url, edit_url)
+        self.assertEqual(found_button_list[0].url, edit_url)
 
     def test_default_edit_button_from_cms_exists(self):
         """
@@ -252,26 +201,23 @@ class VersioningToolbarTestCase(CMSTestCase):
         pagecontent = PageVersionFactory(content__template="")
         edit_url = self._get_edit_url(pagecontent.content, VersioningCMSConfig.versioning[0])
 
-        toolbar = self._get_toolbar(
+        toolbar = get_toolbar(
             pagecontent.content,
+            user=self.get_superuser(),
             toolbar_class=PlaceholderToolbar,
             preview_mode=True,
         )
         toolbar.post_template_populate()
-
-        # Locate any edit buttons
-        found = []
-        for button_list in toolbar.toolbar.get_right_items():
-            found = found + [button for button in button_list.buttons if button.name == _('Edit')]
+        found_button_list = find_toolbar_buttons('Edit', toolbar.toolbar)
 
         # The only edit button that exists is the default cms button and not the versioning edit button
-        self.assertEqual(len(found), 1)
-        self.assertNotEqual(found[0].url, edit_url)
+        self.assertEqual(len(found_button_list), 1)
+        self.assertNotEqual(found_button_list[0].url, edit_url)
 
     def test_version_menu_for_non_version_content(self):
         # User objects are not registered with versioning, so attempting
         # to populate toolbar shouldn't contain a version menu
-        toolbar = self._get_toolbar(UserFactory(), edit_mode=True)
+        toolbar = get_toolbar(UserFactory(), edit_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu('version')
         self.assertIsNone(version_menu)
@@ -279,7 +225,7 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_for_version_content(self):
         # Versioned item should have versioning menu
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu('version')
         self.assertEqual(version_menu.get_items()[0].name, 'Manage Versions...')
@@ -287,7 +233,7 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_for_none_version(self):
         # Version menu shouldnt be generated if version is None
         version = None
-        toolbar = self._get_toolbar(version, preview_mode=True)
+        toolbar = get_toolbar(version, preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu('version')
         self.assertIsNone(version_menu)
@@ -295,7 +241,7 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_and_url_for_version_content(self):
         # Versioned item should have versioning menu and url should be version list url
         version = PollVersionFactory()
-        toolbar = self._get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu('version')
         self.assertIsNotNone(version_menu)

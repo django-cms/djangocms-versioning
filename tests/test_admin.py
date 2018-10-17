@@ -1,7 +1,7 @@
 import datetime
 import warnings
 from distutils.version import LooseVersion
-from unittest import skipIf
+from unittest import skip, skipIf
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -307,6 +307,8 @@ class VersionAdminTestCase(CMSTestCase):
             VersionChangeList,
         )
 
+
+    @skip('Prefetching is disabled')
     def test_queryset_content_prefetching(self):
         factories.PollVersionFactory.create_batch(4)
         with self.assertNumQueries(2):

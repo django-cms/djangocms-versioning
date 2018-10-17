@@ -307,7 +307,6 @@ class VersionAdminTestCase(CMSTestCase):
             VersionChangeList,
         )
 
-
     @skip('Prefetching is disabled')
     def test_queryset_content_prefetching(self):
         factories.PollVersionFactory.create_batch(4)

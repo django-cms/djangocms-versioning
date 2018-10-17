@@ -370,6 +370,7 @@ class VersionAdmin(admin.ModelAdmin):
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
+                version_number=version.number,
                 object_id=object_id,
                 archive_url=reverse(
                     'admin:{app}_{model}_archive'.format(
@@ -427,6 +428,7 @@ class VersionAdmin(admin.ModelAdmin):
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
+                version_number=version.number,
                 object_id=object_id,
                 unpublish_url=reverse(
                     'admin:{app}_{model}_unpublish'.format(
@@ -514,6 +516,7 @@ class VersionAdmin(admin.ModelAdmin):
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
+                version_number=version.number,
                 draft_version=draft_version,
                 object_id=object_id,
                 revert_url=reverse(

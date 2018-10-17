@@ -13,7 +13,7 @@
 
 {% block content %}
 <p>{% trans "Are you sure you want to archive following version?" %}</p>
-<h2>{{ object_name }}</h2>
+<h2>{{ object_name }} ({% trans "Version number: " %} {{ version_number }})</h2>
 
 <form action="" method="POST">
     {% csrf_token %}

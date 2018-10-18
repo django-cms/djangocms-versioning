@@ -1,14 +1,24 @@
 from itertools import chain
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
 from .constants import DRAFT, PUBLISHED
+from .helpers import get_content_types_with_subclasses
 from .models import Version
 
 
-class VersionableItem:
+class BaseVersionableItem:
+    concrete = False
+
+    def __init__(self, content_model):
+        self.content_model = content_model
+
+
+class VersionableItem(BaseVersionableItem):
+    concrete = True
 
     def __init__(
         self, content_model, grouper_field_name, copy_function,
@@ -16,7 +26,7 @@ class VersionableItem:
         on_publish=None, on_unpublish=None, on_draft_create=None,
         on_archive=None, grouper_selector_option_label=False,
     ):
-        self.content_model = content_model
+        super().__init__(content_model)
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
@@ -118,6 +128,36 @@ class VersionableItem:
 
     def get_grouper_with_fallbacks(self, grouper_id):
         return self.grouper_choices_queryset().filter(pk=grouper_id).first()
+
+    def _get_content_types(self):
+        return [ContentType.objects.get_for_model(self.content_model).pk]
+
+    @cached_property
+    def content_types(self):
+        return self._get_content_types()
+
+
+class PolymorphicVersionableItem(VersionableItem):
+    """VersionableItem for use by base polymorphic class
+    (for example filer.File).
+    """
+
+    def _get_content_types(self):
+        return get_content_types_with_subclasses([self.content_model])
+
+
+class VersionableItemAlias(BaseVersionableItem):
+    """VersionableItem that points to a different VersionableItem,
+    so that all operations are executed in context of
+    the other VersionableItem.
+    """
+
+    def __init__(self, content_model, to):
+        super().__init__(content_model)
+        self.to = to
+
+    def __getattr__(self, name):
+        return getattr(self.to, name)
 
 
 def default_copy(original_content):

@@ -20,10 +20,10 @@ class VersionQuerySet(models.QuerySet):
     def get_for_content(self, content_object):
         """Returns Version object corresponding to provided content object
         """
-        content_type = ContentType.objects.get_for_model(content_object)
+        versionable = versionables.for_content(content_object)
         return self.get(
             object_id=content_object.pk,
-            content_type=content_type,
+            content_type__in=versionable.content_types,
         )
 
     def filter_by_grouper(self, grouper_object):
@@ -40,10 +40,9 @@ class VersionQuerySet(models.QuerySet):
         object with all of the related fields applied (unique grouper version list)
         """
         content_objects = versionable.for_grouping_values(**kwargs)
-        content_type = ContentType.objects.get_for_model(versionable.content_model)
         return self.filter(
             object_id__in=content_objects,
-            content_type=content_type,
+            content_type__in=versionable.content_types,
         )
 
 
@@ -72,6 +71,9 @@ class Version(models.Model):
 
     class Meta:
         unique_together = ("content_type", "object_id")
+
+    def __str__(self):
+        return "Version #{}".format(self.pk)
 
     def save(self, **kwargs):
 

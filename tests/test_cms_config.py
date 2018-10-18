@@ -169,6 +169,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
     def test_handle_version_admin(self):
         versionable = Mock(
             spec=[], djangocms_versioning_enabled=True, content_model=PollContent,
+            concrete=True,
             grouper_model=Poll,
             version_model_proxy=apps.get_model('djangocms_versioning', 'PollContentVersion')
         )

@@ -131,7 +131,7 @@ class VersionChangeList(ChangeList):
         filters = dict(self.get_grouping_field_filters(request))
         if versionable.grouper_field_name not in filters:
             raise IncorrectLookupParameters("Missing grouper")
-        return queryset.filter_by_grouping_fields(versionable, **filters)
+        return queryset.filter_by_grouping_values(versionable, **filters)
 
 
 def fake_filter_factory(versionable, field_name):

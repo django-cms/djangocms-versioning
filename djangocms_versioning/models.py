@@ -47,7 +47,8 @@ class VersionQuerySet(models.QuerySet):
 
     def filter_by_content_grouping_values(self, content):
         """Returns a list of Version objects for grouping values taken
-        from provided content object
+       from provided content object. In other words:
+       it uses the content instance property values as filter parameters
         """
         versionable = versionables.for_content(content)
         content_objects = versionable.for_content_grouping_values(content)

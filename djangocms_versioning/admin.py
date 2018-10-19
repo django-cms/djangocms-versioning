@@ -310,6 +310,28 @@ class VersionAdmin(admin.ModelAdmin):
             }
         )
 
+    def _get_discard_link(self, obj, request, disabled=False):
+        """Helper function to get the html link to the discard action
+        """
+        if obj.state not in (DRAFT, ):
+            # Don't display the link if it's not a draft
+            return ''
+
+        discard_url = reverse(
+            'admin:{app}_{model}_discard'.format(
+                app=obj._meta.app_label,
+                model=self.model._meta.model_name,
+            ),
+            args=(obj.pk,))
+
+        return render_to_string(
+            'djangocms_versioning/admin/discard_icon.html',
+            {
+                'discard_url': discard_url,
+                'disabled': disabled,
+            }
+        )
+
     def get_state_actions(self):
         return [
             self._get_edit_link,
@@ -317,6 +339,7 @@ class VersionAdmin(admin.ModelAdmin):
             self._get_publish_link,
             self._get_unpublish_link,
             self._get_revert_link,
+            self._get_discard_link,
         ]
 
     def compare_versions(self, request, queryset):
@@ -540,6 +563,43 @@ class VersionAdmin(admin.ModelAdmin):
             # Redirect
             return redirect(version_list_url(version.content))
 
+    def discard_view(self, request, object_id):
+        """Redirects to the admin change view and creates a draft version
+        if no draft exists yet.
+        """
+        version = self.get_object(request, unquote(object_id))
+
+        if version is None:
+            raise Http404
+
+        if version.state not in (DRAFT, ):
+            # if version state not unpublished or archived then raise 404
+            raise Http404
+
+        if request.method != 'POST':
+            context = dict(
+                object_name=version.content,
+                version_number=version.number,
+                draft_version=version,
+                object_id=object_id,
+                revert_url=reverse(
+                    'admin:{app}_{model}_revert'.format(
+                        app=self.model._meta.app_label,
+                        model=self.model._meta.model_name,
+                        ),
+                    args=(version.content.pk,)),
+                back_url=version_list_url(version.content),
+            )
+            return render(request, 'djangocms_versioning/admin/discard_confirmation.html', context)
+        else:
+
+            if version and request.POST.get('discard'):
+                version.delete()
+
+            # version = version.copy(request.user)
+            # Redirect
+            return redirect(version_list_url(version.content))
+
     def compare_view(self, request, object_id):
         """Compares two versions
         """
@@ -650,6 +710,11 @@ class VersionAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.compare_view),
                 name='{}_{}_compare'.format(*info),
             ),
+            url(
+                r'^(.+)/discard/$',
+                self.admin_site.admin_view(self.discard_view),
+                name='{}_{}_discard'.format(*info),
+                ),
         ] + super().get_urls()
 
     def has_add_permission(self, request):

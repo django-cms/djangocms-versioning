@@ -624,7 +624,7 @@ class VersionAdmin(admin.ModelAdmin):
             return render(request, 'djangocms_versioning/admin/discard_confirmation.html', context)
         else:
 
-            if version and request.POST.get('discard'):
+            if request.POST.get('discard'):
                 version.delete()
 
             # Redirect

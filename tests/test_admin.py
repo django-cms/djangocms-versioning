@@ -419,6 +419,54 @@ class VersionAdminActionsTestCase(CMSTestCase):
         expected_disabled_control = ""
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
+    def test_discard_action_link_enabled_state(self):
+        """
+        The edit action is active
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        draft_discard_url = self.get_admin_url(self.versionable.version_model_proxy, 'discard', version.pk)
+
+        actual_enabled_control = self.version_admin._get_discard_link(version, request)
+
+        expected_enabled_state = (
+            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            'js-versioning-keep-sideframe" '
+            'href="%s" '
+            'title="Discard">'
+        ) % draft_discard_url
+        self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_archive_state(self):
+        """
+        The revert url should be null for archive state
+        """
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_unpublished_state(self):
+        """
+        The revert url should be null for unpublished state
+        """
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_published_state(self):
+        """
+        The revert url should be null for unpublished state
+        """
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
     def test_revert_action_link_for_archive_state(self):
         """
         The revert url should be null for unpublished state

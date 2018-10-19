@@ -623,12 +623,13 @@ class VersionAdmin(admin.ModelAdmin):
             )
             return render(request, 'djangocms_versioning/admin/discard_confirmation.html', context)
         else:
-
+            version_url = version_list_url(version.content)
             if request.POST.get('discard'):
+                version.content.delete()
                 version.delete()
 
             # Redirect
-            return redirect(version_list_url(version.content))
+            return redirect(version_url)
 
     def compare_view(self, request, object_id):
         """Compares two versions

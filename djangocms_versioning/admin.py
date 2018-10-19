@@ -1,10 +1,7 @@
 from django.conf.urls import url
 from django.contrib import admin
-from django.contrib.admin.options import (
-    TO_FIELD_VAR,
-    IncorrectLookupParameters,
-)
-from django.contrib.admin.utils import unquote
+from django.contrib.admin.options import IncorrectLookupParameters
+from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseNotAllowed
@@ -23,10 +20,27 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
+from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .forms import grouper_form_factory
 from .helpers import get_editable_url, version_list_url
 from .models import Version
+
+
+class VersioningChangeListMixin:
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        versionable = versionables.for_content(queryset.model)
+        return queryset.filter(pk__in=versionable.distinct_groupers())
+
+
+def versioning_change_list_factory(ChangeList):
+    return type(
+        'Versioned' + ChangeList.__name__,
+        (VersioningChangeListMixin, ChangeList),
+        {},
+    )
 
 
 class VersioningAdminMixin:
@@ -48,25 +62,39 @@ class VersioningAdminMixin:
             Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
-        """Limit query to most recent content versions
-        """
         from .helpers import override_default_manager
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
-        versionable = versionables.for_content(queryset.model)
-        return queryset.filter(pk__in=versionable.distinct_groupers())
+        return queryset
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        # Raise 404 if the version associated with the object is not
-        # a draft
-        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
-        content_obj = self.get_object(request, unquote(object_id), to_field)
-        if content_obj is not None:
-            version = Version.objects.get_for_content(content_obj)
-            if version.state != DRAFT:
-                raise Http404
-        return super().change_view(
-            request, object_id, form_url='', extra_context=None)
+    def get_changelist(self, request, **kwargs):
+        ChangeList = super().get_changelist(request, **kwargs)
+        return versioning_change_list_factory(ChangeList)
+
+    def _can_modify_version(self, version, user):
+        return version.state == DRAFT
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and not DJANGO_GTE_21:
+            version = Version.objects.get_for_content(obj)
+            if not self._can_modify_version(version, request.user):
+                if self.fields:
+                    return self.fields
+                if self.fieldsets:
+                    return flatten_fieldsets(self.fieldsets)
+                if self.form.declared_fields:
+                    return self.form.declared_fields
+                return list(set(
+                    [field.name for field in self.opts.local_fields] +
+                    [field.name for field in self.opts.local_many_to_many]
+                ))
+        return super().get_readonly_fields(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        if obj and DJANGO_GTE_21:
+            version = Version.objects.get_for_content(obj)
+            return self._can_modify_version(version, request.user)
+        return super().has_change_permission(request, obj)
 
 
 class VersionChangeList(ChangeList):
@@ -103,7 +131,7 @@ class VersionChangeList(ChangeList):
         filters = dict(self.get_grouping_field_filters(request))
         if versionable.grouper_field_name not in filters:
             raise IncorrectLookupParameters("Missing grouper")
-        return queryset.filter_by_grouping_fields(versionable, **filters)
+        return queryset.filter_by_grouping_values(versionable, **filters)
 
 
 def fake_filter_factory(versionable, field_name):
@@ -144,8 +172,11 @@ class VersionAdmin(admin.ModelAdmin):
 
     list_display_links = None
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('content')
+    # FIXME disabled until GenericRelation attached to content models gets
+    # fixed to include subclass (polymorphic) support
+    #
+    # def get_queryset(self, request):
+    #     return super().get_queryset(request).prefetch_related('content')
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList

@@ -627,7 +627,6 @@ class VersionAdmin(admin.ModelAdmin):
             if version and request.POST.get('discard'):
                 version.delete()
 
-            # version = version.copy(request.user)
             # Redirect
             return redirect(version_list_url(version.content))
 

@@ -255,6 +255,10 @@ class VersionAdmin(admin.ModelAdmin):
         archive_url = reverse('admin:{app}_{model}_archive'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
+
+        if not self.can_archive(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/archive_icon.html',
             {
@@ -286,6 +290,10 @@ class VersionAdmin(admin.ModelAdmin):
         unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
+
+        if not self.can_unpublish(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/unpublish_icon.html',
             {
@@ -320,7 +328,7 @@ class VersionAdmin(admin.ModelAdmin):
             }
         )
 
-    def _get_revert_link(self, obj, request):
+    def _get_revert_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the revert action
         """
         if obj.state not in (UNPUBLISHED, ARCHIVED):
@@ -334,10 +342,14 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
+        if not self.can_revert(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/revert_icon.html',
             {
                 'revert_url': revert_url,
+                'disabled': disabled,
             }
         )
 
@@ -354,6 +366,9 @@ class VersionAdmin(admin.ModelAdmin):
                 model=self.model._meta.model_name,
             ),
             args=(obj.pk,))
+
+        if not self.can_discard(obj, request.user):
+            disabled = True
 
         return render_to_string(
             'djangocms_versioning/admin/discard_icon.html',
@@ -758,3 +773,23 @@ class VersionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def can_revert(self, version, user):
+        """Method to check if user can perform revert action
+        """
+        return True
+
+    def can_discard(self, version, user):
+        """Method to check if user can perform discard action
+        """
+        return True
+
+    def can_archive(self, version, user):
+        """Method to check if user can perform archive action
+        """
+        return True
+
+    def can_unpublish(self, version, user):
+        """Method to check if user can perform unpublish action
+        """
+        return True

@@ -74,12 +74,11 @@ class Version(models.Model):
         unique_together = ("content_type", "object_id")
 
     def save(self, **kwargs):
-        created = False
+        created = not self.pk
         # On version creation
-        if not self.pk:
+        if created:
             # Set the version number
             self.number = self.make_version_number()
-            created = True
 
         super().save(**kwargs)
         # Only one draft version is allowed per unique grouping values.

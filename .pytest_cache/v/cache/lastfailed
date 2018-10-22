@@ -1,0 +1,14 @@
+{
+  "tests/test_admin.py": true,
+  "tests/test_checks.py": true,
+  "tests/test_cms_config.py": true,
+  "tests/test_content_models.py": true,
+  "tests/test_datastructures.py": true,
+  "tests/test_forms.py": true,
+  "tests/test_menus.py": true,
+  "tests/test_models.py": true,
+  "tests/test_monkeypatch.py": true,
+  "tests/test_states.py": true,
+  "tests/test_toolbars.py": true,
+  "tests/test_version_list.py": true
+}

@@ -320,7 +320,7 @@ class VersionAdmin(admin.ModelAdmin):
             }
         )
 
-    def _get_revert_link(self, obj, request):
+    def _get_revert_link(self, obj, request, disabled=True):
         """Helper function to get the html link to the revert action
         """
         if obj.state not in (UNPUBLISHED, ARCHIVED):
@@ -338,6 +338,7 @@ class VersionAdmin(admin.ModelAdmin):
             'djangocms_versioning/admin/revert_icon.html',
             {
                 'revert_url': revert_url,
+                'disabled': disabled,
             }
         )
 
@@ -758,3 +759,23 @@ class VersionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def can_revert(self, version, user):
+        """Method to check if user can perform revert action
+        """
+        return True
+
+    def can_discard(self, version, user):
+        """Method to check if user can perform discard action
+        """
+        return True
+
+    def can_archive(self, version, user):
+        """Method to check if user can perform archive action
+        """
+        return True
+
+    def can_unpublish(self, version, user):
+        """Method to check if user can perform unpublish action
+        """
+        return True

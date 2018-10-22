@@ -481,10 +481,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
         draft_revert_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', archive_version.pk)
         expected_disabled_control = (
             '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
-            'js-versioning-keep-sideframe" '
-            'href="%s" '
+            'inactive js-versioning-keep-sideframe" '
             'title="Revert">'
-        ) % draft_revert_url
+        )
 
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 

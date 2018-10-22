@@ -255,6 +255,10 @@ class VersionAdmin(admin.ModelAdmin):
         archive_url = reverse('admin:{app}_{model}_archive'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
+
+        if not self.can_archive(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/archive_icon.html',
             {
@@ -286,6 +290,10 @@ class VersionAdmin(admin.ModelAdmin):
         unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
+
+        if not self.can_unpublish(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/unpublish_icon.html',
             {
@@ -334,6 +342,9 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
+        if not self.can_revert(obj, request.user):
+            disabled = True
+
         return render_to_string(
             'djangocms_versioning/admin/revert_icon.html',
             {
@@ -355,6 +366,9 @@ class VersionAdmin(admin.ModelAdmin):
                 model=self.model._meta.model_name,
             ),
             args=(obj.pk,))
+
+        if not self.can_discard(obj, request.user):
+            disabled = True
 
         return render_to_string(
             'djangocms_versioning/admin/discard_icon.html',

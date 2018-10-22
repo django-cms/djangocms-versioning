@@ -16,48 +16,48 @@ from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
 
-def versioning_admin_factory(admin_class):
+def versioning_admin_factory(admin_class, mixin):
     """A class factory returning admin class with overriden
     versioning functionality.
 
     :param admin_class: Existing admin class
+    :param mixin: Mixin class
     :return: A subclass of `VersioningAdminMixin` and `admin_class`
     """
-    from .admin import VersioningAdminMixin
-    return type('Versioned' + admin_class.__name__, (VersioningAdminMixin, admin_class), {})
+    return type('Versioned' + admin_class.__name__, (mixin, admin_class), {})
 
 
-def _replace_admin_for_model(modeladmin, admin_site):
+def _replace_admin_for_model(modeladmin, mixin, admin_site):
     """Replaces existing admin class registered for `modeladmin.model` with
     a subclass that includes versioning functionality.
 
     Doesn't do anything if `modeladmin` is already an instance of
-    `VersioningAdminMixin`.
+    `mixin`.
 
     :param model: ModelAdmin instance
+    :param mixin: Mixin class
     :param admin_site: AdminSite instance
     """
-    from .admin import VersioningAdminMixin
-    if isinstance(modeladmin, VersioningAdminMixin):
+    if isinstance(modeladmin, mixin):
         return
-    new_admin_class = versioning_admin_factory(modeladmin.__class__)
+    new_admin_class = versioning_admin_factory(modeladmin.__class__, mixin)
     admin_site.unregister(modeladmin.model)
     admin_site.register(modeladmin.model, new_admin_class)
 
 
-def replace_admin_for_models(models, admin_site=None):
+def replace_admin_for_models(pairs, admin_site=None):
     """
-    :param models: List of model classes
+    :param models: List of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance
     """
     if admin_site is None:
         admin_site = admin.site
-    for model in models:
+    for model, mixin in pairs:
         try:
             modeladmin = admin_site._registry[model]
         except KeyError:
             continue
-        _replace_admin_for_model(modeladmin, admin_site)
+        _replace_admin_for_model(modeladmin, mixin, admin_site)
 
 
 def register_versionadmin_proxy(versionable, admin_site=None):

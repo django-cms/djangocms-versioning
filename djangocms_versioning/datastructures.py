@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
 from django.utils.functional import cached_property
 
+from .admin import VersioningAdminMixin
 from .constants import DRAFT, PUBLISHED
 from .helpers import get_content_types_with_subclasses
 from .models import Version
@@ -13,8 +14,9 @@ from .models import Version
 class BaseVersionableItem:
     concrete = False
 
-    def __init__(self, content_model):
+    def __init__(self, content_model, content_admin_mixin=None):
         self.content_model = content_model
+        self.content_admin_mixin = content_admin_mixin or VersioningAdminMixin
 
 
 class VersionableItem(BaseVersionableItem):
@@ -25,8 +27,9 @@ class VersionableItem(BaseVersionableItem):
         extra_grouping_fields=None, version_list_filter_lookups=None,
         on_publish=None, on_unpublish=None, on_draft_create=None,
         on_archive=None, grouper_selector_option_label=False,
+        content_admin_mixin=None
     ):
-        super().__init__(content_model)
+        super().__init__(content_model, content_admin_mixin)
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
@@ -152,8 +155,8 @@ class VersionableItemAlias(BaseVersionableItem):
     the other VersionableItem.
     """
 
-    def __init__(self, content_model, to):
-        super().__init__(content_model)
+    def __init__(self, content_model, to, content_admin_mixin=None):
+        super().__init__(content_model, content_admin_mixin)
         self.to = to
 
     def __getattr__(self, name):

@@ -20,11 +20,15 @@ class VersionQuerySet(models.QuerySet):
     def get_for_content(self, content_object):
         """Returns Version object corresponding to provided content object
         """
+        if hasattr(content_object, '_version_cache'):
+            return content_object._version_cache
         versionable = versionables.for_content(content_object)
-        return self.get(
+        version = self.get(
             object_id=content_object.pk,
             content_type__in=versionable.content_types,
         )
+        content_object._version_cache = version
+        return version
 
     def filter_by_grouper(self, grouper_object):
         """Returns a list of Version objects for the provided grouper

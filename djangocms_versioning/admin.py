@@ -328,7 +328,7 @@ class VersionAdmin(admin.ModelAdmin):
             }
         )
 
-    def _get_revert_link(self, obj, request, disabled=True):
+    def _get_revert_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the revert action
         """
         if obj.state not in (UNPUBLISHED, ARCHIVED):

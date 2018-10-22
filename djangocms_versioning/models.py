@@ -92,9 +92,9 @@ class Version(models.Model):
         return "Version #{}".format(self.pk)
 
     def save(self, **kwargs):
-
+        created = not self.pk
         # On version creation
-        if not self.pk:
+        if created:
             # Set the version number
             self.number = self.make_version_number()
 
@@ -113,7 +113,7 @@ class Version(models.Model):
             if on_draft_create:
                 on_draft_create(self)
             if emit_content_change:
-                emit_content_change(self.content)
+                emit_content_change(self.content, created=created)
 
     def make_version_number(self):
         """

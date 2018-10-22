@@ -1,48 +1,46 @@
-from django.apps import apps
-
-from cms.plugin_rendering import ContentRenderer
+from cms.plugin_rendering import ContentRenderer, StructureRenderer
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
+from . import versionables
 from .constants import DRAFT, PUBLISHED
 
 
-def get_versionable_for_grouper(model):
-    versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-    if versioning_extension.is_grouper_model_versioned(model):
-        return versioning_extension.versionables_by_grouper[model]
+def prefetch_versioned_related_objects(instance, toolbar):
+    instance, plugin = instance.get_plugin_instance()
+
+    candidate_fields = [
+        f for f in instance._meta.get_fields()
+        if f.is_relation and not f.auto_created
+    ]
+    for field in candidate_fields:
+        try:
+            versionable = versionables.for_grouper(field.remote_field.model)
+        except KeyError:
+            continue
+        if toolbar.edit_mode_active or toolbar.preview_mode_active:
+            qs = versionable.content_model._base_manager.filter(
+                versions__state__in=(DRAFT, PUBLISHED),
+            ).order_by('versions__state')
+        else:
+            qs = versionable.content_model.objects.all()
+        related_field = getattr(instance, field.name)
+        if related_field:
+            filters = {
+                versionable.grouper_field_name: related_field,
+            }
+            # TODO Figure out grouping values-awareness
+            # for extra fields other than hardcoded 'language'
+            if 'language' in versionable.extra_grouping_fields:
+                filters['language'] = toolbar.request_language
+            qs = qs.filter(**filters)
+            prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
+            related_field._prefetched_objects_cache = prefetch_cache
 
 
-class VersionRenderer(ContentRenderer):
+class VersionContentRenderer(ContentRenderer):
 
     def render_plugin(self, instance, context, placeholder=None, editable=False):
-        instance, plugin = instance.get_plugin_instance()
-
-        candidate_fields = [
-            f for f in instance._meta.get_fields()
-            if f.is_relation and not f.auto_created
-        ]
-        for field in candidate_fields:
-            versionable = get_versionable_for_grouper(field.remote_field.model)
-            if not versionable:
-                continue
-            if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
-                qs = versionable.content_model._base_manager.filter(
-                    versions__state__in=(DRAFT, PUBLISHED),
-                ).order_by('versions__state')
-            else:
-                qs = versionable.content_model.objects.all()
-            related_field = getattr(instance, field.name)
-            if related_field:
-                filters = {
-                    versionable.grouper_field_name: related_field,
-                }
-                # TODO Figure out grouping values-awareness
-                # for extra fields other than hardcoded 'language'
-                if 'language' in versionable.extra_grouping_fields:
-                    filters['language'] = self.toolbar.request_language
-                qs = qs.filter(**filters)
-                prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
-                related_field._prefetched_objects_cache = prefetch_cache
+        prefetch_versioned_related_objects(instance, self.toolbar)
         return super().render_plugin(instance, context, placeholder, editable)
 
     def render_obj_placeholder(self, slot, context, inherit,
@@ -67,3 +65,10 @@ class VersionRenderer(ContentRenderer):
             nodelist=None,
         )
         return content
+
+
+class VersionStructureRenderer(StructureRenderer):
+
+    def render_plugin(self, instance, page=None):
+        prefetch_versioned_related_objects(instance, self.toolbar)
+        return super().render_plugin(instance, page)

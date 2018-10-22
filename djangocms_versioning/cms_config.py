@@ -9,7 +9,7 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
 
-from .datastructures import VersionableItem
+from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
@@ -34,7 +34,11 @@ class VersioningCMSExtension(CMSAppExtension):
 
     @cached_property
     def versionables_by_grouper(self):
-        return {versionable.grouper_model: versionable for versionable in self.versionables}
+        return {
+            versionable.grouper_model: versionable
+            for versionable in self.versionables
+            if versionable.concrete
+        }
 
     def is_grouper_model_versioned(self, grouper_model):
         return grouper_model in self.versionables_by_grouper
@@ -51,9 +55,12 @@ class VersioningCMSExtension(CMSAppExtension):
             raise ImproperlyConfigured(
                 "versioning not defined as an iterable")
         for versionable in cms_config.versioning:
-            if not isinstance(versionable, VersionableItem):
+            if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(
-                    "{!r} is not a subclass of djangocms_versioning.datastructures.VersionableItem".format(versionable))
+                    "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(
+                        versionable,
+                    ),
+                )
             # NOTE: Do not use the cached property here as this is
             # still changing and needs to be calculated on the fly
             registered_so_far = [v.content_model for v in self.versionables]
@@ -78,7 +85,8 @@ class VersioningCMSExtension(CMSAppExtension):
         that specific content type are shown.
         """
         for versionable in cms_config.versioning:
-            register_versionadmin_proxy(versionable)
+            if versionable.concrete:
+                register_versionadmin_proxy(versionable)
 
     def handle_content_model_generic_relation(self, cms_config):
         """Adds `versions` GenericRelation field to all provided

@@ -20,10 +20,10 @@ class VersionQuerySet(models.QuerySet):
     def get_for_content(self, content_object):
         """Returns Version object corresponding to provided content object
         """
-        content_type = ContentType.objects.get_for_model(content_object)
+        versionable = versionables.for_content(content_object)
         return self.get(
             object_id=content_object.pk,
-            content_type=content_type,
+            content_type__in=versionable.content_types,
         )
 
     def filter_by_grouper(self, grouper_object):
@@ -31,19 +31,30 @@ class VersionQuerySet(models.QuerySet):
         object
         """
         versionable = versionables.for_grouper(grouper_object)
-        return self.filter_by_grouping_fields(versionable, **{
+        return self.filter_by_grouping_values(versionable, **{
             versionable.grouper_field_name: grouper_object,
         })
 
-    def filter_by_grouping_fields(self, versionable, **kwargs):
-        """Returns a list of Version objects for the provided grouper
-        object with all of the related fields applied (unique grouper version list)
+    def filter_by_grouping_values(self, versionable, **kwargs):
+        """Returns a list of Version objects for the provided grouping
+        values (unique grouper version list)
         """
         content_objects = versionable.for_grouping_values(**kwargs)
-        content_type = ContentType.objects.get_for_model(versionable.content_model)
         return self.filter(
             object_id__in=content_objects,
-            content_type=content_type,
+            content_type__in=versionable.content_types,
+        )
+
+    def filter_by_content_grouping_values(self, content):
+        """Returns a list of Version objects for grouping values taken
+       from provided content object. In other words:
+       it uses the content instance property values as filter parameters
+        """
+        versionable = versionables.for_content(content)
+        content_objects = versionable.for_content_grouping_values(content)
+        return self.filter(
+            object_id__in=content_objects,
+            content_type__in=versionable.content_types,
         )
 
 
@@ -72,6 +83,9 @@ class Version(models.Model):
 
     class Meta:
         unique_together = ("content_type", "object_id")
+
+    def __str__(self):
+        return "Version #{}".format(self.pk)
 
     def save(self, **kwargs):
         created = not self.pk
@@ -102,9 +116,8 @@ class Version(models.Model):
         Create a version number for each version
         """
         # Get the latest version object
-        grouping_values = self.versionable.grouping_values(self.content)
-        latest_version = Version.objects.filter_by_grouping_fields(
-            self.versionable, **grouping_values
+        latest_version = Version.objects.filter_by_content_grouping_values(
+            self.content
         ).order_by('-pk').first()
         # If no previous version exists start at 1
         if not latest_version:

@@ -1,12 +1,13 @@
 import datetime
 import warnings
 from distutils.version import LooseVersion
-from unittest import skipIf
+from unittest import skip, skipIf
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import django
 from django.contrib import admin
+from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
@@ -195,7 +196,6 @@ class ContentAdminChangelistTestCase(CMSTestCase):
     def test_only_fetches_latest_content_records(self):
         """Returns content records of the latest content
         """
-        model_admin = self._get_admin_class_obj(PollContent)
         poll1 = factories.PollFactory()
         poll2 = factories.PollFactory()
         # Make sure django sets the created date far in the past
@@ -207,12 +207,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
         poll_content2 = factories.PollContentWithVersionFactory(poll=poll2)
         poll_content3 = factories.PollContentWithVersionFactory()
-        request = RequestFactory().get('/admin/polls/pollcontent/')
 
-        admin_queryset = model_admin.get_queryset(request)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(PollContent, 'changelist'))
 
         self.assertQuerysetEqual(
-            admin_queryset,
+            response.context['cl'].queryset,
             [poll_content1.pk, poll_content2.pk, poll_content3.pk],
             transform=lambda x: x.pk,
             ordered=False
@@ -220,10 +220,9 @@ class ContentAdminChangelistTestCase(CMSTestCase):
 
     def test_records_filtering_is_generic(self):
         """Check there's nothing specific to polls hardcoded in
-        VersioningAdminMixin.get_queryset. This repeats a similar test
+        VersioningChangeListMixin.get_queryset. This repeats a similar test
         for PollContent, but using BlogContent instead.
         """
-        model_admin = self._get_admin_class_obj(BlogContent)
         post = factories.BlogPostFactory()
         # Make sure django sets the created date far in the past
         with freeze_time('2016-06-06'):
@@ -231,12 +230,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         # For these the created date will be now
         blog_content1 = factories.BlogContentWithVersionFactory(blogpost=post)
         blog_content2 = factories.BlogContentWithVersionFactory()
-        request = RequestFactory().get('/admin/blogpost/blogcontent/')
 
-        admin_queryset = model_admin.get_queryset(request)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(BlogContent, 'changelist'))
 
         self.assertQuerysetEqual(
-            admin_queryset,
+            response.context['cl'].queryset,
             [blog_content1.pk, blog_content2.pk],
             transform=lambda x: x.pk,
             ordered=False
@@ -308,6 +307,7 @@ class VersionAdminTestCase(CMSTestCase):
             VersionChangeList,
         )
 
+    @skip('Prefetching is disabled')
     def test_queryset_content_prefetching(self):
         factories.PollVersionFactory.create_batch(4)
         with self.assertNumQueries(2):
@@ -416,6 +416,54 @@ class VersionAdminActionsTestCase(CMSTestCase):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get('/admin/polls/pollcontent/')
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
+    def test_discard_action_link_enabled_state(self):
+        """
+        The edit action is active
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        draft_discard_url = self.get_admin_url(self.versionable.version_model_proxy, 'discard', version.pk)
+
+        actual_enabled_control = self.version_admin._get_discard_link(version, request)
+
+        expected_enabled_state = (
+            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            'js-versioning-keep-sideframe" '
+            'href="%s" '
+            'title="Discard">'
+        ) % draft_discard_url
+        self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_archive_state(self):
+        """
+        The revert url should be null for archive state
+        """
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_unpublished_state(self):
+        """
+        The revert url should be null for unpublished state
+        """
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
+        expected_disabled_control = ""
+        self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
+
+    def test_discard_action_link_for_published_state(self):
+        """
+        The revert url should be null for unpublished state
+        """
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get('/admin/polls/pollcontent/')
+        actual_disabled_control = self.version_admin._get_discard_link(version, request)
         expected_disabled_control = ""
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 
@@ -1552,7 +1600,7 @@ class VersionChangeViewTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_change_view_returns_404_for_published(self):
+    def test_change_view_returns_readonly_for_published(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.PUBLISHED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
@@ -1560,9 +1608,13 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(flatten_fieldsets(response.context['adminform'].fieldsets)),
+            set(response.context['adminform'].readonly_fields),
+        )
 
-    def test_change_view_returns_404_for_unpublished(self):
+    def test_change_view_returns_readonly_for_unpublished(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.UNPUBLISHED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
@@ -1570,9 +1622,13 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(flatten_fieldsets(response.context['adminform'].fieldsets)),
+            set(response.context['adminform'].readonly_fields),
+        )
 
-    def test_change_view_returns_404_for_archived(self):
+    def test_change_view_returns_readonly_for_archived(self):
         content = factories.PollContentWithVersionFactory(
             version__state=constants.ARCHIVED)
         url = self.get_admin_url(PollContent, 'change', content.pk)
@@ -1580,7 +1636,11 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(flatten_fieldsets(response.context['adminform'].fieldsets)),
+            set(response.context['adminform'].readonly_fields),
+        )
 
     @patch('django.contrib.messages.add_message')
     def test_change_view_redirects_for_nonexistent_object(self, mocked_messages):

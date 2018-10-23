@@ -385,7 +385,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
 
-    def test_revert_action_link_disable_state(self):
+    def test_revert_action_link_enable_state(self):
         """
         The edit action is active
         """
@@ -394,11 +394,13 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get('/admin/polls/pollcontent/')
         version.created_by = request.user = user
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
+        draft_revert_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', version.pk)
         expected_enabled_state = (
             '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
-            'inactive js-versioning-keep-sideframe" '
+            'js-versioning-keep-sideframe" '
+            'href="%s" '
             'title="Revert">'
-        )
+        ) % draft_revert_url
         self.assertIn(expected_enabled_state, actual_enabled_control.replace('\n', ''))
 
     def test_revert_action_link_for_draft_state(self):
@@ -487,9 +489,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         draft_revert_url = self.get_admin_url(self.versionable.version_model_proxy, 'revert', archive_version.pk)
         expected_disabled_control = (
             '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
-            'inactive js-versioning-keep-sideframe" '
+            'js-versioning-keep-sideframe" '
+            'href="%s" '
             'title="Revert">'
-        )
+        ) % draft_revert_url
 
         self.assertIn(expected_disabled_control, actual_disabled_control.replace('\n', ''))
 

@@ -42,7 +42,6 @@ class CopyTestCase(CMSTestCase):
 
         # Created a new version record
         self.assertNotEqual(original_version.pk, new_version.pk)
-        self.assertEqual(original_version, new_version.source)
         self.assertEqual(new_version.created, now())
         self.assertEqual(new_version.created_by, user)
         # The state should always be DRAFT no matter what the original
@@ -80,10 +79,6 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(
             original_version.content.poll,
             new_version.content.poll,
-        )
-        self.assertEqual(
-            original_version,
-            new_version.source
         )
 
     def test_the_copy_method_is_configurable(self):

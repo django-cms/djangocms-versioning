@@ -444,11 +444,22 @@ class TestVersionQuerySet(CMSTestCase):
 
 class TestVersionModelSource(CMSTestCase):
 
+    def _create_versionables_mock(self, copy_function):
+        """Helper function for mocking the versionables_by_content
+        property so that a different copy_function can be specified on
+        the polls app.
+        """
+        versionable = VersionableItem(
+            content_model=PollContent,
+            grouper_field_name='poll',
+            copy_function=copy_function
+        )
+        return {PollContent: versionable}
 
-
-    def test_content_object_gets_duplicated_with_source_copy(self):
+    def test_content_object_gets_duplicated_with_source(self):
         """When copying, the new version object should have a new
-        related content object along with source field.
+        related content object. The default copy method will copy all
+        content fields (other than the pk) exactly as they were with source.
         """
         original_version = factories.PollVersionFactory()
         user = factories.UserFactory()

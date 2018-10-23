@@ -22,8 +22,6 @@ class VersionQuerySet(models.QuerySet):
         """
         if hasattr(content_object, '_version_cache'):
             return content_object._version_cache
-        # import pdb;
-        # pdb.set_trace()
         versionable = versionables.for_content(content_object)
         version = self.get(
             object_id=content_object.pk,

@@ -22,6 +22,8 @@ class VersionQuerySet(models.QuerySet):
         """
         if hasattr(content_object, '_version_cache'):
             return content_object._version_cache
+        # import pdb;
+        # pdb.set_trace()
         versionable = versionables.for_content(content_object)
         version = self.get(
             object_id=content_object.pk,
@@ -63,7 +65,6 @@ class VersionQuerySet(models.QuerySet):
 
 
 class Version(models.Model):
-
     created = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -82,6 +83,13 @@ class Version(models.Model):
         choices=constants.VERSION_STATES,
         verbose_name=_('status'),
         protected=True,
+    )
+    source = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('source'),
     )
     objects = VersionQuerySet.as_manager()
 
@@ -151,7 +159,11 @@ class Version(models.Model):
         copy_function = versionables.for_content(self.content).copy_function
         new_content = copy_function(self.content)
         new_version = Version.objects.create(
-            content=new_content, created_by=created_by)
+            content=new_content,
+            source=self,
+            created_by=created_by
+
+        )
         return new_version
 
     def archive(self, user):

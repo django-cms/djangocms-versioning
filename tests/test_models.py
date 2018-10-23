@@ -42,6 +42,7 @@ class CopyTestCase(CMSTestCase):
 
         # Created a new version record
         self.assertNotEqual(original_version.pk, new_version.pk)
+        self.assertEqual(original_version, new_version.source)
         self.assertEqual(new_version.created, now())
         self.assertEqual(new_version.created_by, user)
         # The state should always be DRAFT no matter what the original
@@ -80,6 +81,10 @@ class CopyTestCase(CMSTestCase):
             original_version.content.poll,
             new_version.content.poll,
         )
+        self.assertEqual(
+            original_version,
+            new_version.source
+        )
 
     def test_the_copy_method_is_configurable(self):
         """When copying, the new version object should have a new
@@ -99,6 +104,7 @@ class CopyTestCase(CMSTestCase):
             new_version = original_version.copy(user)
 
         self.assertEqual(new_version.content.pk, new_content.pk)
+        self.assertEqual(new_version.source, original_version)
 
     @freeze_time(None)
     def test_page_content_object_gets_duplicated(self):
@@ -163,6 +169,10 @@ class CopyTestCase(CMSTestCase):
             original_version.content.page,
             new_version.content.page,
         )
+        self.assertEqual(
+            original_version,
+            new_version.source
+        )
 
     def test_placeholders_are_copied(self):
         """The implementation of versioning for PageContent correctly
@@ -209,6 +219,10 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(
             new_placeholders[1].source,
             new_version.content
+        )
+        self.assertEqual(
+            new_version.source,
+            original_version
         )
 
     @freeze_time(None)
@@ -283,6 +297,7 @@ class CopyTestCase(CMSTestCase):
             original_plugins[1].creation_date
         )
         self.assertEqual(new_plugins[1].changed_date, now())
+        self.assertEqual(new_version.source, original_version)
 
     def test_copy_plugins_method_used(self):
         original_version = factories.PageVersionFactory()

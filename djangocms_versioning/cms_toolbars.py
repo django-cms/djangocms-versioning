@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.apps import apps
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -115,5 +117,16 @@ class VersioningToolbar(PlaceholderToolbar):
         self._add_versioning_menu()
 
 
-toolbar_pool.unregister(PlaceholderToolbar)
-toolbar_pool.register(VersioningToolbar)
+def replace_toolbar(old, new):
+    """Replace `old` toolbar class with `new` class,
+    while keeping its position in toolbar_pool.
+    """
+    new_name = '.'.join((new.__module__, new.__name__))
+    old_name = '.'.join((old.__module__, old.__name__))
+    toolbar_pool.toolbars = OrderedDict([
+        (new_name, new) if name == old_name else (name, toolbar)
+        for name, toolbar in toolbar_pool.toolbars.items()
+    ])
+
+
+replace_toolbar(PlaceholderToolbar, VersioningToolbar)

@@ -4,11 +4,12 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
@@ -436,6 +437,9 @@ class VersionAdmin(admin.ModelAdmin):
         if version.state != DRAFT:
             raise Http404
 
+        if not self.can_archive(version, request.user):
+            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
@@ -493,6 +497,10 @@ class VersionAdmin(admin.ModelAdmin):
         # Raise 404 if not in published status
         if version.state != PUBLISHED:
             raise Http404
+
+        if not self.can_unpublish(version, request.user):
+            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
             context = dict(
@@ -582,6 +590,9 @@ class VersionAdmin(admin.ModelAdmin):
         if drafts.exists():
             draft_version = drafts.first()
 
+        if not self.can_revert(version, request.user):
+            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+
         if request.method != 'POST':
             context = dict(
                 object_name=version.content,
@@ -621,6 +632,9 @@ class VersionAdmin(admin.ModelAdmin):
         if version.state not in (DRAFT, ):
             # if version state not unpublished or archived then raise 404
             raise Http404
+
+        if not self.can_discard(version, request.user):
+            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
 
         if request.method != 'POST':
             context = dict(

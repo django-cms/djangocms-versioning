@@ -444,22 +444,11 @@ class TestVersionQuerySet(CMSTestCase):
 
 class TestVersionModelSource(CMSTestCase):
 
-    def _create_versionables_mock(self, copy_function):
-        """Helper function for mocking the versionables_by_content
-        property so that a different copy_function can be specified on
-        the polls app.
-        """
-        versionable = VersionableItem(
-            content_model=PollContent,
-            grouper_field_name='poll',
-            copy_function=copy_function
-        )
-        return {PollContent: versionable}
 
-    def test_content_object_gets_duplicated_with_default_copy(self):
+
+    def test_content_object_gets_duplicated_with_source_copy(self):
         """When copying, the new version object should have a new
-        related content object. The default copy method will copy all
-        content fields (other than the pk) exactly as they were.
+        related content object along with source field.
         """
         original_version = factories.PollVersionFactory()
         user = factories.UserFactory()
@@ -473,60 +462,4 @@ class TestVersionModelSource(CMSTestCase):
         self.assertEqual(
             original_version,
             new_version.source
-        )
-
-    def test_the_copy_method_is_configurable(self):
-        """When copying, the new version object should have a new
-        related content object. How the content object will be
-        copied can be configured.
-        """
-        original_version = factories.PollVersionFactory()
-        user = factories.UserFactory()
-        new_content = factories.PollContentFactory(
-            poll=original_version.content.poll)
-        mocked_copy = Mock(return_value=new_content)
-        versionables_mock = self._create_versionables_mock(mocked_copy)
-        versioning_app_ext = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-
-        with patch.object(versioning_app_ext, 'versionables_by_content', versionables_mock):
-            new_version = original_version.copy(user)
-
-        self.assertEqual(new_version.source, original_version)
-
-    @freeze_time(None)
-    def test_page_content_object_gets_duplicated(self):
-        """The implementation of versioning for PageContent correctly
-        copies the PageContent object
-        """
-        with freeze_time('2017-07-07'):
-            # Make sure created in the past
-            original_version = factories.PageVersionFactory()
-        user = factories.UserFactory()
-
-        new_version = original_version.copy(user)
-
-        self.assertEqual(
-            original_version,
-            new_version.source
-        )
-
-    def test_placeholders_are_copied(self):
-        """The implementation of versioning for PageContent correctly
-        copies placeholders
-        """
-        original_version = factories.PageVersionFactory()
-        original_placeholders = factories.PlaceholderFactory.create_batch(
-            2, source=original_version.content)
-        original_version.content.placeholders.add(*original_placeholders)
-        user = factories.UserFactory()
-
-        new_version = original_version.copy(user)
-
-        new_placeholders = new_version.content.placeholders.all()
-        self.assertEqual(new_placeholders.count(), 2)
-
-        self.assertEqual(
-            new_version.source,
-            original_version
         )

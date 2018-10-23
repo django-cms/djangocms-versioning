@@ -56,16 +56,17 @@ class AdminVersioningTestCase(CMSTestCase):
         provided admin class
         """
         admin_class = type('TestAdmin', (admin.ModelAdmin, ), {})
+        mixin = type('Mixin', (), {})
 
-        new_admin_class = versioning_admin_factory(admin_class)
+        new_admin_class = versioning_admin_factory(admin_class, mixin)
         mro = new_admin_class.mro()
 
         # both base classes are used
         self.assertTrue(issubclass(new_admin_class, admin_class))
-        self.assertTrue(issubclass(new_admin_class, VersioningAdminMixin))
+        self.assertTrue(issubclass(new_admin_class, mixin))
 
-        # VersioningAdminMixin takes precedence over user-defined class
-        self.assertTrue(mro.index(VersioningAdminMixin) < mro.index(admin_class))
+        # mixin takes precedence over user-defined class
+        self.assertTrue(mro.index(mixin) < mro.index(admin_class))
 
 
 class AdminReplaceVersioningTestCase(CMSTestCase):
@@ -79,22 +80,25 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         """Test that calling `replace_admin_for_models` with a model that
         isn't registered in admin is a no-op.
         """
-        replace_admin_for_models([self.model], self.site)
+        mixin = type('Mixin', (), {})
+        replace_admin_for_models([(self.model, mixin)], self.site)
 
         self.assertNotIn(self.model, self.site._registry)
 
     def test_replace_admin_on_registered_models_default_site(self):
-        with patch.object(djangocms_versioning.helpers, '_replace_admin_for_model') as mock:
-            replace_admin_for_models([PollContent])
+        mixin = type('Mixin', (), {})
 
-        mock.assert_called_with(admin.site._registry[PollContent], admin.site)
+        with patch.object(djangocms_versioning.helpers, '_replace_admin_for_model') as mock:
+            replace_admin_for_models([(PollContent, mixin)])
+
+        mock.assert_called_with(admin.site._registry[PollContent], mixin, admin.site)
 
     def test_replace_admin_on_registered_models(self):
         self.site.register(self.model, self.admin_class)
         self.site.register(Answer, self.admin_class)
         models = [self.model, Answer]
 
-        replace_admin_for_models(models, self.site)
+        replace_admin_for_models([(model, VersioningAdminMixin) for model in models], self.site)
 
         for model in models:
             self.assertIn(model, self.site._registry)
@@ -107,7 +111,7 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         """
         self.site.register(self.model)
 
-        replace_admin_for_models([self.model], self.site)
+        replace_admin_for_models([(self.model, VersioningAdminMixin)], self.site)
 
         self.assertIn(self.model, self.site._registry)
         self.assertIn(VersioningAdminMixin, self.site._registry[self.model].__class__.mro())
@@ -116,10 +120,10 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         """Test that, if a model's admin class already subclasses
         VersioningAdminMixin, nothing happens.
         """
-        version_admin = versioning_admin_factory(self.admin_class)
+        version_admin = versioning_admin_factory(self.admin_class, VersioningAdminMixin)
         self.site.register(self.model, version_admin)
 
-        replace_admin_for_models([self.model], self.site)
+        replace_admin_for_models([(self.model, VersioningAdminMixin)], self.site)
 
         self.assertIn(self.model, self.site._registry)
         self.assertEqual(self.site._registry[self.model].__class__, version_admin)

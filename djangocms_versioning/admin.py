@@ -4,7 +4,7 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponseNotAllowed, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse

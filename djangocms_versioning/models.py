@@ -65,6 +65,7 @@ class VersionQuerySet(models.QuerySet):
 
 
 class Version(models.Model):
+
     created = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

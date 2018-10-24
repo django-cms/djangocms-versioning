@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +15,26 @@ try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+
+def in_state(*states):
+    def inner(version, user):
+        return version.state in states
+    return inner
+
+
+class Conditions(list):
+
+    def __add__(self, other):
+        return Conditions(super().__add__(other))
+
+    def __get__(self, instance, cls):
+        if instance:
+            return partial(self, instance)
+        return self
+
+    def __call__(self, instance, user):
+        return all(func(instance, user) for func in self)
 
 
 class VersionQuerySet(models.QuerySet):
@@ -154,6 +176,11 @@ class Version(models.Model):
             content=new_content, created_by=created_by)
         return new_version
 
+    can_archive = Conditions()
+
+    def can_be_archived(self):
+        return can_proceed(self._set_archive)
+
     def archive(self, user):
         """Change state to ARCHIVED"""
         self._set_archive(user)
@@ -170,7 +197,12 @@ class Version(models.Model):
         if emit_content_change:
             emit_content_change(self.content)
 
-    @transition(field=state, source=constants.DRAFT, target=constants.ARCHIVED)
+    @transition(
+        field=state,
+        source=constants.DRAFT,
+        target=constants.ARCHIVED,
+        permission=can_archive,
+    )
     def _set_archive(self, user):
         """State machine transition method for moving version
         from DRAFT to ARCHIVED state.
@@ -179,6 +211,8 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    can_publish = Conditions()
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -209,7 +243,12 @@ class Version(models.Model):
         if emit_content_change:
             emit_content_change(self.content)
 
-    @transition(field=state, source=constants.DRAFT, target=constants.PUBLISHED)
+    @transition(
+        field=state,
+        source=constants.DRAFT,
+        target=constants.PUBLISHED,
+        permission=can_publish,
+    )
     def _set_publish(self, user):
         """State machine transition method for moving version
         from DRAFT to PUBLISHED state.
@@ -218,6 +257,11 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    can_unpublish = Conditions()
+
+    def can_be_unpublished(self):
+        return can_proceed(self._set_unpublish)
 
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
@@ -235,7 +279,12 @@ class Version(models.Model):
         if emit_content_change:
             emit_content_change(self.content)
 
-    @transition(field=state, source=constants.PUBLISHED, target=constants.UNPUBLISHED)
+    @transition(
+        field=state,
+        source=constants.PUBLISHED,
+        target=constants.UNPUBLISHED,
+        permission=can_unpublish,
+    )
     def _set_unpublish(self, user):
         """State machine transition method for moving version
         from PUBLISHED to UNPUBLISHED state.
@@ -244,6 +293,10 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    can_modify = Conditions([in_state(constants.DRAFT)])
+    can_revert = Conditions([in_state(constants.ARCHIVED, constants.UNPUBLISHED)])
+    can_discard = Conditions([in_state(constants.DRAFT)])
 
 
 class StateTracking(models.Model):

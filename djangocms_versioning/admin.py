@@ -491,7 +491,7 @@ class VersionAdmin(admin.ModelAdmin):
                 request, self.model._meta, object_id)
 
         if not version.can_be_unpublished() or not version.can_unpublish(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
 
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
@@ -569,7 +569,7 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         if not version.can_revert(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
             version.content).values_list('pk', flat=True)
@@ -618,7 +618,7 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         if not version.can_discard(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
 
         if request.method != 'POST':
             context = dict(

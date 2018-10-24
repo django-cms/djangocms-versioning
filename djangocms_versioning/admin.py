@@ -312,7 +312,7 @@ class VersionAdmin(admin.ModelAdmin):
             if drafts.exists():
                 return ''
         elif not obj.state == DRAFT:
-            # Don't display the link if it's a draft
+            # Don't display the link if it's not a draft
             return ''
 
         edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(

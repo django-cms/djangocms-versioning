@@ -888,7 +888,7 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
@@ -903,7 +903,7 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
@@ -918,7 +918,7 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
@@ -1023,7 +1023,7 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
@@ -1038,7 +1038,7 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
@@ -1053,7 +1053,7 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
@@ -1159,7 +1159,7 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
@@ -1174,7 +1174,7 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
@@ -1186,7 +1186,7 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)

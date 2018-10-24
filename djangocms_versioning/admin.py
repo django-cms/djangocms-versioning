@@ -12,7 +12,9 @@ from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
+from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
+from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
@@ -437,16 +439,15 @@ class VersionAdmin(admin.ModelAdmin):
             return
 
         # Build the link for the version comparison of the two selected versions
-        url = reverse(
-            "admin:{app}_{model}_compare".format(
-                app=self.model._meta.app_label, model=self.model._meta.model_name
-            ),
-            args=(queryset[0].pk,),
+        url = add_url_parameters(
+            reverse('admin:{app}_{model}_compare'.format(
+                app=self.model._meta.app_label,
+                model=self.model._meta.model_name,
+            )),
+            left=queryset[0].pk,
+            right=queryset[1].pk,
         )
-        url += "?compare_to=%d" % queryset[1].pk
-
         return redirect(url)
-
     compare_versions.short_description = _("Compare versions")
 
     def grouper_form_view(self, request):
@@ -745,55 +746,52 @@ class VersionAdmin(admin.ModelAdmin):
             # Redirect
             return redirect(version_url)
 
-    def compare_view(self, request, object_id):
+    def compare_view(self, request):
         """Compares two versions
         """
-        # Get version 1 (the version we're comparing against)
-        v1 = self.get_object(request, unquote(object_id))
-        if v1 is None:
-            return self._get_obj_does_not_exist_redirect(
-                request, self.model._meta, object_id
-            )
+        versions = OrderedDict()
+
+        for side in ('left', 'right'):
+            if side in request.GET:
+                object_id = request.GET[side]
+                version = self.get_object(request, unquote(object_id))
+                if version is None:
+                    return self._get_obj_does_not_exist_redirect(
+                        request, self.model._meta, object_id)
+                versions[side] = version
+
+        if not versions:
+            raise Http404
+
+        context = {}
         persist_params = {
             get_cms_setting("CMS_TOOLBAR_URL__DISABLE"): 1,
             get_cms_setting("CMS_TOOLBAR_URL__PERSIST"): 0,
         }
-        v1_preview_url = add_url_parameters(
-            reverse(
-                "admin:cms_placeholder_render_object_preview",
-                args=(v1.content_type_id, v1.object_id),
-            ),
-            **persist_params
-        )
-        # Get the list of versions for the grouper. This is for use
-        # in the dropdown to choose a version.
-        version_list = Version.objects.filter_by_content_grouping_values(
-            v1.content
-        ).order_by("-number")
-        # Add the above to context
-        context = {
-            "version_list": version_list,
-            "v1": v1,
-            "v1_preview_url": v1_preview_url,
-            "return_url": version_list_url(v1.content),
-        }
-        # Now check if version 2 has been specified and add to context
-        # if yes
-        if "compare_to" in request.GET:
-            v2 = self.get_object(request, unquote(request.GET["compare_to"]))
-            if v2 is None:
-                return self._get_obj_does_not_exist_redirect(
-                    request, self.model._meta, request.GET["compare_to"]
-                )
-            else:
-                context["v2"] = v2
-                context["v2_preview_url"] = add_url_parameters(
+
+        for side, version in versions.items():
+            context[side] = {
+                'obj': version,
+                'url': add_url_parameters(
                     reverse(
-                        "admin:cms_placeholder_render_object_preview",
-                        args=(v2.content_type_id, v2.object_id),
+                        'admin:cms_placeholder_render_object_preview',
+                        args=(version.content_type_id, version.object_id),
                     ),
                     **persist_params
+                ),
+                'description': format_html(
+                    '{obj} (#{number}, {date})',
+                    obj=version,
+                    number=version.number,
+                    date=localize(localtime(version.created)),
                 )
+            }
+
+        # Get the list of versions for grouping values. This is for use
+        # in the dropdown to choose a version.
+        version = next(iter(versions.values()))
+        context['versions'] = Version.objects.filter_by_content_grouping_values(
+            version.content)
         return TemplateResponse(
             request, "djangocms_versioning/admin/compare.html", context
         )
@@ -857,6 +855,11 @@ class VersionAdmin(admin.ModelAdmin):
                 name="{}_{}_grouper".format(*info),
             ),
             url(
+                r"^compare/$",
+                self.admin_site.admin_view(self.compare_view),
+                name='{}_{}_compare'.format(*info),
+            ),
+            url(
                 r"^(.+)/archive/$",
                 self.admin_site.admin_view(self.archive_view),
                 name="{}_{}_archive".format(*info),
@@ -880,11 +883,6 @@ class VersionAdmin(admin.ModelAdmin):
                 r"^(.+)/revert/$",
                 self.admin_site.admin_view(self.revert_view),
                 name="{}_{}_revert".format(*info),
-            ),
-            url(
-                r"^(.+)/compare/$",
-                self.admin_site.admin_view(self.compare_view),
-                name="{}_{}_compare".format(*info),
             ),
             url(
                 r"^(.+)/discard/$",

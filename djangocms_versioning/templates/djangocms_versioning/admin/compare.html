@@ -3,33 +3,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Compare {{ v1 }} {{ v1.created }}{% if v2 %} to {{ v2 }} {{ v2.created }}{% endif %}</title>
+    <title>{% spaceless %}
+    {% if left and right %}
+        {% blocktrans with left=left.description right=right.description %}
+        Compare {{ left }} to {{ right }}
+        {% endblocktrans %}
+    {% elif left %}
+        {% blocktrans with left=left.description %}
+        Compare {{ left }}
+        {% endblocktrans %}
+    {% elif right %}
+        {% blocktrans with right=right.description %}
+        Compare {{ right }}
+        {% endblocktrans %}
+    {% endif %}{% endspaceless %}</title>
     <link rel="stylesheet" href="{% static_with_version "cms/css/cms.base.css" %}" />
     <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
 </head>
 <body>
     <div id="cms-top" class="cms cms-reset" data-compare='{
-        {% if v2_preview_url %}
-            "v2_url": "{{ v2_preview_url }}",
+        {% if left %}
+            "v1_url": "{{ left.url }}",
+            "v1_description": "{{ left.description }}"
         {% endif %}
-        {% if v2 %}
-        "v2_description": "{{ v2 }} {{ v2.created }}",
+        {% if right %}
+            "v2_url": "{{ right.url }}",
+            "v2_description": "{{ right.description }}",
         {% endif %}
-        "v1_url": "{{ v1_preview_url }}",
-        "v1_description": "{{ v1 }} {{ v1.created }}"
     }'>
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
                 <a class="cms-btn" href="{{ return_url }}">{% trans "Back" %}</a> &nbsp;
                 <span class="cms-versioning-title">
-                {% blocktrans  %}
-                    Comparing {{ v1 }} {{ v1.created }} with
+                {% blocktrans with left=left.description %}
+                    Comparing {{ left }} with
                 {% endblocktrans %}
                 </span>
                 <select class="js-cms-versioning-version cms-select">
-                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
-                    {% for version in version_list %}
-                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} {{ version.created }}</option>
+                    <option disabled {% if not request.GET.right %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
+                    {% for version in versions %}
+                        <option value="{{ version.pk }}" {% if right and right.obj == version %} selected{% endif %}>{{ version }} (#{{ version.number }}, {{ version.created|date }})</option>
                     {% endfor %}
                 </select>
                 <div class="cms-tooblar-item cms-toolbar-item-buttons">

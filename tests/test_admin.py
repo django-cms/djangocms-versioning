@@ -1796,12 +1796,15 @@ class CompareViewTestCase(CMSTestCase):
     def test_compare_view_doesnt_allow_user_without_staff_permissions(self):
         version = factories.PollVersionFactory()
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", version.pk
+            self.versionable.version_model_proxy, 'compare'
         )
+        url += '?left=%d' % version.pk
         with self.login_user_context(self.get_standard_user()):
             response = self.client.get(url)
 
-        self.assertRedirects(response, admin_reverse("login") + "?next=" + url)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(parsed.path, admin_reverse('login'))
 
     def test_compare_view_has_version_data_in_context_when_no_get_param(self):
         """When the url for the compare view has no additional params
@@ -1811,41 +1814,34 @@ class CompareViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         versions = factories.PollVersionFactory.create_batch(
-            2, content__poll=poll, content__language="en"
+            2, content__poll=poll, content__language='en'
         )
-        factories.PollVersionFactory(
-            content__poll=poll, content__language="fr"
-        )  # Same grouper different language
-        factories.PollVersionFactory(
-            content__language="fr"
-        )  # different grouper and different language
+        factories.PollVersionFactory()  # different grouper
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", versions[0].pk
-        )
+            self.versionable.version_model_proxy, 'compare')
+        url += '?left=%d' % versions[0].pk
         user = self.get_staff_user_with_no_permissions()
 
         with self.login_user_context(user):
             response = self.client.get(url)
 
         context = response.context
-        self.assertIn("v1", context)
-        self.assertEqual(context["v1"], versions[0])
-        self.assertIn("v1_preview_url", context)
+        self.assertIn('left', context)
+        self.assertEqual(context['left']['obj'], versions[0])
         v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
-        )
-        parsed = urlparse(context["v1_preview_url"])
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[0].content_type_id, versions[0].object_id))
+        parsed = urlparse(context['left']['url'])
+
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
             {k: v[0] for k, v in parse_qs(parsed.query).items()},
             self.disable_toolbar_params,
         )
-        self.assertNotIn("v2", context)
-        self.assertNotIn("v2_preview_url", context)
-        self.assertIn("version_list", context)
+        self.assertNotIn('right', context)
+        self.assertIn('versions', context)
         self.assertQuerysetEqual(
-            context["version_list"],
+            context['versions'],
             [versions[0].pk, versions[1].pk],
             transform=lambda o: o.pk,
             ordered=False,
@@ -1858,61 +1854,67 @@ class CompareViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         versions = factories.PollVersionFactory.create_batch(
-            3, content__poll=poll, content__language="en"
+            3, content__poll=poll, content__language='en'
         )
-        factories.PollVersionFactory(
-            content__poll=poll, content__language="fr"
-        )  # Same grouper different language
-        factories.PollVersionFactory(
-            content__language="fr"
-        )  # different grouper and different language
+        factories.PollVersionFactory()  # different grouper
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", versions[0].pk
-        )
-        url += "?compare_to=%d" % versions[1].pk
+            self.versionable.version_model_proxy, 'compare')
+        url += '?left=%d&right=%d' % (versions[0].pk, versions[1].pk)
         user = self.get_staff_user_with_no_permissions()
 
         with self.login_user_context(user):
             response = self.client.get(url)
 
         context = response.context
-        self.assertIn("v1", context)
-        self.assertEqual(context["v1"], versions[0])
-        self.assertIn("v1_preview_url", context)
+
+        self.assertIn('left', context)
+        self.assertEqual(context['left']['obj'], versions[0])
         v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[0].content_type_id, versions[0].object_id)
         )
-        parsed = urlparse(context["v1_preview_url"])
+        parsed = urlparse(context['left']['url'])
+
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
             {k: v[0] for k, v in parse_qs(parsed.query).items()},
             self.disable_toolbar_params,
         )
-        self.assertIn("v2", context)
-        self.assertEqual(context["v2"], versions[1])
-        self.assertIn("v2_preview_url", context)
+
+        self.assertIn('right', context)
+        self.assertEqual(context['right']['obj'], versions[1])
         v2_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[1].content_type_id, versions[1].object_id),
-        )
-        parsed = urlparse(context["v2_preview_url"])
+            'admin:cms_placeholder_render_object_preview',
+            args=(versions[1].content_type_id, versions[1].object_id))
+        parsed = urlparse(context['right']['url'])
+
         self.assertEqual(parsed.path, v2_preview_url)
         self.assertEqual(
             {k: v[0] for k, v in parse_qs(parsed.query).items()},
             self.disable_toolbar_params,
         )
-        self.assertIn("version_list", context)
+
+        self.assertIn('versions', context)
         self.assertQuerysetEqual(
-            context["version_list"],
+            context['versions'],
             [versions[0].pk, versions[1].pk, versions[2].pk],
             transform=lambda o: o.pk,
             ordered=False,
         )
 
-    @patch("django.contrib.messages.add_message")
+    def test_edit_compare_view_handles_no_correct_object_provided(self):
+        url = self.get_admin_url(self.versionable.version_model_proxy, 'compare')
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    @patch('django.contrib.messages.add_message')
     def test_edit_compare_view_handles_nonexistent_v1(self, mocked_messages):
-        url = self.get_admin_url(self.versionable.version_model_proxy, "compare", 89)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'compare')
+        url += '?left=89'
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
@@ -1929,9 +1931,9 @@ class CompareViewTestCase(CMSTestCase):
     def test_edit_compare_view_handles_nonexistent_v2(self, mocked_messages):
         version = factories.PollVersionFactory()
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", version.pk
+            self.versionable.version_model_proxy, 'compare'
         )
-        url += "?compare_to=134"
+        url += '?left=' + str(version.pk) + '&right=134'
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
@@ -2255,15 +2257,9 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
-        endpoint = (
-            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
-            + querystring
-        )
-        success_redirect = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", 1
-        )
-        success_redirect += "?compare_to=2"
+
+        querystring = '?poll={grouper}'.format(grouper=poll.pk)
+        endpoint = self.get_admin_url(self.versionable.version_model_proxy, 'changelist') + querystring
 
         with self.login_user_context(self.superuser):
             data = {
@@ -2271,10 +2267,21 @@ class VersionChangeViewTestCase(CMSTestCase):
                 admin.ACTION_CHECKBOX_NAME: ["1", "2"],
                 "post": "yes",
             }
-            response = self.client.post(endpoint, data, follow=True)
+            response = self.client.post(endpoint, data)
 
-        self.assertNotContains(response, "Two versions have to be selected.")
-        self.assertRedirects(response, success_redirect, status_code=302)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(self.versionable.version_model_proxy, 'compare'),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "left": "1",
+                "right": "2",
+            },
+        )
 
     def test_change_view_action_compare_versions_three_selected(self):
         """

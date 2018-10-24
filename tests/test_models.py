@@ -126,9 +126,10 @@ class CopyTestCase(CMSTestCase):
             original_version.content.language,
             new_version.content.language,
         )
-        self.assertEqual(
-            original_version.content.creation_date,
+        # new content should have a future date
+        self.assertGreater(
             new_version.content.creation_date,
+            original_version.content.creation_date,
         )
         self.assertEqual(
             original_version.content.created_by,

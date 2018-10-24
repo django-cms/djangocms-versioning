@@ -2,6 +2,7 @@ import collections
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 
@@ -123,7 +124,11 @@ def copy_page_content(original_content):
         for field in PageContent._meta.fields
         # don't copy primary key because we're creating a new obj
         if PageContent._meta.pk.name != field.name
+        # don't copy date
+        and field.name != 'creation_date'
     }
+
+    content_fields['creation_date'] = timezone.now()
     new_content = PageContent.objects.create(**content_fields)
 
     # Copy placeholders

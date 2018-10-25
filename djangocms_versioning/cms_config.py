@@ -2,7 +2,6 @@ import collections
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 

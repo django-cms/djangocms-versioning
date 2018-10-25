@@ -115,15 +115,18 @@ class VersioningCMSExtension(CMSAppExtension):
 
 def copy_page_content(original_content):
     """Copy the PageContent object and deepcopy its
-    placeholders and plugins
+    placeholders and plugins. Don't copy the primary key
+    because we are creating a new obj, and also the
+    creation_date as we want copied content to reflect
+    the date it was copied.
     """
     # Copy content object
     content_fields = {
         field.name: getattr(original_content, field.name)
         for field in PageContent._meta.fields
-        # don't copy primary key because we're creating a new obj
-        if PageContent._meta.pk.name != field.name
+        if field.name not in (PageContent._meta.pk.name, 'creation_date')
     }
+
     new_content = PageContent.objects.create(**content_fields)
 
     # Copy placeholders

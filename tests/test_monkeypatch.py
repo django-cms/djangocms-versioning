@@ -2,7 +2,6 @@ from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
-from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
@@ -98,14 +97,14 @@ class MonkeypatchTestCase(CMSTestCase):
         self.assertNotIn('Copy all plugins', language_menu_dict.keys())
 
         self.assertEquals(
-            [l.name for l in language_menu_dict['Add Translation']],
-            ['Française...', 'Italiano...']
+            set([l.name for l in language_menu_dict['Add Translation']]),
+            set(['Française...', 'Italiano...']),
         )
 
         self.assertEquals(
-            [l.url for l in language_menu_dict['Add Translation']],
-            [
+            set([l.url for l in language_menu_dict['Add Translation']]),
+            set([
                 '/en/admin/cms/pagecontent/add/?cms_page=1&language=fr',
                 '/en/admin/cms/pagecontent/add/?cms_page=1&language=it',
-            ],
+            ]),
         )

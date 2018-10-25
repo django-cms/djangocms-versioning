@@ -105,6 +105,13 @@ class Version(models.Model):
         verbose_name=_('status'),
         protected=True,
     )
+    source = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        verbose_name=_('source'),
+    )
     objects = VersionQuerySet.as_manager()
 
     class Meta:
@@ -173,7 +180,11 @@ class Version(models.Model):
         copy_function = versionables.for_content(self.content).copy_function
         new_content = copy_function(self.content)
         new_version = Version.objects.create(
-            content=new_content, created_by=created_by)
+            content=new_content,
+            source=self,
+            created_by=created_by
+
+        )
         return new_version
 
     can_archive = Conditions()

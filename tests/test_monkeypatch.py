@@ -2,6 +2,7 @@ from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
+from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
@@ -89,7 +90,7 @@ class MonkeypatchTestCase(CMSTestCase):
         self.assertEqual(language_menu.get_item_count(), 6)
 
         language_menu_dict = {
-            menu.name: [menu_item for menu_item in menu.items]
+            menu.name: [item for item in menu.items]
             for key, menu in language_menu.menus.items()
         }
         self.assertIn('Add Translation', language_menu_dict.keys())
@@ -101,10 +102,8 @@ class MonkeypatchTestCase(CMSTestCase):
             set(['Française...', 'Italiano...']),
         )
 
-        self.assertEquals(
-            set([l.url for l in language_menu_dict['Add Translation']]),
-            set([
-                '/en/admin/cms/pagecontent/add/?cms_page=1&language=fr',
-                '/en/admin/cms/pagecontent/add/?cms_page=1&language=it',
-            ]),
-        )
+        for item in language_menu_dict['Add Translation']:
+            self.assertIn(admin_reverse('cms_pagecontent_add'), item.url)
+            self.assertIn('cms_page={}'.format(page.pk), item.url)
+            lang_code = 'fr' if 'Française' in item.name else 'it'
+            self.assertIn('language={}'.format(lang_code), item.url)

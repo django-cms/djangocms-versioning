@@ -1,1 +1,9 @@
-from . import checks, menu, page, templatetags, toolbar, wizard  # noqa: F401
+from . import (  # noqa: F401
+    checks,
+    cms_toolbars,
+    menu,
+    page,
+    templatetags,
+    toolbar,
+    wizard,
+)

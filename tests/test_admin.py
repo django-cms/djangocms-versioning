@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import django
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
@@ -47,6 +47,23 @@ from djangocms_versioning.test_utils.polls.models import (
 
 
 DJANGO_GTE_21 = LooseVersion(django.__version__) >= LooseVersion('2.1')
+
+
+class BaseStateTestCase(CMSTestCase):
+    def assertRedirectsToVersionList(self, response, version):
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(version.versionable.version_model_proxy, 'changelist'),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": str(version.content.poll.pk),
+                "language": version.content.language,
+            },
+        )
 
 
 class AdminVersioningTestCase(CMSTestCase):
@@ -821,7 +838,7 @@ class VersionAdminViewTestCase(CMSTestCase):
         self.assertRedirects(response, admin_reverse('login') + '?next=' + url)
 
 
-class ArchiveViewTestCase(CMSTestCase):
+class ArchiveViewTestCase(BaseStateTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
@@ -866,21 +883,10 @@ class ArchiveViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version archived")
         # Redirect happened
-        parsed = urlparse(response.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            parsed.path,
-            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
-        )
-        self.assertEqual(
-            {k: v[0] for k, v in parse_qs(parsed.query).items()},
-            {
-                "poll": str(poll_version_.content.poll.pk),
-                "language": poll_version.content.language,
-            },
-        )
+        self.assertRedirectsToVersionList(response, poll_version)
 
-    def test_archive_view_cannot_be_accessed_for_archived_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_archive_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
@@ -888,14 +894,22 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be archived')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_archive_view_cannot_be_accessed_for_published_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_archive_view_cannot_be_accessed_for_published_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
@@ -903,14 +917,22 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be archived')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_archive_view_cannot_be_accessed_for_unpublished_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_archive_view_cannot_be_accessed_for_unpublished_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'archive', poll_version.pk)
@@ -918,7 +940,14 @@ class ArchiveViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be archived')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
@@ -956,7 +985,7 @@ class ArchiveViewTestCase(CMSTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
-class PublishViewTestCase(CMSTestCase):
+class PublishViewTestCase(BaseStateTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
@@ -1001,21 +1030,10 @@ class PublishViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version published")
         # Redirect happened
-        parsed = urlparse(response.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            parsed.path,
-            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
-        )
-        self.assertEqual(
-            {k: v[0] for k, v in parse_qs(parsed.query).items()},
-            {
-                "poll": str(poll_version_.content.poll.pk),
-                "language": poll_version.content.language,
-            },
-        )
+        self.assertRedirectsToVersionList(response, poll_version)
 
-    def test_publish_view_cannot_be_accessed_for_archived_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_publish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'publish', poll_version.pk)
@@ -1023,14 +1041,22 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be published')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_publish_view_cannot_be_accessed_for_published_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_publish_view_cannot_be_accessed_for_published_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'publish', poll_version.pk)
@@ -1038,14 +1064,22 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be published')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_publish_view_cannot_be_accessed_for_unpublished_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_publish_view_cannot_be_accessed_for_unpublished_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'publish', poll_version.pk)
@@ -1053,7 +1087,14 @@ class PublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be published')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.UNPUBLISHED)
@@ -1092,7 +1133,7 @@ class PublishViewTestCase(CMSTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
-class UnpublishViewTestCase(CMSTestCase):
+class UnpublishViewTestCase(BaseStateTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
@@ -1137,21 +1178,10 @@ class UnpublishViewTestCase(CMSTestCase):
         self.assertEqual(
             mocked_messages.call_args[0][1], "Version unpublished")
         # Redirect happened
-        parsed = urlparse(response.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            parsed.path,
-            self.get_admin_url(self.versionable.version_model_proxy, 'changelist'),
-        )
-        self.assertEqual(
-            {k: v[0] for k, v in parse_qs(parsed.query).items()},
-            {
-                "poll": str(poll_version_.content.poll.pk),
-                "language": poll_version.content.language,
-            },
-        )
+        self.assertRedirectsToVersionList(response, poll_version)
 
-    def test_unpublish_view_cannot_be_accessed_for_archived_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_unpublish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
@@ -1159,14 +1189,22 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be unpublished')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.ARCHIVED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_unpublish_view_cannot_be_accessed_for_unpublished_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_unpublish_view_cannot_be_accessed_for_unpublished_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
@@ -1174,11 +1212,19 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be unpublished')
+
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
-    def test_unpublish_view_cannot_be_accessed_for_draft_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_unpublish_view_cannot_be_accessed_for_draft_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
@@ -1186,7 +1232,14 @@ class UnpublishViewTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version cannot be unpublished')
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)

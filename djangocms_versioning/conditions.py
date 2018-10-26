@@ -1,5 +1,3 @@
-from functools import partial
-
 from .exceptions import ConditionFailed
 
 
@@ -10,7 +8,7 @@ class Conditions(list):
 
     def __get__(self, instance, cls):
         if instance:
-            return partial(self, instance)
+            return BoundConditions(self, instance)
         return self
 
     def __call__(self, instance, user):
@@ -22,6 +20,19 @@ class Conditions(list):
         except ConditionFailed as e:
             return False
         return True
+
+
+class BoundConditions:
+
+    def __init__(self, conditions, instance):
+        self.conditions = conditions
+        self.instance = instance
+
+    def __call__(self, user):
+        return self.conditions(self.instance, user)
+
+    def as_bool(self, user):
+        return self.conditions.as_bool(self.instance, user)
 
 
 def in_state(states, message):

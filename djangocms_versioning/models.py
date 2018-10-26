@@ -166,7 +166,7 @@ class Version(models.Model):
         )
         return new_version
 
-    can_archive = Conditions()
+    check_archive = Conditions()
 
     def can_be_archived(self):
         return can_proceed(self._set_archive)
@@ -191,7 +191,7 @@ class Version(models.Model):
         field=state,
         source=constants.DRAFT,
         target=constants.ARCHIVED,
-        permission=can_archive.as_bool,
+        permission=check_archive.as_bool,
     )
     def _set_archive(self, user):
         """State machine transition method for moving version
@@ -202,7 +202,7 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    can_publish = Conditions()
+    check_publish = Conditions()
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -237,7 +237,7 @@ class Version(models.Model):
         field=state,
         source=constants.DRAFT,
         target=constants.PUBLISHED,
-        permission=can_publish.as_bool,
+        permission=check_publish.as_bool,
     )
     def _set_publish(self, user):
         """State machine transition method for moving version
@@ -248,7 +248,7 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    can_unpublish = Conditions()
+    check_unpublish = Conditions()
 
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)
@@ -273,7 +273,7 @@ class Version(models.Model):
         field=state,
         source=constants.PUBLISHED,
         target=constants.UNPUBLISHED,
-        permission=can_unpublish.as_bool,
+        permission=check_unpublish.as_bool,
     )
     def _set_unpublish(self, user):
         """State machine transition method for moving version
@@ -284,17 +284,23 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    can_modify = Conditions([
+    check_modify = Conditions([
         in_state([constants.DRAFT], _('Version is not a draft'))
     ])
-    can_revert = Conditions([
+    check_revert = Conditions([
         in_state(
             [constants.ARCHIVED, constants.UNPUBLISHED],
             _('Version is not in archived or unpublished state')
         ),
     ])
-    can_discard = Conditions([
+    check_discard = Conditions([
         in_state([constants.DRAFT], _('Version is not a draft'))
+    ])
+    check_edit_redirect = Conditions([
+        in_state(
+            [constants.DRAFT, constants.PUBLISHED],
+            _('Version is not in draft or published state')
+        ),
     ])
 
 

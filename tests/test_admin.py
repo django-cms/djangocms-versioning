@@ -379,7 +379,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The edit action is active
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = user
         draft_edit_url = self.get_admin_url(self.versionable.version_model_proxy, 'edit_redirect', version.pk)
 
         actual_enabled_control = self.version_admin._get_edit_link(version, request, disabled=False)
@@ -395,7 +397,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The edit action is disabled
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
         request = RequestFactory().get('/admin/polls/pollcontent/')
+        request.user = user
 
         actual_disabled_control = self.version_admin._get_edit_link(version, request, disabled=True)
         expected_disabled_control = '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
@@ -1278,7 +1282,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
 
-class EditRedirectTestCase(CMSTestCase):
+class EditRedirectTestCase(BaseStateTestCase):
 
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
@@ -1364,7 +1368,8 @@ class EditRedirectTestCase(CMSTestCase):
             PollContent, 'change', draft.content.pk))
         self.assertRedirects(response, redirect_url, target_status_code=302)
 
-    def test_edit_redirect_view_cannot_be_accessed_for_archived_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_edit_redirect_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
@@ -1372,11 +1377,19 @@ class EditRedirectTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version is not in draft or published state')
+
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
-    def test_edit_redirect_view_cannot_be_accessed_for_unpublished_version(self):
+    @patch('django.contrib.messages.add_message')
+    def test_edit_redirect_view_cannot_be_accessed_for_unpublished_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'edit_redirect', poll_version.pk)
@@ -1384,7 +1397,14 @@ class EditRedirectTestCase(CMSTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 404)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(
+            mocked_messages.call_args[0][2],
+            'Version is not in draft or published state')
+
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 

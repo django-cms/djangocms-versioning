@@ -12,7 +12,8 @@ class Conditions(list):
         return self
 
     def __call__(self, instance, user):
-        return all(func(instance, user) for func in self)
+        for func in self:
+            func(instance, user)
 
     def as_bool(self, instance, user):
         try:
@@ -29,7 +30,7 @@ class BoundConditions:
         self.instance = instance
 
     def __call__(self, user):
-        return self.conditions(self.instance, user)
+        self.conditions(self.instance, user)
 
     def as_bool(self, user):
         return self.conditions.as_bool(self.instance, user)

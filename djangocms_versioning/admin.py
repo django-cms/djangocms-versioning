@@ -553,6 +553,8 @@ class VersionAdmin(admin.ModelAdmin):
                 # There is a draft record so people should be editing
                 # the draft record not the published one. Redirect to draft.
                 draft = drafts.first()
+                # Run edit checks for the found draft as well
+                draft.check_edit_redirect(request.user)
                 return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
@@ -575,11 +577,11 @@ class VersionAdmin(admin.ModelAdmin):
 
         try:
             version.check_edit_redirect(request.user)
+            target = self._get_edit_redirect_version(request, version)
         except ConditionFailed as e:
             self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
-        target = self._get_edit_redirect_version(request, version)
         # Redirect
         return redirect(get_editable_url(target.content))
 

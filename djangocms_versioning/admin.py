@@ -1,15 +1,14 @@
 from django.conf.urls import url
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
@@ -23,6 +22,7 @@ from cms.utils.urlutils import add_url_parameters
 from . import versionables
 from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import get_editable_url, version_list_url
 from .models import Version
@@ -75,7 +75,7 @@ class VersioningAdminMixin:
     def get_readonly_fields(self, request, obj=None):
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            if not version.can_modify(request.user):
+            if not version.can_modify.as_bool(request.user):
                 if self.fields:
                     return self.fields
                 if self.fieldsets:
@@ -91,7 +91,7 @@ class VersioningAdminMixin:
     def has_change_permission(self, request, obj=None):
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            return version.can_modify(request.user)
+            return version.can_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)
 
 
@@ -254,7 +254,7 @@ class VersionAdmin(admin.ModelAdmin):
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
 
-        if not obj.can_be_archived() or not obj.can_archive(request.user):
+        if not obj.can_be_archived() or not obj.can_archive.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -289,7 +289,7 @@ class VersionAdmin(admin.ModelAdmin):
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
 
-        if not obj.can_be_unpublished() or not obj.can_unpublish(request.user):
+        if not obj.can_be_unpublished() or not obj.can_unpublish.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -340,7 +340,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
-        if not obj.can_revert(request.user):
+        if not obj.can_revert.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -365,7 +365,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
-        if not obj.can_discard(request.user):
+        if not obj.can_discard.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -431,8 +431,14 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id)
 
-        if not version.can_be_archived() or not version.can_archive(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
+        if not version.can_be_archived():
+            self.message_user(request, _("Version cannot be archived"), messages.ERROR)
+            return redirect(version_list_url(version.content))
+        try:
+            version.can_archive(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, e, messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         if request.method != 'POST':
             context = dict(
@@ -470,8 +476,14 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id)
 
-        if not version.can_be_published() or not version.can_publish(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
+        if not version.can_be_published():
+            self.message_user(request, _("Version cannot be published"), messages.ERROR)
+            return redirect(version_list_url(version.content))
+        try:
+            version.can_publish(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, e, messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         # Publish the version
         version.publish(request.user)
@@ -490,8 +502,14 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id)
 
-        if not version.can_be_unpublished() or not version.can_unpublish(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
+        if not version.can_be_unpublished():
+            self.message_user(request, _("Version cannot be unpublished"), messages.ERROR)
+            return redirect(version_list_url(version.content))
+        try:
+            version.can_unpublish(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, e, messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
@@ -568,8 +586,11 @@ class VersionAdmin(admin.ModelAdmin):
         if version is None:
             raise Http404
 
-        if not version.can_revert(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
+        try:
+            version.can_revert(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, e, messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
             version.content).values_list('pk', flat=True)
@@ -617,8 +638,11 @@ class VersionAdmin(admin.ModelAdmin):
         if version is None:
             raise Http404
 
-        if not version.can_discard(request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorised to perform this action")))
+        try:
+            version.can_discard(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, e, messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         if request.method != 'POST':
             context = dict(

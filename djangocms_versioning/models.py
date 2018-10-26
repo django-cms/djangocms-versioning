@@ -1,5 +1,3 @@
-from functools import partial
-
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -9,32 +7,13 @@ from django.utils.translation import ugettext_lazy as _
 from django_fsm import FSMField, can_proceed, transition
 
 from . import constants, versionables
+from .conditions import Conditions, in_state
 
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
-
-
-def in_state(*states):
-    def inner(version, user):
-        return version.state in states
-    return inner
-
-
-class Conditions(list):
-
-    def __add__(self, other):
-        return Conditions(super().__add__(other))
-
-    def __get__(self, instance, cls):
-        if instance:
-            return partial(self, instance)
-        return self
-
-    def __call__(self, instance, user):
-        return all(func(instance, user) for func in self)
 
 
 class VersionQuerySet(models.QuerySet):
@@ -212,7 +191,7 @@ class Version(models.Model):
         field=state,
         source=constants.DRAFT,
         target=constants.ARCHIVED,
-        permission=can_archive,
+        permission=can_archive.as_bool,
     )
     def _set_archive(self, user):
         """State machine transition method for moving version
@@ -258,7 +237,7 @@ class Version(models.Model):
         field=state,
         source=constants.DRAFT,
         target=constants.PUBLISHED,
-        permission=can_publish,
+        permission=can_publish.as_bool,
     )
     def _set_publish(self, user):
         """State machine transition method for moving version
@@ -294,7 +273,7 @@ class Version(models.Model):
         field=state,
         source=constants.PUBLISHED,
         target=constants.UNPUBLISHED,
-        permission=can_unpublish,
+        permission=can_unpublish.as_bool,
     )
     def _set_unpublish(self, user):
         """State machine transition method for moving version
@@ -305,9 +284,18 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    can_modify = Conditions([in_state(constants.DRAFT)])
-    can_revert = Conditions([in_state(constants.ARCHIVED, constants.UNPUBLISHED)])
-    can_discard = Conditions([in_state(constants.DRAFT)])
+    can_modify = Conditions([
+        in_state([constants.DRAFT], _('Version is not a draft'))
+    ])
+    can_revert = Conditions([
+        in_state(
+            [constants.ARCHIVED, constants.UNPUBLISHED],
+            _('Version is not in archived or unpublished state')
+        ),
+    ])
+    can_discard = Conditions([
+        in_state([constants.DRAFT], _('Version is not a draft'))
+    ])
 
 
 class StateTracking(models.Model):

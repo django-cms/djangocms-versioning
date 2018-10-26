@@ -1,0 +1,3 @@
+
+class ConditionFailed(Exception):
+    pass

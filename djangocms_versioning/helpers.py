@@ -232,4 +232,4 @@ def get_content_types_with_subclasses(models, using=None):
             content_types.update(
                 get_content_types_with_subclasses(subclasses, using),
             )
-    return content_types
+    return list(content_types)

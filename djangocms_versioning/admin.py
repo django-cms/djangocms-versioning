@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
@@ -75,7 +76,7 @@ class VersioningAdminMixin:
     def get_readonly_fields(self, request, obj=None):
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            if not version.can_modify.as_bool(request.user):
+            if not version.check_modify.as_bool(request.user):
                 if self.fields:
                     return self.fields
                 if self.fieldsets:
@@ -91,7 +92,7 @@ class VersioningAdminMixin:
     def has_change_permission(self, request, obj=None):
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            return version.can_modify.as_bool(request.user)
+            return version.check_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)
 
 
@@ -254,7 +255,7 @@ class VersionAdmin(admin.ModelAdmin):
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
 
-        if not obj.can_be_archived() or not obj.can_archive.as_bool(request.user):
+        if not obj.can_be_archived() or not obj.check_archive.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -289,7 +290,7 @@ class VersionAdmin(admin.ModelAdmin):
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
 
-        if not obj.can_be_unpublished() or not obj.can_unpublish.as_bool(request.user):
+        if not obj.can_be_unpublished() or not obj.check_unpublish.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -311,9 +312,12 @@ class VersionAdmin(admin.ModelAdmin):
                 state=DRAFT)
             if drafts.exists():
                 return ''
-        elif not obj.state == DRAFT:
+        elif obj.state != DRAFT:
             # Don't display the link if it's not a draft
             return ''
+
+        if not obj.check_edit_redirect.as_bool(request.user):
+            disabled = True
 
         edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
@@ -340,7 +344,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
-        if not obj.can_revert.as_bool(request.user):
+        if not obj.check_revert.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -365,7 +369,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,))
 
-        if not obj.can_discard.as_bool(request.user):
+        if not obj.check_discard.as_bool(request.user):
             disabled = True
 
         return render_to_string(
@@ -435,9 +439,9 @@ class VersionAdmin(admin.ModelAdmin):
             self.message_user(request, _("Version cannot be archived"), messages.ERROR)
             return redirect(version_list_url(version.content))
         try:
-            version.can_archive(request.user)
+            version.check_archive(request.user)
         except ConditionFailed as e:
-            self.message_user(request, e, messages.ERROR)
+            self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != 'POST':
@@ -480,9 +484,9 @@ class VersionAdmin(admin.ModelAdmin):
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
             return redirect(version_list_url(version.content))
         try:
-            version.can_publish(request.user)
+            version.check_publish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, e, messages.ERROR)
+            self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # Publish the version
@@ -506,9 +510,9 @@ class VersionAdmin(admin.ModelAdmin):
             self.message_user(request, _("Version cannot be unpublished"), messages.ERROR)
             return redirect(version_list_url(version.content))
         try:
-            version.can_unpublish(request.user)
+            version.check_unpublish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, e, messages.ERROR)
+            self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # This view always changes data so only POST requests should work
@@ -534,10 +538,7 @@ class VersionAdmin(admin.ModelAdmin):
         # Redirect
         return redirect(version_list_url(version.content))
 
-    def _get_edit_redirect_version(self, request, object_id):
-        version = self.get_object(request, unquote(object_id))
-        if version is None:
-            return
+    def _get_edit_redirect_version(self, request, version):
         # If published then there's extra things to do...
         if version.state == PUBLISHED:
             # First check there is no draft record for this grouper
@@ -555,11 +556,10 @@ class VersionAdmin(admin.ModelAdmin):
                 return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
-            version = version.copy(request.user)
-        # Raise 404 if the version is neither draft or published
-        elif version.state != DRAFT:
-            return
-        return version
+            return version.copy(request.user)
+        elif version.state == DRAFT:
+            # Return current version as it is a draft
+            return version
 
     def edit_redirect_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
@@ -569,13 +569,19 @@ class VersionAdmin(admin.ModelAdmin):
         if request.method != 'POST':
             return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
 
-        version = self._get_edit_redirect_version(request, object_id)
-
+        version = self.get_object(request, unquote(object_id))
         if version is None:
             raise Http404
 
+        try:
+            version.check_edit_redirect(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
+
+        target = self._get_edit_redirect_version(request, version)
         # Redirect
-        return redirect(get_editable_url(version.content))
+        return redirect(get_editable_url(target.content))
 
     def revert_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
@@ -587,9 +593,9 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         try:
-            version.can_revert(request.user)
+            version.check_revert(request.user)
         except ConditionFailed as e:
-            self.message_user(request, e, messages.ERROR)
+            self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
@@ -639,9 +645,9 @@ class VersionAdmin(admin.ModelAdmin):
             raise Http404
 
         try:
-            version.can_discard(request.user)
+            version.check_discard(request.user)
         except ConditionFailed as e:
-            self.message_user(request, e, messages.ERROR)
+            self.message_user(request, force_text(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != 'POST':

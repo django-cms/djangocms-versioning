@@ -17,7 +17,7 @@ class Conditions(list):
     def as_bool(self, instance, user):
         try:
             self(instance, user)
-        except ConditionFailed as e:
+        except ConditionFailed:
             return False
         return True
 

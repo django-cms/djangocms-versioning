@@ -4,12 +4,11 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.encoding import force_text
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
@@ -22,8 +21,8 @@ from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
 from .compat import DJANGO_GTE_21
-from .exceptions import ConditionFailed
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import get_editable_url, version_list_url
 from .models import Version

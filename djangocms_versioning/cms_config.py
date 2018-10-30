@@ -1,6 +1,8 @@
 import collections
+import copy
 
 from django.conf import settings
+from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -8,6 +10,9 @@ from django.utils.translation import ugettext_lazy as _
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
+
+from djangocms_versioning.admin import VersioningAdminMixin
+from djangocms_versioning.models import Version
 
 from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
@@ -188,6 +193,29 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
+class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        version = Version.objects.get_for_content(obj)
+        if not version.check_modify.as_bool(request.user):
+            form = self.get_form_class(request)
+            if getattr(form, 'fieldsets'):
+                return flatten_fieldsets(form.fieldsets)
+        return fields
+
+    def get_fieldsets(self, request, obj=None):
+        version = Version.objects.get_for_content(obj)
+        fieldsets = super().get_fieldsets(request, obj)
+        fieldsets = copy.deepcopy(fieldsets)
+        if not version.check_modify.as_bool(request.user):
+            for fieldset in fieldsets:
+                fieldset[1]['fields'] = tuple(
+                    f for f in fieldset[1]['fields'] if f not in ['slug', 'overwrite_url']
+                )
+        return fieldsets
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -207,5 +235,6 @@ class VersioningCMSConfig(CMSAppConfig):
             on_unpublish=on_page_content_unpublish,
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
+            content_admin_mixin=VersioningCMSPageAdminMixin,
         ),
     ]

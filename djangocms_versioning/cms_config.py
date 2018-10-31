@@ -1,5 +1,4 @@
 import collections
-import copy
 
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
@@ -197,23 +196,25 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
-        version = Version.objects.get_for_content(obj)
-        if not version.check_modify.as_bool(request.user):
-            form = self.get_form_class(request)
-            if getattr(form, 'fieldsets'):
-                return flatten_fieldsets(form.fieldsets)
+        if obj:
+            version = Version.objects.get_for_content(obj)
+            if not version.check_modify.as_bool(request.user):
+                form = self.get_form_class(request)
+                if getattr(form, 'fieldsets'):
+                    fields = flatten_fieldsets(form.fieldsets)
+                fields = list(fields)
+                for f_name in ['slug', 'overwrite_url']:
+                    fields.remove(f_name)
         return fields
 
-    def get_fieldsets(self, request, obj=None):
-        version = Version.objects.get_for_content(obj)
-        fieldsets = super().get_fieldsets(request, obj)
-        fieldsets = copy.deepcopy(fieldsets)
-        if not version.check_modify.as_bool(request.user):
-            for fieldset in fieldsets:
-                fieldset[1]['fields'] = tuple(
-                    f for f in fieldset[1]['fields'] if f not in ['slug', 'overwrite_url']
-                )
-        return fieldsets
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            version = Version.objects.get_for_content(obj)
+            if not version.check_modify.as_bool(request.user):
+                for f_name in ['slug', 'overwrite_url']:
+                    form.declared_fields[f_name].widget.attrs['readonly'] = True
+        return form
 
 
 class VersioningCMSConfig(CMSAppConfig):

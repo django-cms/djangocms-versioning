@@ -703,6 +703,7 @@ class VersionAdmin(admin.ModelAdmin):
             'version_list': version_list,
             'v1': v1,
             'v1_preview_url': v1_preview_url,
+            'return_url': version_list_url(v1.content),
         }
         # Now check if version 2 has been specified and add to context
         # if yes

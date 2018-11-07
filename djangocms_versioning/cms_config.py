@@ -10,9 +10,7 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
 
-from djangocms_versioning.admin import VersioningAdminMixin
-from djangocms_versioning.models import Version
-
+from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
     inject_generic_relation_to_version,
@@ -20,6 +18,7 @@ from .helpers import (
     replace_admin_for_models,
     replace_default_manager,
 )
+from .models import Version
 
 
 class VersioningCMSExtension(CMSAppExtension):

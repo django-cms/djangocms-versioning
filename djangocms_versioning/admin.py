@@ -697,7 +697,9 @@ class VersionAdmin(admin.ModelAdmin):
         )
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
-        version_list = Version.objects.filter_by_grouper(v1.grouper)
+        version_list = Version.objects.filter_by_content_grouping_values(
+            v1.content,
+        ).order_by('-number')
         # Add the above to context
         context = {
             'version_list': version_list,

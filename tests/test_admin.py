@@ -1508,9 +1508,9 @@ class CompareViewTestCase(CMSTestCase):
         for the dropdown in context.
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(
-            2, content__poll=poll)
-        factories.PollVersionFactory()  # different grouper
+        versions = factories.PollVersionFactory.create_batch(2, content__poll=poll, content__language='en')
+        factories.PollVersionFactory(content__poll=poll, content__language='fr')  # Same grouper different language
+        factories.PollVersionFactory(content__language='fr')  # different grouper and different language
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'compare', versions[0].pk)
         user = self.get_staff_user_with_no_permissions()
@@ -1547,9 +1547,9 @@ class CompareViewTestCase(CMSTestCase):
         the test above and also version 2.
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(
-            3, content__poll=poll)
-        factories.PollVersionFactory()  # different grouper
+        versions = factories.PollVersionFactory.create_batch(3, content__poll=poll, content__language='en')
+        factories.PollVersionFactory(content__poll=poll, content__language='fr')  # Same grouper different language
+        factories.PollVersionFactory(content__language='fr')  # different grouper and different language
         url = self.get_admin_url(
             self.versionable.version_model_proxy, 'compare', versions[0].pk)
         url += '?compare_to=%d' % versions[1].pk

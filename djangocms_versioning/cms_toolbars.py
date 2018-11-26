@@ -106,8 +106,12 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
+        version_menu_label = _('Version {number} {state}').format(
+            number=version.number,
+            state=version.state,
+        )
         versioning_menu = self.toolbar.get_or_create_menu(
-            VERSIONING_MENU_IDENTIFIER, _('Versions'), disabled=False)
+            VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False)
         url = version_list_url(version.content)
         versioning_menu.add_sideframe_item(_('Manage Versions'), url=url)
 

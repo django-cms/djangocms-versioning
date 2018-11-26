@@ -246,3 +246,17 @@ class VersioningToolbarTestCase(CMSTestCase):
         version_menu = toolbar.toolbar.get_menu('version')
         self.assertIsNotNone(version_menu)
         self.assertEqual(version_menu.get_items()[0].url, version_list_url(version.content))
+
+    def test_version_menu_label(self):
+        # Versioned item should have correct version menu label
+        version = PollVersionFactory()
+        toolbar = get_toolbar(version.content, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+
+        expected_label = "Version {number} {state}".format(
+            number=version.number,
+            state=version.state
+        )
+
+        self.assertEqual(expected_label, version_menu.name)

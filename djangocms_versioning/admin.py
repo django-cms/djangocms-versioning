@@ -73,6 +73,14 @@ class VersioningAdminMixin:
         ChangeList = super().get_changelist(request, **kwargs)
         return versioning_change_list_factory(ChangeList)
 
+    change_form_template = 'djangocms_versioning/admin/mixin/change_form.html'
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        if 'versioning_fallback_change_form_template' not in context:
+            context['versioning_fallback_change_form_template'] = super().change_form_template
+
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
     def get_readonly_fields(self, request, obj=None):
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)

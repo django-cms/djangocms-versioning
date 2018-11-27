@@ -254,7 +254,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu('version')
 
-        expected_label = "Version {number} {state}".format(
+        expected_label = "Version #{number} ({state})".format(
             number=version.number,
             state=version.state
         )

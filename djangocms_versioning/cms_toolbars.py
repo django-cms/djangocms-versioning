@@ -106,7 +106,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
-        version_menu_label = _('Version {number} {state}').format(
+        version_menu_label = _('Version #{number} ({state})').format(
             number=version.number,
             state=version.state,
         )

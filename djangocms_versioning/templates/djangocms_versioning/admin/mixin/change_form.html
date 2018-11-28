@@ -1,0 +1,11 @@
+{% extends versioning_fallback_change_form_template|default:"admin/change_form.html" %}
+{% load i18n admin_urls djangocms_versioning %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{{ original|url_version_list }}">
+            {% trans "Versions" %}
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

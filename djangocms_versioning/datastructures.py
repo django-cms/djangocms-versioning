@@ -120,12 +120,12 @@ class VersionableItem(BaseVersionableItem):
             self.grouper_field_name: OuterRef('pk'),
         }).order_by('-order')
         content_objects = self.content_model._base_manager.filter(
-            pk__in=self.grouper_model.objects.annotate(
+            pk__in=self.grouper_model._base_manager.annotate(
                 content=Subquery(inner.values_list('pk')[:1]),
             ).values_list('content'),
         )
         cache_name = self.grouper_field.remote_field.get_accessor_name()
-        return self.grouper_model.objects.prefetch_related(
+        return self.grouper_model._base_manager.prefetch_related(
             Prefetch(cache_name, queryset=content_objects),
         )
 

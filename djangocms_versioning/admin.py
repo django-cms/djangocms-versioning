@@ -211,6 +211,7 @@ class VersionAdmin(admin.ModelAdmin):
         return (
             'nr',
             'created',
+            'modified',
             'content_link',
             'created_by',
             'state',

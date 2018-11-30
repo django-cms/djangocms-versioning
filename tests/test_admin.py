@@ -160,7 +160,7 @@ class AdminAddVersionTestCase(CMSTestCase):
     def test_poll_version_is_added_for_change_false(self):
         model_admin = self._get_admin_class_obj(PollContent)
         with freeze_time('2011-01-06'):
-            pc1 = factories.PollContentFactory()
+            pc1 = factories.PollContentFactory.build(poll=factories.PollFactory())
             request = RequestFactory().get('/admin/polls/pollcontent/')
             request.user = factories.UserFactory()
             model_admin.save_model(request, pc1, form=None, change=False)
@@ -183,7 +183,7 @@ class AdminAddVersionTestCase(CMSTestCase):
 
     def test_blogpost_version_is_added_for_change_false(self):
         model_admin = self._get_admin_class_obj(BlogContent)
-        bc1 = factories.BlogContentFactory()
+        bc1 = factories.BlogContentFactory.build(blogpost=factories.BlogPostFactory())
         request = RequestFactory().get('/admin/blogposts/blogcontent/')
         request.user = factories.UserFactory()
         model_admin.save_model(request, bc1, form=None, change=False)

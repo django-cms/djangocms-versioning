@@ -3,6 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 from django_fsm import FSMField, can_proceed, transition
 
@@ -66,6 +67,7 @@ class VersionQuerySet(models.QuerySet):
 class Version(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -110,16 +112,17 @@ class Version(models.Model):
         # Only one draft version is allowed per unique grouping values.
         # Set all other drafts to archived
         if self.state == constants.DRAFT:
-            pks_for_grouping_values = self.versionable.for_content_grouping_values(
-                self.content).values_list('pk', flat=True)
-            to_archive = Version.objects.exclude(pk=self.pk).filter(
-                state=constants.DRAFT, object_id__in=pks_for_grouping_values,
-                content_type=self.content_type)
-            for version in to_archive:
-                version.archive(self.created_by)
-            on_draft_create = self.versionable.on_draft_create
-            if on_draft_create:
-                on_draft_create(self)
+            if created:
+                pks_for_grouping_values = self.versionable.for_content_grouping_values(
+                    self.content).values_list('pk', flat=True)
+                to_archive = Version.objects.exclude(pk=self.pk).filter(
+                    state=constants.DRAFT, object_id__in=pks_for_grouping_values,
+                    content_type=self.content_type)
+                for version in to_archive:
+                    version.archive(self.created_by)
+                on_draft_create = self.versionable.on_draft_create
+                if on_draft_create:
+                    on_draft_create(self)
             if emit_content_change:
                 emit_content_change(self.content, created=created)
 

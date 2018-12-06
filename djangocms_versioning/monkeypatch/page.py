@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 
 from cms import api
-from cms.models import pagemodel, titlemodels
+from cms.models import Placeholder, pagemodel, titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 from cms.utils.permissions import _thread_locals
@@ -28,6 +28,14 @@ def _get_title_cache(func):
         return language
     return inner
 pagemodel.Page._get_title_cache = _get_title_cache(pagemodel.Page._get_title_cache)  # noqa: E305
+
+
+def get_placeholders(func):
+    def inner(self, language):
+        page_content = self.get_title_obj(language)
+        return Placeholder.objects.get_for_obj(page_content)
+    return inner
+pagemodel.Page.get_placeholders = get_placeholders(pagemodel.Page.get_placeholders)  # noqa: E305
 
 
 @receiver(post_obj_operation)

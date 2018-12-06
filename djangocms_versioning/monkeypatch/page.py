@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 
 from cms import api
-from cms.models import pagemodel, Placeholder, titlemodels
+from cms.models import Placeholder, pagemodel, titlemodels
 from cms.operations import ADD_PAGE_TRANSLATION, CHANGE_PAGE_TRANSLATION
 from cms.signals import post_obj_operation
 from cms.utils.permissions import _thread_locals

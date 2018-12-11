@@ -1,6 +1,7 @@
 import collections
 
 from django.conf import settings
+from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
@@ -9,6 +10,7 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
 
+from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
     inject_generic_relation_to_version,
@@ -16,6 +18,7 @@ from .helpers import (
     replace_admin_for_models,
     replace_default_manager,
 )
+from .models import Version
 
 
 class VersioningCMSExtension(CMSAppExtension):
@@ -188,6 +191,31 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
+class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if obj:
+            version = Version.objects.get_for_content(obj)
+            if not version.check_modify.as_bool(request.user):
+                form = self.get_form_class(request)
+                if getattr(form, 'fieldsets'):
+                    fields = flatten_fieldsets(form.fieldsets)
+                fields = list(fields)
+                for f_name in ['slug', 'overwrite_url']:
+                    fields.remove(f_name)
+        return fields
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            version = Version.objects.get_for_content(obj)
+            if not version.check_modify.as_bool(request.user):
+                for f_name in ['slug', 'overwrite_url']:
+                    form.declared_fields[f_name].widget.attrs['readonly'] = True
+        return form
+
+
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
@@ -207,5 +235,6 @@ class VersioningCMSConfig(CMSAppConfig):
             on_unpublish=on_page_content_unpublish,
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
+            content_admin_mixin=VersioningCMSPageAdminMixin,
         ),
     ]

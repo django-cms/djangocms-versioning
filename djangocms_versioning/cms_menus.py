@@ -9,7 +9,7 @@ from cms.utils.page import get_page_queryset
 from menus.base import Menu, NavigationNode
 from menus.menu_pool import menu_pool
 
-from . import constants
+from . import conf, constants
 
 
 class CMSVersionedNavigationNode(NavigationNode):
@@ -183,6 +183,7 @@ class CMSMenu(Menu):
         return menu_nodes
 
 
-# Remove the core djangoCMS CMSMenu and register the new CMSVersionedMenu.
-menu_pool.menus.pop(OriginalCMSMenu.__name__)
-menu_pool.register_menu(CMSMenu)
+if conf.ENABLE_MENU_REGISTRATION:
+    # Remove the core djangoCMS CMSMenu and register the new CMSVersionedMenu.
+    menu_pool.menus.pop(OriginalCMSMenu.__name__)
+    menu_pool.register_menu(CMSMenu)

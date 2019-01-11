@@ -2,7 +2,7 @@ from django.apps import apps
 
 from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
-from cms.cms_menus import CMSMenu, get_visible_nodes
+from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
@@ -77,7 +77,7 @@ def _get_attrs_for_node(renderer, page_content):
     return attr
 
 
-class CMSVersionedMenu(Menu):
+class CMSMenu(Menu):
 
     def get_nodes(self, request):
         site = self.renderer.site
@@ -184,5 +184,5 @@ class CMSVersionedMenu(Menu):
 
 
 # Remove the core djangoCMS CMSMenu and register the new CMSVersionedMenu.
-menu_pool.menus.pop(CMSMenu.__name__)
-menu_pool.register_menu(CMSVersionedMenu)
+menu_pool.menus.pop(OriginalCMSMenu.__name__)
+menu_pool.register_menu(CMSMenu)

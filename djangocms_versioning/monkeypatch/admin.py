@@ -15,4 +15,5 @@ def get_queryset(func):
         return queryset
     return inner
 
+
 admin.pageadmin.PageContentAdmin.get_queryset = get_queryset(admin.pageadmin.PageContentAdmin.get_queryset)

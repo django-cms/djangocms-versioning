@@ -235,7 +235,7 @@ class VersionAdmin(admin.ModelAdmin):
         content = obj.content
         versionable = versionables.for_content(content)
         if versionable.preview_url:
-            url = versionable.get_preview_url(content)
+            url = versionable.preview_url(content)
         else:
             url = get_preview_url(content)
 

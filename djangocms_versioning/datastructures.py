@@ -140,11 +140,6 @@ class VersionableItem(BaseVersionableItem):
     def content_types(self):
         return self._get_content_types()
 
-    def get_preview_url(self, content):
-        if self.preview_url is None:
-            return
-        return self.preview_url(content)
-
 
 class PolymorphicVersionableItem(VersionableItem):
     """VersionableItem for use by base polymorphic class

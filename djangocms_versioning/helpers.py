@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
-from cms.toolbar.utils import get_object_edit_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
@@ -233,3 +233,18 @@ def get_content_types_with_subclasses(models, using=None):
                 get_content_types_with_subclasses(subclasses, using),
             )
     return content_types
+
+
+def get_preview_url(content_obj):
+    """If the object is editable the cms preview view should be used, with the toolbar.
+       This method is provides the URL for it.
+    """
+    if is_editable_model(content_obj.__class__):
+        url = get_object_preview_url(content_obj)
+        # Or else, the standard change view should be used
+    else:
+        url = reverse('admin:{app}_{model}_change'.format(
+            app=content_obj._meta.app_label,
+            model=content_obj._meta.model_name,
+        ), args=[content_obj.pk])
+    return url

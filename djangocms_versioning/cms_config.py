@@ -192,10 +192,6 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
-def get_preview_url(content):
-    return get_object_preview_url(content)
-
-
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
     def get_readonly_fields(self, request, obj=None):
@@ -241,6 +237,5 @@ class VersioningCMSConfig(CMSAppConfig):
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
             content_admin_mixin=VersioningCMSPageAdminMixin,
-            preview_url=get_preview_url,
         ),
     ]

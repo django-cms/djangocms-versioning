@@ -14,10 +14,8 @@ from django.utils.html import format_html, format_html_join
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
-from cms.toolbar.utils import get_object_preview_url
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
@@ -25,7 +23,7 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_editable_url, version_list_url
+from .helpers import get_editable_url, version_list_url, get_preview_url
 from .models import Version
 
 
@@ -236,7 +234,11 @@ class VersionAdmin(admin.ModelAdmin):
     def content_link(self, obj):
         content = obj.content
         versionable = versionables.for_content(content)
-        url = versionable.get_preview_url(content)
+        if versionable.preview_url:
+            url = versionable.get_preview_url(content)
+        else:
+            url = get_preview_url(content)
+
         if not url:
             return content
 

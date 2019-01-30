@@ -27,7 +27,7 @@ class VersionableItem(BaseVersionableItem):
         extra_grouping_fields=None, version_list_filter_lookups=None,
         on_publish=None, on_unpublish=None, on_draft_create=None,
         on_archive=None, grouper_selector_option_label=False,
-        content_admin_mixin=None
+        content_admin_mixin=None, preview_url=None,
     ):
         super().__init__(content_model, content_admin_mixin)
         # Set the grouper field
@@ -42,6 +42,7 @@ class VersionableItem(BaseVersionableItem):
         self.on_unpublish = on_unpublish
         self.on_draft_create = on_draft_create
         self.on_archive = on_archive
+        self.preview_url = preview_url
 
     def _get_grouper_field(self):
         return self.content_model._meta.get_field(self.grouper_field_name)
@@ -138,6 +139,11 @@ class VersionableItem(BaseVersionableItem):
     @cached_property
     def content_types(self):
         return self._get_content_types()
+
+    def get_preview_url(self, content):
+        if self.preview_url is None:
+            return
+        return self.preview_url(content)
 
 
 class PolymorphicVersionableItem(VersionableItem):

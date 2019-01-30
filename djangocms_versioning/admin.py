@@ -235,16 +235,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     def content_link(self, obj):
         content = obj.content
-
-        # If the object is editable the preview view should be used.
-        if is_editable_model(content.__class__):
-            url = get_object_preview_url(content)
-        # Or else, the standard change view should be used
-        else:
-            url = reverse('admin:{app}_{model}_change'.format(
-                app=content._meta.app_label,
-                model=content._meta.model_name,
-            ), args=[content.pk])
+        versionable = versionables.for_content(content)
+        url = versionable.get_preview_url(content)
+        if not url:
+            return content
 
         return format_html(
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',

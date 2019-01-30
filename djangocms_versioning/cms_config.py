@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
+from cms.toolbar.utils import get_object_preview_url
 
 from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
@@ -191,6 +192,10 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
+def get_preview_url(content):
+    return get_object_preview_url(content)
+
+
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
     def get_readonly_fields(self, request, obj=None):
@@ -236,5 +241,6 @@ class VersioningCMSConfig(CMSAppConfig):
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
             content_admin_mixin=VersioningCMSPageAdminMixin,
+            preview_url=get_preview_url,
         ),
     ]

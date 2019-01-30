@@ -9,7 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
-from cms.toolbar.utils import get_object_preview_url
 
 from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem

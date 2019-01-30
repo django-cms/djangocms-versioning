@@ -23,7 +23,7 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_editable_url, version_list_url, get_preview_url
+from .helpers import get_editable_url, get_preview_url, version_list_url
 from .models import Version
 
 

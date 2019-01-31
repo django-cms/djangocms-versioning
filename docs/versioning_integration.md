@@ -66,6 +66,7 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
+            preview_url=<FUNCTION_NAME>
         ),
     ]
 ```
@@ -81,6 +82,9 @@ class BlogCMSConfig(CMSAppConfig):
     - copy_function - a function that copies a content instance. This is
     used for some operations in versioning such as creating new drafts
     from published versions. See the copy function section of this doc for more info.
+    - preview_url - This is optional attribute can be pass to override preview url for an object in version list
+    table. If it is not passed then if model is a editable, it will render object preview url else
+    changelist url.
 
 
 ## The copy function

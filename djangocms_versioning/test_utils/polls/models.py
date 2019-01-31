@@ -22,6 +22,9 @@ class PollContent(models.Model):
     def get_absolute_url(self):
         return reverse('admin:polls_pollcontent_changelist')
 
+    def get_preview_url(self):
+        return reverse('admin:polls_pollcontent_preview', args=[self.id])
+
 
 class Answer(models.Model):
     poll_content = models.ForeignKey(PollContent, on_delete=models.CASCADE)

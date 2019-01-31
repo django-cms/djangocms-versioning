@@ -15,15 +15,16 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
-from cms.toolbar.utils import get_object_edit_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.conf import get_cms_setting
+from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
 import pytz
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
-from djangocms_versioning import constants
+from djangocms_versioning import constants, helpers
 from djangocms_versioning.admin import (
     VersionAdmin,
     VersionChangeList,
@@ -354,18 +355,46 @@ class VersionAdminTestCase(CMSTestCase):
             ),
         )
 
-    def test_content_link_non_editable_object(self):
+    def test_content_link_non_editable_object_with_preview_url(self):
         """
-        The link returned is the change url for a non editable object
+        The link returned is the preview url for a non editable object with preview url config in versionable
         """
         version = factories.PollVersionFactory(content__text='test4')
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url='/en/admin/polls/pollcontent/1/change/',
+                url='/en/admin/polls/pollcontent/1/preview/',
                 label='test4',
             ),
         )
+
+    def test_content_link_for_non_editable_object_with_no_preview_url(self):
+        """
+        The link returned is the change url for a non editable object
+        """
+        version = factories.BlogPostVersionFactory(content__text='test4')
+        self.assertFalse(is_editable_model(version))
+        self.assertEqual(
+            self.site._registry[Version].content_link(version),
+            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
+                url='/en/admin/blogpost/blogcontent/1/change/',
+                label='test4',
+            ),
+        )
+
+    def test_content_link_for_editable_object_with_no_preview_url(self):
+        """
+        The link returned is the object preview url for a editable object
+        """
+        version = factories.PageVersionFactory(content__title='test5')
+        with patch.object(helpers, "is_editable_model", return_value=True):
+            self.assertEqual(
+                self.site._registry[Version].content_link(version),
+                '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
+                    url=get_object_preview_url(version.content),
+                    label=version.content,
+                ),
+            )
 
 
 class VersionAdminActionsTestCase(CMSTestCase):

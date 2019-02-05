@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
-from django.utils.timezone import now
+from django.utils.timezone import now, utc
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url
@@ -847,6 +847,27 @@ class ArchiveViewTestCase(BaseStateTestCase):
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
 
+    @patch('django.utils.timezone.now')
+    @patch('django.contrib.admin.ModelAdmin.message_user')
+    def test_archive_view_sets_modified_time(self, mocked_messages, mocked_time):
+        mocked_time.return_value = datetime.datetime(2099, 1, 1, 11, 1, 11, 1111, tzinfo=utc)
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'archive', poll_version.pk)
+
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        # get object again after state change
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        # check time is not same as before
+        self.assertNotEqual(poll_version_.modified, poll_version.modified)
+        # check time is updated as mocked time
+        self.assertEqual(poll_version_.modified, mocked_time())
+
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
@@ -1036,6 +1057,27 @@ class PublishViewTestCase(BaseStateTestCase):
         # Redirect happened
         self.assertRedirectsToVersionList(response, poll_version)
 
+    @patch('django.utils.timezone.now')
+    @patch('django.contrib.admin.ModelAdmin.message_user')
+    def test_published_view_sets_modified_time(self, mocked_messages, mocked_time):
+        mocked_time.return_value = datetime.datetime(2099, 1, 1, 11, 1, 11, 1111, tzinfo=utc)
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'publish', poll_version.pk)
+
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        # get object again after state change
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        # check time is not same as before
+        self.assertNotEqual(poll_version_.modified, poll_version.modified)
+        # check time is updated as mocked time
+        self.assertEqual(poll_version_.modified, mocked_time())
+
     @patch('django.contrib.messages.add_message')
     def test_publish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
@@ -1184,6 +1226,27 @@ class UnpublishViewTestCase(BaseStateTestCase):
         # Redirect happened
         self.assertRedirectsToVersionList(response, poll_version)
 
+    @patch('django.utils.timezone.now')
+    @patch('django.contrib.admin.ModelAdmin.message_user')
+    def test_unpublish_view_sets_modified_time(self, mocked_messages, mocked_time):
+        mocked_time.return_value = datetime.datetime(2099, 1, 1, 11, 1, 11, 1111, tzinfo=utc)
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
+
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        # get object again after state change
+        poll_version_ = Version.objects.get(pk=poll_version.pk)
+        # check time is not same as before
+        self.assertNotEqual(poll_version_.modified, poll_version.modified)
+        # check time is updated as mocked time
+        self.assertEqual(poll_version_.modified, mocked_time())
+
     @patch('django.contrib.messages.add_message')
     def test_unpublish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
@@ -1280,6 +1343,33 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
+
+
+class RevertViewTestCase(BaseStateTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
+    @patch('django.utils.timezone.now')
+    @patch('django.contrib.admin.ModelAdmin.message_user')
+    def test_revert_view_sets_modified_time(self, mocked_messages, mocked_time):
+        mocked_time.return_value = datetime.datetime(2099, 1, 1, 11, 1, 11, 1111, tzinfo=utc)
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, 'revert', poll_version.pk)
+
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        # get the new reverted draft object
+        poll_version_ = Version.objects.filter(state=constants.DRAFT).first()
+        # check time is not same as before
+        self.assertNotEqual(poll_version_.modified, poll_version.modified)
+        # check time is updated as mocked time
+        self.assertEqual(poll_version_.modified, mocked_time())
 
 
 class EditRedirectTestCase(BaseStateTestCase):

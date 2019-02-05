@@ -470,6 +470,8 @@ class VersionAdmin(admin.ModelAdmin):
         else:
             # Archive the version
             version.archive(request.user)
+            # version content save to trigger post_save signal to update modified date
+            version.content.save()
             # Display message
             self.message_user(request, _("Version archived"))
         # Redirect
@@ -500,6 +502,8 @@ class VersionAdmin(admin.ModelAdmin):
 
         # Publish the version
         version.publish(request.user)
+        # version content save to trigger post_save signal to update modified date
+        version.content.save()
         # Display message
         self.message_user(request, _("Version published"))
         # Redirect
@@ -542,6 +546,8 @@ class VersionAdmin(admin.ModelAdmin):
         else:
             # Unpublish the version
             version.unpublish(request.user)
+            # version content save to trigger post_save signal to update modified date
+            version.content.save()
             # Display message
             self.message_user(request, _("Version unpublished"))
         # Redirect
@@ -643,6 +649,8 @@ class VersionAdmin(admin.ModelAdmin):
                 draft_version.delete()
 
             version = version.copy(request.user)
+            # version content save to trigger post_save signal to update modified date
+            version.content.save()
             # Redirect
             return redirect(version_list_url(version.content))
 

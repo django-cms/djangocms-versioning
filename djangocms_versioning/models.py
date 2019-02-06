@@ -165,8 +165,6 @@ class Version(models.Model):
             content=new_content,
             source=self,
             created_by=created_by,
-            modified=timezone.now()
-
         )
         return new_version
 

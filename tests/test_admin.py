@@ -864,7 +864,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
 
-        # check time is updated as mocked time
+        # check modified time is updated as freeze time
         self.assertEqual(poll_version.modified, now())
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
@@ -1072,7 +1072,7 @@ class PublishViewTestCase(BaseStateTestCase):
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
 
-        # check time is updated as mocked time
+        # check modified time is updated as freeze time
         self.assertEqual(poll_version.modified, now())
 
     @patch('django.contrib.messages.add_message')
@@ -1236,7 +1236,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
-
+        # check modified time is updated as freeze time
         self.assertEqual(poll_version.modified, now())
 
     @patch('django.contrib.messages.add_message')
@@ -1357,7 +1357,7 @@ class RevertViewTestCase(BaseStateTestCase):
 
         # get the new reverted draft object
         poll_version_ = Version.objects.filter(state=constants.DRAFT).first()
-        # check time is updated as mocked time
+        # check modified time is updated as freeze time
         self.assertEqual(poll_version_.modified, now())
 
 

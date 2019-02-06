@@ -847,10 +847,8 @@ class ArchiveViewTestCase(BaseStateTestCase):
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
 
-    @freeze_time("2099-01-11")
     @patch('django.contrib.admin.ModelAdmin.message_user')
     def test_archive_view_sets_modified_time(self, mocked_messages):
-        # mocked_time.return_value = datetime.datetime(2099, 1, 1, 11, 1, 11, 1111, tzinfo=utc)
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
 
         url = self.get_admin_url(
@@ -858,14 +856,14 @@ class ArchiveViewTestCase(BaseStateTestCase):
 
         user = self.get_staff_user_with_no_permissions()
 
-        with self.login_user_context(user):
+        with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(user):
             self.client.post(url)
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
 
         # check modified time is updated as freeze time
-        self.assertEqual(poll_version.modified, now())
+        self.assertEqual(poll_version.modified, datetime.datetime(2999, 1, 11,00,00,00, tzinfo=utc))
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1056,7 +1054,7 @@ class PublishViewTestCase(BaseStateTestCase):
         # Redirect happened
         self.assertRedirectsToVersionList(response, poll_version)
 
-    @freeze_time("2099-01-11")
+
     @patch('django.contrib.admin.ModelAdmin.message_user')
     def test_published_view_sets_modified_time(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1066,14 +1064,14 @@ class PublishViewTestCase(BaseStateTestCase):
 
         user = self.get_staff_user_with_no_permissions()
 
-        with self.login_user_context(user):
+        with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(user):
             self.client.post(url)
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
 
         # check modified time is updated as freeze time
-        self.assertEqual(poll_version.modified, now())
+        self.assertEqual(poll_version.modified, datetime.datetime(2999, 1, 11,00,00,00, tzinfo=utc))
 
     @patch('django.contrib.messages.add_message')
     def test_publish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
@@ -1223,7 +1221,6 @@ class UnpublishViewTestCase(BaseStateTestCase):
         # Redirect happened
         self.assertRedirectsToVersionList(response, poll_version)
 
-    @freeze_time("2099-01-11")
     @patch('django.contrib.admin.ModelAdmin.message_user')
     def test_unpublish_view_sets_modified_time(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -1231,13 +1228,13 @@ class UnpublishViewTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
         user = self.get_staff_user_with_no_permissions()
 
-        with self.login_user_context(user):
-           self.client.post(url)
+        with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(user):
+            self.client.post(url)
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=['modified', ])
         # check modified time is updated as freeze time
-        self.assertEqual(poll_version.modified, now())
+        self.assertEqual(poll_version.modified, datetime.datetime(2999, 1, 11,00,00,00, tzinfo=utc))
 
     @patch('django.contrib.messages.add_message')
     def test_unpublish_view_cannot_be_accessed_for_archived_version(self, mocked_messages):
@@ -1342,7 +1339,6 @@ class RevertViewTestCase(BaseStateTestCase):
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
 
-    @freeze_time("2099-01-11")
     @patch('django.contrib.admin.ModelAdmin.message_user')
     def test_revert_view_sets_modified_time(self, mocked_messages):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
@@ -1352,13 +1348,13 @@ class RevertViewTestCase(BaseStateTestCase):
 
         user = self.get_staff_user_with_no_permissions()
 
-        with self.login_user_context(user):
+        with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(user):
             self.client.post(url)
 
         # get the new reverted draft object
         poll_version_ = Version.objects.filter(state=constants.DRAFT).first()
         # check modified time is updated as freeze time
-        self.assertEqual(poll_version_.modified, now())
+        self.assertEqual(poll_version_.modified, datetime.datetime(2999, 1, 11,00,00,00, tzinfo=utc))
 
 
 class EditRedirectTestCase(BaseStateTestCase):

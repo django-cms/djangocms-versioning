@@ -59,6 +59,10 @@ from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
 
+def stories_about_intelligent_cats(request, version):
+    return version.content.cat_stories
+
+
 class BlogCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True  # -- 1
     versioning = [
@@ -66,6 +70,9 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
+            add_to_context={
+                'unpublish_confirmation': stories_about_intelligent_cats
+            }
         ),
     ]
 ```
@@ -81,6 +88,13 @@ class BlogCMSConfig(CMSAppConfig):
     - copy_function - a function that copies a content instance. This is
     used for some operations in versioning such as creating new drafts
     from published versions. See the copy function section of this doc for more info.
+    - add_to_context - a dict which takes functions as values (in the above example
+    the function is `stories_about_intelligent_cats`). The function should take two
+    params - request (a django http request object) and version (an instance
+    of the Version model). The key in the dict specifies the template in which
+    the result of the function should display. At this time only adding to the
+    context that will be displayed in `unpublish_confirmation.html` is supported, but
+    other views may be supported in the future.
 
 
 ## The copy function

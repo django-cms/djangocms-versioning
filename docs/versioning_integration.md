@@ -59,7 +59,7 @@ from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
 
-def stories_about_intelligent_cats(request, version):
+def stories_about_intelligent_cats(request, version, *args, **kwargs):
     return version.content.cat_stories
 
 
@@ -70,11 +70,11 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
-            add_to_context={
-                'unpublish_confirmation': stories_about_intelligent_cats
-            }
         ),
     ]
+    versioning_add_to_confirmation_context = {
+        'unpublish': [stories_about_intelligent_cats],
+    }
 ```
 
 1. This must be set to True for Versioning to read app's CMS config.
@@ -88,13 +88,18 @@ class BlogCMSConfig(CMSAppConfig):
     - copy_function - a function that copies a content instance. This is
     used for some operations in versioning such as creating new drafts
     from published versions. See the copy function section of this doc for more info.
-    - add_to_context - a dict which takes functions as values (in the above example
-    the function is `stories_about_intelligent_cats`). The function should take two
-    params - request (a django http request object) and version (an instance
-    of the Version model). The key in the dict specifies the template in which
-    the result of the function should display. At this time only adding to the
-    context that will be displayed in `unpublish_confirmation.html` is supported, but
-    other views may be supported in the future.
+3. The `versioning_add_to_confirmation_context` is a dict where the keys are
+   names of actions in versioning which have confirmation pages (in the
+   example `unpublish`) and the values are lists of functions (in the above example
+   a list with one item - `stories_about_intelligent_cats`).
+   The functions should take two params - request (a django http request object)
+   and version (an instance of the Version model). However, more params
+   could be added in the future, so it is recommended to make the function
+   take *args and **kwargs for future compatibility.
+   Versioning will run each function defined in the list and put the result
+   into the context of the relevant confirmation view.
+   At this time the only dict key that is supported is `unpublish`.
+   Support for adding to other confirmation views may be added in the future.
 
 
 ## The copy function

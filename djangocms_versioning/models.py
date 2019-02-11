@@ -164,8 +164,7 @@ class Version(models.Model):
         new_version = Version.objects.create(
             content=new_content,
             source=self,
-            created_by=created_by
-
+            created_by=created_by,
         )
         return new_version
 
@@ -177,6 +176,7 @@ class Version(models.Model):
     def archive(self, user):
         """Change state to ARCHIVED"""
         self._set_archive(user)
+        self.modified = timezone.now()
         self.save()
         StateTracking.objects.create(
             version=self,
@@ -214,6 +214,7 @@ class Version(models.Model):
         """Change state to PUBLISHED and unpublish currently
         published versions"""
         self._set_publish(user)
+        self.modified = timezone.now()
         self.save()
         StateTracking.objects.create(
             version=self,
@@ -259,6 +260,7 @@ class Version(models.Model):
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
         self._set_unpublish(user)
+        self.modified = timezone.now()
         self.save()
         StateTracking.objects.create(
             version=self,

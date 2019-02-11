@@ -90,12 +90,12 @@ class BlogCMSConfig(CMSAppConfig):
     from published versions. See the copy function section of this doc for more info.
 3. The `versioning_add_to_confirmation_context` is a dict where the keys are
    names of actions in versioning which have confirmation pages (in the
-   example `unpublish`) and the values are lists of functions (in the above example
+   above example the key is `unpublish`) and the values are lists of functions (in the above example
    a list with one item - `stories_about_intelligent_cats`).
    The functions should take two params - request (a django http request object)
    and version (an instance of the Version model). However, more params
    could be added in the future, so it is recommended to make the function
-   take *args and **kwargs for future compatibility.
+   take `*args` and `**kwargs` for future compatibility.
    Versioning will run each function defined in the list and put the result
    into the context of the relevant confirmation view.
    At this time the only dict key that is supported is `unpublish`.

@@ -6,6 +6,10 @@ from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PollContent
 
 
+def unpublish_warning(request, version, *args, **kwargs):
+    return "<b>Warning: Polls don't like to be unpublished!</b>"
+
+
 class PollsCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
     versioning = [
@@ -19,3 +23,6 @@ class PollsCMSConfig(CMSAppConfig):
             copy_function=default_copy,
         ),
     ]
+    versioning_add_to_confirmation_context = {
+        'unpublish': [unpublish_warning]
+    }

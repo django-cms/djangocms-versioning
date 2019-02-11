@@ -21,6 +21,7 @@ class PollsCMSConfig(CMSAppConfig):
                 'language': get_language_tuple,
             },
             copy_function=default_copy,
+            preview_url=PollContent.get_preview_url,
         ),
     ]
     versioning_add_to_confirmation_context = {

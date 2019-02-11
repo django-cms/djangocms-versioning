@@ -58,6 +58,10 @@ from cms.app_base import CMSAppConfig
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
+def get_preview_url(obj):
+    # generate url as required
+    return obj.get_absolute_url()
+
 
 def stories_about_intelligent_cats(request, version, *args, **kwargs):
     return version.content.cat_stories
@@ -70,6 +74,7 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
+            preview_url=get_preview_url
         ),
     ]
     versioning_add_to_confirmation_context = {
@@ -88,6 +93,9 @@ class BlogCMSConfig(CMSAppConfig):
     - copy_function - a function that copies a content instance. This is
     used for some operations in versioning such as creating new drafts
     from published versions. See the copy function section of this doc for more info.
+    - preview_url - This is optional attribute can be pass to override preview url for an object in version list
+    table. If it is not passed then if model is a editable, it will render object preview url else
+    changelist url.
 3. The `versioning_add_to_confirmation_context` is a dict where the keys are
    names of actions in versioning which have confirmation pages (in the
    above example the key is `unpublish`) and the values are lists of functions (in the above example

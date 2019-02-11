@@ -233,7 +233,6 @@ class VersionAdmin(admin.ModelAdmin):
 
     def content_link(self, obj):
         content = obj.content
-        versionable = versionables.for_content(content)
         url = get_preview_url(content)
 
         return format_html(

@@ -11,10 +11,10 @@ from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from . import versionables
 from .constants import DRAFT
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
-from . import versionables
 
 
 def versioning_admin_factory(admin_class, mixin):

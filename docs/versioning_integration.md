@@ -58,6 +58,10 @@ from cms.app_base import CMSAppConfig
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
+def get_preview_url(obj):
+    # generate url as required
+    return obj.get_absolute_url()
+
 
 class BlogCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True  # -- 1
@@ -66,6 +70,7 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
+            preview_url=get_preview_url
         ),
     ]
 ```
@@ -81,6 +86,9 @@ class BlogCMSConfig(CMSAppConfig):
     - copy_function - a function that copies a content instance. This is
     used for some operations in versioning such as creating new drafts
     from published versions. See the copy function section of this doc for more info.
+    - preview_url - This is optional attribute can be pass to override preview url for an object in version list
+    table. If it is not passed then if model is a editable, it will render object preview url else
+    changelist url.
 
 
 ## The copy function

@@ -945,13 +945,10 @@ class ArchiveViewTestCase(BaseStateTestCase):
 
     def test_archive_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
-
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
-
         user = self.get_staff_user_with_no_permissions()
-
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -959,7 +956,6 @@ class ArchiveViewTestCase(BaseStateTestCase):
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=["modified"])
-
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version.modified,
@@ -1162,13 +1158,10 @@ class PublishViewTestCase(BaseStateTestCase):
 
     def test_published_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
-
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "publish", poll_version.pk
         )
-
         user = self.get_staff_user_with_no_permissions()
-
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1176,7 +1169,6 @@ class PublishViewTestCase(BaseStateTestCase):
 
         # Refresh object after update
         poll_version.refresh_from_db(fields=["modified"])
-
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version.modified,
@@ -1341,7 +1333,6 @@ class UnpublishViewTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
         user = self.get_staff_user_with_no_permissions()
-
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1467,13 +1458,10 @@ class RevertViewTestCase(BaseStateTestCase):
 
     def test_revert_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
-
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "revert", poll_version.pk
         )
-
         user = self.get_staff_user_with_no_permissions()
-
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):

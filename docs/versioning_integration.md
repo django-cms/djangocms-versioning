@@ -58,6 +58,10 @@ from cms.app_base import CMSAppConfig
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
 
+def get_preview_url(obj):
+    # generate url as required
+    return obj.get_absolute_url()
+
 
 class BlogCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True  # -- 1
@@ -66,7 +70,7 @@ class BlogCMSConfig(CMSAppConfig):
             content_model=PostContent,
             grouper_field_name='post',
             copy_function=default_copy,
-            preview_url=<FUNCTION_NAME>
+            preview_url=get_preview_url
         ),
     ]
 ```

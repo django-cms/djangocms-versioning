@@ -14,6 +14,7 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 from .constants import DRAFT
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
+from . import versionables
 
 
 def versioning_admin_factory(admin_class, mixin):
@@ -239,6 +240,10 @@ def get_preview_url(content_obj):
     """If the object is editable the cms preview view should be used, with the toolbar.
        This method is provides the URL for it.
     """
+    versionable = versionables.for_content(content_obj)
+    if versionable.preview_url:
+        return versionable.preview_url(content_obj)
+
     if is_editable_model(content_obj.__class__):
         url = get_object_preview_url(content_obj)
         # Or else, the standard change view should be used

@@ -234,10 +234,7 @@ class VersionAdmin(admin.ModelAdmin):
     def content_link(self, obj):
         content = obj.content
         versionable = versionables.for_content(content)
-        if versionable.preview_url:
-            url = versionable.preview_url(content)
-        else:
-            url = get_preview_url(content)
+        url = get_preview_url(content)
 
         return format_html(
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',

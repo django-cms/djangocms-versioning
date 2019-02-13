@@ -2,9 +2,10 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.test_utils.util.context_managers import signal_tester
 
 from djangocms_versioning import constants
-from djangocms_versioning.models import Version
 from djangocms_versioning.signals import post_version_operation, pre_version_operation
 from djangocms_versioning.test_utils import factories
+
+# TODO: Test that each state change signal is the correct signal with states etc
 
 
 class TestVersioningSignals(CMSTestCase):
@@ -14,18 +15,99 @@ class TestVersioningSignals(CMSTestCase):
 
     def test_publish_signals_fired(self):
         """
-        When a version is published the correct signals are fired!
+        When a version is changed to published the correct signals are fired!
         """
+        poll = factories.PollFactory()
+        version = factories.PollVersionFactory(state=constants.DRAFT, content__poll=poll)
+
         with signal_tester(pre_version_operation, post_version_operation) as env:
-            poll = factories.PollFactory()
-            version = Version.objects.create(
-                content=factories.PollContentFactory(poll=poll, language='en'),
-                created_by=factories.UserFactory(),
-                state=constants.DRAFT)
 
             version.publish(self.superuser)
 
             self.assertEqual(env.call_count, 2)
-            self.assertEqual(env.calls[0].obj, version)
-            self.assertEqual(env.calls[1].obj, version)
 
+            pre_call_kwargs = env.calls[0][1]
+            post_call_kwargs = env.calls[1][1]
+
+            # pre call
+            self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
+            self.assertEqual(post_call_kwargs['operation'], constants.PUBLISHED)
+            self.assertEqual(pre_call_kwargs['obj'], version)
+            # post call
+            self.assertTrue('token' in post_call_kwargs)
+            self.assertEqual(post_call_kwargs['operation'], constants.PUBLISHED)
+            self.assertEqual(post_call_kwargs['obj'], version)
+
+    def test_unpublish_signals_fired(self):
+        """
+        When a version is changed to unpublished the correct signals are fired!
+        """
+        poll = factories.PollFactory()
+        version = factories.PollVersionFactory(state=constants.PUBLISHED, content__poll=poll)
+
+        with signal_tester(pre_version_operation, post_version_operation) as env:
+
+            version.unpublish(self.superuser)
+
+            self.assertEqual(env.call_count, 2)
+
+            pre_call_kwargs = env.calls[0][1]
+            post_call_kwargs = env.calls[1][1]
+
+            # pre call
+            self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
+            self.assertEqual(post_call_kwargs['operation'], constants.UNPUBLISHED)
+            self.assertEqual(pre_call_kwargs['obj'], version)
+            # post call
+            self.assertTrue('token' in post_call_kwargs)
+            self.assertEqual(post_call_kwargs['operation'], constants.UNPUBLISHED)
+            self.assertEqual(post_call_kwargs['obj'], version)
+
+    def test_archived_signals_fired(self):
+        """
+        When a version is changed to archived the correct signals are fired!
+        """
+        poll = factories.PollFactory()
+        version = factories.PollVersionFactory(state=constants.DRAFT, content__poll=poll)
+
+        with signal_tester(pre_version_operation, post_version_operation) as env:
+
+            version.archive(self.superuser)
+
+            self.assertEqual(env.call_count, 2)
+
+            pre_call_kwargs = env.calls[0][1]
+            post_call_kwargs = env.calls[1][1]
+
+            # pre call
+            self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
+            self.assertEqual(post_call_kwargs['operation'], constants.ARCHIVED)
+            self.assertEqual(pre_call_kwargs['obj'], version)
+            # post call
+            self.assertTrue('token' in post_call_kwargs)
+            self.assertEqual(post_call_kwargs['operation'], constants.ARCHIVED)
+            self.assertEqual(post_call_kwargs['obj'], version)
+
+    def test_draft_signals_fired(self):
+        """
+        When a version is changed to draft the correct signals are fired!
+        """
+        poll = factories.PollFactory()
+
+        with signal_tester(pre_version_operation, post_version_operation) as env:
+
+            version = factories.PollVersionFactory(state=constants.DRAFT, content__poll=poll)
+
+            self.assertEqual(env.call_count, 2)
+
+            pre_call_kwargs = env.calls[0][1]
+            post_call_kwargs = env.calls[1][1]
+
+            # pre call
+            self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
+            self.assertEqual(post_call_kwargs['operation'], constants.DRAFT)
+            self.assertEqual(pre_call_kwargs['obj'], version)
+            # post call
+            self.assertTrue('token' in post_call_kwargs)
+            self.assertEqual(post_call_kwargs['operation'], constants.DRAFT)
+            self.assertEqual(post_call_kwargs['obj'], version)

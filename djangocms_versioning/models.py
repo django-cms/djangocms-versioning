@@ -9,6 +9,7 @@ from django_fsm import FSMField, can_proceed, transition
 
 from . import constants, versionables
 from .conditions import Conditions, in_state
+from .signals import send_post_version_operation, send_pre_version_operation
 
 
 try:
@@ -213,6 +214,8 @@ class Version(models.Model):
     def publish(self, user):
         """Change state to PUBLISHED and unpublish currently
         published versions"""
+        # trigger pre operation token
+        action_token = send_pre_version_operation(constants.PUBLISHED)
         self._set_publish(user)
         self.modified = timezone.now()
         self.save()
@@ -234,6 +237,8 @@ class Version(models.Model):
         on_publish = self.versionable.on_publish
         if on_publish:
             on_publish(self)
+        # trigger post operation token
+        send_post_version_operation(constants.PUBLISHED, action_token)
         if emit_content_change:
             emit_content_change(self.content)
 

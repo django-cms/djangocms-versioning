@@ -14,6 +14,11 @@
 {% block content %}
 <p>{% trans "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}
 </p>
+<div>
+    {% for thing in extra_context %}
+        <p>{{thing}}</p>
+    {% endfor %}
+</div>
 <h3>{{ object_name }}</h3>
 <h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
 <form action="" method="POST">

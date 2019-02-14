@@ -1481,6 +1481,53 @@ class UnpublishViewTestCase(BaseStateTestCase):
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
+    def test_unpublish_view_uses_setting_to_populate_context(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+        from django.apps import apps
+        def unpublish_context1(request, version, *args, **kwargs):
+            return "Don't unpublish cats. Seriously."
+        def unpublish_context2(request, version, *args, **kwargs):
+            return "Unpublish the mice instead."
+        def publish_context(request, version, *args, **kwargs):
+            return "Publish cat pictures only. People aren't interested in anything else."
+        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+        extra_context = {
+            'unpublish': [unpublish_context1, unpublish_context2],
+            'publish': [publish_context],
+        }
+
+        with patch.object(versioning_ext, 'add_to_context', extra_context):
+            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+                response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('extra_context', response.context.keys())
+        expected = [
+            "Don't unpublish cats. Seriously.",
+            "Unpublish the mice instead."
+        ]
+        self.assertListEqual(response.context['extra_context'], expected)
+        self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
+        self.assertIn("Unpublish the mice instead.", str(response.content))
+        self.assertNotIn("Publish cat pictures only.", str(response.content))
+
+    def test_unpublish_view_doesnt_throw_exception_if_no_app_registered_extra_unpublish_context(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+        from django.apps import apps
+        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+
+        with patch.object(versioning_ext, 'add_to_context', {}):
+            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+                response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
 
 class RevertViewTestCase(BaseStateTestCase):
     def setUp(self):

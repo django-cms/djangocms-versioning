@@ -2,10 +2,11 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.test_utils.util.context_managers import signal_tester
 
 from djangocms_versioning import constants
-from djangocms_versioning.signals import post_version_operation, pre_version_operation
+from djangocms_versioning.signals import (
+    post_version_operation,
+    pre_version_operation,
+)
 from djangocms_versioning.test_utils import factories
-
-# TODO: Test that each state change signal is the correct signal with states etc
 
 
 class TestVersioningSignals(CMSTestCase):

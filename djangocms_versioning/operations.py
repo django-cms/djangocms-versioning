@@ -2,7 +2,7 @@
 import uuid
 
 from .models import Version
-from .signals import pre_version_operation, post_version_operation
+from .signals import post_version_operation, pre_version_operation
 
 
 def send_pre_version_operation(operation, sender=Version, **kwargs):

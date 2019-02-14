@@ -32,11 +32,13 @@ class TestVersioningSignals(CMSTestCase):
 
             # pre call
             self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
-            self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_PUBLISH)
+            self.assertEqual(pre_call_kwargs['operation'], constants.OPERATION_PUBLISH)
+            self.assertEqual(pre_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(pre_call_kwargs['obj'], version)
             # post call
             self.assertTrue('token' in post_call_kwargs)
             self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_PUBLISH)
+            self.assertEqual(post_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(post_call_kwargs['obj'], version)
 
     def test_unpublish_signals_fired(self):
@@ -57,11 +59,13 @@ class TestVersioningSignals(CMSTestCase):
 
             # pre call
             self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
-            self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_UNPUBLISH)
+            self.assertEqual(pre_call_kwargs['operation'], constants.OPERATION_UNPUBLISH)
+            self.assertEqual(pre_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(pre_call_kwargs['obj'], version)
             # post call
             self.assertTrue('token' in post_call_kwargs)
             self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_UNPUBLISH)
+            self.assertEqual(post_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(post_call_kwargs['obj'], version)
 
     def test_archive_signals_fired(self):
@@ -82,11 +86,13 @@ class TestVersioningSignals(CMSTestCase):
 
             # pre call
             self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
-            self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_ARCHIVE)
+            self.assertEqual(pre_call_kwargs['operation'], constants.OPERATION_ARCHIVE)
+            self.assertEqual(pre_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(pre_call_kwargs['obj'], version)
             # post call
             self.assertTrue('token' in post_call_kwargs)
             self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_ARCHIVE)
+            self.assertEqual(post_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(post_call_kwargs['obj'], version)
 
     def test_draft_signals_fired(self):
@@ -106,9 +112,11 @@ class TestVersioningSignals(CMSTestCase):
 
             # pre call
             self.assertTrue(pre_call_kwargs['token'] == post_call_kwargs['token'])
-            self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_DRAFT)
+            self.assertEqual(pre_call_kwargs['operation'], constants.OPERATION_DRAFT)
+            self.assertEqual(pre_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(pre_call_kwargs['obj'], version)
             # post call
             self.assertTrue('token' in post_call_kwargs)
             self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_DRAFT)
+            self.assertEqual(post_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(post_call_kwargs['obj'], version)

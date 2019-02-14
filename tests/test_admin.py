@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import django
+from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.contenttypes.models import ContentType
@@ -1486,13 +1487,16 @@ class UnpublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
-        from django.apps import apps
+
         def unpublish_context1(request, version, *args, **kwargs):
             return "Don't unpublish cats. Seriously."
+
         def unpublish_context2(request, version, *args, **kwargs):
             return "Unpublish the mice instead."
+
         def publish_context(request, version, *args, **kwargs):
             return "Publish cat pictures only. People aren't interested in anything else."
+
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
         extra_context = {
             'unpublish': [unpublish_context1, unpublish_context2],
@@ -1519,7 +1523,6 @@ class UnpublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
-        from django.apps import apps
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
 
         with patch.object(versioning_ext, 'add_to_context', {}):

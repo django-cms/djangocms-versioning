@@ -171,10 +171,13 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         config
         """
         extension = VersioningCMSExtension()
+
         def unpublish_context1(request, version, *args, **kwargs):
             return "Every time you unpublish something you should kiss a cat"
+
         def unpublish_context2(request, version, *args, **kwargs):
             return "Good luck with your unpublishing"
+
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
@@ -191,10 +194,13 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         values from both apps end up under that key
         """
         extension = VersioningCMSExtension()
+
         def unpublish_context1(request, version, *args, **kwargs):
             return "Cats don't like to be unpublished"
+
         def unpublish_context2(request, version, *args, **kwargs):
             return "Elephants don't mind being unpublished'"
+
         cms_config1 = Mock(
             spec=[],
             djangocms_versioning_enabled=True,

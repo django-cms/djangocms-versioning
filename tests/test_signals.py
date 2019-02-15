@@ -97,7 +97,7 @@ class TestVersioningSignals(CMSTestCase):
 
     def test_draft_signals_fired(self):
         """
-        When a version is changed to draft the correct signals are fired!
+        When a version is set as draft (created) the correct signals are fired!
         """
         poll = factories.PollFactory()
 

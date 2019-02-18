@@ -141,7 +141,9 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             versioning=[poll_versionable],
             # versioning doesn't know what red rabbits is
             # so this should raise an exception
-            versioning_add_to_confirmation_context={'red_rabbits': [lambda r, v: v.content]}
+            versioning_add_to_confirmation_context={
+                'red_rabbits': {'rabbit': lambda r, v: v.content}
+            }
         )
         with self.assertRaises(ImproperlyConfigured):
             extension.configure_app(cms_config)
@@ -182,12 +184,12 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': [unpublish_context1, unpublish_context2]
+                'unpublish': {'1': unpublish_context1, '2': unpublish_context2}
             },
         )
         extension.configure_app(cms_config)
-        self.assertDictEqual(
-            extension.add_to_context, {'unpublish': [unpublish_context1, unpublish_context2]})
+        expected = {'unpublish': {'1': unpublish_context1, '2': unpublish_context2}}
+        self.assertDictEqual(extension.add_to_context, expected)
 
     def test_context_dict_doesnt_get_overwritten(self):
         """Test when multiple apps update the same key in the context dict,
@@ -205,22 +207,22 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': [unpublish_context1]
+                'unpublish': {'1': unpublish_context1}
             },
         )
         cms_config2 = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': [unpublish_context2]
+                'unpublish': {'2': unpublish_context2}
             },
         )
 
         extension.configure_app(cms_config1)
         extension.configure_app(cms_config2)
 
-        self.assertDictEqual(
-            extension.add_to_context, {'unpublish': [unpublish_context1, unpublish_context2]})
+        expected = {'unpublish': {'1': unpublish_context1, '2': unpublish_context2}}
+        self.assertDictEqual(extension.add_to_context, expected)
 
     def test_handle_content_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class

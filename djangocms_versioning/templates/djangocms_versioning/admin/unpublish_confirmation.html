@@ -15,7 +15,7 @@
 <p>{% trans "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}
 </p>
 <div>
-    {% for thing in extra_context %}
+    {% for thing in extra_context.values %}
         <p>{{thing}}</p>
     {% endfor %}
 </div>

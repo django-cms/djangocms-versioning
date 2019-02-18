@@ -25,5 +25,5 @@ class PollsCMSConfig(CMSAppConfig):
         ),
     ]
     versioning_add_to_confirmation_context = {
-        'unpublish': [unpublish_warning]
+        'unpublish': {'warning': unpublish_warning}
     }

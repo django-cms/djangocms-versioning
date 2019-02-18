@@ -1499,8 +1499,8 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
         extra_context = {
-            'unpublish': [unpublish_context1, unpublish_context2],
-            'publish': [publish_context],
+            'unpublish': {'cats': unpublish_context1, 'mice': unpublish_context2},
+            'publish': {'cat_pictures': publish_context},
         }
 
         with patch.object(versioning_ext, 'add_to_context', extra_context):
@@ -1509,11 +1509,11 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('extra_context', response.context.keys())
-        expected = [
-            "Don't unpublish cats. Seriously.",
-            "Unpublish the mice instead."
-        ]
-        self.assertListEqual(response.context['extra_context'], expected)
+        expected = {
+            'cats': "Don't unpublish cats. Seriously.",
+            'mice': "Unpublish the mice instead."
+        }
+        self.assertDictEqual(response.context['extra_context'], expected)
         self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
         self.assertIn("Unpublish the mice instead.", str(response.content))
         self.assertNotIn("Publish cat pictures only.", str(response.content))

@@ -72,6 +72,10 @@ class VersioningCMSExtension(CMSAppExtension):
             self.versionables.append(versionable)
 
     def handle_versioning_add_to_confirmation_context_setting(self, cms_config):
+        """
+        Check versioning_add_to_confirmation_context has been correctly set
+        and add it to the master dict if all is ok
+        """
         add_to_context = cms_config.versioning_add_to_confirmation_context
         supported_keys = ['unpublish']
         for key, value in add_to_context.items():
@@ -80,8 +84,8 @@ class VersioningCMSExtension(CMSAppExtension):
                     "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(key)
                 )
             if key not in self.add_to_context:
-                self.add_to_context[key] = []
-            self.add_to_context[key].extend(value)
+                self.add_to_context[key] = {}
+            self.add_to_context[key].update(value)
 
     def handle_admin_classes(self, cms_config):
         """Replaces admin model classes for all registered content types

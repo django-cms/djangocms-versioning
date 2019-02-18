@@ -527,10 +527,10 @@ class VersionAdmin(admin.ModelAdmin):
                     args=(version.content.pk,)),
                 back_url=version_list_url(version.content),
             )
-            extra_context = [
-                func(request, version)
-                for func in _cms_extension().add_to_context.get('unpublish', [])
-            ]
+            extra_context = {
+                key: func(request, version)
+                for key, func in _cms_extension().add_to_context.get('unpublish', {}).items()
+            }
             context.update({'extra_context': extra_context})
             return render(request, 'djangocms_versioning/admin/unpublish_confirmation.html', context)
         else:

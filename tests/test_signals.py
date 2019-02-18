@@ -1,3 +1,6 @@
+from django.dispatch import receiver
+
+from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.test_utils.util.context_managers import signal_tester
 
@@ -120,3 +123,28 @@ class TestVersioningSignals(CMSTestCase):
             self.assertEqual(post_call_kwargs['operation'], constants.OPERATION_DRAFT)
             self.assertEqual(post_call_kwargs['sender'], version.content_type.model_class())
             self.assertEqual(post_call_kwargs['obj'], version)
+
+    def test_page_signals_publish_unpublish_example(self):
+        """
+        The example in the docs provides the following example to the page publish and unpublish signals.
+        """
+        signal_hits = list()
+
+        # Signal example
+        @receiver(post_version_operation, sender=PageContent)
+        def do_something_on_page_publish_unpublsh(*args, **kwargs):
+
+            if (kwargs['operation'] == constants.OPERATION_PUBLISH or
+               kwargs['operation'] == constants.OPERATION_UNPUBLISH):
+                signal_hits.append(kwargs['obj'])
+
+        version_1 = factories.PageVersionFactory(state=constants.DRAFT, content__template="")
+        version_2 = factories.PageVersionFactory(state=constants.DRAFT, content__template="")
+        version_1.publish(self.superuser)
+        version_1.unpublish(self.superuser)
+        version_2.archive(self.superuser)
+
+        # Only the publish and unpublish signals should have had an affect
+        self.assertEqual(len(signal_hits), 2)
+        self.assertEqual(signal_hits[0].state, constants.UNPUBLISHED)
+        self.assertEqual(signal_hits[1].state, constants.UNPUBLISHED)

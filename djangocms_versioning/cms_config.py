@@ -25,7 +25,7 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
         self.versionables = []
-        self.add_to_context = {}
+        self.add_to_context = collections.OrderedDict()
 
     @cached_property
     def versionables_by_content(self):

@@ -1,5 +1,6 @@
 import datetime
 import warnings
+from collections import OrderedDict
 from distutils.version import LooseVersion
 from unittest import skip, skipIf
 from unittest.mock import Mock, patch
@@ -1498,10 +1499,10 @@ class UnpublishViewTestCase(BaseStateTestCase):
             return "Publish cat pictures only. People aren't interested in anything else."
 
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
-        extra_context = {
+        extra_context = OrderedDict({
             'unpublish': {'cats': unpublish_context1, 'mice': unpublish_context2},
             'publish': {'cat_pictures': publish_context},
-        }
+        })
 
         with patch.object(versioning_ext, 'add_to_context', extra_context):
             with self.login_user_context(self.get_staff_user_with_no_permissions()):
@@ -1509,10 +1510,10 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('extra_context', response.context.keys())
-        expected = {
+        expected = OrderedDict({
             'cats': "Don't unpublish cats. Seriously.",
             'mice': "Unpublish the mice instead."
-        }
+        })
         self.assertDictEqual(response.context['extra_context'], expected)
         self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
         self.assertIn("Unpublish the mice instead.", str(response.content))

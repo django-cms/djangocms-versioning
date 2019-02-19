@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from unittest.mock import Mock, patch
 
 from django.apps import apps
@@ -183,12 +184,12 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning_add_to_confirmation_context={
+            versioning_add_to_confirmation_context=OrderedDict({
                 'unpublish': {'1': unpublish_context1, '2': unpublish_context2}
-            },
+            }),
         )
         extension.configure_app(cms_config)
-        expected = {'unpublish': {'1': unpublish_context1, '2': unpublish_context2}}
+        expected = OrderedDict({'unpublish': {'1': unpublish_context1, '2': unpublish_context2}})
         self.assertDictEqual(extension.add_to_context, expected)
 
     def test_context_dict_doesnt_get_overwritten(self):
@@ -221,7 +222,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         extension.configure_app(cms_config1)
         extension.configure_app(cms_config2)
 
-        expected = {'unpublish': {'1': unpublish_context1, '2': unpublish_context2}}
+        expected = OrderedDict({'unpublish': {'1': unpublish_context1, '2': unpublish_context2}})
         self.assertDictEqual(extension.add_to_context, expected)
 
     def test_handle_content_admin_classes(self):

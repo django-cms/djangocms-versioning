@@ -6,7 +6,8 @@ from .signals import post_version_operation, pre_version_operation
 
 def send_pre_version_operation(operation, version, **kwargs):
     """
-    Signal emitter for before a version operation occurs
+    Signal emitter for before a version operation occurs.
+    A token is emitted that will allow the pre and post emitted signals to be tied together.
 
     :param operation: Operation constants
     :param version: Version instance

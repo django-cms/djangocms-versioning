@@ -136,7 +136,10 @@ class TestVersioningSignals(CMSTestCase):
 
             if (kwargs['operation'] == constants.OPERATION_PUBLISH or
                kwargs['operation'] == constants.OPERATION_UNPUBLISH):
-                signal_hits.append(kwargs['obj'])
+                # Storing the state of the operation and object at this moment to compare the state later
+                obj = dict()
+                obj['state'] = kwargs['obj'].state
+                signal_hits.append(obj)
 
         version_1 = factories.PageVersionFactory(state=constants.DRAFT, content__template="")
         version_2 = factories.PageVersionFactory(state=constants.DRAFT, content__template="")
@@ -146,5 +149,5 @@ class TestVersioningSignals(CMSTestCase):
 
         # Only the publish and unpublish signals should have had an affect
         self.assertEqual(len(signal_hits), 2)
-        self.assertEqual(signal_hits[0].state, constants.UNPUBLISHED)
-        self.assertEqual(signal_hits[1].state, constants.UNPUBLISHED)
+        self.assertEqual(signal_hits[0].get('state'), constants.PUBLISHED)
+        self.assertEqual(signal_hits[1].get('state'), constants.UNPUBLISHED)

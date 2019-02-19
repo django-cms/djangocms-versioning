@@ -179,9 +179,9 @@ class Version(models.Model):
         return can_proceed(self._set_archive)
 
     def archive(self, user):
+        """Change state to ARCHIVED"""
         # trigger pre operation signal
         action_token = send_pre_version_operation(constants.OPERATION_ARCHIVE, version=self)
-        """Change state to ARCHIVED"""
         self._set_archive(user)
         self.modified = timezone.now()
         self.save()
@@ -271,9 +271,9 @@ class Version(models.Model):
         return can_proceed(self._set_unpublish)
 
     def unpublish(self, user):
+        """Change state to UNPUBLISHED"""
         # trigger pre operation signal
         action_token = send_pre_version_operation(constants.OPERATION_UNPUBLISH, version=self)
-        """Change state to UNPUBLISHED"""
         self._set_unpublish(user)
         self.modified = timezone.now()
         self.save()

@@ -27,5 +27,5 @@ class PollsCMSConfig(CMSAppConfig):
         ),
     ]
     versioning_add_to_confirmation_context = {
-        'unpublish': OrderedDict({'warning': unpublish_warning})
+        'unpublish': OrderedDict([('warning', unpublish_warning)])
     }

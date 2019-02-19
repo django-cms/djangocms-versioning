@@ -79,7 +79,7 @@ class BlogCMSConfig(CMSAppConfig):
         ),
     ]
     versioning_add_to_confirmation_context = {
-        'unpublish': OrderedDict({'cat_stories': stories_about_intelligent_cats}),
+        'unpublish': OrderedDict([('cat_stories', stories_about_intelligent_cats)]),
     }
 ```
 
@@ -102,8 +102,8 @@ class BlogCMSConfig(CMSAppConfig):
    above example the key is `unpublish`) and the values are OrderedDict objects made up
    of keys that give a way to access the context var from the template (
    in the above example you can access the var by using `{{ extra_context.cat_stories }}`
-   in the `unpublish_confirmation.html` template, by default the template will
-   display them in the order of the OrderedDict) and functions (in
+   in the `unpublish_confirmation.html` template - by default the template will
+   display context vars in the order of the OrderedDict) and functions (in
    the above example `stories_about_intelligent_cats`).
    The functions should take two params - request (a django http request object)
    and version (an instance of the Version model). However, more params

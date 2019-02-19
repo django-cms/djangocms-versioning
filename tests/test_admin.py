@@ -1500,8 +1500,8 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
         extra_context_setting = {
-            'unpublish': OrderedDict({'cats': unpublish_context1, 'mice': unpublish_context2}),
-            'publish': OrderedDict({'cat_pictures': publish_context}),
+            'unpublish': OrderedDict([('cats', unpublish_context1), ('mice', unpublish_context2)]),
+            'publish': OrderedDict([('cat_pictures', publish_context)]),
         }
 
         with patch.object(versioning_ext, 'add_to_context', extra_context_setting):
@@ -1510,10 +1510,10 @@ class UnpublishViewTestCase(BaseStateTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('extra_context', response.context.keys())
-        expected = OrderedDict({
-            'cats': "Don't unpublish cats. Seriously.",
-            'mice': "Unpublish the mice instead."
-        })
+        expected = OrderedDict([
+            ('cats', "Don't unpublish cats. Seriously."),
+            ('mice', "Unpublish the mice instead."),
+        ])
         self.assertDictEqual(response.context['extra_context'], expected)
         self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
         self.assertIn("Unpublish the mice instead.", str(response.content))

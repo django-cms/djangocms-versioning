@@ -208,23 +208,25 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': OrderedDict({'1': unpublish_context1})
+                'unpublish': OrderedDict([('1', unpublish_context1)])
             },
         )
         cms_config2 = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': OrderedDict({'2': unpublish_context2})
+                'unpublish': OrderedDict([('2', unpublish_context2)])
             },
         )
 
         extension.configure_app(cms_config1)
         extension.configure_app(cms_config2)
 
-        expected = {'unpublish': OrderedDict({'1': unpublish_context1, '2': unpublish_context2})}
-        self.assertEqual(extension.add_to_context.keys(), expected.keys())
-        self.assertDictEqual(extension.add_to_context['unpublish'], expected['unpublish'])
+        expected = {'unpublish': OrderedDict([
+            ('1', unpublish_context1),
+            ('2', unpublish_context2),
+        ])}
+        self.assertDictEqual(extension.add_to_context, expected)
 
     def test_handle_content_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class

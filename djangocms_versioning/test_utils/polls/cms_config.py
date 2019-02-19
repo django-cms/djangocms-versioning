@@ -26,6 +26,6 @@ class PollsCMSConfig(CMSAppConfig):
             preview_url=PollContent.get_preview_url,
         ),
     ]
-    versioning_add_to_confirmation_context = OrderedDict({
-        'unpublish': {'warning': unpublish_warning}
-    })
+    versioning_add_to_confirmation_context = {
+        'unpublish': OrderedDict({'warning': unpublish_warning})
+    }

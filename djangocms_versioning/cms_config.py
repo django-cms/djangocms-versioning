@@ -25,7 +25,7 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
         self.versionables = []
-        self.add_to_context = collections.OrderedDict()
+        self.add_to_context = {}
 
     @cached_property
     def versionables_by_content(self):
@@ -84,7 +84,7 @@ class VersioningCMSExtension(CMSAppExtension):
                     "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(key)
                 )
             if key not in self.add_to_context:
-                self.add_to_context[key] = {}
+                self.add_to_context[key] = collections.OrderedDict()
             self.add_to_context[key].update(value)
 
     def handle_admin_classes(self, cms_config):

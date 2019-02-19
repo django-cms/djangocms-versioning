@@ -1499,12 +1499,12 @@ class UnpublishViewTestCase(BaseStateTestCase):
             return "Publish cat pictures only. People aren't interested in anything else."
 
         versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
-        extra_context = OrderedDict({
-            'unpublish': {'cats': unpublish_context1, 'mice': unpublish_context2},
-            'publish': {'cat_pictures': publish_context},
-        })
+        extra_context_setting = {
+            'unpublish': OrderedDict({'cats': unpublish_context1, 'mice': unpublish_context2}),
+            'publish': OrderedDict({'cat_pictures': publish_context}),
+        }
 
-        with patch.object(versioning_ext, 'add_to_context', extra_context):
+        with patch.object(versioning_ext, 'add_to_context', extra_context_setting):
             with self.login_user_context(self.get_staff_user_with_no_permissions()):
                 response = self.client.get(url)
 

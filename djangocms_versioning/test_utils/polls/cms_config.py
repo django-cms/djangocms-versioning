@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from cms.app_base import CMSAppConfig
 from cms.utils.i18n import get_language_tuple
 
@@ -24,6 +26,6 @@ class PollsCMSConfig(CMSAppConfig):
             preview_url=PollContent.get_preview_url,
         ),
     ]
-    versioning_add_to_confirmation_context = {
+    versioning_add_to_confirmation_context = OrderedDict({
         'unpublish': {'warning': unpublish_warning}
-    }
+    })

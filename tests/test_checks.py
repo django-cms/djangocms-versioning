@@ -9,6 +9,7 @@ from djangocms_versioning.constants import (
 )
 from djangocms_versioning.helpers import is_content_editable
 from djangocms_versioning.test_utils.factories import (
+    FancyPollFactory,
     PageVersionFactory,
     PlaceholderFactory,
 )
@@ -39,6 +40,11 @@ class CheckDraftEditableTestCase(CMSTestCase):
         version = PageVersionFactory(state=PUBLISHED)
         placeholder = PlaceholderFactory(source=version.content)
         self.assertFalse(is_content_editable(placeholder, user))
+
+    def test_check_unversioned_model(self):
+        user = self.get_superuser()
+        placeholder = PlaceholderFactory(source=FancyPollFactory())
+        self.assertTrue(is_content_editable(placeholder, user))
 
 
 class CheckInjectTestCase(CMSTestCase):

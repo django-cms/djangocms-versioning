@@ -9,6 +9,7 @@ from django_fsm import FSMField, can_proceed, transition
 
 from . import constants, versionables
 from .conditions import Conditions, in_state
+from .operations import send_post_version_operation, send_pre_version_operation
 
 
 try:
@@ -105,6 +106,8 @@ class Version(models.Model):
         created = not self.pk
         # On version creation
         if created:
+            # trigger pre operation signal
+            action_token = send_pre_version_operation(constants.OPERATION_DRAFT, version=self)
             # Set the version number
             self.number = self.make_version_number()
 
@@ -123,6 +126,8 @@ class Version(models.Model):
                 on_draft_create = self.versionable.on_draft_create
                 if on_draft_create:
                     on_draft_create(self)
+                # trigger post operation signal
+                send_post_version_operation(constants.OPERATION_DRAFT, version=self, token=action_token)
             if emit_content_change:
                 emit_content_change(self.content, created=created)
 
@@ -175,6 +180,8 @@ class Version(models.Model):
 
     def archive(self, user):
         """Change state to ARCHIVED"""
+        # trigger pre operation signal
+        action_token = send_pre_version_operation(constants.OPERATION_ARCHIVE, version=self)
         self._set_archive(user)
         self.modified = timezone.now()
         self.save()
@@ -187,6 +194,8 @@ class Version(models.Model):
         on_archive = self.versionable.on_archive
         if on_archive:
             on_archive(self)
+        # trigger post operation signal
+        send_post_version_operation(constants.OPERATION_ARCHIVE, version=self, token=action_token)
         if emit_content_change:
             emit_content_change(self.content)
 
@@ -213,6 +222,8 @@ class Version(models.Model):
     def publish(self, user):
         """Change state to PUBLISHED and unpublish currently
         published versions"""
+        # trigger pre operation signal
+        action_token = send_pre_version_operation(constants.OPERATION_PUBLISH, version=self)
         self._set_publish(user)
         self.modified = timezone.now()
         self.save()
@@ -234,6 +245,8 @@ class Version(models.Model):
         on_publish = self.versionable.on_publish
         if on_publish:
             on_publish(self)
+        # trigger post operation signal
+        send_post_version_operation(constants.OPERATION_PUBLISH, version=self, token=action_token)
         if emit_content_change:
             emit_content_change(self.content)
 
@@ -259,6 +272,8 @@ class Version(models.Model):
 
     def unpublish(self, user):
         """Change state to UNPUBLISHED"""
+        # trigger pre operation signal
+        action_token = send_pre_version_operation(constants.OPERATION_UNPUBLISH, version=self)
         self._set_unpublish(user)
         self.modified = timezone.now()
         self.save()
@@ -271,6 +286,8 @@ class Version(models.Model):
         on_unpublish = self.versionable.on_unpublish
         if on_unpublish:
             on_unpublish(self)
+        # trigger post operation signal
+        send_post_version_operation(constants.OPERATION_UNPUBLISH, version=self, token=action_token)
         if emit_content_change:
             emit_content_change(self.content)
 

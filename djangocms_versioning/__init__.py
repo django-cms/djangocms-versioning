@@ -1,3 +1,3 @@
-__version__ = '0.0.19'
+__version__ = '0.0.20'
 
 default_app_config = 'djangocms_versioning.apps.VersioningConfig'

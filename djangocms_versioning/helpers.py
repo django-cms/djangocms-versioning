@@ -194,7 +194,7 @@ def version_list_url_for_grouper(grouper):
 
 def is_content_editable(placeholder, user):
     """A helper method for monkey patch to check version is in edit state.
-    Returns False if placeholder is related to a source object
+    Returns True if placeholder is related to a source object
     which not versioned.
 
     :param placeholder: current placeholder
@@ -204,7 +204,7 @@ def is_content_editable(placeholder, user):
     try:
         versionables.for_content(placeholder.source)
     except KeyError:
-        return False
+        return True
     from .models import Version
     version = Version.objects.get_for_content(placeholder.source)
     return version.state == DRAFT

@@ -44,7 +44,7 @@ class CheckDraftEditableTestCase(CMSTestCase):
     def test_check_unversioned_model(self):
         user = self.get_superuser()
         placeholder = PlaceholderFactory(source=FancyPollFactory())
-        self.assertFalse(is_content_editable(placeholder, user))
+        self.assertTrue(is_content_editable(placeholder, user))
 
 
 class CheckInjectTestCase(CMSTestCase):

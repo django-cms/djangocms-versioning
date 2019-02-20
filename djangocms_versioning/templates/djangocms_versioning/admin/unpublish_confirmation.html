@@ -12,10 +12,14 @@
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
 
 {% block content %}
-<p>{% trans "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}
-</p>
+<p>{% trans "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}</p>
 <h3>{{ object_name }}</h3>
 <h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
+<div>
+    {% for thing in extra_context.values %}
+        <p>{{thing}}</p>
+    {% endfor %}
+</div>
 <form action="" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link js-versioning-keep-sideframe"

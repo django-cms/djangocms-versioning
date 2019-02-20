@@ -1,9 +1,15 @@
+from collections import OrderedDict
+
 from cms.app_base import CMSAppConfig
 from cms.utils.i18n import get_language_tuple
 
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 
 from .models import PollContent
+
+
+def unpublish_warning(request, version, *args, **kwargs):
+    return "<b>Warning: Polls don't like to be unpublished!</b>"
 
 
 class PollsCMSConfig(CMSAppConfig):
@@ -20,3 +26,6 @@ class PollsCMSConfig(CMSAppConfig):
             preview_url=PollContent.get_preview_url,
         ),
     ]
+    versioning_add_to_confirmation_context = {
+        'unpublish': OrderedDict([('warning', unpublish_warning)])
+    }

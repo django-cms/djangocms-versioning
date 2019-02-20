@@ -25,6 +25,7 @@ class VersioningCMSExtension(CMSAppExtension):
 
     def __init__(self):
         self.versionables = []
+        self.add_to_context = {}
 
     @cached_property
     def versionables_by_content(self):
@@ -51,9 +52,6 @@ class VersioningCMSExtension(CMSAppExtension):
         and add it to the masterlist if all is ok
         """
         # First check that versioning is correctly defined
-        if not hasattr(cms_config, 'versioning'):
-            raise ImproperlyConfigured(
-                "versioning must be defined in cms_config.py")
         if not isinstance(cms_config.versioning, collections.abc.Iterable):
             raise ImproperlyConfigured(
                 "versioning not defined as an iterable")
@@ -72,6 +70,22 @@ class VersioningCMSExtension(CMSAppExtension):
                     "{!r} has already been registered".format(versionable.content_model))
             # Checks passed. Add versionable to our master list
             self.versionables.append(versionable)
+
+    def handle_versioning_add_to_confirmation_context_setting(self, cms_config):
+        """
+        Check versioning_add_to_confirmation_context has been correctly set
+        and add it to the master dict if all is ok
+        """
+        add_to_context = cms_config.versioning_add_to_confirmation_context
+        supported_keys = ['unpublish']
+        for key, value in add_to_context.items():
+            if key not in supported_keys:
+                raise ImproperlyConfigured(
+                    "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(key)
+                )
+            if key not in self.add_to_context:
+                self.add_to_context[key] = collections.OrderedDict()
+            self.add_to_context[key].update(value)
 
     def handle_admin_classes(self, cms_config):
         """Replaces admin model classes for all registered content types
@@ -109,11 +123,19 @@ class VersioningCMSExtension(CMSAppExtension):
             replace_default_manager(versionable.content_model)
 
     def configure_app(self, cms_config):
-        self.handle_versioning_setting(cms_config)
-        self.handle_admin_classes(cms_config)
-        self.handle_version_admin(cms_config)
-        self.handle_content_model_generic_relation(cms_config)
-        self.handle_content_model_manager(cms_config)
+        has_extra_context = hasattr(cms_config, 'versioning_add_to_confirmation_context')
+        has_models_to_register = hasattr(cms_config, 'versioning')
+        if not has_extra_context and not has_models_to_register:
+            raise ImproperlyConfigured(
+                "The versioning or versioning_add_to_confirmation_context setting must be defined")
+        if has_extra_context:
+            self.handle_versioning_add_to_confirmation_context_setting(cms_config)
+        if has_models_to_register:
+            self.handle_versioning_setting(cms_config)
+            self.handle_admin_classes(cms_config)
+            self.handle_version_admin(cms_config)
+            self.handle_content_model_generic_relation(cms_config)
+            self.handle_content_model_manager(cms_config)
 
 
 def copy_page_content(original_content):

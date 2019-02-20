@@ -1,11 +1,13 @@
 import datetime
 import warnings
+from collections import OrderedDict
 from distutils.version import LooseVersion
 from unittest import skip, skipIf
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import django
+from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.contenttypes.models import ContentType
@@ -1480,6 +1482,55 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertEqual(poll_version_.state, constants.PUBLISHED)
         # no status change has been tracked
         self.assertEqual(StateTracking.objects.all().count(), 0)
+
+    def test_unpublish_view_uses_setting_to_populate_context(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+
+        def unpublish_context1(request, version, *args, **kwargs):
+            return "Don't unpublish cats. Seriously."
+
+        def unpublish_context2(request, version, *args, **kwargs):
+            return "Unpublish the mice instead."
+
+        def publish_context(request, version, *args, **kwargs):
+            return "Publish cat pictures only. People aren't interested in anything else."
+
+        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+        extra_context_setting = {
+            'unpublish': OrderedDict([('cats', unpublish_context1), ('mice', unpublish_context2)]),
+            'publish': OrderedDict([('cat_pictures', publish_context)]),
+        }
+
+        with patch.object(versioning_ext, 'add_to_context', extra_context_setting):
+            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+                response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('extra_context', response.context.keys())
+        expected = OrderedDict([
+            ('cats', "Don't unpublish cats. Seriously."),
+            ('mice', "Unpublish the mice instead."),
+        ])
+        self.assertDictEqual(response.context['extra_context'], expected)
+        self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
+        self.assertIn("Unpublish the mice instead.", str(response.content))
+        self.assertNotIn("Publish cat pictures only.", str(response.content))
+
+    def test_unpublish_view_doesnt_throw_exception_if_no_app_registered_extra_unpublish_context(self):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+
+        with patch.object(versioning_ext, 'add_to_context', {}):
+            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+                response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
 
 
 class RevertViewTestCase(BaseStateTestCase):

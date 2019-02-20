@@ -54,6 +54,7 @@ Versioning needs to be aware of these models. This can be done in `cms_config.py
 
 ```python
 # blog/cms_config.py
+from collections import OrderedDict
 from cms.app_base import CMSAppConfig
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from .models import PostContent
@@ -61,6 +62,10 @@ from .models import PostContent
 def get_preview_url(obj):
     # generate url as required
     return obj.get_absolute_url()
+
+
+def stories_about_intelligent_cats(request, version, *args, **kwargs):
+    return version.content.cat_stories
 
 
 class BlogCMSConfig(CMSAppConfig):
@@ -73,6 +78,9 @@ class BlogCMSConfig(CMSAppConfig):
             preview_url=get_preview_url
         ),
     ]
+    versioning_add_to_confirmation_context = {
+        'unpublish': OrderedDict([('cat_stories', stories_about_intelligent_cats)]),
+    }
 ```
 
 1. This must be set to True for Versioning to read app's CMS config.
@@ -89,6 +97,22 @@ class BlogCMSConfig(CMSAppConfig):
     - preview_url - This is optional attribute can be pass to override preview url for an object in version list
     table. If it is not passed then if model is a editable, it will render object preview url else
     changelist url.
+3. The `versioning_add_to_confirmation_context` is a dict where the keys are
+   names of actions in versioning which have confirmation pages (in the
+   above example the key is `unpublish`) and the values are OrderedDict objects made up
+   of keys that give a way to access the context var from the template (
+   in the above example you can access the var by using `{{ extra_context.cat_stories }}`
+   in the `unpublish_confirmation.html` template - by default the template will
+   display context vars in the order of the OrderedDict) and functions (in
+   the above example `stories_about_intelligent_cats`).
+   The functions should take two params - request (a django http request object)
+   and version (an instance of the Version model). However, more params
+   could be added in the future, so it is recommended to make the function
+   take `*args` and `**kwargs` for future compatibility.
+   Versioning will run each defined function and put the result
+   into the context of the relevant confirmation view.
+   At this time the only dict key that is supported is `unpublish`.
+   Support for adding to other confirmation views may be added in the future.
 
 
 ## The copy function

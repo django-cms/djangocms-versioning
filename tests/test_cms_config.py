@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from unittest.mock import Mock, patch
 
 from django.apps import apps
@@ -26,16 +27,17 @@ from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 class VersioningExtensionUnitTestCase(CMSTestCase):
 
-    def test_missing_cms_config_attribute(self):
+    def test_raises_exception_if_neither_versioning_nor_context_setting_specified(self):
         """
-        Tests, if the versioning attribute has not been specified,
+        Tests, if neither the versioning attribute or the
+        versioning_add_to_confirmation_context attribute has been specified,
         an ImproperlyConfigured exception is raised
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(spec=[],
                           djangocms_versioning_enabled=True)
         with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_setting(cms_config)
+            extensions.configure_app(cms_config)
 
     def test_raises_exception_if_versioning_not_iterable(self):
         """Tests ImproperlyConfigured exception is raised if
@@ -50,7 +52,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
                 copy_function=default_copy)
         )
         with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_setting(cms_config)
+            extensions.configure_app(cms_config)
 
     def test_raises_exception_if_not_versionable_class(self):
         """Tests ImproperlyConfigured exception is raised if elements
@@ -61,7 +63,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
                           djangocms_versioning_enabled=True,
                           versioning=['aaa', {}])
         with self.assertRaises(ImproperlyConfigured):
-            extensions.handle_versioning_setting(cms_config)
+            extensions.configure_app(cms_config)
 
     def test_raises_exception_if_content_class_already_registered_in_same_config(self):
         """Tests ImproperlyConfigured exception is raised if the same
@@ -80,7 +82,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             versioning=[poll_versionable, poll_versionable2]
         )
         with self.assertRaises(ImproperlyConfigured):
-            extension.handle_versioning_setting(cms_config)
+            extension.configure_app(cms_config)
 
     def test_raises_exception_if_content_class_already_registered_in_different_config(self):
         """Tests ImproperlyConfigured exception is raised if the same
@@ -107,6 +109,46 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             extension.handle_versioning_setting(cms_config1)
             extension.handle_versioning_setting(cms_config2)
 
+    def test_versioning_add_to_confirmation_context_is_an_optional_setting(self):
+        extension = VersioningCMSExtension()
+        poll_versionable = VersionableItem(
+            content_model=PollContent,
+            grouper_field_name='poll',
+            copy_function=default_copy
+        )
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable]
+        )
+        try:
+            extension.configure_app(cms_config)
+        except ImproperlyConfigured:
+            self.fail("versioning_add_to_confirmation_context setting should be optional")
+
+    def test_raises_exception_if_unsupported_key_added_to_add_to_context(self):
+        """Tests ImproperlyConfigured exception is raised if an unsupported
+        dict key is used for the versioning_add_to_confirmation_context setting
+        """
+        extension = VersioningCMSExtension()
+        poll_versionable = VersionableItem(
+            content_model=PollContent,
+            grouper_field_name='poll',
+            copy_function=default_copy,
+        )
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[poll_versionable],
+            # versioning doesn't know what red rabbits is
+            # so this should raise an exception
+            versioning_add_to_confirmation_context={
+                'red_rabbits': OrderedDict({'rabbit': lambda r, v: v.content})
+            }
+        )
+        with self.assertRaises(ImproperlyConfigured):
+            extension.configure_app(cms_config)
+
     def test_versionables_list_created(self):
         """Test handle_versioning_setting method adds all the
         models into the versionables list
@@ -123,9 +165,68 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             djangocms_versioning_enabled=True,
             versioning=[poll_versionable, blog_versionable]
         )
-        extension.handle_versioning_setting(cms_config)
+        extension.configure_app(cms_config)
         self.assertListEqual(
             extension.versionables, [poll_versionable, blog_versionable])
+
+    def test_context_dict_created(self):
+        """Test a dict is populated from the versioning_add_to_confirmation_context
+        config
+        """
+        extension = VersioningCMSExtension()
+
+        def unpublish_context1(request, version, *args, **kwargs):
+            return "Every time you unpublish something you should kiss a cat"
+
+        def unpublish_context2(request, version, *args, **kwargs):
+            return "Good luck with your unpublishing"
+
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning_add_to_confirmation_context={
+                'unpublish': OrderedDict({'1': unpublish_context1, '2': unpublish_context2})
+            },
+        )
+        extension.configure_app(cms_config)
+        expected = {'unpublish': OrderedDict({'1': unpublish_context1, '2': unpublish_context2})}
+        self.assertDictEqual(extension.add_to_context, expected)
+
+    def test_context_dict_doesnt_get_overwritten(self):
+        """Test when multiple apps update the same key in the context dict,
+        values from both apps end up under that key
+        """
+        extension = VersioningCMSExtension()
+
+        def unpublish_context1(request, version, *args, **kwargs):
+            return "Cats don't like to be unpublished"
+
+        def unpublish_context2(request, version, *args, **kwargs):
+            return "Elephants don't mind being unpublished'"
+
+        cms_config1 = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning_add_to_confirmation_context={
+                'unpublish': OrderedDict([('1', unpublish_context1)])
+            },
+        )
+        cms_config2 = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning_add_to_confirmation_context={
+                'unpublish': OrderedDict([('2', unpublish_context2)])
+            },
+        )
+
+        extension.configure_app(cms_config1)
+        extension.configure_app(cms_config2)
+
+        expected = {'unpublish': OrderedDict([
+            ('1', unpublish_context1),
+            ('2', unpublish_context2),
+        ])}
+        self.assertDictEqual(extension.add_to_context, expected)
 
     def test_handle_content_admin_classes(self):
         """Test handle_admin_classes replaces the admin model class

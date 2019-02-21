@@ -7,6 +7,8 @@ factory-boy
 freezegun
 mock
 https://github.com/divio/djangocms-text-ckeditor/archive/support/4.0.x.zip
+beautifulsoup4
 
 # libraries specified in setup.py
 django-fsm>=2.6,<2.7
+django-render-block>=0.5,<0.6

@@ -22,6 +22,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
+from bs4 import BeautifulSoup
 import pytz
 from freezegun import freeze_time
 
@@ -955,6 +956,12 @@ class VersionAdminViewTestCase(CMSTestCase):
                 self.get_admin_url(self.versionable.version_model_proxy, "delete", 1)
             )
         self.assertEqual(response.status_code, 403)
+
+
+class GrouperFormViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_grouper_view_requires_staff_permissions(self):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
@@ -1936,7 +1943,7 @@ class CompareViewTestCase(CMSTestCase):
         )
 
 
-class VersionChangeListTestCase(CMSTestCase):
+class VersionChangeListViewTestCase(CMSTestCase):
     def setUp(self):
         self.superuser = self.get_superuser()
         self.versionable = PollsCMSConfig.versioning[0]
@@ -1995,6 +2002,24 @@ class VersionChangeListTestCase(CMSTestCase):
             transform=lambda x: x.pk,
             ordered=False,
         )
+
+    def test_changelist_view_displays_correct_breadcrumbs(self):
+        poll_content = factories.PollContentWithVersionFactory()
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += "?poll=" + str(poll_content.poll_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs
+        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+        expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
+        expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
+        expected += str(poll_content) + """\\n</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
 
 
 class VersionChangeViewTestCase(CMSTestCase):

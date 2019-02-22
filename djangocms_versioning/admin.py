@@ -753,6 +753,9 @@ class VersionAdmin(admin.ModelAdmin):
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
+            extra_context['latest_content'] = Version.objects.filter_by_grouper(
+                grouper).latest('created').content
+            extra_context['breadcrumb_opts'] = self.model._source_model._meta
 
         return super().changelist_view(request, extra_context)
 

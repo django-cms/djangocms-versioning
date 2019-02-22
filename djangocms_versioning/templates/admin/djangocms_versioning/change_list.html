@@ -2,5 +2,5 @@
 {% load i18n admin_urls %}
 
 {% if not is_popup %}
-{% block breadcrumbs %}{% include 'admin/djangocms_versioning/breadcrumbs.html' %}{% endblock %}
+{% block breadcrumbs %}{% include breadcrumb_template %}{% endblock %}
 {% endif %}

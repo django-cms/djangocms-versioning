@@ -42,6 +42,7 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
@@ -2021,6 +2022,25 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
             pk=str(poll_content.pk), name=str(poll_content))
         expected += """Version List\\n</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(self):
+        # The blogpost test app defines a breadcrumb template in
+        # templates/admin/djangocms_versioning/blogpost/blogcontent/versioning_breadcrumbs.html
+        # This test checks that template gets used.
+        blog_content = factories.BlogContentWithVersionFactory()
+        versionable = BlogpostCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?blogpost=" + str(blog_content.blogpost_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs
+        expected = """<div class="breadcrumbs">Blog post breadcrumbs bla bla</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
 

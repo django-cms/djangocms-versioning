@@ -8,7 +8,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -755,7 +755,16 @@ class VersionAdmin(admin.ModelAdmin):
             )
             extra_context['latest_content'] = Version.objects.filter_by_grouper(
                 grouper).latest('created').content
-            extra_context['breadcrumb_opts'] = self.model._source_model._meta
+            breadcrumb_opts = self.model._source_model._meta
+            extra_context['breadcrumb_opts'] = breadcrumb_opts
+            # Check if custom breadcrumb template defined, otherwise
+            # fallback on default
+            breadcrumb_templates = [
+                'admin/djangocms_versioning/{app_label}/{model_name}/versioning_breadcrumbs.html'.format(
+                    app_label=breadcrumb_opts.app_label, model_name=breadcrumb_opts.model_name),
+                'admin/djangocms_versioning/versioning_breadcrumbs.html',
+            ]
+            extra_context['breadcrumb_template'] = select_template(breadcrumb_templates)
 
         return super().changelist_view(request, extra_context)
 

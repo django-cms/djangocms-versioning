@@ -11,4 +11,3 @@ beautifulsoup4
 
 # libraries specified in setup.py
 django-fsm>=2.6,<2.7
-django-render-block>=0.5,<0.6

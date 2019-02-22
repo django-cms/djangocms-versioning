@@ -2018,7 +2018,9 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-        expected += str(poll_content) + """\\n</div>"""
+        expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
+            pk=str(poll_content.pk), name=str(poll_content))
+        expected += """Version List\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
 

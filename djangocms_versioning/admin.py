@@ -20,8 +20,6 @@ from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters
 
-from render_block import render_block_to_string
-
 from . import versionables
 from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
@@ -755,13 +753,6 @@ class VersionAdmin(admin.ModelAdmin):
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
-            breadcrumb_context = {
-                'opts': self.model._source_model._meta,
-                'original': Version.objects.filter_by_grouper(grouper).latest('created').content,
-                'has_change_permission': True,
-            }
-            extra_context['breadcrumbs'] = render_block_to_string(
-                'admin/change_form.html', 'breadcrumbs', breadcrumb_context)
 
         return super().changelist_view(request, extra_context)
 

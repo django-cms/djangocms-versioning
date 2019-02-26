@@ -4,5 +4,5 @@
 &rsaquo; <a href="{% url 'admin:app_list' app_label=breadcrumb_opts.app_label %}">{{ breadcrumb_opts.app_config.verbose_name }}</a>
 &rsaquo; <a href="{% url breadcrumb_opts|admin_urlname:'changelist' %}">{{ breadcrumb_opts.verbose_name_plural|capfirst }}</a>
 &rsaquo; <a href="{% url breadcrumb_opts|admin_urlname:'change' latest_content.pk|admin_urlquote %}">{{ latest_content|truncatewords:"18" }}</a>
-&rsaquo; {% trans 'Version List' %}
+&rsaquo; {% trans 'Versions' %}
 </div>

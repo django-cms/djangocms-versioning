@@ -753,8 +753,14 @@ class VersionAdmin(admin.ModelAdmin):
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
-            extra_context['latest_content'] = Version.objects.filter_by_grouper(
-                grouper).latest('created').content
+            grouping_values = {
+                field: request.GET.get(field)
+                for field in versionable.extra_grouping_fields
+                if request.GET.get(field) is not None
+            }
+            grouping_values[versionable.grouper_field_name] = grouper
+            extra_context['latest_content'] = Version.objects.filter_by_grouping_values(
+                versionable, **grouping_values).latest('created').content
             breadcrumb_opts = self.model._source_model._meta
             extra_context['breadcrumb_opts'] = breadcrumb_opts
             # Check if custom breadcrumb template defined, otherwise

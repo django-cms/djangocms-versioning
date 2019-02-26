@@ -2021,7 +2021,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
             pk=str(poll_content.pk), name=str(poll_content))
-        expected += """Version List\\n</div>"""
+        expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
     def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(self):
@@ -2042,6 +2042,65 @@ class VersionChangeListViewTestCase(CMSTestCase):
         # Assert the breadcrumbs
         expected = """<div class="breadcrumbs">Blog post breadcrumbs bla bla</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_displays_correct_breadcrumbs_for_extra_grouping_values(self):
+        with freeze_time('1999-09-09'):
+            # Make sure the English version is older than the French
+            # So that the French one is in fact the latest one
+            page_content_en = factories.PageContentWithVersionFactory(language='en')
+        factories.PageContentWithVersionFactory(language='fr', page=page_content_en.page)
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?page={page_id}&language=en".format(page_id=str(page_content_en.page_id))
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs - we should have ignored the French one
+        # and put the English one in the breadcrumbs
+        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+        expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
+        expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
+        expected += """<a href="/en/admin/cms/pagecontent/{pk}/change/">{name}</a>\\n› """.format(
+            pk=str(page_content_en.pk), name=str(page_content_en))
+        expected += """Versions\\n</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_redirects_on_url_params_that_arent_grouping_params(self):
+        # NOTE: Not sure this is really how the changelist should behave
+        # but need a smoketest that it is not throwing errors it definitely shouldn't
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?title={title}&page={page_id}".format(
+            title=page_content.title, page_id=str(page_content.page_id))
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        expected_redirect += '?e=1'
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, expected_redirect)
+
+    def test_changelist_view_redirects_on_url_params_that_dont_exist(self):
+        # NOTE: Not sure this is really how the changelist should behave
+        # but need a smoketest that it is not throwing errors it definitely shouldn't
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?crocodiles=true&page=" + str(page_content.page_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        expected_redirect += '?e=1'
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, expected_redirect)
 
 
 class VersionChangeViewTestCase(CMSTestCase):

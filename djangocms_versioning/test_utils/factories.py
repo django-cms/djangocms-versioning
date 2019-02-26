@@ -172,6 +172,17 @@ class PageVersionFactory(AbstractVersionFactory):
         model = Version
 
 
+class PageContentWithVersionFactory(PageContentFactory):
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        # NOTE: Use this method as below to define version attributes:
+        # PageContentWithVersionFactory(version__label='label1')
+        if not create:
+            # Simple build, do nothing.
+            return
+        PageVersionFactory(content=self, **kwargs)
+
+
 class PlaceholderFactory(factory.django.DjangoModelFactory):
     default_width = FuzzyInteger(0, 25)
     slot = FuzzyText(length=2, chars=string.digits)

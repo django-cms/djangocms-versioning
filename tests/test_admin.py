@@ -22,8 +22,8 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
-from bs4 import BeautifulSoup
 import pytz
+from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -41,8 +41,10 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.blogpost.cms_config import (
+    BlogpostCMSConfig,
+)
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
-from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
     Answer,
@@ -2051,6 +2053,8 @@ class VersionChangeListViewTestCase(CMSTestCase):
         factories.PageContentWithVersionFactory(language='fr', page=page_content_en.page)
         versionable = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        # Specify English here - this should mean the version picked up
+        # for the breadcrumbs is the English one, not the French one
         url += "?page={page_id}&language=en".format(page_id=str(page_content_en.page_id))
 
         with self.login_user_context(self.superuser):

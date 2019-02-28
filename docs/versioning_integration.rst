@@ -96,28 +96,28 @@ Versioning needs to be aware of these models. This can be done in `cms_config.py
 
     - content_model - *content model* class - in our example it's `PostContent`
     - grouper_field_name - name of the field on the content model which is
-    a relation to *grouper model* - in the example it's `post`
+      a relation to *grouper model* - in the example it's `post`
     - copy_function - a function that copies a content instance. This is
-    used for some operations in versioning such as creating new drafts
-    from published versions. See the copy function section of this doc for more info.
+      used for some operations in versioning such as creating new drafts
+      from published versions. See the copy function section of this doc for more info.
     - preview_url - This is optional attribute can be pass to override preview url for an object in version list
-    table. If it is not passed then if model is a editable, it will render object preview url else
-    changelist url.
-3. The `versioning_add_to_confirmation_context` is a dict where the keys are
+      table. If it is not passed then if model is a editable, it will render object preview url else
+      changelist url.
+3. The ``versioning_add_to_confirmation_context`` is a dict where the keys are
    names of actions in versioning which have confirmation pages (in the
-   above example the key is `unpublish`) and the values are OrderedDict objects made up
+   above example the key is ``unpublish``) and the values are OrderedDict objects made up
    of keys that give a way to access the context var from the template (
-   in the above example you can access the var by using `{{ extra_context.cat_stories }}`
-   in the `unpublish_confirmation.html` template - by default the template will
+   in the above example you can access the var by using ``{{ extra_context.cat_stories }}``
+   in the ``unpublish_confirmation.html`` template - by default the template will
    display context vars in the order of the OrderedDict) and functions (in
-   the above example `stories_about_intelligent_cats`).
+   the above example ``stories_about_intelligent_cats``).
    The functions should take two params - request (a django http request object)
    and version (an instance of the Version model). However, more params
    could be added in the future, so it is recommended to make the function
-   take `*args` and `**kwargs` for future compatibility.
+   take ``*args`` and ``**kwargs`` for future compatibility.
    Versioning will run each defined function and put the result
    into the context of the relevant confirmation view.
-   At this time the only dict key that is supported is `unpublish`.
+   At this time the only dict key that is supported is ``unpublish``.
    Support for adding to other confirmation views may be added in the future.
 
 
@@ -125,7 +125,7 @@ The copy function
 -----------------
 
 When configuring versioning we require you to provide a copy function.
-We provide a default function for this (djangocms_versioning.datastructures.default_copy),
+We provide a default function for this (``djangocms_versioning.datastructures.default_copy``),
 but there are many cases in which you may need to implement your own, these are:
 
     - If your content model contains any one2one or m2m fields.
@@ -143,8 +143,8 @@ but there are many cases in which you may need to implement your own, these are:
 
 Overriding how versioning handles core cms models
 -------------------------------------------------
-By default versioning assumes that the VERSIONING_CMS_MODELS_ENABLED setting
+By default versioning assumes that the ``VERSIONING_CMS_MODELS_ENABLED`` setting
 is set to True. If you set this to False it will not register any models
 from django-cms for versioning. If you set this to False you are free to
 register these models again yourself with different options.
-See djangocms_versioning.cms_config.VersioningCMSConfig for reference.
+See ``djangocms_versioning.cms_config.VersioningCMSConfig`` for reference.

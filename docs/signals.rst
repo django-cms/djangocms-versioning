@@ -1,5 +1,9 @@
+Signals
+=======
 
-# Signals
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
 Signals are fired before and after the following events which can be found in the file 'constants.py': 
     - When a version is created the operation sent is 'operation_draft'
@@ -9,26 +13,26 @@ Signals are fired before and after the following events which can be found in th
 
 A token is emitted in the signals that will allow the pre and post signals to be tied together, this could be of use if multiple transactions occur at the same time, allowing a token to match the pre and post signals that belong together.
 
-## How To
-
-### Using the version publish and un-publish signal for a CMS Page
+How to Using the version publish and un-publish signal for a CMS Page
+---------------------------------------------------------------------
 
 The CMS used to provide page publish and unpublish signals which have since been removed in DjangoCMS 4.0. To replicate the behaviour you can listen to changes on the cms model PageContent as shown in the example below.
 
-```python
-from django.dispatch import receiver
+.. code-block:: python
 
-from cms.models import PageContent
+    from django.dispatch import receiver
 
-from djangocms_versioning import constants
-from djangocms_versioning.signals import post_version_operation
+    from cms.models import PageContent
+
+    from djangocms_versioning import constants
+    from djangocms_versioning.signals import post_version_operation
 
 
-@receiver(post_version_operation, sender=PageContent)
-def do_something_on_page_publish_unpublsh(*args, **kwargs):
+    @receiver(post_version_operation, sender=PageContent)
+    def do_something_on_page_publish_unpublsh(*args, **kwargs):
 
-    if (kwargs['operation'] == constants.OPERATION_PUBLISH or
-       kwargs['operation'] == constants.OPERATION_UNPUBLISH):
-        # ... do something 
-```
+        if (kwargs['operation'] == constants.OPERATION_PUBLISH or
+           kwargs['operation'] == constants.OPERATION_UNPUBLISH):
+            # ... do something
+
 

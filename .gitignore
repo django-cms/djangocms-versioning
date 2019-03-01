@@ -12,3 +12,4 @@ local.sqlite
 htmlcov/
 .python-version
 !djangocms_versioning/static/djangocms_versioning/js/dist
+docs/_build/

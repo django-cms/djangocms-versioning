@@ -753,14 +753,6 @@ class VersionAdmin(admin.ModelAdmin):
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
-            grouping_values = {
-                field: request.GET.get(field)
-                for field in versionable.extra_grouping_fields
-                if request.GET.get(field) is not None
-            }
-            grouping_values[versionable.grouper_field_name] = grouper
-            extra_context['latest_content'] = Version.objects.filter_by_grouping_values(
-                versionable, **grouping_values).latest('created').content
             breadcrumb_opts = self.model._source_model._meta
             extra_context['breadcrumb_opts'] = breadcrumb_opts
             # Check if custom breadcrumb template defined, otherwise
@@ -772,7 +764,16 @@ class VersionAdmin(admin.ModelAdmin):
             ]
             extra_context['breadcrumb_template'] = select_template(breadcrumb_templates)
 
-        return super().changelist_view(request, extra_context)
+        response = super().changelist_view(request, extra_context)
+        # This is a slightly hacky way of accessing the instance of
+        # the changelist that the admin changelist_view instantiates.
+        # We do this to make sure that the latest content object is
+        # picked from the same queryset as is being displayed in the
+        # version table.
+        if grouper and response.status_code == 200:
+            response.context_data['latest_content'] = response.context_data[
+                'cl'].get_queryset(request).latest('created').content
+        return response
 
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name

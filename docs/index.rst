@@ -7,4 +7,5 @@ Welcome to "djangocms-versioning"'s documentation!
 
    versioning_integration
    signals
+   customizing_version_list
 

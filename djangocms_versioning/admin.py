@@ -8,7 +8,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -753,8 +753,27 @@ class VersionAdmin(admin.ModelAdmin):
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
+            breadcrumb_opts = self.model._source_model._meta
+            extra_context['breadcrumb_opts'] = breadcrumb_opts
+            # Check if custom breadcrumb template defined, otherwise
+            # fallback on default
+            breadcrumb_templates = [
+                'admin/djangocms_versioning/{app_label}/{model_name}/versioning_breadcrumbs.html'.format(
+                    app_label=breadcrumb_opts.app_label, model_name=breadcrumb_opts.model_name),
+                'admin/djangocms_versioning/versioning_breadcrumbs.html',
+            ]
+            extra_context['breadcrumb_template'] = select_template(breadcrumb_templates)
 
-        return super().changelist_view(request, extra_context)
+        response = super().changelist_view(request, extra_context)
+        # This is a slightly hacky way of accessing the instance of
+        # the changelist that the admin changelist_view instantiates.
+        # We do this to make sure that the latest content object is
+        # picked from the same queryset as is being displayed in the
+        # version table.
+        if grouper and response.status_code == 200:
+            response.context_data['latest_content'] = response.context_data[
+                'cl'].get_queryset(request).latest('created').content
+        return response
 
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name

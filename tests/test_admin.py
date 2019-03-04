@@ -23,6 +23,7 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
 import pytz
+from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -40,6 +41,9 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.blogpost.cms_config import (
+    BlogpostCMSConfig,
+)
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import (
@@ -955,6 +959,12 @@ class VersionAdminViewTestCase(CMSTestCase):
                 self.get_admin_url(self.versionable.version_model_proxy, "delete", 1)
             )
         self.assertEqual(response.status_code, 403)
+
+
+class GrouperFormViewTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
 
     def test_grouper_view_requires_staff_permissions(self):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
@@ -1936,7 +1946,7 @@ class CompareViewTestCase(CMSTestCase):
         )
 
 
-class VersionChangeListTestCase(CMSTestCase):
+class VersionChangeListViewTestCase(CMSTestCase):
     def setUp(self):
         self.superuser = self.get_superuser()
         self.versionable = PollsCMSConfig.versioning[0]
@@ -1995,6 +2005,106 @@ class VersionChangeListTestCase(CMSTestCase):
             transform=lambda x: x.pk,
             ordered=False,
         )
+
+    def test_changelist_view_displays_correct_breadcrumbs(self):
+        poll_content = factories.PollContentWithVersionFactory()
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += "?poll=" + str(poll_content.poll_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs
+        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+        expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
+        expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
+        expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
+            pk=str(poll_content.pk), name=str(poll_content))
+        expected += """Versions\\n</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(self):
+        # The blogpost test app defines a breadcrumb template in
+        # templates/admin/djangocms_versioning/blogpost/blogcontent/versioning_breadcrumbs.html
+        # This test checks that template gets used.
+        blog_content = factories.BlogContentWithVersionFactory()
+        versionable = BlogpostCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?blogpost=" + str(blog_content.blogpost_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs
+        expected = """<div class="breadcrumbs">Blog post breadcrumbs bla bla</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_displays_correct_breadcrumbs_for_extra_grouping_values(self):
+        with freeze_time('1999-09-09'):
+            # Make sure the English version is older than the French
+            # So that the French one is in fact the latest one
+            page_content_en = factories.PageContentWithVersionFactory(language='en')
+        factories.PageContentWithVersionFactory(language='fr', page=page_content_en.page)
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        # Specify English here - this should mean the version picked up
+        # for the breadcrumbs is the English one, not the French one
+        url += "?page={page_id}&language=en".format(page_id=str(page_content_en.page_id))
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        # Traverse the returned html to find the breadcrumbs
+        soup = BeautifulSoup(str(response.content), features="lxml")
+        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        # Assert the breadcrumbs - we should have ignored the French one
+        # and put the English one in the breadcrumbs
+        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+        expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
+        expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
+        expected += """<a href="/en/admin/cms/pagecontent/{pk}/change/">{name}</a>\\n› """.format(
+            pk=str(page_content_en.pk), name=str(page_content_en))
+        expected += """Versions\\n</div>"""
+        self.assertEqual(str(breadcrumb_html), expected)
+
+    def test_changelist_view_redirects_on_url_params_that_arent_grouping_params(self):
+        # NOTE: Not sure this is really how the changelist should behave
+        # but need a smoketest that it is not throwing errors it definitely shouldn't
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?title={title}&page={page_id}".format(
+            title=page_content.title, page_id=str(page_content.page_id))
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        expected_redirect += '?e=1'
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, expected_redirect)
+
+    def test_changelist_view_redirects_on_url_params_that_dont_exist(self):
+        # NOTE: Not sure this is really how the changelist should behave
+        # but need a smoketest that it is not throwing errors it definitely shouldn't
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?crocodiles=true&page=" + str(page_content.page_id)
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(url)
+
+        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        expected_redirect += '?e=1'
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, expected_redirect)
 
 
 class VersionChangeViewTestCase(CMSTestCase):

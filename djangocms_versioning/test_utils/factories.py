@@ -10,10 +10,10 @@ import factory
 from djangocms_text_ckeditor.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
+from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
-from ..models import Version
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -170,6 +170,17 @@ class PageVersionFactory(AbstractVersionFactory):
 
     class Meta:
         model = Version
+
+
+class PageContentWithVersionFactory(PageContentFactory):
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        # NOTE: Use this method as below to define version attributes:
+        # PageContentWithVersionFactory(version__label='label1')
+        if not create:
+            # Simple build, do nothing.
+            return
+        PageVersionFactory(content=self, **kwargs)
 
 
 class PlaceholderFactory(factory.django.DjangoModelFactory):

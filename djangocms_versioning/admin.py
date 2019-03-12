@@ -31,17 +31,20 @@ from .versionables import _cms_extension
 
 
 class VersioningChangeListMixin:
+    """Mixin used for ChangeList classes of content models."""
 
     def get_queryset(self, request):
+        """Limit the content model queryset to latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
         return queryset.filter(pk__in=versionable.distinct_groupers())
 
 
-def versioning_change_list_factory(ChangeList):
+def versioning_change_list_factory(BaseChangeListClass):
+    """Generate a ChangeList class to use for the content model"""
     return type(
-        'Versioned' + ChangeList.__name__,
-        (VersioningChangeListMixin, ChangeList),
+        'Versioned' + BaseChangeListClass.__name__,
+        (VersioningChangeListMixin, BaseChangeListClass),
         {},
     )
 
@@ -65,6 +68,7 @@ class VersioningAdminMixin:
             Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
+        """Override manager so records not in published state can be displayed"""
         from .helpers import override_default_manager
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
@@ -77,12 +81,19 @@ class VersioningAdminMixin:
     change_form_template = 'djangocms_versioning/admin/mixin/change_form.html'
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        """Add a link to the version table to the change form view"""
         if 'versioning_fallback_change_form_template' not in context:
             context['versioning_fallback_change_form_template'] = super().change_form_template
 
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def get_readonly_fields(self, request, obj=None):
+        """Port permission code from django >= 2.1.
+
+        In later versions of django if a user has view perms but no
+        change perms, fields are set as read-only. This is not the case
+        in django < 2.1.
+        """
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
@@ -99,6 +110,7 @@ class VersioningAdminMixin:
         return super().get_readonly_fields(request, obj)
 
     def has_change_permission(self, request, obj=None):
+        # TODO: This is possibly a bug
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)
@@ -108,6 +120,10 @@ class VersioningAdminMixin:
 class VersionChangeList(ChangeList):
 
     def get_filters_params(self, params=None):
+        """Removes the grouper param from the filters as the main grouper
+        filtering is not handled by the UI filters and therefore needs to be
+        handled differently.
+        """
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         filter_params = super().get_filters_params(params)
@@ -115,6 +131,12 @@ class VersionChangeList(ChangeList):
         return filter_params
 
     def get_grouping_field_filters(self, request):
+        """Handles extra grouping params (such as PageContent.language).
+
+        The get_filters_params method does return these filters as they are
+        visible in the UI, however they need extra handling due to db
+        optimization and the difficulties involved in handling the
+        generic foreign key from Version to the content model."""
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         fields = versionable.grouping_fields

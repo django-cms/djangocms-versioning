@@ -23,11 +23,19 @@ class VersionableItem(BaseVersionableItem):
     concrete = True
 
     def __init__(
-        self, content_model, grouper_field_name, copy_function,
-        extra_grouping_fields=None, version_list_filter_lookups=None,
-        on_publish=None, on_unpublish=None, on_draft_create=None,
-        on_archive=None, grouper_selector_option_label=False,
-        content_admin_mixin=None, preview_url=None,
+        self,
+        content_model,
+        grouper_field_name,
+        copy_function,
+        extra_grouping_fields=None,
+        version_list_filter_lookups=None,
+        on_publish=None,
+        on_unpublish=None,
+        on_draft_create=None,
+        on_archive=None,
+        grouper_selector_option_label=False,
+        content_admin_mixin=None,
+        preview_url=None,
     ):
         super().__init__(content_model, content_admin_mixin)
         # Set the grouper field
@@ -53,15 +61,15 @@ class VersionableItem(BaseVersionableItem):
         It's used for creating separate version model classes for each
         content type.
         """
-        model_name = self.content_model.__name__ + 'Version'
+        model_name = self.content_model.__name__ + "Version"
 
         ProxyVersion = type(
             model_name,
-            (Version, ),
+            (Version,),
             {
-                'Meta': type('Meta', (), {'proxy': True, 'managed': False}),
-                '__module__': __name__,
-                '_source_model': self.content_model,
+                "Meta": type("Meta", (), {"proxy": True, "managed": False}),
+                "__module__": __name__,
+                "_source_model": self.content_model,
             },
         )
         return ProxyVersion
@@ -70,15 +78,16 @@ class VersionableItem(BaseVersionableItem):
     def grouper_model(self):
         return self.grouper_field.remote_field.model
 
-    def distinct_groupers(self):
+    def distinct_groupers(self, **kwargs):
         """Returns a queryset of `self.content` objects with unique
         grouper objects.
 
         Useful for listing, e.g. all Polls.
         """
-        inner = self.content_model._base_manager.values(
-            self.grouper_field.name,
-        ).annotate(Max('pk')).values('pk__max')
+        queryset = self.content_model._base_manager.values(
+            self.grouper_field.name
+        ).filter(**kwargs)
+        inner = queryset.annotate(Max("pk")).values("pk__max")
         return self.content_model._base_manager.filter(id__in=inner)
 
     def for_grouper(self, grouper):
@@ -102,32 +111,35 @@ class VersionableItem(BaseVersionableItem):
     def grouping_values(self, content, relation_suffix=True):
         def suffix(field, allow=True):
             if allow and content._meta.get_field(field).is_relation:
-                return field + '_id'
+                return field + "_id"
             return field
+
         return {
             suffix(field, allow=relation_suffix): getattr(content, suffix(field))
             for field in self.grouping_fields
         }
 
     def grouper_choices_queryset(self):
-        inner = self.content_model._base_manager.annotate(
-            order=Case(
-                When(versions__state=PUBLISHED, then=2),
-                When(versions__state=DRAFT, then=1),
-                default=0,
-                output_field=models.IntegerField(),
-            ),
-        ).filter(**{
-            self.grouper_field_name: OuterRef('pk'),
-        }).order_by('-order')
+        inner = (
+            self.content_model._base_manager.annotate(
+                order=Case(
+                    When(versions__state=PUBLISHED, then=2),
+                    When(versions__state=DRAFT, then=1),
+                    default=0,
+                    output_field=models.IntegerField(),
+                )
+            )
+            .filter(**{self.grouper_field_name: OuterRef("pk")})
+            .order_by("-order")
+        )
         content_objects = self.content_model._base_manager.filter(
             pk__in=self.grouper_model._base_manager.annotate(
-                content=Subquery(inner.values_list('pk')[:1]),
-            ).values_list('content'),
+                content=Subquery(inner.values_list("pk")[:1])
+            ).values_list("content")
         )
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(
-            Prefetch(cache_name, queryset=content_objects),
+            Prefetch(cache_name, queryset=content_objects)
         )
 
     def get_grouper_with_fallbacks(self, grouper_id):

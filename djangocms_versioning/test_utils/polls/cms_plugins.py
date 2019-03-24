@@ -7,6 +7,6 @@ from .models import PollPlugin as Poll
 @plugin_pool.register_plugin
 class PollPlugin(CMSPluginBase):
     model = Poll
-    name = 'Poll'
+    name = "Poll"
     allow_children = True
-    render_template = 'polls/poll.html'
+    render_template = "polls/poll.html"

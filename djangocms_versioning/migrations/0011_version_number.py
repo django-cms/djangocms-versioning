@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djangocms_versioning', '0010_version_proxies'),
-    ]
+    dependencies = [("djangocms_versioning", "0010_version_proxies")]
 
     operations = [
         migrations.AddField(
-            model_name='version',
-            name='number',
+            model_name="version",
+            name="number",
             field=models.CharField(max_length=11, null=True),
-        ),
+        )
     ]

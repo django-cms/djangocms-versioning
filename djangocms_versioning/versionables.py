@@ -3,7 +3,7 @@ from django.db.models.base import Model
 
 
 def _cms_extension():
-    return apps.get_app_config('djangocms_versioning').cms_extension
+    return apps.get_app_config("djangocms_versioning").cms_extension
 
 
 def for_content(model_or_obj):

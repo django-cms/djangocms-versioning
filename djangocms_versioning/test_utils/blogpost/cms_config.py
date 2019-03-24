@@ -10,12 +10,12 @@ class BlogpostCMSConfig(CMSAppConfig):
     versioning = [
         VersionableItem(
             content_model=BlogContent,
-            grouper_field_name='blogpost',
+            grouper_field_name="blogpost",
             copy_function=default_copy,
         ),
         VersionableItem(
             content_model=CommentContent,
-            grouper_field_name='comment',
+            grouper_field_name="comment",
             copy_function=default_copy,
         ),
     ]

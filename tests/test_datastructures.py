@@ -4,7 +4,7 @@ from django.apps import apps
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.constants import ARCHIVED, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
@@ -40,12 +40,15 @@ class VersionableItemTestCase(CMSTestCase):
         )
 
     def test_queryset_filter_for_distinct_groupers(self):
+        PollVersionFactory(
+            content__poll=self.initial_version.content.poll, state=ARCHIVED
+        )
         poll1_version = PollVersionFactory(
             content__poll=self.initial_version.content.poll, state=PUBLISHED
         )
         poll2_version = PollVersionFactory()
-        PollVersionFactory(content__poll=poll2_version.content.poll)
-        PollVersionFactory(content__poll=poll2_version.content.poll)
+        PollVersionFactory(content__poll=poll2_version.content.poll, state=ARCHIVED)
+        PollVersionFactory(content__poll=poll2_version.content.poll, state=ARCHIVED)
 
         versionable = VersionableItem(
             content_model=PollContent,

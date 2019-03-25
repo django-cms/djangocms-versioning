@@ -2,19 +2,19 @@ Welcome to "djangocms-versioning"'s documentation!
 ==================================================
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Introduction:
+   :maxdepth: 2
+   :caption: Quick Start:
 
    versioning_integration
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Reference:
+   :maxdepth: 2
+   :caption: API Reference:
 
    signals
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Internals:
 
    admin_architecture

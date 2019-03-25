@@ -40,15 +40,17 @@ class VersionableItemTestCase(CMSTestCase):
         )
 
     def test_queryset_filter_for_distinct_groupers(self):
-        PollVersionFactory(
+        poll1_archived_version = PollVersionFactory(
             content__poll=self.initial_version.content.poll, state=ARCHIVED
         )
-        poll1_version = PollVersionFactory(
+        poll1_published_version = PollVersionFactory(
             content__poll=self.initial_version.content.poll, state=PUBLISHED
         )
         poll2_version = PollVersionFactory()
         PollVersionFactory(content__poll=poll2_version.content.poll, state=ARCHIVED)
-        PollVersionFactory(content__poll=poll2_version.content.poll, state=ARCHIVED)
+        poll2_archived_version = PollVersionFactory(
+            content__poll=poll2_version.content.poll, state=ARCHIVED
+        )
 
         versionable = VersionableItem(
             content_model=PollContent,
@@ -56,10 +58,20 @@ class VersionableItemTestCase(CMSTestCase):
             copy_function=default_copy,
         )
 
-        qs_filter = {"versions__state__in": [PUBLISHED]}
+        qs_published_filter = {"versions__state__in": [PUBLISHED]}
+        # Should be one published version
         self.assertQuerysetEqual(
-            versionable.distinct_groupers(**qs_filter),
-            [poll1_version.pk],
+            versionable.distinct_groupers(**qs_published_filter),
+            [poll1_published_version.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
+
+        qs_archive_filter = {"versions__state__in": [ARCHIVED]}
+        # Should be two archived versions
+        self.assertQuerysetEqual(
+            versionable.distinct_groupers(**qs_archive_filter),
+            [poll1_archived_version.pk, poll2_archived_version.pk],
             transform=lambda x: x.pk,
             ordered=False,
         )

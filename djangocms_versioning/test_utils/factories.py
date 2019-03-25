@@ -10,18 +10,19 @@ import factory
 from djangocms_text_ckeditor.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
+from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
-from ..models import Version
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     username = FuzzyText(length=12)
-    first_name = factory.Faker('first_name')
-    last_name = factory.Faker('last_name')
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
     email = factory.LazyAttribute(
-        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower()))
+        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower())
+    )
 
     class Meta:
         model = User
@@ -35,13 +36,14 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 class AbstractVersionFactory(factory.DjangoModelFactory):
-    object_id = factory.SelfAttribute('content.id')
+    object_id = factory.SelfAttribute("content.id")
     content_type = factory.LazyAttribute(
-        lambda o: ContentType.objects.get_for_model(o.content))
+        lambda o: ContentType.objects.get_for_model(o.content)
+    )
     created_by = factory.SubFactory(UserFactory)
 
     class Meta:
-        exclude = ['content']
+        exclude = ["content"]
         abstract = True
 
 
@@ -54,7 +56,7 @@ class PollFactory(factory.django.DjangoModelFactory):
 
 class PollContentFactory(factory.django.DjangoModelFactory):
     poll = factory.SubFactory(PollFactory)
-    language = FuzzyChoice(['en', 'fr', 'it'])
+    language = FuzzyChoice(["en", "fr", "it"])
     text = FuzzyText(length=24)
 
     class Meta:
@@ -69,7 +71,6 @@ class PollVersionFactory(AbstractVersionFactory):
 
 
 class PollContentWithVersionFactory(PollContentFactory):
-
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         # NOTE: Use this method as below to define version attributes:
@@ -83,7 +84,8 @@ class PollContentWithVersionFactory(PollContentFactory):
 class AnswerFactory(factory.django.DjangoModelFactory):
     poll_content = factory.SubFactory(PollContentFactory)
     text = factory.LazyAttributeSequence(
-        lambda o, n: 'Poll %s - Answer %d' % (o.poll_content.poll.name, n))
+        lambda o, n: "Poll %s - Answer %d" % (o.poll_content.poll.name, n)
+    )
 
     class Meta:
         model = Answer
@@ -98,7 +100,7 @@ class BlogPostFactory(factory.django.DjangoModelFactory):
 
 class BlogContentFactory(factory.django.DjangoModelFactory):
     blogpost = factory.SubFactory(BlogPostFactory)
-    language = FuzzyChoice(['en', 'fr', 'it'])
+    language = FuzzyChoice(["en", "fr", "it"])
     text = FuzzyText(length=24)
 
     class Meta:
@@ -113,7 +115,6 @@ class BlogPostVersionFactory(AbstractVersionFactory):
 
 
 class BlogContentWithVersionFactory(BlogContentFactory):
-
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         # NOTE: Use this method as below to define version attributes:
@@ -147,7 +148,7 @@ class PageFactory(factory.django.DjangoModelFactory):
 
 class PageContentFactory(factory.django.DjangoModelFactory):
     page = factory.SubFactory(PageFactory)
-    language = FuzzyChoice(['en', 'fr', 'it'])
+    language = FuzzyChoice(["en", "fr", "it"])
     title = FuzzyText(length=12)
     page_title = FuzzyText(length=12)
     menu_title = FuzzyText(length=12)
@@ -172,6 +173,17 @@ class PageVersionFactory(AbstractVersionFactory):
         model = Version
 
 
+class PageContentWithVersionFactory(PageContentFactory):
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        # NOTE: Use this method as below to define version attributes:
+        # PageContentWithVersionFactory(version__label='label1')
+        if not create:
+            # Simple build, do nothing.
+            return
+        PageVersionFactory(content=self, **kwargs)
+
+
 class PlaceholderFactory(factory.django.DjangoModelFactory):
     default_width = FuzzyInteger(0, 25)
     slot = FuzzyText(length=2, chars=string.digits)
@@ -186,8 +198,7 @@ def get_plugin_position(plugin):
     """Helper function to correctly calculate the plugin position.
     Use this in plugin factory classes
     """
-    offset = plugin.placeholder.get_last_plugin_position(
-        plugin.language) or 0
+    offset = plugin.placeholder.get_last_plugin_position(plugin.language) or 0
     return offset + 1
 
 
@@ -206,7 +217,7 @@ class TextPluginFactory(factory.django.DjangoModelFactory):
     placeholder = factory.SubFactory(PlaceholderFactory)
     parent = None
     position = factory.LazyAttribute(get_plugin_position)
-    plugin_type = 'TextPlugin'
+    plugin_type = "TextPlugin"
     body = factory.fuzzy.FuzzyText(length=50)
 
     class Meta:

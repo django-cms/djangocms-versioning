@@ -8,25 +8,16 @@ from django.core.exceptions import ImproperlyConfigured
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import (
-    VersioningCMSConfig,
-    VersioningCMSExtension,
-)
+from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.blogpost.cms_config import (
-    BlogpostCMSConfig,
-)
-from djangocms_versioning.test_utils.blogpost.models import (
-    BlogContent,
-    Comment,
-)
+from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
+from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 
 class VersioningExtensionUnitTestCase(CMSTestCase):
-
     def test_raises_exception_if_neither_versioning_nor_context_setting_specified(self):
         """
         Tests, if neither the versioning attribute or the
@@ -34,8 +25,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         an ImproperlyConfigured exception is raised
         """
         extensions = VersioningCMSExtension()
-        cms_config = Mock(spec=[],
-                          djangocms_versioning_enabled=True)
+        cms_config = Mock(spec=[], djangocms_versioning_enabled=True)
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
@@ -48,8 +38,10 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning=VersionableItem(
-                content_model=PollContent, grouper_field_name='poll',
-                copy_function=default_copy)
+                content_model=PollContent,
+                grouper_field_name="poll",
+                copy_function=default_copy,
+            ),
         )
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
@@ -59,9 +51,9 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         in the versioning list are not instances of VersionableItem classes
         """
         extensions = VersioningCMSExtension()
-        cms_config = Mock(spec=[],
-                          djangocms_versioning_enabled=True,
-                          versioning=['aaa', {}])
+        cms_config = Mock(
+            spec=[], djangocms_versioning_enabled=True, versioning=["aaa", {}]
+        )
         with self.assertRaises(ImproperlyConfigured):
             extensions.configure_app(cms_config)
 
@@ -71,39 +63,45 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         """
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
         poll_versionable2 = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning=[poll_versionable, poll_versionable2]
+            versioning=[poll_versionable, poll_versionable2],
         )
         with self.assertRaises(ImproperlyConfigured):
             extension.configure_app(cms_config)
 
-    def test_raises_exception_if_content_class_already_registered_in_different_config(self):
+    def test_raises_exception_if_content_class_already_registered_in_different_config(
+        self
+    ):
         """Tests ImproperlyConfigured exception is raised if the same
         content class is registered twice in different config files
         """
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
         poll_versionable2 = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
         cms_config1 = Mock(
-            spec=[],
-            djangocms_versioning_enabled=True,
-            versioning=[poll_versionable]
+            spec=[], djangocms_versioning_enabled=True, versioning=[poll_versionable]
         )
         cms_config2 = Mock(
-            spec=[],
-            djangocms_versioning_enabled=True,
-            versioning=[poll_versionable2]
+            spec=[], djangocms_versioning_enabled=True, versioning=[poll_versionable2]
         )
         with self.assertRaises(ImproperlyConfigured):
             extension.handle_versioning_setting(cms_config1)
@@ -113,18 +111,18 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
             content_model=PollContent,
-            grouper_field_name='poll',
-            copy_function=default_copy
+            grouper_field_name="poll",
+            copy_function=default_copy,
         )
         cms_config = Mock(
-            spec=[],
-            djangocms_versioning_enabled=True,
-            versioning=[poll_versionable]
+            spec=[], djangocms_versioning_enabled=True, versioning=[poll_versionable]
         )
         try:
             extension.configure_app(cms_config)
         except ImproperlyConfigured:
-            self.fail("versioning_add_to_confirmation_context setting should be optional")
+            self.fail(
+                "versioning_add_to_confirmation_context setting should be optional"
+            )
 
     def test_raises_exception_if_unsupported_key_added_to_add_to_context(self):
         """Tests ImproperlyConfigured exception is raised if an unsupported
@@ -133,7 +131,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
             content_model=PollContent,
-            grouper_field_name='poll',
+            grouper_field_name="poll",
             copy_function=default_copy,
         )
         cms_config = Mock(
@@ -143,8 +141,8 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             # versioning doesn't know what red rabbits is
             # so this should raise an exception
             versioning_add_to_confirmation_context={
-                'red_rabbits': OrderedDict({'rabbit': lambda r, v: v.content})
-            }
+                "red_rabbits": OrderedDict({"rabbit": lambda r, v: v.content})
+            },
         )
         with self.assertRaises(ImproperlyConfigured):
             extension.configure_app(cms_config)
@@ -155,19 +153,24 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         """
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy)
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
         blog_versionable = VersionableItem(
-            content_model=BlogContent, grouper_field_name='blogpost',
-            copy_function=default_copy)
+            content_model=BlogContent,
+            grouper_field_name="blogpost",
+            copy_function=default_copy,
+        )
         cms_config = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
-            versioning=[poll_versionable, blog_versionable]
+            versioning=[poll_versionable, blog_versionable],
         )
         extension.configure_app(cms_config)
         self.assertListEqual(
-            extension.versionables, [poll_versionable, blog_versionable])
+            extension.versionables, [poll_versionable, blog_versionable]
+        )
 
     def test_context_dict_created(self):
         """Test a dict is populated from the versioning_add_to_confirmation_context
@@ -185,11 +188,15 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': OrderedDict({'1': unpublish_context1, '2': unpublish_context2})
+                "unpublish": OrderedDict(
+                    {"1": unpublish_context1, "2": unpublish_context2}
+                )
             },
         )
         extension.configure_app(cms_config)
-        expected = {'unpublish': OrderedDict({'1': unpublish_context1, '2': unpublish_context2})}
+        expected = {
+            "unpublish": OrderedDict({"1": unpublish_context1, "2": unpublish_context2})
+        }
         self.assertDictEqual(extension.add_to_context, expected)
 
     def test_context_dict_doesnt_get_overwritten(self):
@@ -208,24 +215,25 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': OrderedDict([('1', unpublish_context1)])
+                "unpublish": OrderedDict([("1", unpublish_context1)])
             },
         )
         cms_config2 = Mock(
             spec=[],
             djangocms_versioning_enabled=True,
             versioning_add_to_confirmation_context={
-                'unpublish': OrderedDict([('2', unpublish_context2)])
+                "unpublish": OrderedDict([("2", unpublish_context2)])
             },
         )
 
         extension.configure_app(cms_config1)
         extension.configure_app(cms_config2)
 
-        expected = {'unpublish': OrderedDict([
-            ('1', unpublish_context1),
-            ('2', unpublish_context2),
-        ])}
+        expected = {
+            "unpublish": OrderedDict(
+                [("1", unpublish_context1), ("2", unpublish_context2)]
+            )
+        }
         self.assertDictEqual(extension.add_to_context, expected)
 
     def test_handle_content_admin_classes(self):
@@ -234,16 +242,20 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         """
         extensions = VersioningCMSExtension()
         cms_config = Mock(
-            spec=[], djangocms_versioning_enabled=True,
-            versioning=[VersionableItem(
-                content_model=PollContent, grouper_field_name='poll',
-                copy_function=default_copy
-            )])
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+        )
         extensions.handle_admin_classes(cms_config)
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
-            VersioningAdminMixin,
-            admin.site._registry[PollContent].__class__.mro()
+            VersioningAdminMixin, admin.site._registry[PollContent].__class__.mro()
         )
 
     def test_is_content_model_versioned(self):
@@ -251,10 +263,13 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         content model that's versioned
         """
         extension = VersioningCMSExtension()
-        extension.versionables = [VersionableItem(
-            content_model=PollContent, grouper_field_name='poll',
-            copy_function=default_copy
-        )]
+        extension.versionables = [
+            VersionableItem(
+                content_model=PollContent,
+                grouper_field_name="poll",
+                copy_function=default_copy,
+            )
+        ]
 
         self.assertTrue(extension.is_content_model_versioned(PollContent))
 
@@ -269,41 +284,44 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
 
     def test_handle_version_admin(self):
         versionable = Mock(
-            spec=[], djangocms_versioning_enabled=True, content_model=PollContent,
+            spec=[],
+            djangocms_versioning_enabled=True,
+            content_model=PollContent,
             concrete=True,
             grouper_model=Poll,
-            version_model_proxy=apps.get_model('djangocms_versioning', 'PollContentVersion')
+            version_model_proxy=apps.get_model(
+                "djangocms_versioning", "PollContentVersion"
+            ),
         )
 
-        with patch.object(versionable, 'version_model_proxy'):
+        with patch.object(versionable, "version_model_proxy"):
             extensions = VersioningCMSExtension()
             cms_config = Mock(
-                spec=[], djangocms_versioning_enabled=True,
-                versioning=[versionable])
+                spec=[], djangocms_versioning_enabled=True, versioning=[versionable]
+            )
             extensions.handle_version_admin(cms_config)
         self.assertIn(versionable.version_model_proxy, admin.site._registry)
         self.assertIn(
             VersionAdmin,
-            admin.site._registry[versionable.version_model_proxy].__class__.mro()
+            admin.site._registry[versionable.version_model_proxy].__class__.mro(),
         )
 
 
 # NOTE: These tests simply test what has already happened on start up
 # when the app registry has been instantiated.
 class VersioningIntegrationTestCase(CMSTestCase):
-
     def test_all_versionables_collected(self):
         """Check that all version models defined in cms_config.py
         are collected into a list
         """
-        app = apps.get_app_config('djangocms_versioning')
+        app = apps.get_app_config("djangocms_versioning")
         page_versionable = VersioningCMSConfig.versioning[0]
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [page_versionable, poll_versionable, blog_versionable, comment_versionable]
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable],
         )
 
     def test_admin_classes_reregistered(self):
@@ -321,14 +339,12 @@ class VersioningIntegrationTestCase(CMSTestCase):
         # Check PollContent has had its admin class modified
         self.assertIn(PollContent, admin.site._registry)
         self.assertIn(
-            VersioningAdminMixin,
-            admin.site._registry[PollContent].__class__.mro()
+            VersioningAdminMixin, admin.site._registry[PollContent].__class__.mro()
         )
         # Check BlogContent has had its admin class modified
         self.assertIn(BlogContent, admin.site._registry)
         self.assertIn(
-            VersioningAdminMixin,
-            admin.site._registry[BlogContent].__class__.mro()
+            VersioningAdminMixin, admin.site._registry[BlogContent].__class__.mro()
         )
         # Check that Comments were not registered to the admin
         # (they are defined in cms_config.py but are not registered
@@ -349,13 +365,13 @@ class VersioningIntegrationTestCase(CMSTestCase):
         self.assertIn(PollContent, source_models_in_proxies)
         self.assertIn(
             VersionAdmin,
-            admin.site._registry[source_model_to_proxy[PollContent]].__class__.mro()
+            admin.site._registry[source_model_to_proxy[PollContent]].__class__.mro(),
         )
 
         self.assertIn(BlogContent, source_models_in_proxies)
         self.assertIn(
             VersionAdmin,
-            admin.site._registry[source_model_to_proxy[BlogContent]].__class__.mro()
+            admin.site._registry[source_model_to_proxy[BlogContent]].__class__.mro(),
         )
 
         self.assertNotIn(Comment, source_models_in_proxies)

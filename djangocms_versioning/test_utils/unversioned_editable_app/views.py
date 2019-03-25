@@ -10,11 +10,11 @@ def detail(request, poll_id):
     try:
         poll = FancyPoll.objects.get(pk=poll_id)
     except FancyPoll.DoesNotExist:
-        raise Http404('Fancy Poll doesn\'t exist')
+        raise Http404("Fancy Poll doesn't exist")
 
     toolbar = get_toolbar_from_request(request)
     toolbar.set_object(poll)
-    return render(request, poll.template, {'poll': poll})
+    return render(request, poll.template, {"poll": poll})
 
 
 def render_content(request, content):

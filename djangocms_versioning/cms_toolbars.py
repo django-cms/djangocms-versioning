@@ -13,30 +13,28 @@ from djangocms_versioning.models import Version
 from .helpers import version_list_url
 
 
-VERSIONING_MENU_IDENTIFIER = 'version'
+VERSIONING_MENU_IDENTIFIER = "version"
 
 
 class VersioningToolbar(PlaceholderToolbar):
     class Media:
-        js = ('djangocms_versioning/js/actions.js',)
+        js = ("djangocms_versioning/js/actions.js",)
 
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
         of the version
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        return versioning_extension.versionables_by_content[
-            self.toolbar.obj.__class__]
+        versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
+        return versioning_extension.versionables_by_content[self.toolbar.obj.__class__]
 
     def _is_versioned(self):
         """Helper method to check if the model has been registered for
         versioning
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
+        versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
         return versioning_extension.is_content_model_versioned(
-            self.toolbar.obj.__class__)
+            self.toolbar.obj.__class__
+        )
 
     def _get_proxy_model(self):
         """Helper method to get the proxy model class for the content
@@ -56,15 +54,17 @@ class VersioningToolbar(PlaceholderToolbar):
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
             version = Version.objects.get_for_content(self.toolbar.obj)
-            publish_url = reverse('admin:{app}_{model}_publish'.format(
-                app=proxy_model._meta.app_label,
-                model=proxy_model.__name__.lower(),
-            ), args=(version.pk,))
+            publish_url = reverse(
+                "admin:{app}_{model}_publish".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ),
+                args=(version.pk,),
+            )
             item.add_button(
-                _('Publish'),
+                _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=['cms-btn-action', 'cms-versioning-js-publish-btn'],
+                extra_classes=["cms-btn-action", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -83,15 +83,17 @@ class VersioningToolbar(PlaceholderToolbar):
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)
-        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-            app=proxy_model._meta.app_label,
-            model=proxy_model.__name__.lower(),
-        ), args=(version.pk,))
+        edit_url = reverse(
+            "admin:{app}_{model}_edit_redirect".format(
+                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+            ),
+            args=(version.pk,),
+        )
         item.add_button(
-            _('Edit'),
+            _("Edit"),
             url=edit_url,
             disabled=disabled,
-            extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
+            extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
         )
         self.toolbar.add_item(item)
 
@@ -106,14 +108,14 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
-        version_menu_label = _('Version #{number} ({state})').format(
-            number=version.number,
-            state=version.state,
+        version_menu_label = _("Version #{number} ({state})").format(
+            number=version.number, state=version.state
         )
         versioning_menu = self.toolbar.get_or_create_menu(
-            VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False)
+            VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
+        )
         url = version_list_url(version.content)
-        versioning_menu.add_sideframe_item(_('Manage Versions'), url=url)
+        versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
@@ -125,12 +127,14 @@ def replace_toolbar(old, new):
     """Replace `old` toolbar class with `new` class,
     while keeping its position in toolbar_pool.
     """
-    new_name = '.'.join((new.__module__, new.__name__))
-    old_name = '.'.join((old.__module__, old.__name__))
-    toolbar_pool.toolbars = OrderedDict([
-        (new_name, new) if name == old_name else (name, toolbar)
-        for name, toolbar in toolbar_pool.toolbars.items()
-    ])
+    new_name = ".".join((new.__module__, new.__name__))
+    old_name = ".".join((old.__module__, old.__name__))
+    toolbar_pool.toolbars = OrderedDict(
+        [
+            (new_name, new) if name == old_name else (name, toolbar)
+            for name, toolbar in toolbar_pool.toolbars.items()
+        ]
+    )
 
 
 replace_toolbar(PlaceholderToolbar, VersioningToolbar)

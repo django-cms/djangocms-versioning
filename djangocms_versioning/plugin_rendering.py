@@ -9,8 +9,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
     instance, plugin = instance.get_plugin_instance()
 
     candidate_fields = [
-        f for f in instance._meta.get_fields()
-        if f.is_relation and not f.auto_created
+        f for f in instance._meta.get_fields() if f.is_relation and not f.auto_created
     ]
     for field in candidate_fields:
         try:
@@ -19,32 +18,30 @@ def prefetch_versioned_related_objects(instance, toolbar):
             continue
         if toolbar.edit_mode_active or toolbar.preview_mode_active:
             qs = versionable.content_model._base_manager.filter(
-                versions__state__in=(DRAFT, PUBLISHED),
-            ).order_by('versions__state')
+                versions__state__in=(DRAFT, PUBLISHED)
+            ).order_by("versions__state")
         else:
             qs = versionable.content_model.objects.all()
         related_field = getattr(instance, field.name)
         if related_field:
-            filters = {
-                versionable.grouper_field_name: related_field,
-            }
+            filters = {versionable.grouper_field_name: related_field}
             # TODO Figure out grouping values-awareness
             # for extra fields other than hardcoded 'language'
-            if 'language' in versionable.extra_grouping_fields:
-                filters['language'] = toolbar.request_language
+            if "language" in versionable.extra_grouping_fields:
+                filters["language"] = toolbar.request_language
             qs = qs.filter(**filters)
             prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
             related_field._prefetched_objects_cache = prefetch_cache
 
 
 class VersionContentRenderer(ContentRenderer):
-
     def render_plugin(self, instance, context, placeholder=None, editable=False):
         prefetch_versioned_related_objects(instance, self.toolbar)
         return super().render_plugin(instance, context, placeholder, editable)
 
-    def render_obj_placeholder(self, slot, context, inherit,
-                               nodelist=None, editable=True):
+    def render_obj_placeholder(
+        self, slot, context, inherit, nodelist=None, editable=True
+    ):
         # FIXME This is an ad-hoc solution for page-specific rendering
         # code, which by default doesn't work well with versioning.
         # Remove this method once the issue is fixed.
@@ -68,7 +65,6 @@ class VersionContentRenderer(ContentRenderer):
 
 
 class VersionStructureRenderer(StructureRenderer):
-
     def render_plugin(self, instance, page=None):
         prefetch_versioned_related_objects(instance, self.toolbar)
         return super().render_plugin(instance, page)

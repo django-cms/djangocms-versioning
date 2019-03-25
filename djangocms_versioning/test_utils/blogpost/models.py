@@ -18,7 +18,7 @@ class BlogContent(models.Model):
         return self.text
 
     def get_absolute_url(self):
-        return reverse('admin:blogpost_blogcontent_changelist')
+        return reverse("admin:blogpost_blogcontent_changelist")
 
 
 class Comment(models.Model):
@@ -36,4 +36,4 @@ class CommentContent(models.Model):
         return self.text
 
     def get_absolute_url(self):
-        return reverse('admin:blogpost_commentcontent_changelist')
+        return reverse("admin:blogpost_commentcontent_changelist")

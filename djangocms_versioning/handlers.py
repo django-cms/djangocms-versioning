@@ -11,20 +11,20 @@ def _update_modified(instance):
         except Version.DoesNotExist:
             return
         version.modified = timezone.now()
-        version.save(update_fields=['modified'])
+        version.save(update_fields=["modified"])
 
 
 def update_modified_date(sender, **kwargs):
-    if kwargs['created']:
+    if kwargs["created"]:
         return
-    _update_modified(kwargs['instance'])
+    _update_modified(kwargs["instance"])
 
 
 def update_modified_date_for_pagecontent(sender, **kwargs):
-    instance = kwargs['obj'].get_title_obj()
+    instance = kwargs["obj"].get_title_obj()
     _update_modified(instance)
 
 
 def update_modified_date_for_placeholder_source(sender, **kwargs):
-    placeholder = kwargs['placeholder']
+    placeholder = kwargs["placeholder"]
     _update_modified(placeholder.source)

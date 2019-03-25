@@ -7,6 +7,6 @@ from .models import Text
 @plugin_pool.register_plugin
 class SimpleTextPlugin(CMSPluginBase):
     model = Text
-    name = 'SimpleText'
+    name = "SimpleText"
     allow_children = False
-    render_template = 'text/text.html'
+    render_template = "text/text.html"

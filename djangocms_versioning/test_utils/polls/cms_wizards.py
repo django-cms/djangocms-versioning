@@ -7,8 +7,4 @@ class PollWizard(Wizard):
     pass
 
 
-poll_wizard = PollWizard(
-    title='Poll Wizard',
-    weight=120,
-    form=PollForm,
-)
+poll_wizard = PollWizard(title="Poll Wizard", weight=120, form=PollForm)

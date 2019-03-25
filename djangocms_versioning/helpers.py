@@ -25,7 +25,7 @@ def versioning_admin_factory(admin_class, mixin):
     :param mixin: Mixin class
     :return: A subclass of `VersioningAdminMixin` and `admin_class`
     """
-    return type('Versioned' + admin_class.__name__, (mixin, admin_class), {})
+    return type("Versioned" + admin_class.__name__, (mixin, admin_class), {})
 
 
 def _replace_admin_for_model(modeladmin, mixin, admin_site):
@@ -79,18 +79,19 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     if versionable.version_model_proxy in admin_site._registry:
         # Attempting to register the proxy again is a no-op.
         warnings.warn(
-            '{!r} is already registered with admin.'.format(
-                versionable.version_model_proxy,
+            "{!r} is already registered with admin.".format(
+                versionable.version_model_proxy
             ),
             UserWarning,
         )
         return
 
     class VersionProxyAdminMixin(VersionAdmin):
-
         def get_queryset(self, request):
-            return super().get_queryset(request).filter(
-                content_type__in=versionable.content_types,
+            return (
+                super()
+                .get_queryset(request)
+                .filter(content_type__in=versionable.content_types)
             )
 
     ProxiedAdmin = type(
@@ -110,9 +111,9 @@ def published_content_manager_factory(manager):
     :return: A subclass of `PublishedContentManagerMixin` and `manager`
     """
     return type(
-        'Published' + manager.__name__,
+        "Published" + manager.__name__,
         (PublishedContentManagerMixin, manager),
-        {'use_in_migrations': False},
+        {"use_in_migrations": False},
     )
 
 
@@ -122,26 +123,25 @@ def replace_default_manager(model):
     original_manager = model.objects.__class__
     manager = published_content_manager_factory(original_manager)()
     model._meta.local_managers = [
-        manager for manager in model._meta.local_managers
-        if manager.name != 'objects'
+        manager for manager in model._meta.local_managers if manager.name != "objects"
     ]
-    model.add_to_class('objects', manager)
-    model.add_to_class('_original_manager', original_manager())
+    model.add_to_class("objects", manager)
+    model.add_to_class("_original_manager", original_manager())
 
 
 def inject_generic_relation_to_version(model):
     from .models import Version
-    model.add_to_class('versions', GenericRelation(Version))
+
+    model.add_to_class("versions", GenericRelation(Version))
 
 
 def _set_default_manager(model, manager):
     model._meta.local_managers = [
-        m for m in model._meta.local_managers
-        if m.name != 'objects'
+        m for m in model._meta.local_managers if m.name != "objects"
     ]
     manager_ = copy.copy(manager)
-    manager_.name = 'objects'
-    model.add_to_class('objects', manager_)
+    manager_.name = "objects"
+    model.add_to_class("objects", manager_)
 
 
 @contextmanager
@@ -163,10 +163,11 @@ def nonversioned_manager(model):
 def _version_list_url(versionable, **params):
     proxy = versionable.version_model_proxy
     return add_url_parameters(
-        admin_reverse('{app}_{model}_changelist'.format(
-            app=proxy._meta.app_label,
-            model=proxy._meta.model_name,
-        )),
+        admin_reverse(
+            "{app}_{model}_changelist".format(
+                app=proxy._meta.app_label, model=proxy._meta.model_name
+            )
+        ),
         **params
     )
 
@@ -177,8 +178,7 @@ def version_list_url(content):
     """
     versionable = _cms_extension().versionables_by_content[content.__class__]
     return _version_list_url(
-        versionable,
-        **versionable.grouping_values(content, relation_suffix=False)
+        versionable, **versionable.grouping_values(content, relation_suffix=False)
     )
 
 
@@ -187,9 +187,9 @@ def version_list_url_for_grouper(grouper):
     filtered by `grouper`
     """
     versionable = _cms_extension().versionables_by_grouper[grouper.__class__]
-    return _version_list_url(versionable, **{
-        versionable.grouper_field_name: str(grouper.pk)
-    })
+    return _version_list_url(
+        versionable, **{versionable.grouper_field_name: str(grouper.pk)}
+    )
 
 
 def is_content_editable(placeholder, user):
@@ -206,6 +206,7 @@ def is_content_editable(placeholder, user):
     except KeyError:
         return True
     from .models import Version
+
     version = Version.objects.get_for_content(placeholder.source)
     return version.state == DRAFT
 
@@ -218,10 +219,12 @@ def get_editable_url(content_obj):
         url = get_object_edit_url(content_obj)
     # Or else, the standard edit view should be used
     else:
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=content_obj._meta.app_label,
-            model=content_obj._meta.model_name,
-        ), args=(content_obj.pk,))
+        url = reverse(
+            "admin:{app}_{model}_change".format(
+                app=content_obj._meta.app_label, model=content_obj._meta.model_name
+            ),
+            args=(content_obj.pk,),
+        )
     return url
 
 
@@ -230,15 +233,13 @@ def get_editable_url(content_obj):
 def get_content_types_with_subclasses(models, using=None):
     content_types = set()
     for model in models:
-        content_type = ContentType.objects.db_manager(
-            using,
-        ).get_for_model(model, for_concrete_model=False)
+        content_type = ContentType.objects.db_manager(using).get_for_model(
+            model, for_concrete_model=False
+        )
         content_types.add(content_type.pk)
         subclasses = model.__subclasses__()
         if subclasses:
-            content_types.update(
-                get_content_types_with_subclasses(subclasses, using),
-            )
+            content_types.update(get_content_types_with_subclasses(subclasses, using))
     return content_types
 
 
@@ -254,8 +255,10 @@ def get_preview_url(content_obj):
         url = get_object_preview_url(content_obj)
         # Or else, the standard change view should be used
     else:
-        url = reverse('admin:{app}_{model}_change'.format(
-            app=content_obj._meta.app_label,
-            model=content_obj._meta.model_name,
-        ), args=[content_obj.pk])
+        url = reverse(
+            "admin:{app}_{model}_change".format(
+                app=content_obj._meta.app_label, model=content_obj._meta.model_name
+            ),
+            args=[content_obj.pk],
+        )
     return url

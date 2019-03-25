@@ -17,4 +17,4 @@ class PersonContent(models.Model):
         return self.text
 
     def get_absolute_url(self):
-        return '/'
+        return "/"

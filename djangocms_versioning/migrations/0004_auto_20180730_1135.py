@@ -12,28 +12,78 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('djangocms_versioning', '0003_version'),
+        ("djangocms_versioning", "0003_version"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StateTracking',
+            name="StateTracking",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('old_state', models.CharField(choices=[('draft', 'Draft'), ('published', 'Published'), ('unpublished', 'Unpublished'), ('archived', 'Archived')], max_length=100)),
-                ('new_state', models.CharField(choices=[('draft', 'Draft'), ('published', 'Published'), ('unpublished', 'Unpublished'), ('archived', 'Archived')], max_length=100)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "old_state",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("published", "Published"),
+                            ("unpublished", "Unpublished"),
+                            ("archived", "Archived"),
+                        ],
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "new_state",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("published", "Published"),
+                            ("unpublished", "Unpublished"),
+                            ("archived", "Archived"),
+                        ],
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='version',
-            name='state',
-            field=django_fsm.FSMField(choices=[('draft', 'Draft'), ('published', 'Published'), ('unpublished', 'Unpublished'), ('archived', 'Archived')], default='draft', max_length=50, protected=True, verbose_name='status'),
+            model_name="version",
+            name="state",
+            field=django_fsm.FSMField(
+                choices=[
+                    ("draft", "Draft"),
+                    ("published", "Published"),
+                    ("unpublished", "Unpublished"),
+                    ("archived", "Archived"),
+                ],
+                default="draft",
+                max_length=50,
+                protected=True,
+                verbose_name="status",
+            ),
         ),
         migrations.AddField(
-            model_name='statetracking',
-            name='version',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='djangocms_versioning.Version'),
+            model_name="statetracking",
+            name="version",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="djangocms_versioning.Version",
+            ),
         ),
     ]

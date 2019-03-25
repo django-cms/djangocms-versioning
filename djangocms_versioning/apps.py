@@ -4,8 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class VersioningConfig(AppConfig):
-    name = 'djangocms_versioning'
-    verbose_name = _('django CMS Versioning')
+    name = "djangocms_versioning"
+    verbose_name = _("django CMS Versioning")
 
     def ready(self):
         from cms.signals import post_obj_operation, post_placeholder_operation
@@ -17,12 +17,10 @@ class VersioningConfig(AppConfig):
             update_modified_date_for_placeholder_source,
         )
 
-        post_save.connect(update_modified_date, dispatch_uid='versioning')
+        post_save.connect(update_modified_date, dispatch_uid="versioning")
         post_placeholder_operation.connect(
-            update_modified_date_for_placeholder_source,
-            dispatch_uid='versioning',
+            update_modified_date_for_placeholder_source, dispatch_uid="versioning"
         )
         post_obj_operation.connect(
-            update_modified_date_for_pagecontent,
-            dispatch_uid='versioning',
+            update_modified_date_for_pagecontent, dispatch_uid="versioning"
         )

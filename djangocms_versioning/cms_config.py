@@ -22,7 +22,6 @@ from .models import Version
 
 
 class VersioningCMSExtension(CMSAppExtension):
-
     def __init__(self):
         self.versionables = []
         self.add_to_context = {}
@@ -30,7 +29,9 @@ class VersioningCMSExtension(CMSAppExtension):
     @cached_property
     def versionables_by_content(self):
         """Returns a dict of {content_model_cls: VersionableItem obj}"""
-        return {versionable.content_model: versionable for versionable in self.versionables}
+        return {
+            versionable.content_model: versionable for versionable in self.versionables
+        }
 
     def is_content_model_versioned(self, content_model):
         """Returns if the content model is registered for versioning.
@@ -57,21 +58,21 @@ class VersioningCMSExtension(CMSAppExtension):
         """
         # First check that versioning is correctly defined
         if not isinstance(cms_config.versioning, collections.abc.Iterable):
-            raise ImproperlyConfigured(
-                "versioning not defined as an iterable")
+            raise ImproperlyConfigured("versioning not defined as an iterable")
         for versionable in cms_config.versioning:
             if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(
                     "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(
-                        versionable,
-                    ),
+                        versionable
+                    )
                 )
             # NOTE: Do not use the cached property here as this is
             # still changing and needs to be calculated on the fly
             registered_so_far = [v.content_model for v in self.versionables]
             if versionable.content_model in registered_so_far:
                 raise ImproperlyConfigured(
-                    "{!r} has already been registered".format(versionable.content_model))
+                    "{!r} has already been registered".format(versionable.content_model)
+                )
             # Checks passed. Add versionable to our master list
             self.versionables.append(versionable)
 
@@ -81,11 +82,13 @@ class VersioningCMSExtension(CMSAppExtension):
         and add it to the master dict if all is ok
         """
         add_to_context = cms_config.versioning_add_to_confirmation_context
-        supported_keys = ['unpublish']
+        supported_keys = ["unpublish"]
         for key, value in add_to_context.items():
             if key not in supported_keys:
                 raise ImproperlyConfigured(
-                    "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(key)
+                    "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(
+                        key
+                    )
                 )
             if key not in self.add_to_context:
                 self.add_to_context[key] = collections.OrderedDict()
@@ -99,7 +102,7 @@ class VersioningCMSExtension(CMSAppExtension):
             [
                 (versionable.content_model, versionable.content_admin_mixin)
                 for versionable in cms_config.versioning
-            ],
+            ]
         )
 
     def handle_version_admin(self, cms_config):
@@ -129,11 +132,14 @@ class VersioningCMSExtension(CMSAppExtension):
     def configure_app(self, cms_config):
         # Validation to ensure either the versioning or the
         # versioning_add_to_confirmation_context config has been defined
-        has_extra_context = hasattr(cms_config, 'versioning_add_to_confirmation_context')
-        has_models_to_register = hasattr(cms_config, 'versioning')
+        has_extra_context = hasattr(
+            cms_config, "versioning_add_to_confirmation_context"
+        )
+        has_models_to_register = hasattr(cms_config, "versioning")
         if not has_extra_context and not has_models_to_register:
             raise ImproperlyConfigured(
-                "The versioning or versioning_add_to_confirmation_context setting must be defined")
+                "The versioning or versioning_add_to_confirmation_context setting must be defined"
+            )
         # No exception raised so now configure based on those settings
         if has_extra_context:
             self.handle_versioning_add_to_confirmation_context_setting(cms_config)
@@ -156,7 +162,7 @@ def copy_page_content(original_content):
         # Don't copy the pk as we're creating a new obj.
         # The creation date should reflect the date it was copied on,
         # so don't copy that either.
-        if field.name not in (PageContent._meta.pk.name, 'creation_date')
+        if field.name not in (PageContent._meta.pk.name, "creation_date")
     }
 
     new_content = PageContent.objects.create(**content_fields)
@@ -169,10 +175,10 @@ def copy_page_content(original_content):
             for field in Placeholder._meta.fields
             # don't copy primary key because we're creating a new obj
             # and handle the source field later
-            if field.name not in [Placeholder._meta.pk.name, 'source']
+            if field.name not in [Placeholder._meta.pk.name, "source"]
         }
         if placeholder.source:
-            placeholder_fields['source'] = new_content
+            placeholder_fields["source"] = new_content
         new_placeholder = Placeholder.objects.create(**placeholder_fields)
         # Copy plugins
         placeholder.copy_plugins(new_placeholder)
@@ -225,17 +231,16 @@ def on_page_content_archive(version):
 
 
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):
-
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
                 form = self.get_form_class(request)
-                if getattr(form, 'fieldsets'):
+                if getattr(form, "fieldsets"):
                     fields = flatten_fieldsets(form.fieldsets)
                 fields = list(fields)
-                for f_name in ['slug', 'overwrite_url']:
+                for f_name in ["slug", "overwrite_url"]:
                     fields.remove(f_name)
         return fields
 
@@ -244,24 +249,24 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         if obj:
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
-                for f_name in ['slug', 'overwrite_url']:
-                    form.declared_fields[f_name].widget.attrs['readonly'] = True
+                for f_name in ["slug", "overwrite_url"]:
+                    form.declared_fields[f_name].widget.attrs["readonly"] = True
         return form
 
 
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
+
     djangocms_versioning_enabled = getattr(
-        settings, 'VERSIONING_CMS_MODELS_ENABLED', True)
+        settings, "VERSIONING_CMS_MODELS_ENABLED", True
+    )
     versioning = [
         VersionableItem(
             content_model=PageContent,
-            grouper_field_name='page',
-            extra_grouping_fields=['language'],
-            version_list_filter_lookups={
-                'language': get_language_tuple,
-            },
+            grouper_field_name="page",
+            extra_grouping_fields=["language"],
+            version_list_filter_lookups={"language": get_language_tuple},
             copy_function=copy_page_content,
             grouper_selector_option_label=label_from_instance,
             on_publish=on_page_content_publish,
@@ -269,5 +274,5 @@ class VersioningCMSConfig(CMSAppConfig):
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
             content_admin_mixin=VersioningCMSPageAdminMixin,
-        ),
+        )
     ]

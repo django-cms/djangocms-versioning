@@ -1,3 +1,5 @@
+from django.contrib.auth.models import Permission
+
 from cms.cms_toolbars import PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -232,23 +234,38 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_for_non_version_content(self):
         # User objects are not registered with versioning, so attempting
         # to populate toolbar shouldn't contain a version menu
-        toolbar = get_toolbar(UserFactory(), edit_mode=True)
+        toolbar = get_toolbar(UserFactory(), user=self.get_superuser(), edit_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertIsNone(version_menu)
 
     def test_version_menu_for_version_content(self):
         # Versioned item should have versioning menu
+        user = UserFactory(is_staff=True)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label='djangocms_versioning',
+            codename='change_pollcontentversion',
+        ))
         version = PollVersionFactory()
-        toolbar = get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, user=user, preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertEqual(version_menu.get_items()[0].name, "Manage Versions...")
 
+    def test_version_menu_for_version_content_no_permission(self):
+        """Manage versions entry shouldn't appear if user doesn't have
+        access to that endpoint"""
+        user = UserFactory(is_staff=True)
+        version = PollVersionFactory()
+        toolbar = get_toolbar(version.content, user=user, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu('version')
+        self.assertFalse(version_menu.get_items())
+
     def test_version_menu_for_none_version(self):
         # Version menu shouldnt be generated if version is None
         version = None
-        toolbar = get_toolbar(version, preview_mode=True)
+        toolbar = get_toolbar(version, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertIsNone(version_menu)
@@ -256,7 +273,7 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_and_url_for_version_content(self):
         # Versioned item should have versioning menu and url should be version list url
         version = PollVersionFactory()
-        toolbar = get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertIsNotNone(version_menu)
@@ -267,7 +284,7 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_label(self):
         # Versioned item should have correct version menu label
         version = PollVersionFactory()
-        toolbar = get_toolbar(version.content, preview_mode=True)
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
 

@@ -1,3 +1,5 @@
+import copy
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -150,6 +152,14 @@ class Version(models.Model):
         of the version
         """
         return versionables.for_content(self.content)
+
+    def convert_to_proxy(self):
+        """Returns a copy of current Version object, but as an instance
+        of its correct proxy model"""
+
+        new_obj = copy.deepcopy(self)
+        new_obj.__class__ = self.versionable.version_model_proxy
+        return new_obj
 
     @property
     def grouper(self):

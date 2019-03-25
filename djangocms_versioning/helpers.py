@@ -131,6 +131,8 @@ def replace_default_manager(model):
 
 def inject_generic_relation_to_version(model):
     from .models import Version
+    from .fields import GenericOneToOneField
+    model.add_to_class('version', GenericOneToOneField(Version))
     model.add_to_class('versions', GenericRelation(Version))
 
 

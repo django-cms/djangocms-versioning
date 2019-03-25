@@ -8,14 +8,12 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djangocms_versioning', '0014_version_source'),
-    ]
+    dependencies = [("djangocms_versioning", "0014_version_source")]
 
     operations = [
         migrations.AddField(
-            model_name='version',
-            name='modified',
+            model_name="version",
+            name="modified",
             field=models.DateTimeField(default=django.utils.timezone.now),
-        ),
+        )
     ]

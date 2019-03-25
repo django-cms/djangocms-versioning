@@ -11,7 +11,6 @@ from djangocms_versioning.test_utils import factories
 
 
 class HandlersTestCase(CMSTestCase):
-
     def test_modified_date(self):
         pv = factories.PollVersionFactory()
         dt = datetime(2016, 6, 6, tzinfo=timezone.utc)

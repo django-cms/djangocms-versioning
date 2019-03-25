@@ -9,28 +9,27 @@ from djangocms_versioning.test_utils.polls.models import PollContent
 
 
 class GrouperFormTestCase(CMSTestCase):
-
     def tearDown(self):
         grouper_form_factory.cache_clear()
 
     def test_factory(self):
         pv = factories.PollVersionFactory()
-        form_class = grouper_form_factory(PollContent, language='en')
+        form_class = grouper_form_factory(PollContent, language="en")
 
         self.assertIn(forms.Form, form_class.mro())
-        self.assertEqual(form_class.__name__, 'PollContentGrouperForm')
-        self.assertIn('poll', form_class.base_fields)
+        self.assertEqual(form_class.__name__, "PollContentGrouperForm")
+        self.assertIn("poll", form_class.base_fields)
         self.assertIn(
             (pv.content.poll.pk, str(pv.content.poll)),
-            form_class.base_fields['poll'].choices,
+            form_class.base_fields["poll"].choices,
         )
 
     def test_factory_cache(self):
         """Test that grouper_form_factory is cached
         and return value is created once."""
         self.assertEqual(
-            id(grouper_form_factory(PollContent, language='en')),
-            id(grouper_form_factory(PollContent, language='en')),
+            id(grouper_form_factory(PollContent, language="en")),
+            id(grouper_form_factory(PollContent, language="en")),
         )
 
     def test_grouper_selector_default_label(self):
@@ -38,11 +37,11 @@ class GrouperFormTestCase(CMSTestCase):
         Grouper selector shows the default label format when no override is set
         """
         version = factories.PollVersionFactory()
-        form_class = grouper_form_factory(PollContent, language='en')
+        form_class = grouper_form_factory(PollContent, language="en")
 
         self.assertIn(
             (version.content.poll.pk, str(version.content.poll)),
-            form_class.base_fields['poll'].choices,
+            form_class.base_fields["poll"].choices,
         )
 
     def test_grouper_selector_non_default_label_unpublished(self):
@@ -53,8 +52,7 @@ class GrouperFormTestCase(CMSTestCase):
         form_class = grouper_form_factory(PageContent, version.content.language)
         label = "No available title (Unpublished)"
         self.assertIn(
-            (version.content.page.pk, label),
-            form_class.base_fields['page'].choices,
+            (version.content.page.pk, label), form_class.base_fields["page"].choices
         )
 
     def test_grouper_selector_non_default_label(self):
@@ -65,15 +63,15 @@ class GrouperFormTestCase(CMSTestCase):
         PageUrl.objects.create(
             page=version.content.page,
             language=version.content.language,
-            path='test',
-            slug='test',
+            path="test",
+            slug="test",
         )
         version.publish(version.created_by)
         form_class = grouper_form_factory(PageContent, version.content.language)
         label = "{title} (/{path}/)".format(
             title=version.content.title,
-            path=version.content.page.get_path(version.content.language))
+            path=version.content.page.get_path(version.content.language),
+        )
         self.assertIn(
-            (version.content.page.pk, label),
-            form_class.base_fields['page'].choices,
+            (version.content.page.pk, label), form_class.base_fields["page"].choices
         )

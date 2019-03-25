@@ -17,33 +17,30 @@ def get_toolbar(content_obj, user=None, **kwargs):
     if not user:
         user = UserFactory(is_staff=True)
 
-    request = kwargs.get('request', RequestFactory().get('/'))
+    request = kwargs.get("request", RequestFactory().get("/"))
     request.user = user
-    request.session = kwargs.get('session', {})
-    request.current_page = getattr(content_obj, 'page', None)
+    request.session = kwargs.get("session", {})
+    request.current_page = getattr(content_obj, "page", None)
     request.toolbar = CMSToolbar(request)
     # Set the toolbar class
-    if kwargs.get('toolbar_class', False):
-        toolbar_class = kwargs.get('toolbar_class')
+    if kwargs.get("toolbar_class", False):
+        toolbar_class = kwargs.get("toolbar_class")
     else:
         toolbar_class = VersioningToolbar
     toolbar = toolbar_class(
-        request,
-        toolbar=request.toolbar,
-        is_current_app=True,
-        app_path='/',
+        request, toolbar=request.toolbar, is_current_app=True, app_path="/"
     )
     toolbar.toolbar.set_object(content_obj)
     # Set the toolbar mode
-    if kwargs.get('edit_mode', False):
+    if kwargs.get("edit_mode", False):
         toolbar.toolbar.edit_mode_active = True
         toolbar.toolbar.content_mode_active = False
         toolbar.toolbar.structure_mode_active = False
-    elif kwargs.get('preview_mode', False):
+    elif kwargs.get("preview_mode", False):
         toolbar.toolbar.edit_mode_active = False
         toolbar.toolbar.content_mode_active = True
         toolbar.toolbar.structure_mode_active = False
-    elif kwargs.get('structure_mode', False):
+    elif kwargs.get("structure_mode", False):
         toolbar.toolbar.edit_mode_active = False
         toolbar.toolbar.content_mode_active = False
         toolbar.toolbar.structure_mode_active = True
@@ -60,7 +57,9 @@ def find_toolbar_buttons(button_name, toolbar):
     """
     found = []
     for button_list in toolbar.get_right_items():
-        found = found + [button for button in button_list.buttons if button.name == button_name]
+        found = found + [
+            button for button in button_list.buttons if button.name == button_name
+        ]
     return found
 
 

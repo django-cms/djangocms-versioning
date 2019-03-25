@@ -6,10 +6,9 @@ from . import versionables
 
 
 class VersionContentChoiceField(forms.ModelChoiceField):
-
     def __init__(self, *args, **kwargs):
-        self.language = kwargs.pop('language')
-        self.predefined_label_method = kwargs.pop('option_label_override')
+        self.language = kwargs.pop("language")
+        self.predefined_label_method = kwargs.pop("option_label_override")
         super().__init__(*args, **kwargs)
 
     def label_from_instance(self, obj):
@@ -20,7 +19,6 @@ class VersionContentChoiceField(forms.ModelChoiceField):
 
 
 class GrouperFormMixin:
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         versionable = versionables.for_content(self._content_model)
@@ -38,15 +36,15 @@ def grouper_form_factory(content_model, language=None):
     """
     versionable = versionables.for_content(content_model)
     return type(
-        content_model.__name__ + 'GrouperForm',
-        (GrouperFormMixin, forms.Form,),
+        content_model.__name__ + "GrouperForm",
+        (GrouperFormMixin, forms.Form),
         {
-            '_content_model': content_model,
+            "_content_model": content_model,
             versionable.grouper_field_name: VersionContentChoiceField(
                 queryset=versionable.grouper_model.objects.all(),
                 label=versionable.grouper_model._meta.verbose_name,
                 option_label_override=versionable.grouper_selector_option_label,
                 language=language,
-            )
-        }
+            ),
+        },
     )

@@ -2,7 +2,6 @@ from .exceptions import ConditionFailed
 
 
 class Conditions(list):
-
     def __add__(self, other):
         return Conditions(super().__add__(other))
 
@@ -24,7 +23,6 @@ class Conditions(list):
 
 
 class BoundConditions:
-
     def __init__(self, conditions, instance):
         self.conditions = conditions
         self.instance = instance
@@ -40,4 +38,5 @@ def in_state(states, message):
     def inner(version, user):
         if version.state not in states:
             raise ConditionFailed(message)
+
     return inner

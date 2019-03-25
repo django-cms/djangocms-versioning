@@ -41,16 +41,10 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.cms_config import (
-    BlogpostCMSConfig,
-)
+from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import (
-    Answer,
-    Poll,
-    PollContent,
-)
+from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
 
 DJANGO_GTE_21 = LooseVersion(django.__version__) >= LooseVersion("2.1")
@@ -363,8 +357,7 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url='/en/admin/polls/pollcontent/1/preview/',
-                label='test4',
+                url="/en/admin/polls/pollcontent/1/preview/", label="test4"
             ),
         )
 
@@ -372,13 +365,12 @@ class VersionAdminTestCase(CMSTestCase):
         """
         The link returned is the change url for a non editable object
         """
-        version = factories.BlogPostVersionFactory(content__text='test4')
+        version = factories.BlogPostVersionFactory(content__text="test4")
         self.assertFalse(is_editable_model(version))
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url='/en/admin/blogpost/blogcontent/1/change/',
-                label='test4',
+                url="/en/admin/blogpost/blogcontent/1/change/", label="test4"
             ),
         )
 
@@ -386,13 +378,12 @@ class VersionAdminTestCase(CMSTestCase):
         """
         The link returned is the object preview url for a editable object
         """
-        version = factories.PageVersionFactory(content__title='test5')
+        version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
             self.assertEqual(
                 self.site._registry[Version].content_link(version),
                 '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content),
-                    label=version.content,
+                    url=get_object_preview_url(version.content), label=version.content
                 ),
             )
 
@@ -962,7 +953,6 @@ class VersionAdminViewTestCase(CMSTestCase):
 
 
 class GrouperFormViewTestCase(CMSTestCase):
-
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
 
@@ -1506,37 +1496,45 @@ class UnpublishViewTestCase(BaseStateTestCase):
             return "Unpublish the mice instead."
 
         def publish_context(request, version, *args, **kwargs):
-            return "Publish cat pictures only. People aren't interested in anything else."
+            return (
+                "Publish cat pictures only. People aren't interested in anything else."
+            )
 
-        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+        versioning_ext = apps.get_app_config("djangocms_versioning").cms_extension
         extra_context_setting = {
-            'unpublish': OrderedDict([('cats', unpublish_context1), ('mice', unpublish_context2)]),
-            'publish': OrderedDict([('cat_pictures', publish_context)]),
+            "unpublish": OrderedDict(
+                [("cats", unpublish_context1), ("mice", unpublish_context2)]
+            ),
+            "publish": OrderedDict([("cat_pictures", publish_context)]),
         }
 
-        with patch.object(versioning_ext, 'add_to_context', extra_context_setting):
+        with patch.object(versioning_ext, "add_to_context", extra_context_setting):
             with self.login_user_context(self.get_staff_user_with_no_permissions()):
                 response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn('extra_context', response.context.keys())
-        expected = OrderedDict([
-            ('cats', "Don't unpublish cats. Seriously."),
-            ('mice', "Unpublish the mice instead."),
-        ])
-        self.assertDictEqual(response.context['extra_context'], expected)
+        self.assertIn("extra_context", response.context.keys())
+        expected = OrderedDict(
+            [
+                ("cats", "Don't unpublish cats. Seriously."),
+                ("mice", "Unpublish the mice instead."),
+            ]
+        )
+        self.assertDictEqual(response.context["extra_context"], expected)
         self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
         self.assertIn("Unpublish the mice instead.", str(response.content))
         self.assertNotIn("Publish cat pictures only.", str(response.content))
 
-    def test_unpublish_view_doesnt_throw_exception_if_no_app_registered_extra_unpublish_context(self):
+    def test_unpublish_view_doesnt_throw_exception_if_no_app_registered_extra_unpublish_context(
+        self
+    ):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
-        versioning_ext = apps.get_app_config('djangocms_versioning').cms_extension
+        versioning_ext = apps.get_app_config("djangocms_versioning").cms_extension
 
-        with patch.object(versioning_ext, 'add_to_context', {}):
+        with patch.object(versioning_ext, "add_to_context", {}):
             with self.login_user_context(self.get_staff_user_with_no_permissions()):
                 response = self.client.get(url)
 
@@ -2022,11 +2020,14 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(poll_content.pk), name=str(poll_content))
+            pk=str(poll_content.pk), name=str(poll_content)
+        )
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
-    def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(self):
+    def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(
+        self
+    ):
         # The blogpost test app defines a breadcrumb template in
         # templates/admin/djangocms_versioning/blogpost/blogcontent/versioning_breadcrumbs.html
         # This test checks that template gets used.
@@ -2045,17 +2046,23 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected = """<div class="breadcrumbs">Blog post breadcrumbs bla bla</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
-    def test_changelist_view_displays_correct_breadcrumbs_for_extra_grouping_values(self):
-        with freeze_time('1999-09-09'):
+    def test_changelist_view_displays_correct_breadcrumbs_for_extra_grouping_values(
+        self
+    ):
+        with freeze_time("1999-09-09"):
             # Make sure the English version is older than the French
             # So that the French one is in fact the latest one
-            page_content_en = factories.PageContentWithVersionFactory(language='en')
-        factories.PageContentWithVersionFactory(language='fr', page=page_content_en.page)
+            page_content_en = factories.PageContentWithVersionFactory(language="en")
+        factories.PageContentWithVersionFactory(
+            language="fr", page=page_content_en.page
+        )
         versionable = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
         # Specify English here - this should mean the version picked up
         # for the breadcrumbs is the English one, not the French one
-        url += "?page={page_id}&language=en".format(page_id=str(page_content_en.page_id))
+        url += "?page={page_id}&language=en".format(
+            page_id=str(page_content_en.page_id)
+        )
 
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
@@ -2069,7 +2076,8 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
         expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
         expected += """<a href="/en/admin/cms/pagecontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(page_content_en.pk), name=str(page_content_en))
+            pk=str(page_content_en.pk), name=str(page_content_en)
+        )
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
@@ -2080,13 +2088,16 @@ class VersionChangeListViewTestCase(CMSTestCase):
         versionable = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
         url += "?title={title}&page={page_id}".format(
-            title=page_content.title, page_id=str(page_content.page_id))
+            title=page_content.title, page_id=str(page_content.page_id)
+        )
 
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
-        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
-        expected_redirect += '?e=1'
+        expected_redirect = self.get_admin_url(
+            versionable.version_model_proxy, "changelist"
+        )
+        expected_redirect += "?e=1"
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, expected_redirect)
 
@@ -2101,8 +2112,10 @@ class VersionChangeListViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
 
-        expected_redirect = self.get_admin_url(versionable.version_model_proxy, "changelist")
-        expected_redirect += '?e=1'
+        expected_redirect = self.get_admin_url(
+            versionable.version_model_proxy, "changelist"
+        )
+        expected_redirect += "?e=1"
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, expected_redirect)
 

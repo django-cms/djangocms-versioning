@@ -11,14 +11,18 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('djangocms_versioning', '0006_auto_20180809_1714'),
+        ("djangocms_versioning", "0006_auto_20180809_1714"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='version',
-            name='created_by',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="version",
+            name="created_by",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
             preserve_default=False,
-        ),
+        )
     ]

@@ -11,74 +11,70 @@ from cms.toolbar.utils import get_object_preview_url
 from menus.menu_pool import menu_pool
 
 from djangocms_versioning.cms_menus import CMSMenu
-from djangocms_versioning.test_utils.factories import (
-    PageVersionFactory,
-    UserFactory,
-)
+from djangocms_versioning.test_utils.factories import PageVersionFactory, UserFactory
 
 
 class CMSVersionedMenuTestCase(CMSTestCase):
-
     def setUp(self):
         super().setUp()
         self._page_1 = PageVersionFactory(
-            content__title='page_content_1',
-            content__menu_title='',
+            content__title="page_content_1",
+            content__menu_title="",
             content__in_navigation=True,
             content__limit_visibility_in_menu=None,
-            content__language='en',
-            content__page__node__path='0001',
+            content__language="en",
+            content__page__node__path="0001",
         )
         self._page_2 = PageVersionFactory(
-            content__title='page_content_2',
-            content__menu_title='',
+            content__title="page_content_2",
+            content__menu_title="",
             content__in_navigation=True,
             content__limit_visibility_in_menu=None,
-            content__language='en',
-            content__page__node__path='0002',
+            content__language="en",
+            content__page__node__path="0002",
         )
         self._page_2_1 = PageVersionFactory(
-            content__title='page_content_2_1',
-            content__menu_title='',
+            content__title="page_content_2_1",
+            content__menu_title="",
             content__in_navigation=True,
             content__limit_visibility_in_menu=None,
-            content__language='en',
-            content__page__node__path='00020001',
+            content__language="en",
+            content__page__node__path="00020001",
             content__page__node__parent=self._page_2.content.page.node,
         )
         self._page_2_2 = PageVersionFactory(
-            content__title='page_content_2_2',
-            content__menu_title='',
+            content__title="page_content_2_2",
+            content__menu_title="",
             content__in_navigation=True,
             content__limit_visibility_in_menu=None,
-            content__language='en',
-            content__page__node__path='00020002',
+            content__language="en",
+            content__page__node__path="00020002",
             content__page__node__parent=self._page_2.content.page.node,
         )
         self._page_3 = PageVersionFactory(
-            content__title='page_content_3',
-            content__menu_title='',
+            content__title="page_content_3",
+            content__menu_title="",
             content__in_navigation=True,
             content__limit_visibility_in_menu=None,
-            content__language='en',
-            content__page__node__path='0003',
+            content__language="en",
+            content__page__node__path="0003",
         )
 
     def _render_menu(self, user=None, **kwargs):
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
 
         if not user:
-            is_auth_user = kwargs.get('is_auth_user', True)
+            is_auth_user = kwargs.get("is_auth_user", True)
             user = self.get_superuser() if is_auth_user else AnonymousUser()
 
         request.user = user
         request.session = {}
         toolbar = CMSToolbar(request)
 
-        if kwargs.get('edit_mode', False):
+        if kwargs.get("edit_mode", False):
             toolbar.edit_mode_active = True
             toolbar.preview_mode_active = False
-        elif kwargs.get('preview_mode', False):
+        elif kwargs.get("preview_mode", False):
             toolbar.edit_mode_active = False
             toolbar.preview_mode_active = True
         else:
@@ -86,11 +82,8 @@ class CMSVersionedMenuTestCase(CMSTestCase):
             toolbar.preview_mode_active = False
 
         request.toolbar = toolbar
-        context = {'request': request}
-        template = Template(
-            '{% load menu_tags %}'
-            '{% show_menu 0 100 100 100 %}'
-        )
+        context = {"request": request}
+        template = Template("{% load menu_tags %}" "{% show_menu 0 100 100 100 %}")
         template.render(Context(context))
         return context
 
@@ -111,12 +104,12 @@ class CMSVersionedMenuTestCase(CMSTestCase):
 
     def test_no_menu_if_no_published_pages_in_public_mode(self):
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 0)
 
     def test_show_menu_with_draft_pages_in_edit_mode(self):
         context = self._render_menu(edit_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_2)
@@ -128,7 +121,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
 
     def test_show_menu_with_draft_pages_in_preview_mode(self):
         context = self._render_menu(edit_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_2)
@@ -140,7 +133,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
 
     def test_show_menu_with_published_nodes_only_in_public_mode(self):
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
 
@@ -148,7 +141,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_1.publish(self.get_superuser())
 
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_1, False)
 
@@ -157,7 +150,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_1.publish(self.get_superuser())
 
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_1, False)
 
@@ -166,7 +159,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_1.publish(self.get_superuser())
 
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_1, False)
 
@@ -176,7 +169,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_1.publish(self.get_superuser())
 
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_2, False)
         children = nodes[0].children
@@ -187,7 +180,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_2.publish(self.get_superuser())
 
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_2, False)
         children = nodes[0].children
@@ -201,7 +194,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_1.content.save()
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_2)
@@ -218,7 +211,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_1.content.save()
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 2)
         self._assert_node(nodes[0], self._page_2)
         children = nodes[0].children
@@ -232,12 +225,14 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2.content.save()
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 2)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_3)
 
-    def test_show_home_page_children_nodes_even_if_home_page_is_hidden_in_navigation(self):
+    def test_show_home_page_children_nodes_even_if_home_page_is_hidden_in_navigation(
+        self
+    ):
         # Make Page 2 home and hide in navigation.
         self._page_2.content.page.is_home = True
         self._page_2.content.page.save()
@@ -245,7 +240,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2.content.save()
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 4)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_2_1)
@@ -258,7 +253,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self._page_2_2.publish(self.get_superuser())
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], self._page_2)
@@ -276,13 +271,13 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         _page_2_new_draft = self._page_2.copy(self.get_superuser())
         _page_2_2_new_draft = self._page_2_2.copy(self.get_superuser())
         # Make some changes to the new drafts (Just to verify).
-        _page_2_new_draft.content.title = 'page_content_2_new_draft'
+        _page_2_new_draft.content.title = "page_content_2_new_draft"
         _page_2_new_draft.content.save()
-        _page_2_2_new_draft.content.title = 'page_content_2_2_new_draft'
+        _page_2_2_new_draft.content.title = "page_content_2_2_new_draft"
         _page_2_2_new_draft.content.save()
 
         context = self._render_menu(preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 3)
         self._assert_node(nodes[0], self._page_1)
         self._assert_node(nodes[1], _page_2_new_draft)
@@ -302,27 +297,24 @@ class CMSVersionedMenuTestCase(CMSTestCase):
 
         # Test for anonymous user.
         context = self._render_menu(is_auth_user=False)
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 0)
 
         # Test for logged in user.
         context = self._render_menu()
-        nodes = context['children']
+        nodes = context["children"]
         self.assertEqual(len(nodes), 1)
         self._assert_node(nodes[0], self._page_1, False)
 
-    @override_settings(CMS_PUBLIC_FOR='staff')
+    @override_settings(CMS_PUBLIC_FOR="staff")
     def test_show_menu_only_visible_for_user(self):
         from django.contrib.auth.models import Group
         from cms.models import ACCESS_PAGE, PagePermission
 
-        group = Group.objects.create(name='test_group')
+        group = Group.objects.create(name="test_group")
         user = UserFactory()
         user.groups.add(group)
-        q_args = {
-            'grant_on': ACCESS_PAGE,
-            'group': group,
-        }
+        q_args = {"grant_on": ACCESS_PAGE, "group": group}
         # Restrict pages for the user so that we can test
         # whether the can_view=True only pages are visible in the menu.
         PagePermission.objects.create(
@@ -342,7 +334,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         )
 
         context = self._render_menu(user=user, preview_mode=True)
-        nodes = context['children']
+        nodes = context["children"]
         # At this point, only Page 2, Page 2_2 and Page 3 should
         # be rendered in the menu.
         self.assertEqual(len(nodes), 2)

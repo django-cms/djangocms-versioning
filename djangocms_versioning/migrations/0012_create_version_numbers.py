@@ -7,9 +7,11 @@ from django.db.models import Max
 
 
 def _distinct_groupers(versionable):
-    inner = versionable.content_model._base_manager.values(
-        *versionable.grouping_fields,
-    ).annotate(Max('pk')).values('pk__max')
+    inner = (
+        versionable.content_model._base_manager.values(*versionable.grouping_fields)
+        .annotate(Max("pk"))
+        .values("pk__max")
+    )
     return versionable.content_model._base_manager.filter(id__in=inner).all()
 
 
@@ -17,9 +19,9 @@ def forwards(app_registry, schema_editor):
     """
     Assign version numbers to existing data
     """
-    versioning_extension = apps.get_app_config('djangocms_versioning').cms_extension
-    Version = app_registry.get_model('djangocms_versioning', 'Version')
-    ContentType = apps.get_model('contenttypes', 'ContentType')
+    versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
+    Version = app_registry.get_model("djangocms_versioning", "Version")
+    ContentType = apps.get_model("contenttypes", "ContentType")
 
     # For each registered version model
     for versionable in versioning_extension.versionables:
@@ -31,9 +33,8 @@ def forwards(app_registry, schema_editor):
             content_type = ContentType.objects.get_for_model(versionable.content_model)
 
             version_list = Version.objects.filter(
-                object_id__in=content_objects,
-                content_type_id=content_type.pk,
-            ).order_by('pk')
+                object_id__in=content_objects, content_type_id=content_type.pk
+            ).order_by("pk")
 
             previous_number = 0
             for version in version_list:
@@ -44,10 +45,6 @@ def forwards(app_registry, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djangocms_versioning', '0011_version_number'),
-    ]
+    dependencies = [("djangocms_versioning", "0011_version_number")]
 
-    operations = [
-        migrations.RunPython(forwards)
-    ]
+    operations = [migrations.RunPython(forwards)]

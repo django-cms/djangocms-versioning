@@ -7,13 +7,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djangocms_versioning', '0004_auto_20180730_1135'),
-    ]
+    dependencies = [("djangocms_versioning", "0004_auto_20180730_1135")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='version',
-            name='label',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="version", name="label")]

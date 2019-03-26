@@ -80,10 +80,13 @@ class VersionableItem(BaseVersionableItem):
 
     def distinct_groupers(self, **kwargs):
         """Returns a queryset of `self.content` objects with unique
-        grouper objects. Optionally it can takes dict object (**kwargs)
-        for filtering
+        grouper objects.
 
         Useful for listing, e.g. all Polls.
+
+        Args:
+            kwargs: Optionally it takes dict object (**kwargs)
+        for filtering
         """
         queryset = self.content_model._base_manager.values(
             self.grouper_field.name

@@ -113,7 +113,17 @@ class VersioningToolbar(PlaceholderToolbar):
             number=version.number, state=version.state
         )
         versioning_menu = self.toolbar.get_or_create_menu(
-
+            VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
+        )
+        version = version.convert_to_proxy()
+        if self.request.user.has_perm(
+            "{app_label}.{codename}".format(
+                app_label=version._meta.app_label,
+                codename=get_permission_codename("change", version._meta),
+            )
+        ):
+            url = version_list_url(version.content)
+            versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()

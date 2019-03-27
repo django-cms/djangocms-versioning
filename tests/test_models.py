@@ -277,7 +277,6 @@ class TestVersionQuerySet(CMSTestCase):
 
 
 class ModelsTestCase(CMSTestCase):
-
     def test_version_number_for_sequentially_created_versions(self):
         """
         An object being updated in sequential order without any other object versions

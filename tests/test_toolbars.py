@@ -242,10 +242,12 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_for_version_content(self):
         # Versioned item should have versioning menu
         user = UserFactory(is_staff=True)
-        user.user_permissions.add(Permission.objects.get(
-            content_type__app_label='djangocms_versioning',
-            codename='change_pollcontentversion',
-        ))
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="djangocms_versioning",
+                codename="change_pollcontentversion",
+            )
+        )
         version = PollVersionFactory()
         toolbar = get_toolbar(version.content, user=user, preview_mode=True)
         toolbar.post_template_populate()
@@ -259,7 +261,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         version = PollVersionFactory()
         toolbar = get_toolbar(version.content, user=user, preview_mode=True)
         toolbar.post_template_populate()
-        version_menu = toolbar.toolbar.get_menu('version')
+        version_menu = toolbar.toolbar.get_menu("version")
         self.assertFalse(version_menu.get_items())
 
     def test_version_menu_for_none_version(self):
@@ -273,7 +275,9 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_and_url_for_version_content(self):
         # Versioned item should have versioning menu and url should be version list url
         version = PollVersionFactory()
-        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
+        toolbar = get_toolbar(
+            version.content, user=self.get_superuser(), preview_mode=True
+        )
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertIsNotNone(version_menu)
@@ -284,7 +288,9 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_label(self):
         # Versioned item should have correct version menu label
         version = PollVersionFactory()
-        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
+        toolbar = get_toolbar(
+            version.content, user=self.get_superuser(), preview_mode=True
+        )
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
 

@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, urlparse
 import django
 from django.apps import apps
 from django.contrib import admin, messages
+from django.contrib.auth.models import Permission
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
@@ -2120,6 +2121,24 @@ class VersionChangeListViewTestCase(CMSTestCase):
         self.assertEqual(response.url, expected_redirect)
 
     def test_changelist_view_requires_change_permission(self):
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="djangocms_versioning",
+                codename="change_pagecontentversion",
+            )
+        )
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?page=" + str(page_content.page_id)
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_changelist_view_user_has_permission(self):
         page_content = factories.PageContentWithVersionFactory()
         versionable = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
@@ -2127,14 +2146,6 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.get_standard_user()):
             response = self.client.get(url)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url,
-            "/en/admin/login/?next=/en/admin/djangocms_versioning/pagecontentversion/%3Fpage%3D{}".format(
-                page_content.pk
-            ),
-        )
 
 
 class VersionChangeViewTestCase(CMSTestCase):

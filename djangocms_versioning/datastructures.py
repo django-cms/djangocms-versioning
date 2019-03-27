@@ -83,6 +83,7 @@ class VersionableItem(BaseVersionableItem):
         grouper objects.
 
         Useful for listing, e.g. all Polls.
+
         :param kwargs: Optional filtering parameters for inner queryset
         """
         queryset = self.content_model._base_manager.values(

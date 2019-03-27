@@ -2136,18 +2136,6 @@ class VersionChangeListViewTestCase(CMSTestCase):
             ),
         )
 
-    def test_change_view_cannot_be_accessed(self):
-        page_content = factories.PageContentWithVersionFactory()
-        versionable = VersioningCMSConfig.versioning[0]
-        url = self.get_admin_url(
-            versionable.version_model_proxy, "change", page_content.pk
-        )
-
-        with self.login_user_context(self.get_superuser()):
-            response = self.client.get(url)
-
-        self.assertEqual(response.status_code, 403)
-
 
 class VersionChangeViewTestCase(CMSTestCase):
     def setUp(self):

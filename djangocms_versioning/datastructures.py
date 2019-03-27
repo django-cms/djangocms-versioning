@@ -78,17 +78,18 @@ class VersionableItem(BaseVersionableItem):
     def grouper_model(self):
         return self.grouper_field.remote_field.model
 
-    def distinct_groupers(self):
+    def distinct_groupers(self, **kwargs):
         """Returns a queryset of `self.content` objects with unique
         grouper objects.
 
         Useful for listing, e.g. all Polls.
+
+        :param kwargs: Optional filtering parameters for inner queryset
         """
-        inner = (
-            self.content_model._base_manager.values(self.grouper_field.name)
-            .annotate(Max("pk"))
-            .values("pk__max")
-        )
+        queryset = self.content_model._base_manager.values(
+            self.grouper_field.name
+        ).filter(**kwargs)
+        inner = queryset.annotate(Max("pk")).values("pk__max")
         return self.content_model._base_manager.filter(id__in=inner)
 
     def for_grouper(self, grouper):

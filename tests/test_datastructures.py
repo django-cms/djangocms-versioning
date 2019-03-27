@@ -4,6 +4,7 @@ from django.apps import apps
 
 from cms.test_utils.testcases import CMSTestCase
 
+from djangocms_versioning.constants import ARCHIVED, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
@@ -34,6 +35,43 @@ class VersionableItemTestCase(CMSTestCase):
         self.assertQuerysetEqual(
             versionable.distinct_groupers(),
             [latest_poll1_version.pk, latest_poll2_version.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
+
+    def test_queryset_filter_for_distinct_groupers(self):
+        poll1_archived_version = PollVersionFactory(
+            content__poll=self.initial_version.content.poll, state=ARCHIVED
+        )
+        poll1_published_version = PollVersionFactory(
+            content__poll=self.initial_version.content.poll, state=PUBLISHED
+        )
+        poll2_version = PollVersionFactory()
+        PollVersionFactory(content__poll=poll2_version.content.poll, state=ARCHIVED)
+        poll2_archived_version = PollVersionFactory(
+            content__poll=poll2_version.content.poll, state=ARCHIVED
+        )
+
+        versionable = VersionableItem(
+            content_model=PollContent,
+            grouper_field_name="poll",
+            copy_function=default_copy,
+        )
+
+        qs_published_filter = {"versions__state__in": [PUBLISHED]}
+        # Should be one published version
+        self.assertQuerysetEqual(
+            versionable.distinct_groupers(**qs_published_filter),
+            [poll1_published_version.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
+
+        qs_archive_filter = {"versions__state__in": [ARCHIVED]}
+        # Should be two archived versions
+        self.assertQuerysetEqual(
+            versionable.distinct_groupers(**qs_archive_filter),
+            [poll1_archived_version.pk, poll2_archived_version.pk],
             transform=lambda x: x.pk,
             ordered=False,
         )

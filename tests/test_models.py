@@ -275,6 +275,9 @@ class TestVersionQuerySet(CMSTestCase):
             versions_for_grouper, [pv.pk], transform=lambda o: o.pk, ordered=False
         )
 
+
+class ModelsTestCase(CMSTestCase):
+
     def test_version_number_for_sequentially_created_versions(self):
         """
         An object being updated in sequential order without any other object versions
@@ -373,6 +376,19 @@ class TestVersionQuerySet(CMSTestCase):
         # Language 2 checks
         self.assertEqual(lang2_version_1.number, 1)
         self.assertEqual(lang2_version_2.number, 2)
+
+    def test_convert_to_proxy(self):
+        version = factories.PollVersionFactory()
+        proxied_version = version.convert_to_proxy()
+
+        cms_extension = apps.get_app_config("djangocms_versioning").cms_extension
+        versionable = cms_extension.versionables_by_content[PollContent]
+        proxy_model = versionable.version_model_proxy
+
+        self.assertNotEqual(version.__class__, proxied_version.__class__)
+        # assert it's still a subclass of Version
+        self.assertTrue(isinstance(proxied_version, Version))
+        self.assertTrue(isinstance(proxied_version, proxy_model))
 
 
 class TestVersionModelSource(CMSTestCase):

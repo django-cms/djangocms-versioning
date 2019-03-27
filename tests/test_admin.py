@@ -2119,6 +2119,35 @@ class VersionChangeListViewTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, expected_redirect)
 
+    def test_changelist_view_requires_change_permission(self):
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?page=" + str(page_content.page_id)
+
+        with self.login_user_context(self.get_standard_user()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            "/en/admin/login/?next=/en/admin/djangocms_versioning/pagecontentversion/%3Fpage%3D{}".format(
+                page_content.pk
+            ),
+        )
+
+    def test_change_view_cannot_be_accessed(self):
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(
+            versionable.version_model_proxy, "change", page_content.pk
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 403)
+
 
 class VersionChangeViewTestCase(CMSTestCase):
     def setUp(self):

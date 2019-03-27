@@ -877,5 +877,12 @@ class VersionAdmin(admin.ModelAdmin):
             return False
         return super().has_change_permission(request, obj)
 
+    def has_view_permission(self, request, obj=None):
+        """Disable change view access for Django 2.1 and above
+        """
+        if obj is not None:
+            return False
+        return super().has_view_permission(request, obj)
+
     def has_delete_permission(self, request, obj=None):
         return False

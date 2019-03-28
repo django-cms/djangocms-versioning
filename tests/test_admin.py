@@ -10,6 +10,7 @@ import django
 from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
@@ -2118,6 +2119,35 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected_redirect += "?e=1"
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, expected_redirect)
+
+    def test_changelist_view_requires_change_permission(self):
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="djangocms_versioning",
+                codename="change_pagecontentversion",
+            )
+        )
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?page=" + str(page_content.page_id)
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_changelist_view_user_doesnt_have_permission(self):
+        page_content = factories.PageContentWithVersionFactory()
+        versionable = VersioningCMSConfig.versioning[0]
+        url = self.get_admin_url(versionable.version_model_proxy, "changelist")
+        url += "?page=" + str(page_content.page_id)
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 403)
 
 
 class VersionChangeViewTestCase(CMSTestCase):

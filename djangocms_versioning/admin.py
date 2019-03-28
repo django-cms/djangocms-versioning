@@ -871,9 +871,11 @@ class VersionAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        """Return True for changelist and False for change view.
+        """Disable change view access
         """
-        return obj is None
+        if obj is not None:
+            return False
+        return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         return False

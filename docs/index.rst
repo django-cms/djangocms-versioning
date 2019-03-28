@@ -11,6 +11,7 @@ Welcome to "djangocms-versioning"'s documentation!
    :maxdepth: 2
    :caption: API Reference:
 
+   advanced_configuration
    signals
    customizing_version_list
 
@@ -53,3 +54,9 @@ Glossary
         by both its grouper object and its extra grouping fields in the admin and
         in any other implementations (in the page example, this ensures that
         the latest version of a German alias would not be displayed on an English page).
+
+    copy function
+        When creating a new draft version, versioning will usually copy an
+        existing version. By default it will copy the current published version,
+        but when reverting to an old version, a specific unpublished or archived version
+        will be used. A customizable copy function is used for this.

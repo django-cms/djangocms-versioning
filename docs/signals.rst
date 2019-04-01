@@ -1,10 +1,6 @@
 Signals
 =======
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
 Signals are fired before and after the following events which can be found in the file 'constants.py': 
     - When a version is created the operation sent is 'operation_draft'
     - When a version is archived the operation sent is 'operation_archive'
@@ -16,7 +12,7 @@ A token is emitted in the signals that will allow the pre and post signals to be
 How to use the version publish and un-publish signal for a CMS Page
 ---------------------------------------------------------------------
 
-The CMS used to provide page publish and unpublish signals which have since been removed in DjangoCMS 4.0. To replicate the behaviour you can listen to changes on the cms model PageContent as shown in the example below.
+The CMS used to provide page publish and unpublish signals which have since been removed in DjangoCMS 4.0. To replicate the behaviour you can listen to changes on the cms model PageContent as shown in the example below:
 
 .. code-block:: python
 

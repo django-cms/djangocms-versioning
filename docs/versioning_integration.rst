@@ -5,10 +5,7 @@ Integrating Versioning
    :maxdepth: 2
    :caption: Quick Start:
 
-Let's use an example. Let's say we have an existing `blog` application
-that has a single model called `Post`.
-
-In order to make the `blog` app work with versioning, you would need to take the following steps:
+Let's say we have an existing `blog` application. To make the `blog` app work with versioning, you would need to take the following steps:
 
     1. Change the model structure.
     2. Register the `Post` model for versioning
@@ -28,7 +25,7 @@ Assuming that our `blog` app has `models.py` defined like so:
 
 
     class Post(models.Model):
-        site = models.ForeignKey(Site, on_delete=models.CASCADE))
+        site = models.ForeignKey(Site, on_delete=models.CASCADE)
         title = models.CharField(max_length=100)
         text = models.TextField()
 
@@ -42,7 +39,7 @@ The model structure would need to change to something like this:
 
 
     class Post(models.Model):
-        site = models.ForeignKey(Site, on_delete=models.CASCADE))
+        site = models.ForeignKey(Site, on_delete=models.CASCADE)
 
 
     class PostContent(models.Model):

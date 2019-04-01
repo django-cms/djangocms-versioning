@@ -43,6 +43,8 @@ Additional options on the VersionableItem class
 The three mandatory attributes of `VersionableItem` are described in detail on the :doc:`versioning_integration` page. Below are additional options you might want to set.
 
 
+.. _preview_url:
+
 preview_url
 +++++++++++
 This will define the url that will be used for each version on the version list table.
@@ -91,6 +93,8 @@ Defines one or more :term:`extra grouping fields <extra grouping field>`. This w
                 extra_grouping_fields=["language"],
             ),
         ]
+
+.. _version_list_filter_lookups:
 
 version_list_filter_lookups
 ++++++++++++++++++++++++++++

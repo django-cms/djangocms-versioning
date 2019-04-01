@@ -32,6 +32,7 @@ from .versionables import _cms_extension
 
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
+
     def get_queryset(self, request):
         """Limit the content model queryset to latest versions only."""
         queryset = super().get_queryset(request)

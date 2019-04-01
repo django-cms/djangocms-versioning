@@ -120,7 +120,6 @@ class VersionableItem(BaseVersionableItem):
 
         :param content: instance of a content model
         :param relation_suffix: bool setting whether fk fieldnames have '_id' added
-
         :return: a dict like {'grouping_field1': content.grouping_field1, ...}
         """
         def suffix(field, allow=True):

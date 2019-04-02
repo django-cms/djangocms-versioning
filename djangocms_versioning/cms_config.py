@@ -28,24 +28,28 @@ class VersioningCMSExtension(CMSAppExtension):
 
     @cached_property
     def versionables_by_content(self):
+        """Returns a dict of {content_model_cls: VersionableItem obj}"""
         return {
             versionable.content_model: versionable for versionable in self.versionables
         }
 
     def is_content_model_versioned(self, content_model):
-        """Checks if provided content model supports versioning.
+        """Returns if the content model is registered for versioning.
         """
         return content_model in self.versionables_by_content
 
     @cached_property
     def versionables_by_grouper(self):
+        """Returns a dict of {grouper_model_cls: VersionableItem obj}"""
         return {
             versionable.grouper_model: versionable
             for versionable in self.versionables
+            # TODO: Comment on/document why this is here
             if versionable.concrete
         }
 
     def is_grouper_model_versioned(self, grouper_model):
+        """Returns if the grouper model has been registered for versioning"""
         return grouper_model in self.versionables_by_grouper
 
     def handle_versioning_setting(self, cms_config):
@@ -126,6 +130,8 @@ class VersioningCMSExtension(CMSAppExtension):
             replace_default_manager(versionable.content_model)
 
     def configure_app(self, cms_config):
+        # Validation to ensure either the versioning or the
+        # versioning_add_to_confirmation_context config has been defined
         has_extra_context = hasattr(
             cms_config, "versioning_add_to_confirmation_context"
         )
@@ -134,6 +140,7 @@ class VersioningCMSExtension(CMSAppExtension):
             raise ImproperlyConfigured(
                 "The versioning or versioning_add_to_confirmation_context setting must be defined"
             )
+        # No exception raised so now configure based on those settings
         if has_extra_context:
             self.handle_versioning_add_to_confirmation_context_setting(cms_config)
         if has_models_to_register:
@@ -146,15 +153,15 @@ class VersioningCMSExtension(CMSAppExtension):
 
 def copy_page_content(original_content):
     """Copy the PageContent object and deepcopy its
-    placeholders and plugins. Don't copy the primary key
-    because we are creating a new obj, and also the
-    creation_date as we want copied content to reflect
-    the date it was copied.
+    placeholders and plugins.
     """
     # Copy content object
     content_fields = {
         field.name: getattr(original_content, field.name)
         for field in PageContent._meta.fields
+        # Don't copy the pk as we're creating a new obj.
+        # The creation date should reflect the date it was copied on,
+        # so don't copy that either.
         if field.name not in (PageContent._meta.pk.name, "creation_date")
     }
 
@@ -192,6 +199,7 @@ def label_from_instance(obj, language):
 
 
 def on_page_content_publish(version):
+    """Url path and cache operations to do when a PageContent obj is published"""
     page = version.content.page
     language = version.content.language
     page._update_url_path(language)
@@ -202,6 +210,7 @@ def on_page_content_publish(version):
 
 
 def on_page_content_unpublish(version):
+    """Url path and cache operations to do when a PageContent obj is unpublished"""
     page = version.content.page
     language = version.content.language
     page.update_urls(language, path=None)
@@ -210,11 +219,13 @@ def on_page_content_unpublish(version):
 
 
 def on_page_content_draft_create(version):
+    """Clear cache when a new PageContent draft is created."""
     page = version.content.page
     page.clear_cache(menu=True)
 
 
 def on_page_content_archive(version):
+    """Clear cache when a new PageContent version is archived."""
     page = version.content.page
     page.clear_cache(menu=True)
 

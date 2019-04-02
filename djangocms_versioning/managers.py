@@ -2,6 +2,7 @@ from .constants import PUBLISHED
 
 
 class PublishedContentManagerMixin:
+    """Manager mixin used for overriding the managers of content models"""
     versioning_enabled = True
 
     def get_queryset(self):

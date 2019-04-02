@@ -31,15 +31,21 @@ from .versionables import _cms_extension
 
 
 class VersioningChangeListMixin:
+    """Mixin used for ChangeList classes of content models."""
+
     def get_queryset(self, request):
+        """Limit the content model queryset to latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
         return queryset.filter(pk__in=versionable.distinct_groupers())
 
 
-def versioning_change_list_factory(ChangeList):
+def versioning_change_list_factory(base_changelist_cls):
+    """Generate a ChangeList class to use for the content model"""
     return type(
-        "Versioned" + ChangeList.__name__, (VersioningChangeListMixin, ChangeList), {}
+        "Versioned" + base_changelist_cls.__name__,
+        (VersioningChangeListMixin, base_changelist_cls),
+        {}
     )
 
 
@@ -63,6 +69,7 @@ class VersioningAdminMixin:
             Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
+        """Override manager so records not in published state can be displayed"""
         from .helpers import override_default_manager
 
         with override_default_manager(self.model, self.model._original_manager):
@@ -78,6 +85,7 @@ class VersioningAdminMixin:
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
+        """Add a link to the version table to the change form view"""
         if "versioning_fallback_change_form_template" not in context:
             context[
                 "versioning_fallback_change_form_template"
@@ -86,6 +94,12 @@ class VersioningAdminMixin:
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def get_readonly_fields(self, request, obj=None):
+        """Port permission code from django >= 2.1.
+
+        In later versions of django if a user has view perms but no
+        change perms, fields are set as read-only. This is not the case
+        in django < 2.1.
+        """
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
@@ -112,6 +126,10 @@ class VersioningAdminMixin:
 
 class VersionChangeList(ChangeList):
     def get_filters_params(self, params=None):
+        """Removes the grouper param from the filters as the main grouper
+        filtering is not handled by the UI filters and therefore needs to be
+        handled differently.
+        """
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         filter_params = super().get_filters_params(params)
@@ -119,6 +137,12 @@ class VersionChangeList(ChangeList):
         return filter_params
 
     def get_grouping_field_filters(self, request):
+        """Handles extra grouping params (such as PageContent.language).
+
+        The get_filters_params method does return these filters as they are
+        visible in the UI, however they need extra handling due to db
+        optimization and the difficulties involved in handling the
+        generic foreign key from Version to the content model."""
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         fields = versionable.grouping_fields
@@ -192,6 +216,7 @@ class VersionAdmin(admin.ModelAdmin):
         return VersionChangeList
 
     def get_list_filter(self, request):
+        """Adds the filters for the extra grouping fields to the UI."""
         versionable = versionables.for_content(self.model._source_model)
         return [
             fake_filter_factory(versionable, field)
@@ -223,6 +248,7 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
     def get_actions(self, request):
+        """Removes the standard django admin delete action."""
         actions = super().get_actions(request)
         # disable delete action
         if "delete_selected" in actions:
@@ -239,6 +265,7 @@ class VersionAdmin(admin.ModelAdmin):
     nr.short_description = _("version number")
 
     def content_link(self, obj):
+        """Display html for the content preview url"""
         content = obj.content
         url = get_preview_url(content)
 
@@ -388,6 +415,7 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
     def get_state_actions(self):
+        """Returns all action links as a list"""
         return [
             self._get_edit_link,
             self._get_archive_link,
@@ -571,6 +599,7 @@ class VersionAdmin(admin.ModelAdmin):
         return redirect(version_list_url(version.content))
 
     def _get_edit_redirect_version(self, request, version):
+        """Helper method to get the latest draft or create one if one does not exist."""
         # If published then there's extra things to do...
         if version.state == PUBLISHED:
             # First check there is no draft record for this grouper
@@ -621,9 +650,7 @@ class VersionAdmin(admin.ModelAdmin):
         return redirect(get_editable_url(target.content))
 
     def revert_view(self, request, object_id):
-        """Redirects to the admin change view and creates a draft version
-        if no draft exists yet.
-        """
+        """Reverts to the specified version i.e. creates a draft from it."""
         version = self.get_object(request, unquote(object_id))
 
         if version is None:
@@ -679,9 +706,7 @@ class VersionAdmin(admin.ModelAdmin):
             return redirect(version_list_url(version.content))
 
     def discard_view(self, request, object_id):
-        """Redirects to the admin change view and creates a draft version
-        if no draft exists yet.
-        """
+        """Discards the specified version"""
         version = self.get_object(request, unquote(object_id))
 
         if version is None:
@@ -774,6 +799,7 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
     def changelist_view(self, request, extra_context=None):
+        """Handle grouper filtering on the changelist"""
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
             opts = self.model._meta

@@ -6,12 +6,15 @@ from . import versionables
 
 
 class VersionContentChoiceField(forms.ModelChoiceField):
+    """Form field used to display a list of grouper instances"""
+
     def __init__(self, *args, **kwargs):
         self.language = kwargs.pop("language")
         self.predefined_label_method = kwargs.pop("option_label_override")
         super().__init__(*args, **kwargs)
 
     def label_from_instance(self, obj):
+        """Overridden to allow customizing the labels of the groupers"""
         if self.predefined_label_method:
             return self.predefined_label_method(obj, self.language)
         else:
@@ -19,6 +22,7 @@ class VersionContentChoiceField(forms.ModelChoiceField):
 
 
 class GrouperFormMixin:
+    """Mixin used by grouper_form_factory to create the grouper select form class"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         versionable = versionables.for_content(self._content_model)

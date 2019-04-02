@@ -53,6 +53,10 @@ class VersionableItem(BaseVersionableItem):
         self.preview_url = preview_url
 
     def _get_grouper_field(self):
+        """Get the grouper field on the content model
+
+        :return: instance of a django model field
+        """
         return self.content_model._meta.get_field(self.grouper_field_name)
 
     @cached_property
@@ -76,6 +80,7 @@ class VersionableItem(BaseVersionableItem):
 
     @property
     def grouper_model(self):
+        """Returns the grouper model class"""
         return self.grouper_field.remote_field.model
 
     def distinct_groupers(self, **kwargs):
@@ -108,9 +113,16 @@ class VersionableItem(BaseVersionableItem):
 
     @property
     def grouping_fields(self):
+        """Returns an iterator for all the grouping fields"""
         return chain([self.grouper_field_name], self.extra_grouping_fields)
 
     def grouping_values(self, content, relation_suffix=True):
+        """Returns a dict of grouper fields as keys and values from the content instance
+
+        :param content: instance of a content model
+        :param relation_suffix: bool setting whether fk fieldnames have '_id' added
+        :return: a dict like {'grouping_field1': content.grouping_field1, ...}
+        """
         def suffix(field, allow=True):
             if allow and content._meta.get_field(field).is_relation:
                 return field + "_id"
@@ -122,6 +134,7 @@ class VersionableItem(BaseVersionableItem):
         }
 
     def grouper_choices_queryset(self):
+        """Returns a queryset of all the available groupers instances of the registered type"""
         inner = (
             self.content_model._base_manager.annotate(
                 order=Case(
@@ -152,6 +165,13 @@ class VersionableItem(BaseVersionableItem):
 
     @cached_property
     def content_types(self):
+        """Get the primary key of the content type of the registered content model.
+
+        :return:  A list with the primary keys of the content types
+        """
+        # NOTE: If using this class this will be a list with one element,
+        # but PolymorphicVersionableItem overrides this and can return
+        # more elements
         return self._get_content_types()
 
 

@@ -15,7 +15,34 @@ Let's say we have an existing `blog` application. To make the `blog` app work wi
 
 Change the model structure
 ----------------------------
-Assuming that our `blog` app has `models.py` defined like so:
+Assuming that our `blog` app has one db table:
+
+.. graphviz::
+
+     digraph ERD1 {
+      graph [   rankdir = "LR" ];
+      ranksep=2;
+
+      "Post" [ label="<Post> Post|<PK_GROUPER_ID>id \l |site \l title \l text \l " shape = "record" ];
+
+      "Post":"PK_GROUPER_ID" [arrowhead = crow];
+    }
+
+This would have to change to a db structure like this:
+
+.. graphviz::
+
+     digraph ERD2 {
+      graph [   rankdir = "LR" ];
+      ranksep=2;
+
+      "Post" [ label="<Post> Post|<PK_GROUPER_ID>id \l |site \l " shape = "record" ];
+      "PostContent" [ label="<PostContent> PostContent|<PK_CONTENT_ID>id \l |<FK_POST>post \l |title \l text \l " shape = "record" ];
+
+      "Post":"PK_GROUPER_ID"->"PostContent":"FK_POST" [arrowhead = crow];
+    }
+
+Or in python code, `models.py` would need to change from:
 
 .. code-block:: python
 
@@ -29,7 +56,7 @@ Assuming that our `blog` app has `models.py` defined like so:
         title = models.CharField(max_length=100)
         text = models.TextField()
 
-The model structure would need to change to something like this:
+To:
 
 .. code-block:: python
 
@@ -46,7 +73,6 @@ The model structure would need to change to something like this:
         post = models.ForeignKey(Post, on_delete=models.CASCADE)
         title = models.CharField(max_length=100)
         text = models.TextField()
-
 
 `Post` becomes a :term:`grouper model <grouper model>` and `PostContent` becomes a :term:`content model <content model>`.
 

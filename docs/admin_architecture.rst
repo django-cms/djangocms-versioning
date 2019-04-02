@@ -16,7 +16,7 @@ The Version model admin
 Proxy models
 +++++++++++++
 Versioning generates a `proxy model
-<https://docs.djangoproject.com/en/dev/topics/db/models/#proxy-models>`_ of Version
+<https://docs.djangoproject.com/en/dev/topics/db/models/#proxy-models>`_ of :class:`djangocms_versioning.models.Version`
 for each registered :term:`content model <content model>`. These proxy models are then registered in the admin.
 This allows a clear separation of the versions of each :term:`content model <content model>` registered and
 means the version table can be customized for each :term:`content model <content model>`, for example

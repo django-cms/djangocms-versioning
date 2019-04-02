@@ -166,10 +166,11 @@ class VersionableItem(BaseVersionableItem):
     def content_types(self):
         """Get the primary key of the content type of the registered content model.
 
-        :return:  A list with one element - the pk of the content type of the content model
+        :return:  A list with the primary keys of the content types
         """
-        # TODO: Why on earth would this return a list which will always
-        # have just one element?
+        # NOTE: If using this class this will be a list with one element,
+        # but PolymorphicVersionableItem overrides this and can return
+        # more elements
         return self._get_content_types()
 
 

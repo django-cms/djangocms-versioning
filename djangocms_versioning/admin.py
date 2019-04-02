@@ -118,7 +118,6 @@ class VersioningAdminMixin:
         return super().get_readonly_fields(request, obj)
 
     def has_change_permission(self, request, obj=None):
-        # TODO: This is possibly a bug
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)
@@ -219,9 +218,6 @@ class VersionAdmin(admin.ModelAdmin):
     def get_list_filter(self, request):
         """Adds the filters for the extra grouping fields to the UI."""
         versionable = versionables.for_content(self.model._source_model)
-        # TODO: This possibly should still allow adding more filters via
-        # self.list_filter which is what the original method this inherits
-        # from uses.
         return [
             fake_filter_factory(versionable, field)
             for field in versionable.extra_grouping_fields
@@ -253,7 +249,6 @@ class VersionAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         """Removes the standard django admin delete action."""
-        # TODO: There appears to be no test for this.
         actions = super().get_actions(request)
         # disable delete action
         if "delete_selected" in actions:
@@ -699,8 +694,6 @@ class VersionAdmin(admin.ModelAdmin):
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
             )
         else:
-            # TODO: What's going on here? Why are we allowing both the
-            # archiving of a draft and the deletion of it straight after?
 
             if draft_version and request.POST.get("archive"):
                 draft_version.archive(request.user)

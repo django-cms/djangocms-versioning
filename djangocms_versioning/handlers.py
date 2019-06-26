@@ -1,5 +1,17 @@
 from django.utils import timezone
 
+from cms.operations import (
+    ADD_PLUGIN,
+    ADD_PLUGINS_FROM_PLACEHOLDER,
+    CHANGE_PLUGIN,
+    CLEAR_PLACEHOLDER,
+    CUT_PLUGIN,
+    DELETE_PLUGIN,
+    MOVE_PLUGIN,
+    PASTE_PLACEHOLDER,
+    PASTE_PLUGIN,
+)
+
 from .models import Version
 from .versionables import _cms_extension
 
@@ -26,5 +38,16 @@ def update_modified_date_for_pagecontent(sender, **kwargs):
 
 
 def update_modified_date_for_placeholder_source(sender, **kwargs):
-    placeholder = kwargs["placeholder"]
-    _update_modified(placeholder.source)
+    placeholders = []
+    operation = kwargs["operation"]
+    if operation in (ADD_PLUGIN, CHANGE_PLUGIN, CLEAR_PLACEHOLDER, DELETE_PLUGIN):
+        placeholders = [kwargs["placeholder"]]
+    elif operation in (ADD_PLUGINS_FROM_PLACEHOLDER, PASTE_PLACEHOLDER, PASTE_PLUGIN):
+        placeholders = [kwargs["target_placeholder"]]
+    elif operation in (CUT_PLUGIN,):
+        placeholders = [kwargs["source_placeholder"]]
+    elif operation in (MOVE_PLUGIN,):
+        placeholders = [kwargs["source_placeholder"], kwargs["target_placeholder"]]
+
+    for placeholder in placeholders:
+        _update_modified(placeholder.source)

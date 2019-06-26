@@ -38,6 +38,7 @@ def update_modified_date_for_pagecontent(sender, **kwargs):
 
 
 def update_modified_date_for_placeholder_source(sender, **kwargs):
+    placeholders = []
     operation = kwargs["operation"]
     if operation in (ADD_PLUGIN, CHANGE_PLUGIN, CLEAR_PLACEHOLDER, DELETE_PLUGIN):
         placeholders = [kwargs["placeholder"]]

@@ -26,4 +26,5 @@ setup(
     author_email="info@divio.ch",
     url="http://github.com/divio/djangocms-versioning",
     license="BSD",
+    zip_safe=False
 )

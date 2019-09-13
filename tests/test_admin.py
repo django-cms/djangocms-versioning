@@ -25,7 +25,6 @@ from cms.utils.urlutils import admin_reverse
 
 import pytz
 from bs4 import BeautifulSoup
-from freezegun import freeze_time
 
 import djangocms_versioning.helpers
 from djangocms_versioning import constants, helpers
@@ -46,6 +45,7 @@ from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfi
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
+from freezegun import freeze_time
 
 
 DJANGO_GTE_21 = LooseVersion(django.__version__) >= LooseVersion("2.1")

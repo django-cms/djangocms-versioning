@@ -40,6 +40,14 @@ An example implementation can be found here:
 - `djangocms_versioning/test_utils/polls/models.py <djangocms_versioning/test_utils/polls/models.py>`_
 
 
+Testing
+=======
+
+To run all the tests the only thing you need to do is run
+
+    python setup.py test
+
+
 Documentation
 =============
 

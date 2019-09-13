@@ -1,15 +1,8 @@
 # test libraries
 coverage
-djangocms_helper
 pyflakes>=2.1.1
 flake8
 isort
-factory-boy
-freezegun
 mock
-https://github.com/divio/djangocms-text-ckeditor/archive/support/4.0.x.zip
-beautifulsoup4
-lxml<=4.3.5
 
-# libraries specified in setup.py
-django-fsm>=2.6,<2.7
+beautifulsoup4

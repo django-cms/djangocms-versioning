@@ -47,13 +47,16 @@ class GrouperFormTestCase(CMSTestCase):
     def test_grouper_selector_non_default_label_unpublished(self):
         """
         Grouper selector shows the PageContent label format when PageContent is set
+
+        Because PublishedContentManager filters out draft content the label is not
+        str(version.content.title) but "No available title"
         """
         version = factories.PageVersionFactory()
         form_class = grouper_form_factory(PageContent, version.content.language)
-        label = "No available title (Unpublished)"
-        self.assertIn(
-            (version.content.page.pk, label), form_class.base_fields["page"].choices
-        )
+        label = "{} ({})".format("No available title", "Unpublished")
+
+        choices = list(form_class.base_fields["page"].choices)
+        self.assertIn((version.content.page.pk, label), choices)
 
     def test_grouper_selector_non_default_label(self):
         """

@@ -59,6 +59,7 @@ class VersioningCMSExtension(CMSAppExtension):
         # First check that versioning is correctly defined
         if not isinstance(cms_config.versioning, collections.abc.Iterable):
             raise ImproperlyConfigured("versioning not defined as an iterable")
+
         for versionable in cms_config.versioning:
             if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(

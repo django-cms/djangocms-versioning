@@ -276,6 +276,18 @@ class TestVersionQuerySet(CMSTestCase):
         )
 
 
+class ManagerTestCase(CMSTestCase):
+    def setUp(self):
+        self.poll_version = factories.PollVersionFactory(content__language="en")
+
+    def test_draft_accessible_through_objects_get(self):
+        """Using objects.get works as expected for draft content"""
+        poll_content = PollContent.objects.get(pk=self.poll_version.content.pk)
+
+        self.assertEqual(self.poll_version.state, DRAFT)
+        self.assertEqual(self.poll_version.content.pk, poll_content.pk)
+
+
 class ModelsTestCase(CMSTestCase):
     def test_version_number_for_sequentially_created_versions(self):
         """

@@ -91,7 +91,6 @@ def create_title(func):
 
     return inner
 
-
 api.create_title = create_title(api.create_title)  # noqa: E305
 
 

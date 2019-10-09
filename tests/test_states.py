@@ -3,11 +3,11 @@ from django.utils.timezone import now
 from cms.test_utils.testcases import CMSTestCase
 
 from django_fsm import TransitionNotAllowed
-from freezegun import freeze_time
 
 from djangocms_versioning import constants
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
+from freezegun import freeze_time
 
 
 class TestVersionState(CMSTestCase):

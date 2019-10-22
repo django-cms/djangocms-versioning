@@ -5,7 +5,7 @@ py34default: &py34default
     - image: circleci/python:3.4
   steps:
    - setup_remote_docker:
-       docker_layer_caching: true
+       docker_layer_caching: false
    - checkout
    - attach_workspace:
        at: /tmp/images
@@ -17,7 +17,7 @@ py35default: &py35default
     - image: circleci/python:3.5
   steps:
    - setup_remote_docker:
-       docker_layer_caching: true
+       docker_layer_caching: false
    - checkout
    - attach_workspace:
        at: /tmp/images
@@ -29,7 +29,7 @@ py36default: &py36default
     - image: circleci/python:3.6
   steps:
    - setup_remote_docker:
-       docker_layer_caching: true
+       docker_layer_caching: false
    - checkout
    - attach_workspace:
        at: /tmp/images
@@ -55,7 +55,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: docker build -f .circleci/Dockerfile --build-arg PYTHON_VERSION=3.4 -t py34 .
       - run: mkdir images
       - run: docker save -o images/py34.tar py34
@@ -68,7 +68,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: docker build -f .circleci/Dockerfile --build-arg PYTHON_VERSION=3.5 -t py35 .
       - run: mkdir images
       - run: docker save -o images/py35.tar py35
@@ -81,7 +81,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run: docker build -f .circleci/Dockerfile --build-arg PYTHON_VERSION=3.6 -t py36 .
       - run: mkdir images
       - run: docker save -o images/py36.tar py36

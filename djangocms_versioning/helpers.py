@@ -262,3 +262,15 @@ def get_preview_url(content_obj):
             args=[content_obj.pk],
         )
     return url
+
+def _get_model_fields(instance, model, field_exclusion_list=[]):
+    """
+    This method returns a dictionary of the fields in a given model
+    Useful for custom copy functions when creating versionable content.
+    """
+    field_exclusion_list.append(model._meta.pk.name)
+    return {
+        field.name: getattr(instance, field.name)
+        for field in model._meta.fields
+        if field.name not in field_exclusion_list
+    }

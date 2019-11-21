@@ -2005,6 +2005,20 @@ class VersionChangeListViewTestCase(CMSTestCase):
             ordered=False,
         )
 
+    def test_view_language_on_item_with_no_language(self):
+        """A multi lingual model shows an empty version list when no
+        translation / language version exists for the grouper
+        """
+        changelist_url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        version1 = factories.PollVersionFactory(content__language="en")
+        version2 = factories.PollVersionFactory(content__language="en")
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist_url, {"language": "fr", "poll": version1.content.poll_id})
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.context["cl"].queryset.count())
+
     def test_changelist_view_displays_correct_breadcrumbs(self):
         poll_content = factories.PollContentWithVersionFactory()
         url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")

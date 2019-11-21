@@ -2005,19 +2005,40 @@ class VersionChangeListViewTestCase(CMSTestCase):
             ordered=False,
         )
 
-    def test_view_language_on_item_with_no_language(self):
+    def test_view_language_on_poll_with_no_language_content(self):
         """A multi lingual model shows an empty version list when no
-        translation / language version exists for the grouper
+        language filters / additional grouping values exist for the grouper
         """
         changelist_url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
-        version1 = factories.PollVersionFactory(content__language="en")
-        version2 = factories.PollVersionFactory(content__language="en")
+        version = factories.PollVersionFactory(content__language="en")
 
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(changelist_url, {"language": "fr", "poll": version1.content.poll_id})
+            response = self.client.get(changelist_url, {"language": "fr", "poll": version.content.poll_id})
 
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, response.context["cl"].queryset.count())
+
+    def test_view_language_on_polls_with_language_content(self):
+        """A multi lingual model shows the correct values when
+        language filters / additional grouping values are set
+        """
+        changelist_url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        poll = factories.PollFactory()
+        en_version1 = factories.PollVersionFactory(content__poll=poll, content__language="en")
+        fr_version1 = factories.PollVersionFactory(content__poll=poll, content__language="fr")
+
+        with self.login_user_context(self.get_superuser()):
+            fr_response = self.client.get(changelist_url, {"language": "fr", "poll": poll.pk})
+            en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+
+        # English values checked
+        self.assertEqual(200, en_response.status_code)
+        self.assertEqual(1, en_response.context["cl"].queryset.count())
+        self.assertEqual(en_version1.content, en_response.context["cl"].queryset.first().content)
+        # French values checked
+        self.assertEqual(200, fr_response.status_code)
+        self.assertEqual(1, fr_response.context["cl"].queryset.count())
+        self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first().content)
 
     def test_changelist_view_displays_correct_breadcrumbs(self):
         poll_content = factories.PollContentWithVersionFactory()

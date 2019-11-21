@@ -2016,7 +2016,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
             response = self.client.get(changelist_url, {"language": "fr", "poll": version.content.poll_id})
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual(2, response.context["cl"].queryset.count())
+        self.assertEqual(0, response.context["cl"].queryset.count())
 
     def test_view_language_on_polls_with_language_content(self):
         """A multi lingual model shows the correct values when

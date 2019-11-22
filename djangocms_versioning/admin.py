@@ -818,6 +818,9 @@ class VersionAdmin(admin.ModelAdmin):
             grouper = None
 
         if grouper:
+            # CAVEAT: as the breadcrumb trails expect a value for latest content in the template
+            extra_context["latest_content"] = ({'pk': None})
+
             extra_context.update(
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),

@@ -22,6 +22,7 @@ def forwards(app_registry, schema_editor):
     Removed because versions will always be created after this point, and it is causing dependency problems with other packages tests.
     Anyone that requires this migration can install version 0.0.23, which is the last version with it enabled.
     """
+    return
     # versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
     # Version = app_registry.get_model("djangocms_versioning", "Version")
     # ContentType = apps.get_model("contenttypes", "ContentType")

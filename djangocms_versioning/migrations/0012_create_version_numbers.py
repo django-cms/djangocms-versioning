@@ -18,29 +18,33 @@ def _distinct_groupers(versionable):
 def forwards(app_registry, schema_editor):
     """
     Assign version numbers to existing data
+
+    Removed because versions will always be created after this point, and it is causing dependency problems with other packages tests.
+    Anyone that requires this migration can install version 0.0.23, which is the last version with it enabled.
     """
-    versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
-    Version = app_registry.get_model("djangocms_versioning", "Version")
-    ContentType = apps.get_model("contenttypes", "ContentType")
+    return
+    # versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
+    # Version = app_registry.get_model("djangocms_versioning", "Version")
+    # ContentType = apps.get_model("contenttypes", "ContentType")
 
-    # For each registered version model
-    for versionable in versioning_extension.versionables:
-        # For each distinct grouper, unique to the grouping field values
-        for content in _distinct_groupers(versionable):
+    # # For each registered version model
+    # for versionable in versioning_extension.versionables:
+    #     # For each distinct grouper, unique to the grouping field values
+    #     for content in _distinct_groupers(versionable):
 
-            fields = versionable.grouping_values(content)
-            content_objects = versionable.for_grouping_values(**fields)
-            content_type = ContentType.objects.get_for_model(versionable.content_model)
+    #         fields = versionable.grouping_values(content)
+    #         content_objects = versionable.for_grouping_values(**fields)
+    #         content_type = ContentType.objects.get_for_model(versionable.content_model)
 
-            version_list = Version.objects.filter(
-                object_id__in=content_objects, content_type_id=content_type.pk
-            ).order_by("pk")
+    #         version_list = Version.objects.filter(
+    #             object_id__in=content_objects, content_type_id=content_type.pk
+    #         ).order_by("pk")
 
-            previous_number = 0
-            for version in version_list:
-                version.number = previous_number + 1
-                previous_number = version.number
-                version.save()
+    #         previous_number = 0
+    #         for version in version_list:
+    #             version.number = previous_number + 1
+    #             previous_number = version.number
+    #             version.save()
 
 
 class Migration(migrations.Migration):

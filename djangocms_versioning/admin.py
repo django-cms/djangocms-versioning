@@ -6,6 +6,7 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -815,7 +816,11 @@ class VersionAdmin(admin.ModelAdmin):
             )
         except (TypeError, ValueError):
             grouper = None
+
         if grouper:
+            # CAVEAT: as the breadcrumb trails expect a value for latest content in the template
+            extra_context["latest_content"] = ({'pk': None})
+
             extra_context.update(
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
@@ -834,18 +839,24 @@ class VersionAdmin(admin.ModelAdmin):
             extra_context["breadcrumb_template"] = select_template(breadcrumb_templates)
 
         response = super().changelist_view(request, extra_context)
+
         # This is a slightly hacky way of accessing the instance of
         # the changelist that the admin changelist_view instantiates.
         # We do this to make sure that the latest content object is
         # picked from the same queryset as is being displayed in the
         # version table.
         if grouper and response.status_code == 200:
-            response.context_data["latest_content"] = (
-                response.context_data["cl"]
-                .get_queryset(request)
-                .latest("created")
-                .content
-            )
+            # Catch the edge case where a grouper can have empty contents
+            # when additional filters are present and the result set will be
+            # empty for the additional values.
+            try:
+                response.context_data["latest_content"] = (
+                    response.context_data["cl"].get_queryset(request)
+                        .latest("created")
+                        .content
+                )
+            except ObjectDoesNotExist:
+                pass
         return response
 
     def get_urls(self):

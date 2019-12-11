@@ -15,7 +15,8 @@ TEST_REQUIREMENTS = [
     "djangocms-text-ckeditor",
     "factory-boy",
     "freezegun",
-    "lxml<=4.3.5"
+    "lxml<=4.3.5",
+    "bs4",
 ]
 
 

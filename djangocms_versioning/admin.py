@@ -816,6 +816,15 @@ class VersionAdmin(admin.ModelAdmin):
             )
         except (TypeError, ValueError):
             grouper = None
+        else:
+            if grouper is None:
+                # no exception and no grouper, thus the querydict is invalid
+                url = reverse(
+                    "admin:{app}_{model}_grouper".format(
+                        app=self.model._meta.app_label, model=self.model._meta.model_name
+                    ),
+                )
+                return redirect(url)
 
         if grouper:
             # CAVEAT: as the breadcrumb trails expect a value for latest content in the template

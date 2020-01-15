@@ -1985,6 +1985,22 @@ class VersionChangeListViewTestCase(CMSTestCase):
             response, "/en/admin/djangocms_versioning/pollcontentversion/?e=1"
         )
 
+    def test_missing_grouper_does_not_exist(self):
+        """Go to changelist with a grouper that does not exist in querystring
+        gives you a list of all groupers to select from.
+        """
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + "?poll=999",
+            follow=True,
+        )
+
+        self.assertRedirects(
+            response,
+            "/en/admin/djangocms_versioning/pollcontentversion/select/"
+        )
+
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()
         factories.PollVersionFactory.create_batch(4)

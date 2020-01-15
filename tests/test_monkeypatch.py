@@ -1,23 +1,27 @@
 from django.contrib.sites.models import Site
+
+from cms import api
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
+from cms.extensions.extension_pool import ExtensionPool
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
 from cms.utils.urlutils import admin_reverse
-from cms.extensions.extension_pool import ExtensionPool
-from cms import api
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning.test_utils.extensions.models import (
+    TestPageExtension,
+    TestTitleExtension,
+)
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
     PollVersionFactory,
-    UserFactory
+    UserFactory,
 )
-from djangocms_versioning.test_utils.extensions.models import TestPageExtension, TestTitleExtension
 
 
-class MonkeypatchExtensionTest(CMSTestCase):
+class MonkeypatchExtensionTestCase(CMSTestCase):
     def setUp(self):
         user = UserFactory()
         self.version = PageVersionFactory(content__language="en")
@@ -46,6 +50,7 @@ class MonkeypatchExtensionTest(CMSTestCase):
         self.new_page.title_cache[pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):
+        '''Try to copy the extension, without the monkeypatch this tests fails'''
         extension_pool = ExtensionPool()
         extension_pool.page_extensions = set([TestPageExtension])
         extension_pool.title_extensions = set([TestTitleExtension])

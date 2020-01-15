@@ -22,4 +22,5 @@ def _copy_title_extensions(self, source_page, target_page, language, clone=False
             else:
                 instance.copy_to_public(target_title, language)
 
+
 ExtensionPool._copy_title_extensions = _copy_title_extensions

@@ -1,15 +1,57 @@
+from django.contrib.sites.models import Site
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
 from cms.utils.urlutils import admin_reverse
+from cms.extensions.extension_pool import ExtensionPool
+from cms import api
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
     PollVersionFactory,
+    UserFactory
 )
+from djangocms_versioning.test_utils.extensions.models import TestPageExtension, TestTitleExtension
+
+
+class MonkeypatchExtensionTest(CMSTestCase):
+    def setUp(self):
+        user = UserFactory()
+        self.version = PageVersionFactory(content__language="en")
+        pagecontent = PageContentFactory(
+            page=self.version.content.page, language="de"
+        )
+        self.page = self.version.content.page
+        site = Site.objects.first()
+        self.new_page = self.page.copy(
+            site=site,
+            parent_node=self.page.node.parent,
+            translations=False,
+            permissions=False,
+            extensions=False,
+        )
+
+        new_page_content = api.create_title(
+            page=self.new_page,
+            language=pagecontent.language,
+            slug='slug',
+            path='/path/here',
+            title=pagecontent.title,
+            template=pagecontent.template,
+            created_by=user
+        )
+        self.new_page.title_cache[pagecontent.language] = new_page_content
+
+    def test_copy_extensions(self):
+        extension_pool = ExtensionPool()
+        extension_pool.page_extensions = set([TestPageExtension])
+        extension_pool.title_extensions = set([TestTitleExtension])
+        extension_pool.copy_extensions(
+            self.page, self.new_page, languages=['de']
+        )
 
 
 class MonkeypatchTestCase(CMSTestCase):

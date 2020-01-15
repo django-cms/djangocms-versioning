@@ -169,8 +169,8 @@ class PageContentFactory(factory.django.DjangoModelFactory):
     changed_by = FuzzyText(length=12)
     in_navigation = FuzzyChoice([True, False])
     soft_root = FuzzyChoice([True, False])
-    template = FuzzyText(length=12)
     limit_visibility_in_menu = constants.VISIBILITY_USERS
+    template = 'page.html'
     xframe_options = FuzzyInteger(0, 25)
 
     class Meta:

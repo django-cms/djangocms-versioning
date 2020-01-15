@@ -3,12 +3,16 @@ from cms.models.titlemodels import PageContent
 
 
 def _copy_title_extensions(self, source_page, target_page, language, clone=False):
-    source_title = source_page.pagecontent_set.get(language=language)
+    # the line below has been modified to accomodate versioning.
+    # import pdb; pdb.set_trace()
+    source_title = PageContent._original_manager.filter(
+        page=source_page, language=language
+    ).first()
     if target_page:
         # the line below has been modified to accomodate versioning.
         target_title = PageContent._original_manager.filter(
             page=target_page, language=language
-        )
+        ).first()
     else:
         target_title = source_title.publisher_public
     for extension in self.title_extensions:

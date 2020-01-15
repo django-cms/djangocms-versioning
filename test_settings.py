@@ -3,6 +3,7 @@ HELPER_SETTINGS = {
     "INSTALLED_APPS": [
         "djangocms_text_ckeditor",
         "djangocms_versioning",
+        "djangocms_versioning.test_utils.extensions",
         "djangocms_versioning.test_utils.polls",
         "djangocms_versioning.test_utils.blogpost",
         "djangocms_versioning.test_utils.text",

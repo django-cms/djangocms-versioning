@@ -96,6 +96,9 @@ class Version(models.Model):
         return "Version #{}".format(self.pk)
 
     def delete(self, using=None, keep_parents=False):
+        """Deleting a version deletes the grouper
+        as well if we are deleting the last version."""
+
         ContentModel = self.content._meta.model
         grouper_name = self.grouper._meta.model_name
         querydict = {'{}__pk'.format(grouper_name): self.grouper.pk}

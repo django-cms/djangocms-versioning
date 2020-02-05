@@ -3,8 +3,14 @@ from cms.models.titlemodels import PageContent
 
 
 def _copy_title_extensions(self, source_page, target_page, language, clone=False):
-    # the line below has been modified to accomodate versioning.
-    # import pdb; pdb.set_trace()
+    """
+    djangocms-cms/extensions/admin.py, last changed in: divio/django-cms@2894ae8
+
+    The existing method ExtensionPool._copy_title_extensions will only ever
+    get published versions, we change the queries to get the latest draft version
+    with the _original_manager
+    """
+
     source_title = PageContent._original_manager.filter(
         page=source_page, language=language
     ).first()

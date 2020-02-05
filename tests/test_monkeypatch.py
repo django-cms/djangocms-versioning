@@ -50,7 +50,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         self.new_page.title_cache[pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):
-        '''Try to copy the extension, without the monkeypatch this tests fails'''
+        """Try to copy the extension, without the monkeypatch this tests fails"""
         extension_pool = ExtensionPool()
         extension_pool.page_extensions = set([TestPageExtension])
         extension_pool.title_extensions = set([TestTitleExtension])

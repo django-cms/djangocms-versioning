@@ -12,6 +12,7 @@ from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
@@ -488,6 +489,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         )
         request = RequestFactory().post(draft_discard_url, {'discard': '1'})
         request.user = factories.UserFactory()
+
+        setattr(request, 'session', 'session')
+        messages = FallbackStorage(request)
+        setattr(request, '_messages', messages)
 
         redirect = self.version_admin.discard_view(request, str(version.pk))
         changelist_url = helpers.get_admin_url(version.content.__class__, 'changelist')

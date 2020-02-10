@@ -742,8 +742,8 @@ class VersionAdmin(admin.ModelAdmin):
             ModelClass = version.content.__class__
             deleted = version.delete()
             if deleted[1]['last']:
-                # need a success message as well.
                 version_url = get_admin_url(ModelClass, 'changelist')
+                self.message_user(request, _('The last version has been deleted'))
 
         return redirect(version_url)
 

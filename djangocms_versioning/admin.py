@@ -26,7 +26,7 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_editable_url, get_preview_url, version_list_url
+from .helpers import get_admin_url, get_editable_url, get_preview_url, version_list_url
 from .models import Version
 from .versionables import _cms_extension
 
@@ -709,7 +709,6 @@ class VersionAdmin(admin.ModelAdmin):
     def discard_view(self, request, object_id):
         """Discards the specified version"""
         version = self.get_object(request, unquote(object_id))
-
         if version is None:
             raise Http404
 
@@ -737,13 +736,16 @@ class VersionAdmin(admin.ModelAdmin):
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
             )
-        else:
-            version_url = version_list_url(version.content)
-            if request.POST.get("discard"):
-                version.delete()
 
-            # Redirect
-            return redirect(version_url)
+        version_url = version_list_url(version.content)
+        if request.POST.get("discard"):
+            ModelClass = version.content.__class__
+            deleted = version.delete()
+            if deleted[1]['last']:
+                # need a success message as well.
+                version_url = get_admin_url(ModelClass, 'changelist')
+
+        return redirect(version_url)
 
     def compare_view(self, request, object_id):
         """Compares two versions

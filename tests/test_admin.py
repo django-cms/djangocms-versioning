@@ -478,6 +478,23 @@ class VersionAdminActionsTestCase(CMSTestCase):
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
 
+    def test_discard_version_through_post_action(self):
+        """
+        Discard the last version redirects to changelist
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        draft_discard_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "discard", version.pk
+        )
+        request = RequestFactory().post(draft_discard_url, {'discard': '1'})
+        request.user = factories.UserFactory()
+
+        redirect = self.version_admin.discard_view(request, str(version.pk))
+        changelist_url = helpers.get_admin_url(version.content.__class__, 'changelist')
+
+        self.assertEqual(redirect.status_code, 302)
+        self.assertEqual(redirect.url, changelist_url)
+
     def test_discard_action_link_enabled_state(self):
         """
         The edit action is active

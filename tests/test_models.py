@@ -390,11 +390,13 @@ class ModelsTestCase(CMSTestCase):
             content__poll=poll_1, content__language=language_2
         )
 
-        lang1_version_1.delete()
+        first_delete = lang1_version_1.delete()
         poll_exists = Poll.objects.filter(pk=poll_1.pk).exists()
-        lang2_version_1.delete()
+        second_delete = lang2_version_1.delete()
         poll_removed = not Poll.objects.filter(pk=poll_1.pk).exists()
 
+        self.assertEqual(first_delete[1]['last'], False)
+        self.assertEqual(second_delete[1]['last'], True)
         self.assertEqual(poll_exists, True)
         self.assertEqual(poll_removed, True)
 

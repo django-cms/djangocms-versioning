@@ -262,3 +262,9 @@ def get_preview_url(content_obj):
             args=[content_obj.pk],
         )
     return url
+
+
+def get_admin_url(model, action, *args):
+    opts = model._meta
+    url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
+    return admin_reverse(url_name, args=args)

@@ -107,8 +107,10 @@ class Version(models.Model):
         grouper = self.grouper
         self.content.delete()
         deleted = super().delete(using=using, keep_parents=keep_parents)
+        deleted[1]['last'] = False
         if count == 1:
             grouper.delete()
+            deleted[1]['last'] = True
         return deleted
 
     def save(self, **kwargs):

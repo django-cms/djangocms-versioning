@@ -2004,7 +2004,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
     def test_missing_grouper_does_not_exist(self):
         """Go to changelist with a grouper that does not exist in querystring
-        gives you a list of all groupers to select from.
+        returns the status code 404. The grouper does not exist.
         """
         self.client.force_login(self.superuser)
         response = self.client.get(
@@ -2013,10 +2013,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
             follow=True,
         )
 
-        self.assertRedirects(
-            response,
-            "/en/admin/djangocms_versioning/pollcontentversion/select/"
-        )
+        self.assertEqual(response.status_code, 404)
 
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()

@@ -57,6 +57,9 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         extension_pool.copy_extensions(
             self.page, self.new_page, languages=['de']
         )
+        # No asserts, this test originally failed because the versioned manager was called
+        # in copy_extensions, now we call the original manager instead
+        # https://github.com/divio/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
 
 
 class MonkeypatchTestCase(CMSTestCase):

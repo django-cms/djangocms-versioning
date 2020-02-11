@@ -95,6 +95,24 @@ class Version(models.Model):
     def __str__(self):
         return "Version #{}".format(self.pk)
 
+    def delete(self, using=None, keep_parents=False):
+        """Deleting a version deletes the grouper
+        as well if we are deleting the last version."""
+
+        ContentModel = self.content._meta.model
+        grouper_name = self.grouper._meta.model_name
+        querydict = {'{}__pk'.format(grouper_name): self.grouper.pk}
+        count = ContentModel._original_manager.filter(**querydict).count()
+
+        grouper = self.grouper
+        self.content.delete()
+        deleted = super().delete(using=using, keep_parents=keep_parents)
+        deleted[1]['last'] = False
+        if count == 1:
+            grouper.delete()
+            deleted[1]['last'] = True
+        return deleted
+
     def save(self, **kwargs):
         created = not self.pk
         # On version creation

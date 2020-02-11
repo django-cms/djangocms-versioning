@@ -12,6 +12,7 @@ from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
@@ -477,6 +478,27 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
+
+    def test_discard_version_through_post_action(self):
+        """
+        Discard the last version redirects to changelist
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        draft_discard_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "discard", version.pk
+        )
+        request = RequestFactory().post(draft_discard_url, {'discard': '1'})
+        request.user = factories.UserFactory()
+
+        setattr(request, 'session', 'session')
+        messages = FallbackStorage(request)
+        setattr(request, '_messages', messages)
+
+        redirect = self.version_admin.discard_view(request, str(version.pk))
+        changelist_url = helpers.get_admin_url(version.content.__class__, 'changelist')
+
+        self.assertEqual(redirect.status_code, 302)
+        self.assertEqual(redirect.url, changelist_url)
 
     def test_discard_action_link_enabled_state(self):
         """
@@ -1984,6 +2006,19 @@ class VersionChangeListViewTestCase(CMSTestCase):
         self.assertRedirects(
             response, "/en/admin/djangocms_versioning/pollcontentversion/?e=1"
         )
+
+    def test_missing_grouper_does_not_exist(self):
+        """Go to changelist with a grouper that does not exist in querystring
+        returns the status code 404. The grouper does not exist.
+        """
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + "?poll=999",
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 404)
 
     def test_grouper_filtering(self):
         pv = factories.PollVersionFactory()

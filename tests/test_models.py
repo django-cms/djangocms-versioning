@@ -10,7 +10,7 @@ from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version, VersionQuerySet
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
-from djangocms_versioning.test_utils.polls.models import PollContent
+from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 from freezegun import freeze_time
 
 
@@ -374,6 +374,31 @@ class ModelsTestCase(CMSTestCase):
         # Language 2 checks
         self.assertEqual(lang2_version_1.number, 1)
         self.assertEqual(lang2_version_2.number, 2)
+
+    def test_deleting_last_version_deletes_grouper_as_well(self):
+        """
+        Deleting the last version deletes the grouper as well.
+        """
+        poll_1 = factories.PollFactory()
+        language_1 = "en"
+        language_2 = "it"
+
+        lang1_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_1
+        )
+        lang2_version_1 = factories.PollVersionFactory(
+            content__poll=poll_1, content__language=language_2
+        )
+
+        first_delete = lang1_version_1.delete()
+        poll_exists = Poll.objects.filter(pk=poll_1.pk).exists()
+        second_delete = lang2_version_1.delete()
+        poll_removed = not Poll.objects.filter(pk=poll_1.pk).exists()
+
+        self.assertEqual(first_delete[1]['last'], False)
+        self.assertEqual(second_delete[1]['last'], True)
+        self.assertEqual(poll_exists, True)
+        self.assertEqual(poll_removed, True)
 
     def test_convert_to_proxy(self):
         version = factories.PollVersionFactory()

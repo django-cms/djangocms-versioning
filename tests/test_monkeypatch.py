@@ -1,15 +1,53 @@
+from django.contrib.sites.models import Site
+
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
+from cms.extensions.extension_pool import ExtensionPool
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
 from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning.test_utils.extensions.models import (
+    TestPageExtension,
+    TestTitleExtension,
+)
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
     PollVersionFactory,
 )
+
+
+class MonkeypatchExtensionTestCase(CMSTestCase):
+    def setUp(self):
+        self.version = PageVersionFactory(content__language="en")
+        pagecontent = PageContentFactory(
+            page=self.version.content.page, language="de"
+        )
+        self.page = self.version.content.page
+        site = Site.objects.first()
+        self.new_page = self.page.copy(
+            site=site,
+            parent_node=self.page.node.parent,
+            translations=False,
+            permissions=False,
+            extensions=False,
+        )
+        new_page_content = PageContentFactory(page=self.new_page, language='de')
+        self.new_page.title_cache[pagecontent.language] = new_page_content
+
+    def test_copy_extensions(self):
+        """Try to copy the extension, without the monkeypatch this tests fails"""
+        extension_pool = ExtensionPool()
+        extension_pool.page_extensions = set([TestPageExtension])
+        extension_pool.title_extensions = set([TestTitleExtension])
+        extension_pool.copy_extensions(
+            self.page, self.new_page, languages=['de']
+        )
+        # No asserts, this test originally failed because the versioned manager was called
+        # in copy_extensions, now we call the original manager instead
+        # https://github.com/divio/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
 
 
 class MonkeypatchTestCase(CMSTestCase):

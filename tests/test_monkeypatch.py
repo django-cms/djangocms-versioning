@@ -1,6 +1,5 @@
 from django.contrib.sites.models import Site
 
-from cms import api
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.extensions.extension_pool import ExtensionPool
 from cms.test_utils.testcases import CMSTestCase
@@ -17,13 +16,11 @@ from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
     PollVersionFactory,
-    UserFactory,
 )
 
 
 class MonkeypatchExtensionTestCase(CMSTestCase):
     def setUp(self):
-        user = UserFactory()
         self.version = PageVersionFactory(content__language="en")
         pagecontent = PageContentFactory(
             page=self.version.content.page, language="de"
@@ -37,16 +34,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
             permissions=False,
             extensions=False,
         )
-
-        new_page_content = api.create_title(
-            page=self.new_page,
-            language=pagecontent.language,
-            slug='slug',
-            path='/path/here',
-            title=pagecontent.title,
-            template=pagecontent.template,
-            created_by=user
-        )
+        new_page_content = PageContentFactory(page=self.new_page, language='de')
         self.new_page.title_cache[pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):

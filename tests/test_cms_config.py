@@ -3,18 +3,121 @@ from unittest.mock import Mock, patch
 
 from django.apps import apps
 from django.contrib import admin
+from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
+from django.test import RequestFactory
+from django.utils.text import slugify
 
+from cms.admin.forms import ChangePageForm
+from cms.models import Page
 from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
+from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
+from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+
+
+req_factory = RequestFactory()
+
+
+class PageContentVersioningBehaviourTestCase(CMSTestCase):
+
+    def setUp(self):
+        self.site = Site.objects.get_current()
+        self.user = self.get_superuser()
+        self.language = 'en'
+        self.title = 'test page'
+
+        self.version = factories.PageVersionFactory(content__language='en', state=DRAFT,)
+        factories.PageUrlFactory(
+            page=self.version.content.page,
+            language='en',
+            path=slugify(self.title),
+            slug=slugify(self.title),
+        )
+
+        self.page = self.version.content.page
+        self.content = self.version.content
+
+    def test_saving_draft_has_pageurl(self):
+        """A draft has pageurl as normal"""
+        url = self.page.get_urls().first()
+
+        self.assertEqual(self.version.state, DRAFT)
+        self.assertEqual(url.path, slugify(self.title))
+
+    def test_publishing_draft_retains_pageurl(self):
+        """We publish a version, pageurl is still the same"""
+        self.version.publish(self.user)
+
+        url = self.page.get_urls().first()
+        self.assertEqual(url.path, slugify(self.title))
+
+    def test_published_version_with_new_version_retains_pageurl(self):
+        """
+        We have a published page and we create a new version and publish that.
+        PageUrl path stays the same
+        """
+        self.version.publish(self.user)
+        v2 = self.version.copy(self.user)
+        v2.publish(self.user)
+
+        page = Page.objects.get(pk=self.page.pk)
+        url = page.get_urls().first()
+
+        self.assertEqual(url.path, slugify(self.title))
+
+    def test_published_version_with_new_version_retains_pageurl_unmanaged(self):
+        """We have a published page and we create a new version and publish that.
+        The url in question is unmanaged and stays the same.
+
+        The path was previously set to None on unpublish. This deleted the
+        url a content editor had put in the field "overwrite url".
+        Putting anything into the field "overwrite url" sets the property
+        managed to False.
+        """
+        url = self.page.get_urls().first()
+        url.managed = False
+        url.save()
+
+        self.version.publish(self.user)
+        v2 = self.version.copy(self.user)
+        v2.publish(self.user)
+
+        page = Page.objects.get(pk=self.page.pk)
+        url = page.get_urls().first()
+
+        self.assertEqual(url.path, slugify(self.title))
+
+    def test_changing_slug_changes_page_url(self):
+        """Using change form to change title / slug updates path?"""
+        new_title = 'new slug here'
+        data = {
+            'title': self.content.title,
+            'slug': new_title
+        }
+
+        request = req_factory.get('/?language=en')
+        request.user = self.user
+
+        form = ChangePageForm(data, instance=self.content)
+        form._request = request
+        form._site = self.site
+        self.assertEqual(form.is_valid(), True)
+
+        form.save()
+        page = Page.objects.get(pk=self.page.pk)
+        url = page.get_urls().first()
+
+        self.assertEqual(url.slug, slugify(new_title))
+        self.assertEqual(url.path, slugify(new_title))
 
 
 class VersioningExtensionUnitTestCase(CMSTestCase):

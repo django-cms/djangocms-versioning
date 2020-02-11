@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 
-from cms.models import Page, PageContent, Placeholder, TreeNode
+from cms import constants
+from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 
 import factory
 from djangocms_text_ckeditor.models import Text
@@ -139,6 +140,16 @@ class TreeNodeFactory(factory.django.DjangoModelFactory):
         model = TreeNode
 
 
+class PageUrlFactory(factory.django.DjangoModelFactory):
+    slug = ''
+    path = ''
+    managed = False
+    language = 'en'
+
+    class Meta:
+        model = PageUrl
+
+
 class PageFactory(factory.django.DjangoModelFactory):
     node = factory.SubFactory(TreeNodeFactory)
 
@@ -159,7 +170,7 @@ class PageContentFactory(factory.django.DjangoModelFactory):
     in_navigation = FuzzyChoice([True, False])
     soft_root = FuzzyChoice([True, False])
     template = FuzzyText(length=12)
-    limit_visibility_in_menu = FuzzyInteger(0, 25)
+    limit_visibility_in_menu = constants.VISIBILITY_USERS
     xframe_options = FuzzyInteger(0, 25)
 
     class Meta:

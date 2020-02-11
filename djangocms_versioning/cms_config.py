@@ -213,7 +213,6 @@ def on_page_content_unpublish(version):
     """Url path and cache operations to do when a PageContent obj is unpublished"""
     page = version.content.page
     language = version.content.language
-    page.update_urls(language, path=None)
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 

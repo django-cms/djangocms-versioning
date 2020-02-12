@@ -7,6 +7,7 @@ from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
+from djangocms_versioning.helpers import remove_published_where
 from djangocms_versioning.models import Version, VersionQuerySet
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -243,6 +244,15 @@ class TestVersionQuerySet(CMSTestCase):
     def test_get_for_content(self):
         version = factories.PollVersionFactory()
         self.assertEqual(Version.objects.get_for_content(version.content), version)
+
+    def test_versioned_queryset_return_full_with_helper_method(self):
+        """With an extra helper method we can return the full queryset"""
+        factories.PollVersionFactory()
+        normal_count = PollContent.objects.all()
+        full_count = remove_published_where(PollContent.objects.all())
+
+        self.assertEqual(normal_count.count(), 0)
+        self.assertEqual(full_count.count(), 1)
 
     def test_filter_by_grouper(self):
         poll = factories.PollFactory()

@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.sql.where import WhereNode
 from django.urls import reverse
 
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -12,7 +13,7 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from . import versionables
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
 from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
@@ -268,3 +269,26 @@ def get_admin_url(model, action, *args):
     opts = model._meta
     url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
     return admin_reverse(url_name, args=args)
+
+
+def remove_published_where(queryset):
+    """
+    By default the versioned queryset filters out so that only versions
+    that are published are returned. If you need to return the full queryset
+    this method can be used.
+
+    It will modify the sql to remove `where state = 'published'`
+    """
+    where_children = queryset.query.where.children
+    all_except_published = [
+        lookup for lookup in where_children
+        if not (
+            lookup.lookup_name == 'exact' and
+            lookup.rhs == PUBLISHED and
+            lookup.lhs.field.name == 'state'
+        )
+    ]
+
+    queryset.query.where = WhereNode()
+    queryset.query.where.children = all_except_published
+    return queryset

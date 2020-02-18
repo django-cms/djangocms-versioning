@@ -4,7 +4,7 @@ import djangocms_versioning
 
 
 INSTALL_REQUIREMENTS = [
-    "Django>=1.11,<2.2",
+    "Django>=1.11,<3.0",
     "django-cms",
     "django-fsm>=2.6,<2.7"
 ]

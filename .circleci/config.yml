@@ -1,17 +1,5 @@
 version: 2.0
 
-py34default: &py34default
-  docker:
-    - image: circleci/python:3.4
-  steps:
-   - setup_remote_docker:
-       docker_layer_caching: false
-   - checkout
-   - attach_workspace:
-       at: /tmp/images
-   - run: docker load -i /tmp/images/py34.tar || true
-   - run: docker run py34 tox -e $CIRCLE_STAGE
-
 py35default: &py35default
   docker:
     - image: circleci/python:3.5
@@ -36,9 +24,17 @@ py36default: &py36default
    - run: docker load -i /tmp/images/py36.tar || true
    - run: docker run py36 tox -e $CIRCLE_STAGE
 
-py34_requires: &py34_requires
-  requires:
-    - py34_base
+py37default: &py37default
+   docker:
+     - image: circleci/python:3.7
+   steps:
+    - setup_remote_docker:
+        docker_layer_caching: false
+    - checkout
+    - attach_workspace:
+        at: /tmp/images
+    - run: docker load -i /tmp/images/py37.tar || true
+    - run: docker run py37 tox -e $CIRCLE_STAGE
 
 py35_requires: &py35_requires
   requires:
@@ -48,20 +44,11 @@ py36_requires: &py36_requires
   requires:
     - py36_base
 
+py37_requires: &py37_requires
+    requires:
+      - py37_base
+
 jobs:
-  py34_base:
-    docker:
-      - image: circleci/python:3.4
-    steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: false
-      - run: docker build -f .circleci/Dockerfile --build-arg PYTHON_VERSION=3.4 -t py34 .
-      - run: mkdir images
-      - run: docker save -o images/py34.tar py34
-      - persist_to_workspace:
-         root: images
-         paths: py34.tar
   py35_base:
     docker:
       - image: circleci/python:3.5
@@ -88,29 +75,50 @@ jobs:
       - persist_to_workspace:
          root: images
          paths: py36.tar
+  py37_base:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: false
+      - run: docker build -f .circleci/Dockerfile --build-arg PYTHON_VERSION=3.7 -t py37 .
+      - run: mkdir images
+      - run: docker save -o images/py37.tar py37
+      - persist_to_workspace:
+         root: images
+         paths: py37.tar
 
   flake8:
     <<: *py35default
   isort:
     <<: *py35default
-  py34-dj111-sqlite-cms40:
-    <<: *py34default
+
   py35-dj111-sqlite-cms40:
     <<: *py35default
   py36-dj111-sqlite-cms40:
     <<: *py36default
+
   py35-dj20-sqlite-cms40:
     <<: *py35default
   py36-dj20-sqlite-cms40:
     <<: *py36default
+  py37-dj20-sqlite-cms40:
+    <<: *py37default
+
   py35-dj21-sqlite-cms40:
     <<: *py35default
   py36-dj21-sqlite-cms40:
     <<: *py36default
+  py37-dj21-sqlite-cms40:
+    <<: *py37default
+
   py35-dj22-sqlite-cms40:
     <<: *py35default
   py36-dj22-sqlite-cms40:
     <<: *py36default
+  py37-dj22-sqlite-cms40:
+    <<: *py37default
 
 #######################
 
@@ -118,39 +126,52 @@ workflows:
   version: 2
   build:
     jobs:
-      - py34_base
       - py35_base
       - py36_base
+      - py37_base
       - flake8:
           requires:
             - py35_base
       - isort:
           requires:
             - py35_base
-      - py34-dj111-sqlite-cms40:
-          requires:
-            - py34_base
       - py35-dj111-sqlite-cms40:
           requires:
             - py35_base
       - py36-dj111-sqlite-cms40:
           requires:
             - py36_base
+
+
       - py35-dj20-sqlite-cms40:
           requires:
             - py35_base
       - py36-dj20-sqlite-cms40:
           requires:
             - py36_base
+      - py37-dj20-sqlite-cms40:
+          requires:
+            - py37_base
+
+
       - py35-dj21-sqlite-cms40:
           requires:
             - py35_base
       - py36-dj21-sqlite-cms40:
           requires:
             - py36_base
+      - py37-dj21-sqlite-cms40:
+          requires:
+            - py37_base
+
+
       - py35-dj22-sqlite-cms40:
           requires:
             - py35_base
       - py36-dj22-sqlite-cms40:
           requires:
             - py36_base
+      - py37-dj22-sqlite-cms40:
+          requires:
+            - py37_base
+

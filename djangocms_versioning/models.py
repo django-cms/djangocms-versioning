@@ -99,12 +99,18 @@ class Version(models.Model):
         """Deleting a version deletes the grouper
         as well if we are deleting the last version."""
 
-        ContentModel = self.content._meta.model
-        grouper_name = self.grouper._meta.model_name
-        querydict = {'{}__pk'.format(grouper_name): self.grouper.pk}
-        count = ContentModel._original_manager.filter(**querydict).count()
+        def get_grouper_name(ContentModel, GrouperModel):
+            for field in ContentModel._meta.fields:
+                if getattr(field, 'related_model', None) == GrouperModel:
+                    return field.name
 
         grouper = self.grouper
+        ContentModel = self.content._meta.model
+
+        grouper_name = get_grouper_name(ContentModel, grouper._meta.model)
+        querydict = {'{}__pk'.format(grouper_name): grouper.pk}
+        count = ContentModel._original_manager.filter(**querydict).count()
+
         self.content.delete()
         deleted = super().delete(using=using, keep_parents=keep_parents)
         deleted[1]['last'] = False

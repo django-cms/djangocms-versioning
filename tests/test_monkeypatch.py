@@ -2,6 +2,7 @@ from django.contrib.sites.models import Site
 
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.extensions.extension_pool import ExtensionPool
+from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_edit_url
@@ -59,6 +60,20 @@ class MonkeypatchTestCase(CMSTestCase):
         self.assertEqual(
             CMSToolbar(request).content_renderer.__class__, VersionContentRenderer
         )
+
+    def test_get_admin_model_object(self):
+        """
+        PageContent normally won't be able to fetch objects in draft.
+        With the mocked get_admin_model_object_by_id it is able to fetch objects
+        in draft mode.
+        """
+        from cms.utils.helpers import get_admin_model_object_by_id
+
+        version = PageVersionFactory()
+        content = get_admin_model_object_by_id(PageContent, version.content.pk)
+
+        self.assertEqual(version.state, 'draft')
+        self.assertEqual(content.pk, version.content.pk)
 
     def test_success_url_for_cms_wizard(self):
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard

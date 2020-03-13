@@ -11,7 +11,6 @@ INSTALL_REQUIREMENTS = [
 
 TEST_REQUIREMENTS = [
     "djangocms_helper",
-    "pillow<=5.4.1",  # Requirement for tests to be passing in python 3.4
     "djangocms-text-ckeditor",
     "factory-boy",
     "freezegun",

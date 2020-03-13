@@ -13,6 +13,40 @@ User = get_user_model()
 cms_extension = apps.get_app_config("cms").cms_extension
 
 
+def _get_admin_title_cache(page, language, fallback, force_reload):
+    from cms.utils import i18n
+    from django.utils.translation import get_language
+
+    def get_fallback_language(page, language):
+        fallback_langs = i18n.get_fallback_languages(language)
+        for lang in fallback_langs:
+            if page.admin_title_cache.get(lang):
+                return lang
+
+    if not language:
+        language = get_language()
+
+    force_reload = (force_reload or language not in page.admin_title_cache)
+    if force_reload:
+        from cms.models import PageContent
+        titles = PageContent._original_manager.filter(page=page)
+        for title in titles:
+            page.admin_title_cache[title.language] = title
+
+    if page.admin_title_cache.get(language):
+        return language
+
+    use_fallback = all([
+        fallback,
+        not page.admin_title_cache.get(language),
+        get_fallback_language(page, language)
+    ])
+    if use_fallback:
+        # language can be in the cache but might be an EmptyPageContent instance
+        return get_fallback_language(page, language)
+    return language
+
+
 def _get_title_cache(func):
     def inner(self, language, fallback, force_reload):
         prefetch_cache = getattr(self, "_prefetched_objects_cache", {})
@@ -28,6 +62,19 @@ def _get_title_cache(func):
 pagemodel.Page._get_title_cache = _get_title_cache(
     pagemodel.Page._get_title_cache
 )  # noqa: E305
+
+
+def get_admin_title_obj(self, language=None, fallback=False, force_reload=False):
+    language = _get_admin_title_cache(self, language, fallback, force_reload)
+
+    if language in self.admin_title_cache:
+        return self.admin_title_cache[language]
+    from cms.models import EmptyPageContent
+
+    return EmptyPageContent(language)
+
+
+pagemodel.Page.get_admin_title_obj = get_admin_title_obj
 
 
 def get_placeholders(func):

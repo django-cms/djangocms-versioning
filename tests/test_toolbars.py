@@ -178,8 +178,9 @@ class VersioningToolbarTestCase(CMSTestCase):
         pagecontent = PageVersionFactory(content__template="")
         url = get_object_preview_url(pagecontent.content)
         edit_url = self._get_edit_url(
-            pagecontent.content, VersioningCMSConfig.versioning[0]
+            pagecontent.content, VersioningCMSConfig.versioning[0],
         )
+        edit_url = edit_url.replace('en', pagecontent.content.language, 1)
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)

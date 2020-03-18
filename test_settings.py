@@ -51,7 +51,7 @@ HELPER_SETTINGS = {
 def run():
     from djangocms_helper import runner
 
-    runner.cms("djangocms_versioning", extra_args=[])
+    runner.cms("djangocms_versioning", extra_args=['tests.test_views.PublishedViewTests'])
 
 
 if __name__ == "__main__":

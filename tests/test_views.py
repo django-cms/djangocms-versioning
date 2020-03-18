@@ -42,20 +42,21 @@ class ViewTests(CMSTestCase):
         self.assertEqual(german_version.state, DRAFT)
 
     def test_normal_view(self):
-        """User is authenticated and able to visit draft url without 404"""
+        """User is authenticated and since only a draft exist they should be seeing a 404"""
         response = self.client.get(self.german_url)
 
-        self.assertEqual(response.request['PATH_INFO'], self.german_url)
-        self.assertContains(response, 'german body')
+        self.assertEqual(response.status_code, 404)
+        # self.assertEqual(response.request['PATH_INFO'], self.german_url)
+        # self.assertContains(response, 'german body')
 
-        edit_url = response.context['cms_edit_url']
-        preview_url = response.context['cms_preview_url']
+        # edit_url = response.context['cms_edit_url']
+        # preview_url = response.context['cms_preview_url']
 
-        expected_edit_url = get_object_edit_url(self.german, 'de')
-        expected_preview_url = get_object_preview_url(self.german, 'de')
+        # expected_edit_url = get_object_edit_url(self.german, 'de')
+        # expected_preview_url = get_object_preview_url(self.german, 'de')
 
-        self.assertEqual(edit_url, expected_edit_url)
-        self.assertEqual(preview_url, expected_preview_url)
+        # self.assertEqual(edit_url, expected_edit_url)
+        # self.assertEqual(preview_url, expected_preview_url)
 
     def test_normal_view_logged_out(self):
         """A page in draft should give you a 404 if you visit the public url"""
@@ -73,6 +74,9 @@ class ViewTests(CMSTestCase):
         """
         edit_url = get_object_edit_url(self.german, 'de')
         response = self.client.get(edit_url)
+
+        # TODO check the language urls, you should be able to switch to the
+        # preview of that...
 
         self.assertContains(response, 'german body')
 
@@ -111,3 +115,69 @@ class ViewTests(CMSTestCase):
         self.assertEqual(items[1].name, 'Deutsche')
         self.assertEqual(items[1].active, True, 'German should be active')
         self.assertEqual(toolbar.get_object().pk, self.german.pk)
+
+
+class PublishedViewTests(CMSTestCase):
+    """
+    Testing that published and a draft version of already published is displayed
+    correctly in different circumstances.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.user = self.get_superuser()
+        self.client.force_login(self.user)
+        defaults = {
+            'template': 'page.html',
+            'created_by': self.user
+        }
+        self.page = create_page('english page', language='en', **defaults)
+        self.english = PageContent._original_manager.get(language='en')
+        self.published_content = 'content_v1'
+        self.draft_content = 'content_v2'
+
+        self.v1 = self.english.versions.all()[0]
+        pl_en_v1 = self.english.get_placeholders()[0]
+        add_plugin(pl_en_v1, 'TextPlugin', 'en', body=self.published_content)
+
+        self.v1.publish(self.user)
+
+        self.v2 = self.v1.copy(self.user)
+        pl_en_v2 = self.v2.content.get_placeholders()[0]
+        add_plugin(pl_en_v2, 'TextPlugin', 'en', body=self.draft_content)
+
+        self.assertEqual(self.v2.state, DRAFT)
+
+    def test_version_published_unauthenticated(self):
+        """
+        An unauthenticated user visits url and views only published content.
+        """
+        self.client.logout()
+        url = self.english.get_absolute_url()
+        response = self.client.get(url)
+
+        self.assertContains(response, self.published_content)
+        self.assertNotContains(response, self.draft_content)
+
+    def test_version_published_authenticated(self):
+        """
+        An authenticated user visits url and views only published content.
+        """
+
+        url = self.english.get_absolute_url()
+        response = self.client.get(url)
+
+        self.assertContains(response, self.published_content)
+        self.assertNotContains(response, self.draft_content)
+
+    def test_preview_shows_published_content(self):
+        """
+        Authenticated user visits preview and sees the draft content.
+        """
+        pass
+
+    def test_edit_url_view_draft_content(self):
+        """
+        Authenticated user visits edit url and see the draft content.
+        """
+        pass

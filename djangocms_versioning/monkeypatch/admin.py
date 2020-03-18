@@ -1,4 +1,5 @@
 from cms import admin
+from cms.utils import helpers
 
 from .. import versionables
 
@@ -18,3 +19,10 @@ def get_queryset(func):
 admin.pageadmin.PageContentAdmin.get_queryset = get_queryset(
     admin.pageadmin.PageContentAdmin.get_queryset
 )
+
+
+def get_admin_model_object_by_id(model_class, obj_id):
+    return model_class._original_manager.get(pk=obj_id)
+
+
+helpers.get_admin_model_object_by_id = get_admin_model_object_by_id

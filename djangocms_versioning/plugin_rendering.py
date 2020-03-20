@@ -46,7 +46,6 @@ class VersionContentRenderer(ContentRenderer):
         # code, which by default doesn't work well with versioning.
         # Remove this method once the issue is fixed.
         from cms.models import Placeholder
-
         current_obj = self.toolbar.get_object()
 
         # Not page, therefore we will use toolbar object as

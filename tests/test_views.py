@@ -46,17 +46,6 @@ class ViewTests(CMSTestCase):
         response = self.client.get(self.german_url)
 
         self.assertEqual(response.status_code, 404)
-        # self.assertEqual(response.request['PATH_INFO'], self.german_url)
-        # self.assertContains(response, 'german body')
-
-        # edit_url = response.context['cms_edit_url']
-        # preview_url = response.context['cms_preview_url']
-
-        # expected_edit_url = get_object_edit_url(self.german, 'de')
-        # expected_preview_url = get_object_preview_url(self.german, 'de')
-
-        # self.assertEqual(edit_url, expected_edit_url)
-        # self.assertEqual(preview_url, expected_preview_url)
 
     def test_normal_view_logged_out(self):
         """A page in draft should give you a 404 if you visit the public url"""
@@ -64,9 +53,6 @@ class ViewTests(CMSTestCase):
         response = self.client.get(self.german_url)
 
         self.assertEqual(response.status_code, 404)
-
-    def test_absolute_url_of_draft(self):
-        self.assertEqual(self.german.get_absolute_url(), '/de/german-content/')
 
     def test_visit_page_edit_url(self):
         """

@@ -102,6 +102,20 @@ class ViewTests(CMSTestCase):
         self.assertEqual(items[1].active, True, 'German should be active')
         self.assertEqual(toolbar.get_object().pk, self.german.pk)
 
+    def test_toolbar_preview_mode_shows_correct_edit(self):
+        """
+        The edit button shows the correct url for the version that should be edited
+        """
+        preview_url = get_object_preview_url(self.german, 'de')
+        version = self.german.versions.all().first()
+        response = self.client.get(preview_url)
+
+        toolbar = response.context['cms_toolbar']
+        edit_button = toolbar.right_items[1].get_context()['buttons'][0]
+
+        self.assertEqual(edit_button.name.lower(), 'editieren')
+        self.assertIn('pagecontentversion/{}/edit-redirect/'.format(version.pk), edit_button.url)
+
 
 class PublishedViewTests(CMSTestCase):
     """

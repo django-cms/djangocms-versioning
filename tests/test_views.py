@@ -148,6 +148,20 @@ class PublishedViewTests(CMSTestCase):
 
         self.assertEqual(self.v2.state, DRAFT)
 
+    def test_toolbar_live_mode_shows_correct_edit_url(self):
+        """
+        The edit button shows correct url for the version on the live url as
+        an authenticated user.
+        """
+        response = self.client.get(self.page.get_absolute_url())
+
+        toolbar = response.context['cms_toolbar']
+        edit_button = toolbar.right_items[1].get_context()['buttons'][0]
+
+        self.assertEqual(edit_button.name.lower(), 'edit')
+        self.assertIn('pagecontentversion/{}/edit-redirect/'.format(self.v2.pk), edit_button.url)
+        self.assertNotContains(response, self.draft_content)
+
     def test_version_published_unauthenticated(self):
         """
         An unauthenticated user visits url and views only published content.

@@ -42,12 +42,22 @@ class VersionContentRenderer(ContentRenderer):
     def render_obj_placeholder(
         self, slot, context, inherit, nodelist=None, editable=True
     ):
-        # FIXME This is an ad-hoc solution for page-specific rendering
-        # code, which by default doesn't work well with versioning.
-        # Remove this method once the issue is fixed.
+        """
+        TODO This is an ad-hoc solution for page-specific rendering
+        code, which by default doesn't work well with versioning.
+        Remove this method once the issue is fixed.
+
+        The longterm solution to fix this is to refactor the function
+        `render_page_placeholder` to take pagecontent instead of a page.
+
+        Once that happens `VersionContentRenderer` can be deleted.
+        """
         from cms.models import Placeholder
 
-        current_obj = self.toolbar.get_object()
+        if self.current_page:
+            current_obj = context['pagecontent']
+        else:
+            current_obj = self.toolbar.get_object()
 
         # Not page, therefore we will use toolbar object as
         # the current object and render the placeholder

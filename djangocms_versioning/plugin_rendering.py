@@ -1,3 +1,5 @@
+from django.db import models
+
 from cms.plugin_rendering import ContentRenderer, StructureRenderer
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
@@ -24,7 +26,13 @@ def prefetch_versioned_related_objects(instance, toolbar):
             qs = versionable.content_model.objects.all()
         related_field = getattr(instance, field.name)
         if related_field:
-            filters = {versionable.grouper_field_name: related_field}
+            if isinstance(related_field, models.Manager):
+                filters = {}
+                filter_key = f'{versionable.grouper_field_name}__in'
+                filter_values = related_field.all()
+                filters = {filter_key: filter_values}
+            else:
+                filters = {versionable.grouper_field_name: related_field}
             # TODO Figure out grouping values-awareness
             # for extra fields other than hardcoded 'language'
             if "language" in versionable.extra_grouping_fields:

@@ -28,7 +28,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
         if related_field:
             if isinstance(related_field, models.Manager):
                 filters = {}
-                filter_key = f'{versionable.grouper_field_name}__in'
+                filter_key = '{}__in'.format(versionable.grouper_field_name)
                 filter_values = related_field.all()
                 filters = {filter_key: filter_values}
             else:

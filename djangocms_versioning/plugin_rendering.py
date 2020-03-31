@@ -13,6 +13,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
     candidate_fields = [
         f for f in instance._meta.get_fields() if f.is_relation and not f.auto_created
     ]
+
     for field in candidate_fields:
         try:
             versionable = versionables.for_grouper(field.remote_field.model)
@@ -26,8 +27,9 @@ def prefetch_versioned_related_objects(instance, toolbar):
             qs = versionable.content_model.objects.all()
         related_field = getattr(instance, field.name)
         if related_field:
-            if isinstance(related_field, models.Manager):
-                filters = {}
+            is_related_manager = isinstance(related_field, models.Manager)
+
+            if is_related_manager:
                 filter_key = '{}__in'.format(versionable.grouper_field_name)
                 filter_values = related_field.all()
                 filters = {filter_key: filter_values}
@@ -39,7 +41,19 @@ def prefetch_versioned_related_objects(instance, toolbar):
                 filters["language"] = toolbar.request_language
             qs = qs.filter(**filters)
             prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
-            related_field._prefetched_objects_cache = prefetch_cache
+
+            # TODO refine it after understand prefetch in many2many field.
+            # because if `related_field` is ManyRelatedManager, it is temporary,
+            # we can't store `_prefetched_objectes_cache` to it, so I decide to store the
+            # prefetched value to model instance.
+            if is_related_manager:
+                try:
+                    instance._prefetched_objects_cache[field.name] = prefetch_cache
+                except AttributeError:
+                    instance._prefetched_objects_cache = {field.name: prefetch_cache}
+
+            else:
+                related_field._prefetched_objects_cache = prefetch_cache
 
 
 class VersionContentRenderer(ContentRenderer):

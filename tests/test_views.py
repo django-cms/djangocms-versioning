@@ -84,6 +84,9 @@ class ViewTests(CMSTestCase):
         self.assertEqual(items[1].active, True, 'German should be active')
         self.assertEqual(toolbar.get_object().pk, self.german.pk)
 
+    def test_change_language_menu_displays_removal_of_languages_correctly(self):
+        pass
+
     def test_toolbar_shows_correct_content_for_german_draft_in_english(self):
         """Visiting german draft with english layout"""
         edit_url = get_object_edit_url(self.german, 'en')

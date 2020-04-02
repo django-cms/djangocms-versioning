@@ -47,11 +47,8 @@ def prefetch_versioned_related_objects(instance, toolbar):
             # we can't store `_prefetched_objectes_cache` to it, so I decide to store the
             # prefetched value to model instance.
             if is_related_manager:
-                try:
-                    instance._prefetched_objects_cache[field.name] = prefetch_cache
-                except AttributeError:
-                    instance._prefetched_objects_cache = {field.name: prefetch_cache}
-
+                instance._prefetched_objects_cache = getattr(instance, '_prefetched_objects_cache', {})
+                instance._prefetched_objects_cache[field.name] = prefetch_cache
             else:
                 related_field._prefetched_objects_cache = prefetch_cache
 

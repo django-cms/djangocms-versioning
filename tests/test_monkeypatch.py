@@ -1,6 +1,5 @@
 from django.contrib.sites.models import Site
 
-from cms.api import add_plugin
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
@@ -17,7 +16,6 @@ from djangocms_versioning.test_utils.extensions.models import (
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageVersionFactory,
-    PlaceholderFactory,
     PollVersionFactory,
 )
 
@@ -62,56 +60,6 @@ class MonkeypatchTestCase(CMSTestCase):
         self.assertEqual(
             CMSToolbar(request).content_renderer.__class__, VersionContentRenderer
         )
-
-    def test_prefetch_versioned_m2m_objects(self):
-        '''
-        test model with manytomany field to grouper model
-        '''
-        request = self.get_request('/')
-        toolbar = CMSToolbar(request)
-        toolbar.edit_mode_active = True
-        request.toolbar = toolbar
-        context = {"request": request}
-        contentRenderer = VersionContentRenderer(request)
-
-        version = PageVersionFactory()
-        placeholder = PlaceholderFactory(source=version.content)
-        poll_version = PollVersionFactory(content__language='en')
-        poll = poll_version.content.poll
-
-
-        plugin = add_plugin(
-            placeholder, "PollManyPlugin", version.content.language
-        )
-        plugin.polls.add(poll)
-
-        contentRenderer.render_plugin(plugin, context)
-        self.assertIsNotNone(plugin._prefetched_objects_cache)
-        self.assertIsNotNone(plugin._prefetched_objects_cache['polls'])
-        self.assertEqual(len(plugin._prefetched_objects_cache['polls']), 1)
-
-    def test_prefetch_versioned_m2o_objects(self):
-        '''
-        #test model with one foreign key to grouper model
-        '''
-        request = self.get_request('/')
-        toolbar = CMSToolbar(request)
-        toolbar.edit_mode_active = True
-        request.toolbar = toolbar
-        context = {"request": request}
-        contentRenderer = VersionContentRenderer(request)
-
-        version = PageVersionFactory()
-        placeholder = PlaceholderFactory(source=version.content)
-        poll_version = PollVersionFactory(content__language='en')
-        poll = poll_version.content.poll
-
-        plugin = add_plugin(
-            placeholder, "PollPlugin", version.content.language, poll=poll
-        )
-
-        contentRenderer.render_plugin(plugin, context)
-        self.assertIsNotNone(plugin.poll._prefetched_objects_cache)
 
     def test_get_admin_model_object(self):
         """

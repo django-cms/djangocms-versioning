@@ -1,7 +1,7 @@
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
 
-from .models import PollPlugin as Poll, PollManyPlugin as PollMany
+from .models import PollManyPlugin as PollMany, PollPlugin as Poll
 
 
 @plugin_pool.register_plugin

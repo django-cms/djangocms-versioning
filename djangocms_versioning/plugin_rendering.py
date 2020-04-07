@@ -31,7 +31,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
 
             if is_related_manager:
                 filter_key = '{}__in'.format(versionable.grouper_field_name)
-                filter_values = related_field.all()
+                filter_values = related_field.get_queryset()
                 filters = {filter_key: filter_values}
             else:
                 filters = {versionable.grouper_field_name: related_field}

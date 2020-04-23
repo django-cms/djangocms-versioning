@@ -1,16 +1,17 @@
 from django.contrib.auth.models import Permission
 
-from cms.cms_toolbars import PlaceholderToolbar
+from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
-    PageVersionFactory,
     PageContentFactory,
+    PageVersionFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -20,10 +21,6 @@ from djangocms_versioning.test_utils.test_helpers import (
     get_toolbar,
     toolbar_button_exists,
 )
-
-from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
-from cms.toolbar.utils import get_object_edit_url
-from cms.utils.urlutils import admin_reverse
 
 
 class VersioningToolbarTestCase(CMSTestCase):
@@ -307,8 +304,6 @@ class VersioningToolbarTestCase(CMSTestCase):
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):
-
-    #TODO: A content type that is not a page is not affected
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides
         Add Translation links.
@@ -342,7 +337,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
         self.assertEquals(
             set([l.name for l in language_menu_dict["Add Translation"]]),
-            set(["Française...",]),
+            set(["Française..."]),
         )
 
         for item in language_menu_dict["Add Translation"]:

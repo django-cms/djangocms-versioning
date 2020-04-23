@@ -1751,7 +1751,10 @@ class EditRedirectTestCase(BaseStateTestCase):
     def test_edit_redirect_view_editable_object_endpoint(self):
         """
         An editable object should use the correct cms editable endpoint dependant on the
-        contents language
+        contents language.
+
+        It is important to use the correct language on the endpoint because any plugins will be
+        added by the cms in that language.
         """
         versionable_pagecontent = VersioningCMSConfig.versioning[0]
         # A content object with a default language, be sure to use the languages endpoint

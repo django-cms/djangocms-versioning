@@ -271,6 +271,29 @@ class ContentAdminChangelistTestCase(CMSTestCase):
             ordered=False,
         )
 
+    def test_default_changelist_view_language_on_polls_with_language_content(self):
+        """A multi lingual model shows the correct values when
+        language filters / additional grouping values are set
+        using the default content changelist overriden by VersioningChangeListMixin
+        """
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        en_version1 = factories.PollVersionFactory(content__poll=poll, content__language="en")
+        fr_version1 = factories.PollVersionFactory(content__poll=poll, content__language="fr")
+
+        with self.login_user_context(self.get_superuser()):
+            fr_response = self.client.get(changelist_url, {"language": "fr", "poll": poll.pk})
+            en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+
+        # English values checked
+        self.assertEqual(200, en_response.status_code)
+        self.assertEqual(1, en_response.context["cl"].queryset.count())
+        self.assertEqual(en_version1.content, en_response.context["cl"].queryset.first().content)
+        # French values checked
+        self.assertEqual(200, fr_response.status_code)
+        self.assertEqual(1, fr_response.context["cl"].queryset.count())
+        self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first().content)
+
 
 class AdminRegisterVersionTestCase(CMSTestCase):
     def test_register_version_admin(self):

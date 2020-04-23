@@ -1750,19 +1750,29 @@ class EditRedirectTestCase(BaseStateTestCase):
 
     def test_edit_redirect_view_editable_object_endpoint(self):
         """
-        An editable object should use the correct cms editable endpoint
+        An editable object should use the correct cms editable endpoint dependant on the
+        contents language
         """
-        pagecontent = factories.PageVersionFactory()
         versionable_pagecontent = VersioningCMSConfig.versioning[0]
-        url = self.get_admin_url(
-            versionable_pagecontent.version_model_proxy, "edit_redirect", pagecontent.pk
+        # A content object with a default language, be sure to use the languages endpoint
+        en_pagecontent = factories.PageVersionFactory(content__language="en")
+        en_url = self.get_admin_url(
+            versionable_pagecontent.version_model_proxy, "edit_redirect", en_pagecontent.pk
         )
-        target_url = get_object_edit_url(pagecontent.content)
+        en_target_url = get_object_edit_url(en_pagecontent.content, language="en")
+        # Another content object with a different language, be sure to use the objects language endpoint
+        it_pagecontent = factories.PageVersionFactory(content__language="it")
+        it_url = self.get_admin_url(
+            versionable_pagecontent.version_model_proxy, "edit_redirect", it_pagecontent.pk
+        )
+        it_target_url = get_object_edit_url(it_pagecontent.content, language="it")
 
         with self.login_user_context(self.superuser):
-            response = self.client.post(url)
+            en_response = self.client.post(en_url)
+            it_response = self.client.post(it_url)
 
-        self.assertRedirects(response, target_url, target_status_code=302)
+        self.assertRedirects(en_response, en_target_url, target_status_code=302)
+        self.assertRedirects(it_response, it_target_url, target_status_code=302)
 
     def test_edit_redirect_view_non_editable_object_endpoint(self):
         """

@@ -1,13 +1,26 @@
 from collections import OrderedDict
+from copy import copy
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from cms.cms_toolbars import PlaceholderToolbar
+from cms.cms_toolbars import (
+    ADD_PAGE_LANGUAGE_BREAK,
+    LANGUAGE_MENU_IDENTIFIER,
+    PageToolbar,
+    PlaceholderToolbar,
+)
+from cms.models import PageContent
 from cms.toolbar.items import ButtonList
+from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
+from cms.utils import page_permissions
+from cms.utils.conf import get_cms_setting
+from cms.utils.i18n import get_language_dict, get_language_tuple
+from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from djangocms_versioning.models import Version
 
@@ -131,6 +144,87 @@ class VersioningToolbar(PlaceholderToolbar):
         self._add_versioning_menu()
 
 
+class VersioningPageToolbar(PageToolbar):
+    """
+    Overriding the original why???
+
+    The default language menu contains the
+    """
+    def get_page_content(self, language=None):
+        if not language:
+            language = self.current_lang
+        page_content = PageContent._original_manager.filter(
+            page=self.page, language=language
+        ).first()
+        return page_content or None
+
+    def populate(self):
+        self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
+        self.title = self.get_page_content() if self.page else None
+        self.permissions_activated = get_cms_setting('PERMISSION')
+
+        self.override_language_menu()
+        self.change_admin_menu()
+        self.add_page_menu()
+        self.change_language_menu()
+
+    def override_language_menu(self):
+        """
+        Override the default language menu for pages that are versioned
+        """
+        # Only override the menu if a page can be found
+        if settings.USE_I18N and self.page:
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _('Language'))
+
+            # remove_item uses `items` attribute so we have to copy object
+            for _item in copy(language_menu.items):
+                language_menu.remove_item(item=_item)
+
+            for code, name in get_language_tuple(self.current_site.pk):
+                # Get the content, it could be draft too hence using _original_manager!
+                page_content = self.get_page_content(language=code)
+                if page_content:
+                    url = get_object_preview_url(page_content, code)
+                    language_menu.add_link_item(name, url=url, active=self.current_lang == code)
+
+    def change_language_menu(self):
+        if self.toolbar.edit_mode_active and self.page:
+            can_change = page_permissions.user_can_change_page(
+                user=self.request.user, page=self.page, site=self.current_site
+            )
+        else:
+            can_change = False
+
+        if can_change:
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            if not language_menu:
+                return None
+
+            languages = get_language_dict(self.current_site.pk)
+
+            remove = [
+                (code, languages.get(code, code))
+                for code in self.page.get_languages()
+                if code in languages
+            ]
+            add = [l for l in languages.items() if l not in remove]
+
+            if add:
+                language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
+
+                add_plugins_menu = language_menu.get_or_create_menu(
+                    "{0}-add".format(LANGUAGE_MENU_IDENTIFIER), _("Add Translation")
+                )
+
+                page_add_url = admin_reverse("cms_pagecontent_add")
+
+                for code, name in add:
+                    url = add_url_parameters(
+                        page_add_url, cms_page=self.page.pk, language=code
+                    )
+                    add_plugins_menu.add_modal_item(name, url=url)
+
+
 def replace_toolbar(old, new):
     """Replace `old` toolbar class with `new` class,
     while keeping its position in toolbar_pool.
@@ -145,4 +239,5 @@ def replace_toolbar(old, new):
     )
 
 
+replace_toolbar(PageToolbar, VersioningPageToolbar)
 replace_toolbar(PlaceholderToolbar, VersioningToolbar)

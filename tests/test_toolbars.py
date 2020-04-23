@@ -10,6 +10,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageVersionFactory,
+    PageContentFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -19,6 +20,10 @@ from djangocms_versioning.test_utils.test_helpers import (
     get_toolbar,
     toolbar_button_exists,
 )
+
+from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
+from cms.toolbar.utils import get_object_edit_url
+from cms.utils.urlutils import admin_reverse
 
 
 class VersioningToolbarTestCase(CMSTestCase):
@@ -299,3 +304,49 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
 
         self.assertEqual(expected_label, version_menu.name)
+
+
+class VersioningPageToolbarTestCase(CMSTestCase):
+
+    #TODO: A content type that is not a page is not affected
+    def test_change_language_menu_page_toolbar(self):
+        """Check that patched PageToolbar.change_language_menu only provides
+        Add Translation links.
+        """
+        version = PageVersionFactory(content__language="en")
+        PageContentFactory(page=version.content.page, language="de")
+        PageContentFactory(page=version.content.page, language="it")
+        page = version.content.page
+        page.update_languages(["en", "de", "it"])
+
+        request = self.get_page_request(
+            page=page,
+            path=get_object_edit_url(version.content),
+            user=self.get_superuser(),
+        )
+        request.toolbar.set_object(version.content)
+        request.toolbar.populate()
+        request.toolbar.post_template_populate()
+
+        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+        # 3 out of 4 populated languages, Break, Add Translation menu
+        self.assertEqual(language_menu.get_item_count(), 5)
+
+        language_menu_dict = {
+            menu.name: [item for item in menu.items]
+            for key, menu in language_menu.menus.items()
+        }
+        self.assertIn("Add Translation", language_menu_dict.keys())
+        self.assertNotIn("Delete Translation", language_menu_dict.keys())
+        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
+
+        self.assertEquals(
+            set([l.name for l in language_menu_dict["Add Translation"]]),
+            set(["Française...",]),
+        )
+
+        for item in language_menu_dict["Add Translation"]:
+            self.assertIn(admin_reverse("cms_pagecontent_add"), item.url)
+            self.assertIn("cms_page={}".format(page.pk), item.url)
+            lang_code = "fr" if "Française" in item.name else "it"
+            self.assertIn("language={}".format(lang_code), item.url)

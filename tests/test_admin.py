@@ -231,12 +231,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         poll2 = factories.PollFactory()
         # Make sure django sets the created date far in the past
         with freeze_time("2014-01-01"):
-            factories.PollContentWithVersionFactory.create_batch(2, poll=poll1)
-            factories.PollContentWithVersionFactory(poll=poll2)
+            factories.PollContentWithVersionFactory.create_batch(2, poll=poll1, language="en")
+            factories.PollContentWithVersionFactory(poll=poll2, language="en")
         # For these the created date will be now
-        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
-        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2)
-        poll_content3 = factories.PollContentWithVersionFactory()
+        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1, language="en")
+        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2, language="en")
+        poll_content3 = factories.PollContentWithVersionFactory(language="en")
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
@@ -288,11 +288,11 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         # English values checked
         self.assertEqual(200, en_response.status_code)
         self.assertEqual(1, en_response.context["cl"].queryset.count())
-        self.assertEqual(en_version1.content, en_response.context["cl"].queryset.first().content)
+        self.assertEqual(en_version1.content, en_response.context["cl"].queryset.first())
         # French values checked
         self.assertEqual(200, fr_response.status_code)
         self.assertEqual(1, fr_response.context["cl"].queryset.count())
-        self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first().content)
+        self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first())
 
 
 class AdminRegisterVersionTestCase(CMSTestCase):

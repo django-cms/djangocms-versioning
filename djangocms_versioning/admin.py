@@ -38,7 +38,14 @@ class VersioningChangeListMixin:
         """Limit the content model queryset to latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
-        return queryset.filter(pk__in=versionable.distinct_groupers())
+
+        # TODO: Improve the grouping filters to use anything defined in the
+        #       apps versioning config extra_grouping_fields
+        grouping_filters = {}
+        if 'language' in versionable.extra_grouping_fields:
+            grouping_filters['language'] = get_language_from_request(request)
+
+        return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
 
 
 def versioning_change_list_factory(base_changelist_cls):

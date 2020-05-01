@@ -4,6 +4,7 @@ from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
+from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.extensions.models import (
@@ -11,6 +12,7 @@ from djangocms_versioning.test_utils.extensions.models import (
     TestTitleExtension,
 )
 from djangocms_versioning.test_utils.factories import (
+    PageFactory,
     PageContentFactory,
     PageVersionFactory,
     PollVersionFactory,
@@ -114,3 +116,37 @@ class MonkeypatchTestCase(CMSTestCase):
 
         page._get_title_cache(language="en", fallback=False, force_reload=False)
         self.assertEqual({"en": version.content}, page.title_cache)
+
+
+class MonkeypatchAdminTestCase(CMSTestCase):
+
+    def test_default_cms_page_changelist_view_language_with_multi_language_content(self):
+        """A multi lingual page shows the correct values when
+        language filters / additional grouping values are set
+        using the default CMS PageContent view
+        """
+        page = PageFactory(node__depth=1)
+        en_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="en",
+        )
+        fr_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="fr",
+        )
+
+        # Use the tree endpoint which is what the pagecontent changelist depends on
+        changelist_url = admin_reverse("cms_pagecontent_get_tree")
+        with self.login_user_context(self.get_superuser()):
+            en_response = self.client.get(changelist_url, {"language": "en"})
+            fr_response = self.client.get(changelist_url, {"language": "fr"})
+
+        # English values are only returned
+        self.assertEqual(200, en_response.status_code)
+        self.assertContains(en_response, en_version1.content.title)
+        self.assertNotContains(en_response, fr_version1.content.title)
+
+        # French values are only returned
+        self.assertEqual(200, fr_response.status_code)
+        self.assertContains(fr_response, fr_version1.content.title)
+        self.assertNotContains(fr_response, en_version1.content.title)

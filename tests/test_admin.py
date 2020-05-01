@@ -282,8 +282,8 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         fr_version1 = factories.PollVersionFactory(content__poll=poll, content__language="fr")
 
         with self.login_user_context(self.get_superuser()):
-            fr_response = self.client.get(changelist_url, {"language": "fr", "poll": poll.pk})
             en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+            fr_response = self.client.get(changelist_url, {"language": "fr", "poll": poll.pk})
 
         # English values checked
         self.assertEqual(200, en_response.status_code)

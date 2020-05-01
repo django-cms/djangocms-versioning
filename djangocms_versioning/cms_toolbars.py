@@ -170,7 +170,7 @@ class VersioningPageToolbar(PageToolbar):
     def override_language_menu(self):
         """
         Override the default language menu for pages that are versioned.
-        Teh default language menu is too generic so for pages we need to replace it.
+        The default language menu is too generic so for pages we need to replace it.
         """
         # Only override the menu if a page can be found
         if settings.USE_I18N and self.page:

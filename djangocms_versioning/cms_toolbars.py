@@ -146,9 +146,8 @@ class VersioningToolbar(PlaceholderToolbar):
 
 class VersioningPageToolbar(PageToolbar):
     """
-    Overriding the original why???
-
-    The default language menu contains the
+    Overriding the original Page toolbar to ensure that draft and published pages
+    can be accessed and to allow full control over the Page toolbar for versioned pages.
     """
     def get_page_content(self, language=None):
         if not language:
@@ -170,7 +169,8 @@ class VersioningPageToolbar(PageToolbar):
 
     def override_language_menu(self):
         """
-        Override the default language menu for pages that are versioned
+        Override the default language menu for pages that are versioned.
+        Teh default language menu is too generic so for pages we need to replace it.
         """
         # Only override the menu if a page can be found
         if settings.USE_I18N and self.page:
@@ -201,13 +201,16 @@ class VersioningPageToolbar(PageToolbar):
                 return None
 
             languages = get_language_dict(self.current_site.pk)
-
             remove = [
                 (code, languages.get(code, code))
                 for code in self.page.get_languages()
                 if code in languages
             ]
-            add = [l for l in languages.items() if l not in remove]
+            add = [
+                code
+                for code in languages.items()
+                if code not in remove
+            ]
 
             if add:
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)

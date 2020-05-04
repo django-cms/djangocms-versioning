@@ -12,8 +12,8 @@ from djangocms_versioning.test_utils.extensions.models import (
     TestTitleExtension,
 )
 from djangocms_versioning.test_utils.factories import (
-    PageFactory,
     PageContentFactory,
+    PageFactory,
     PageVersionFactory,
     PollVersionFactory,
 )

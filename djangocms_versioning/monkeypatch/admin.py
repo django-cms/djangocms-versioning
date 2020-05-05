@@ -1,5 +1,5 @@
 from cms import admin
-from cms.utils import helpers
+from cms.utils import get_language_from_request, helpers
 
 from .. import versionables
 
@@ -10,7 +10,14 @@ def get_queryset(func):
         queryset = func(self, request)
         if request.resolver_match.url_name in urls:
             versionable = versionables.for_content(queryset.model)
-            return queryset.filter(pk__in=versionable.distinct_groupers())
+
+            # TODO: Improve the grouping filters to use anything defined in the
+            #       apps versioning config extra_grouping_fields
+            grouping_filters = {}
+            if 'language' in versionable.extra_grouping_fields:
+                grouping_filters['language'] = get_language_from_request(request)
+
+            return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
         return queryset
 
     return inner

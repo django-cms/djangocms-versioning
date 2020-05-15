@@ -1,11 +1,9 @@
 from django.contrib.sites.models import Site
 
-from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER
 from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
-from cms.toolbar.utils import get_object_edit_url
 from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
@@ -15,6 +13,7 @@ from djangocms_versioning.test_utils.extensions.models import (
 )
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
+    PageFactory,
     PageVersionFactory,
     PollVersionFactory,
 )
@@ -118,43 +117,36 @@ class MonkeypatchTestCase(CMSTestCase):
         page._get_title_cache(language="en", fallback=False, force_reload=False)
         self.assertEqual({"en": version.content}, page.title_cache)
 
-    def test_change_language_menu_page_toolbar(self):
-        """Check that patched PageToolbar.change_language_menu only provide
-        Add Translation links.
+
+class MonkeypatchAdminTestCase(CMSTestCase):
+
+    def test_default_cms_page_changelist_view_language_with_multi_language_content(self):
+        """A multi lingual page shows the correct values when
+        language filters / additional grouping values are set
+        using the default CMS PageContent view
         """
-        version = PageVersionFactory(content__language="en")
-        PageContentFactory(page=version.content.page, language="de")
-        page = version.content.page
-        page.update_languages(["en", "de"])
-
-        request = self.get_page_request(
-            page=page,
-            path=get_object_edit_url(version.content),
-            user=self.get_superuser(),
+        page = PageFactory(node__depth=1)
+        en_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="en",
         )
-        request.toolbar.set_object(version.content)
-        request.toolbar.populate()
-        request.toolbar.post_template_populate()
-
-        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        # 4 languages, Break, Add Translation menu
-        self.assertEqual(language_menu.get_item_count(), 6)
-
-        language_menu_dict = {
-            menu.name: [item for item in menu.items]
-            for key, menu in language_menu.menus.items()
-        }
-        self.assertIn("Add Translation", language_menu_dict.keys())
-        self.assertNotIn("Delete Translation", language_menu_dict.keys())
-        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
-
-        self.assertEquals(
-            set([l.name for l in language_menu_dict["Add Translation"]]),
-            set(["Française...", "Italiano..."]),
+        fr_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="fr",
         )
 
-        for item in language_menu_dict["Add Translation"]:
-            self.assertIn(admin_reverse("cms_pagecontent_add"), item.url)
-            self.assertIn("cms_page={}".format(page.pk), item.url)
-            lang_code = "fr" if "Française" in item.name else "it"
-            self.assertIn("language={}".format(lang_code), item.url)
+        # Use the tree endpoint which is what the pagecontent changelist depends on
+        changelist_url = admin_reverse("cms_pagecontent_get_tree")
+        with self.login_user_context(self.get_superuser()):
+            en_response = self.client.get(changelist_url, {"language": "en"})
+            fr_response = self.client.get(changelist_url, {"language": "fr"})
+
+        # English values are only returned
+        self.assertEqual(200, en_response.status_code)
+        self.assertContains(en_response, en_version1.content.title)
+        self.assertNotContains(en_response, fr_version1.content.title)
+
+        # French values are only returned
+        self.assertEqual(200, fr_response.status_code)
+        self.assertContains(fr_response, fr_version1.content.title)
+        self.assertNotContains(fr_response, en_version1.content.title)

@@ -217,7 +217,8 @@ def get_editable_url(content_obj):
        This method is provides the URL for it.
     """
     if is_editable_model(content_obj.__class__):
-        url = get_object_edit_url(content_obj)
+        language = getattr(content_obj, "language", None)
+        url = get_object_edit_url(content_obj, language)
     # Or else, the standard edit view should be used
     else:
         url = reverse(

@@ -231,12 +231,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         poll2 = factories.PollFactory()
         # Make sure django sets the created date far in the past
         with freeze_time("2014-01-01"):
-            factories.PollContentWithVersionFactory.create_batch(2, poll=poll1)
-            factories.PollContentWithVersionFactory(poll=poll2)
+            factories.PollContentWithVersionFactory.create_batch(2, poll=poll1, language="en")
+            factories.PollContentWithVersionFactory(poll=poll2, language="en")
         # For these the created date will be now
-        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1)
-        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2)
-        poll_content3 = factories.PollContentWithVersionFactory()
+        poll_content1 = factories.PollContentWithVersionFactory(poll=poll1, language="en")
+        poll_content2 = factories.PollContentWithVersionFactory(poll=poll2, language="en")
+        poll_content3 = factories.PollContentWithVersionFactory(language="en")
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
@@ -270,6 +270,29 @@ class ContentAdminChangelistTestCase(CMSTestCase):
             transform=lambda x: x.pk,
             ordered=False,
         )
+
+    def test_default_changelist_view_language_on_polls_with_language_content(self):
+        """A multi lingual model shows the correct values when
+        language filters / additional grouping values are set
+        using the default content changelist overriden by VersioningChangeListMixin
+        """
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        en_version1 = factories.PollVersionFactory(content__poll=poll, content__language="en")
+        fr_version1 = factories.PollVersionFactory(content__poll=poll, content__language="fr")
+
+        with self.login_user_context(self.get_superuser()):
+            en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+            fr_response = self.client.get(changelist_url, {"language": "fr", "poll": poll.pk})
+
+        # English values checked
+        self.assertEqual(200, en_response.status_code)
+        self.assertEqual(1, en_response.context["cl"].queryset.count())
+        self.assertEqual(en_version1.content, en_response.context["cl"].queryset.first())
+        # French values checked
+        self.assertEqual(200, fr_response.status_code)
+        self.assertEqual(1, fr_response.context["cl"].queryset.count())
+        self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first())
 
 
 class AdminRegisterVersionTestCase(CMSTestCase):
@@ -1750,19 +1773,32 @@ class EditRedirectTestCase(BaseStateTestCase):
 
     def test_edit_redirect_view_editable_object_endpoint(self):
         """
-        An editable object should use the correct cms editable endpoint
+        An editable object should use the correct cms editable endpoint dependant on the
+        contents language.
+
+        It is important to use the correct language on the endpoint because any plugins will be
+        added by the cms in that language.
         """
-        pagecontent = factories.PageVersionFactory()
         versionable_pagecontent = VersioningCMSConfig.versioning[0]
-        url = self.get_admin_url(
-            versionable_pagecontent.version_model_proxy, "edit_redirect", pagecontent.pk
+        # A content object with a default language, be sure to use the languages endpoint
+        en_pagecontent = factories.PageVersionFactory(content__language="en")
+        en_url = self.get_admin_url(
+            versionable_pagecontent.version_model_proxy, "edit_redirect", en_pagecontent.pk
         )
-        target_url = get_object_edit_url(pagecontent.content)
+        en_target_url = get_object_edit_url(en_pagecontent.content, language="en")
+        # Another content object with a different language, be sure to use the objects language endpoint
+        it_pagecontent = factories.PageVersionFactory(content__language="it")
+        it_url = self.get_admin_url(
+            versionable_pagecontent.version_model_proxy, "edit_redirect", it_pagecontent.pk
+        )
+        it_target_url = get_object_edit_url(it_pagecontent.content, language="it")
 
         with self.login_user_context(self.superuser):
-            response = self.client.post(url)
+            en_response = self.client.post(en_url)
+            it_response = self.client.post(it_url)
 
-        self.assertRedirects(response, target_url, target_status_code=302)
+        self.assertRedirects(en_response, en_target_url, target_status_code=302)
+        self.assertRedirects(it_response, it_target_url, target_status_code=302)
 
     def test_edit_redirect_view_non_editable_object_endpoint(self):
         """

@@ -32,7 +32,12 @@ class MonkeypatchTestCase(CMSTestCase):
         )
         plugin.polls.add(poll)
 
-        contentRenderer.render_plugin(plugin, context)
+        with self.assertNumQueries(0): #TODO: this should not be 0, but some other values. but I failed to capture the SQL queries.
+            contentRenderer.render_plugin(plugin, context)
+
+        with self.assertNumQueries(1): #TODO: this should be 0, I want the `polls` values be cached, not need to hit the db.
+            self.assertEqual(1, len(plugin.polls.all()))
+
         self.assertIsNotNone(plugin._prefetched_objects_cache)
         self.assertIsNotNone(plugin._prefetched_objects_cache['polls'])
         self.assertEqual(len(plugin._prefetched_objects_cache['polls']), 1)

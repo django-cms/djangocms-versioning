@@ -40,7 +40,6 @@ def prefetch_versioned_related_objects(instance, toolbar):
             if "language" in versionable.extra_grouping_fields:
                 filters["language"] = toolbar.request_language
             qs = qs.filter(**filters)
-            prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
 
             # TODO refine it after understand prefetch in many2many field.
             # because if `related_field` is ManyRelatedManager, it is temporary,
@@ -48,9 +47,9 @@ def prefetch_versioned_related_objects(instance, toolbar):
             # prefetched value to model instance.
             if is_related_manager:
                 instance._prefetched_objects_cache = getattr(instance, '_prefetched_objects_cache', {})
-                instance._prefetched_objects_cache[field.name] = prefetch_cache
+                instance._prefetched_objects_cache[field.name] = qs
             else:
-                related_field._prefetched_objects_cache = prefetch_cache
+                related_field._prefetched_objects_cache = {versionable.grouper_field.remote_field.name: qs}
 
 
 class VersionContentRenderer(ContentRenderer):

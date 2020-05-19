@@ -336,7 +336,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertNotIn("Copy all plugins", language_menu_dict.keys())
 
         self.assertEquals(
-            set([l.name for l in language_menu_dict["Add Translation"]]), #noqa: E741
+            set([l.name for l in language_menu_dict["Add Translation"]]),  # noqa: E741
             set(["Française..."]),
         )
 

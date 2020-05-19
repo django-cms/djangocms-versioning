@@ -65,8 +65,6 @@ class MonkeypatchTestCase(CMSTestCase):
         plugin = add_plugin(
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
-        plugin._prefetched_objects_cache = {}
 
-        with self.assertNumQueries(1):
-            contentRenderer.render_plugin(plugin, context)
-            self.assertIsNotNone(plugin.poll._prefetched_objects_cache)
+        contentRenderer.render_plugin(plugin, context)
+        self.assertIsNotNone(plugin.poll._prefetched_objects_cache)

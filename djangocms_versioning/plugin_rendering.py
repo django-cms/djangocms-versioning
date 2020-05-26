@@ -39,7 +39,13 @@ def prefetch_versioned_related_objects(instance, toolbar):
             # for extra fields other than hardcoded 'language'
             if "language" in versionable.extra_grouping_fields:
                 filters["language"] = toolbar.request_language
-            qs = qs.filter(**filters)
+            try:
+                qs = qs.filter(**filters)
+            except:
+                # FIXME: there will be error caused by djangocms-internalsearch
+                # Cannot use QuerySet for "content model": Use a QuerySet for "grouper model"
+                # will catch the error here to avoid page corruption.
+                pass
 
             # TODO refine it after understand prefetch in many2many field.
             # because if `related_field` is ManyRelatedManager, it is temporary,

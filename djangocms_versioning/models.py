@@ -3,7 +3,7 @@ import copy
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -191,11 +191,19 @@ class Version(models.Model):
         """
         return getattr(self.content, self.versionable.grouper_field_name)
 
+    @transaction.atomic
     def copy(self, created_by):
         """Creates a new Version object, with a copy of the related
         content object.
         Allows customization of how the content object will be copied
         when specified in cms_config.py
+
+        This method needs to be ran in a transaction due to the fact that if
+        models are partially created in the copy method a version is not attached.
+        It needs to be that if anything goes wrong we should roll back the entire task.
+        We shouldn't leave this to package developers to know to add this feature
+        because not doing so leaves the db and versioning in a corrupt state where
+        content models exist without a version.
         """
         copy_function = versionables.for_content(self.content).copy_function
         new_content = copy_function(self.content)

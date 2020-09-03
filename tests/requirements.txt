@@ -5,5 +5,6 @@ flake8
 isort
 mock
 python-dateutil
-
 beautifulsoup4
+django-classy-tags<2.0.0
+django-sekizai<2.0.0

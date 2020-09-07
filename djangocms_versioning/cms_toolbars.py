@@ -211,6 +211,11 @@ class VersioningPageToolbar(PageToolbar):
                 for code in languages.items()
                 if code not in remove
             ]
+            copy = [
+                (code, name)
+                for code, name in languages.items()
+                if code != self.current_lang and (code, name) in remove
+            ]
 
             if add:
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
@@ -226,6 +231,22 @@ class VersioningPageToolbar(PageToolbar):
                         page_add_url, cms_page=self.page.pk, language=code
                     )
                     add_plugins_menu.add_modal_item(name, url=url)
+
+            if copy:
+                copy_plugins_menu = language_menu.get_or_create_menu(
+                    '{0}-copy'.format(LANGUAGE_MENU_IDENTIFIER), _('Copy all plugins')
+                )
+                title = _('from %s')
+                question = _('Are you sure you want to copy all plugins from %s?')
+
+                for code, name in copy:
+                    pagecontent = self.page.get_title_obj(code)
+                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(pagecontent.pk,))
+                    copy_plugins_menu.add_ajax_item(
+                        title % name, action=page_copy_url,
+                        data={'source_language': code, 'target_language': self.current_lang},
+                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                    )
 
 
 def replace_toolbar(old, new):

@@ -150,3 +150,36 @@ class MonkeypatchAdminTestCase(CMSTestCase):
         self.assertEqual(200, fr_response.status_code)
         self.assertContains(fr_response, fr_version1.content.title)
         self.assertNotContains(fr_response, en_version1.content.title)
+
+
+class MonkeypatchPageAdminCopyLanguageTestCase(CMSTestCase):
+
+    def test_page_copy_language_copies_source_draft_placeholder_plugins(self):
+        """
+        A draft pages contents are copied to a different language
+        """
+        page = PageFactory()
+        en_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="en",
+        )
+        fr_version1 = PageVersionFactory(
+            content__page=page,
+            content__language="fr",
+        )
+
+        self.assertTrue(False)
+
+    def test_copy_language_copies_source_published_placeholder_plugins(self):
+        """
+        A published pages contents are copied to a different language
+        """
+        self.assertTrue(False)
+
+    def test_copy_language_copies_from_page_with_different_placeholders(self):
+        """
+        PageContents stores the template, this means that each PageContent can have
+        a different template and placeholders
+        """
+        pass
+        self.assertTrue(False)

@@ -22,9 +22,12 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from djangocms_versioning.constants import DRAFT, PUBLISHED
+from djangocms_versioning.helpers import (
+    get_latest_admin_viewable_page_content,
+    version_list_url,
+)
 from djangocms_versioning.models import Version
-
-from .helpers import version_list_url
 
 
 VERSIONING_MENU_IDENTIFIER = "version"
@@ -152,10 +155,8 @@ class VersioningPageToolbar(PageToolbar):
     def get_page_content(self, language=None):
         if not language:
             language = self.current_lang
-        page_content = PageContent._original_manager.filter(
-            page=self.page, language=language
-        ).first()
-        return page_content or None
+
+        return get_latest_admin_viewable_page_content(self.page, language)
 
     def populate(self):
         self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
@@ -181,7 +182,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
-                # Get the content, it could be draft too hence using _original_manager!
+                # Get the pagw content, it could be draft too!
                 page_content = self.get_page_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)
@@ -240,8 +241,9 @@ class VersioningPageToolbar(PageToolbar):
                 question = _('Are you sure you want to copy all plugins from %s?')
 
                 for code, name in copy:
-                    pagecontent = self.page.get_title_obj(code)
-                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(pagecontent.pk,))
+                    # Get the pagw content, it could be draft too!
+                    page_content = self.get_page_content(language=code)
+                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
                     copy_plugins_menu.add_ajax_item(
                         title % name, action=page_copy_url,
                         data={'source_language': code, 'target_language': self.current_lang},

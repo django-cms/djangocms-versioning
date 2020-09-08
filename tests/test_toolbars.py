@@ -345,3 +345,13 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn("cms_page={}".format(page.pk), item.url)
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn("language={}".format(lang_code), item.url)
+
+    def test_change_language_menu_page_toolbar(self):
+        """
+        Check that patched PageToolbar.change_language_menu provides
+        the correct links to pages when using the language selector
+        """
+        # TODO: Fix in this PR resolves an issue where an incorrect version is returned
+        # Real world scenario was: 1->archived, 2->archived, 3->Published, 4->Draft
+        # Version 1 was returned in the toolbar language selector ...
+        self.assertTrue(False)

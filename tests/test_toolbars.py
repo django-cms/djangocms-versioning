@@ -5,12 +5,14 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 
+from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentFactory,
+    PageContentWithVersionFactory,
     PageVersionFactory,
     PollVersionFactory,
     UserFactory,
@@ -304,6 +306,13 @@ class VersioningToolbarTestCase(CMSTestCase):
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):
+
+    def _get_toolbar_item_by_name(self, menu, name):
+        for item in menu.items:
+            if hasattr(item, "name") and item.name == name:
+                return item
+        return None
+
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides
         Add Translation links.
@@ -346,12 +355,62 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn("language={}".format(lang_code), item.url)
 
-    def test_change_language_menu_page_toolbar(self):
+    def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """
-        Check that patched PageToolbar.change_language_menu provides
-        the correct links to pages when using the language selector
+        Ensure that the correct version is navigated to in the language selector.
+
+        A real world scenario / issue seen:
+            - Version 3: Draft
+            - Version 2: Published
+            - Version 1: Archived
+
+        Version 1 was returned in the toolbar language selector which is incorrect, the latest version 4 should be returned.
         """
-        # TODO: Fix in this PR resolves an issue where an incorrect version is returned
-        # Real world scenario was: 1->archived, 2->archived, 3->Published, 4->Draft
-        # Version 1 was returned in the toolbar language selector ...
-        self.assertTrue(False)
+        superuser = self.get_superuser()
+        en_pagecontent_1 = PageContentWithVersionFactory(language="en")
+        page = en_pagecontent_1.page
+        de_pagecontent_1 = PageContentWithVersionFactory(page=page, language="de")
+        # Create remaining 3 versions for it
+        it_pagecontent_1 = PageContentWithVersionFactory(page=page, language="it", version__state=ARCHIVED)
+        it_pagecontent_1_version = it_pagecontent_1.versions.first()
+        # Make version 1 archived by publishing the new version 2
+        it_pagecontent_2 = PageContentWithVersionFactory(page=page, language="it", version__state=PUBLISHED)
+        it_pagecontent_2_version = it_pagecontent_2.versions.first()
+        # Create a new draft, which is what we expect to use
+        it_pagecontent_3 = PageContentWithVersionFactory(page=page, language="it", version__state=DRAFT)
+        it_pagecontent_3_version = it_pagecontent_3.versions.first()
+
+        # Sanity check that all versions are int he state that we expect: Archived, Published, Draft
+        self.assertEqual(it_pagecontent_1_version.state, ARCHIVED)
+        self.assertEqual(it_pagecontent_2_version.state, PUBLISHED)
+        self.assertEqual(it_pagecontent_3_version.state, DRAFT)
+
+        page.update_languages(["en", "de", "it"])
+
+        request = self.get_page_request(
+            page=page,
+            path=get_object_edit_url(en_pagecontent_1),
+            user=superuser,
+        )
+        request.toolbar.set_object(en_pagecontent_1)
+        request.toolbar.populate()
+        request.toolbar.post_template_populate()
+
+        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+        language_menu_item_names = [item.name for item in language_menu.items if hasattr(item, "name")]
+
+        self.assertIn("English", language_menu_item_names)
+        self.assertIn("Deutsche", language_menu_item_names)
+        self.assertIn("Italiano", language_menu_item_names)
+
+        en_item = self._get_toolbar_item_by_name(language_menu, "English")
+        en_preview_url = get_object_preview_url(en_pagecontent_1, "en")
+        de_item = self._get_toolbar_item_by_name(language_menu, "Deutsche")
+        de_preview_url = get_object_preview_url(de_pagecontent_1, "de")
+        it_item = self._get_toolbar_item_by_name(language_menu, "Italiano")
+        it_preview_url = get_object_preview_url(it_pagecontent_3, "it")
+
+        # Ensure that each menu item points to the correct url
+        self.assertEqual(en_item.url, en_preview_url)
+        self.assertEqual(de_item.url, de_preview_url)
+        self.assertEqual(it_item.url, it_preview_url)

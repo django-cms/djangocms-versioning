@@ -318,8 +318,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         Add Translation links.
         """
         version = PageVersionFactory(content__language="en")
-        PageContentFactory(page=version.content.page, language="de")
-        PageContentFactory(page=version.content.page, language="it")
+        PageContentWithVersionFactory(page=version.content.page, language="de")
+        PageContentWithVersionFactory(page=version.content.page, language="it")
         page = version.content.page
         page.update_languages(["en", "de", "it"])
 

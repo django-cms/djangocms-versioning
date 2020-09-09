@@ -1,9 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.http import (
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseForbidden,
-)
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 
@@ -69,7 +65,7 @@ def copy_language(self, request, object_id):
 
     page = source_page_content.page
 
-    if not target_language or not target_language in get_language_list(site_id=page.node.site_id):
+    if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
         return HttpResponseBadRequest(force_text(_("Language must be set to a supported language!")))
 
     target_page_content = get_latest_admin_viewable_page_content(page, target_language)

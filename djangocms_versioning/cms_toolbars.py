@@ -13,7 +13,6 @@ from cms.cms_toolbars import (
     PageToolbar,
     PlaceholderToolbar,
 )
-from cms.models import PageContent
 from cms.toolbar.items import ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
@@ -22,7 +21,6 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,

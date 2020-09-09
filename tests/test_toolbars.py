@@ -5,13 +5,12 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 
-from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
-    PageContentFactory,
     PageContentWithVersionFactory,
     PageVersionFactory,
     PollVersionFactory,
@@ -369,7 +368,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             - Version 2: Published
             - Version 1: Archived
 
-        Version 1 was returned in the toolbar language selector which is incorrect, the latest version 4 should be returned.
+        Version 1 was returned in the toolbar language selector which is incorrect,
+        the latest version 4 should be returned.
         """
         superuser = self.get_superuser()
         en_pagecontent_1 = PageContentWithVersionFactory(language="en")

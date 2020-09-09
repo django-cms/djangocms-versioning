@@ -231,7 +231,7 @@ class MonkeypatchPageAdminCopyLanguageTestCase(CMSTestCase):
         A pages contents cannot be copied to a published target version!
         """
         # Publish the target version
-        self.target_version.publish(self.get_superuser())
+        self.target_version.publish(self.user)
 
         with self.login_user_context(self.user):
             response = self.client.post(self.copy_url, self.copy_url_data)

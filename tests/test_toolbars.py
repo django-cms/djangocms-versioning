@@ -333,20 +333,25 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         request.toolbar.post_template_populate()
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        # 3 out of 4 populated languages, Break, Add Translation menu
-        self.assertEqual(language_menu.get_item_count(), 5)
+        # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
+        self.assertEqual(language_menu.get_item_count(), 6)
 
         language_menu_dict = {
             menu.name: [item for item in menu.items]
             for key, menu in language_menu.menus.items()
         }
         self.assertIn("Add Translation", language_menu_dict.keys())
+        self.assertIn("Copy all plugins", language_menu_dict.keys())
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
-        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
 
         self.assertEquals(
             set([lang.name for lang in language_menu_dict["Add Translation"]]),
             set(["Française..."]),
+        )
+
+        self.assertEquals(
+            set([lang.name for lang in language_menu_dict["Copy all plugins"]]),
+            set(["from Italiano", "from Deutsche"]),
         )
 
         for item in language_menu_dict["Add Translation"]:

@@ -64,9 +64,6 @@ def copy_language(self, request, object_id):
     #         source_page_content = self.get_object(request, object_id=object_id)
     source_page_content = PageContent._original_manager.get(pk=object_id)
 
-    if not self.has_change_permission(request, obj=source_page_content):
-        raise PermissionDenied
-
     if source_page_content is None:
         raise self._get_404_exception(object_id)
 
@@ -76,6 +73,10 @@ def copy_language(self, request, object_id):
         return HttpResponseBadRequest(force_text(_("Language must be set to a supported language!")))
 
     target_page_content = get_latest_admin_viewable_page_content(page, target_language)
+
+    # First check that we are able to edit the target
+    if not self.has_change_permission(request, obj=target_page_content):
+        raise PermissionDenied
 
     for placeholder in source_page_content.get_placeholders():
         # Try and get a matching placeholder, only if it exists

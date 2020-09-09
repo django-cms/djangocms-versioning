@@ -15,7 +15,9 @@ from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
     PageFactory,
     PageVersionFactory,
+    PlaceholderFactory,
     PollVersionFactory,
+    TextPluginFactory,
 )
 
 
@@ -154,32 +156,119 @@ class MonkeypatchAdminTestCase(CMSTestCase):
 
 class MonkeypatchPageAdminCopyLanguageTestCase(CMSTestCase):
 
+    def setUp(self):
+        self.user = self.get_superuser()
+        page = PageFactory()
+        self.source_version = PageVersionFactory(content__page=page, content__language="en")
+        self.target_version = PageVersionFactory(content__page=page, content__language="it")
+        # Add default placeholders
+        source_placeholder = PlaceholderFactory(source=self.source_version.content, slot="content")
+        self.source_version.content.placeholders.add(source_placeholder)
+        target_placeholder = PlaceholderFactory(source=self.target_version.content, slot="content")
+        self.target_version.content.placeholders.add(target_placeholder)
+        # Populate only the source placeholder as this is what we will be copying!
+        TextPluginFactory(placeholder=source_placeholder)
+
+        # Use the endpoint that the toolbar copy uses, this indirectly runs the monkey patched logic!
+        # Simulating the user selecting in the Language menu "Copy all plugins" in the Versioned Page toolbar
+        self.copy_url = admin_reverse('cms_pagecontent_copy_language', args=(self.source_version.content.pk,))
+        self.copy_url_data = {
+            'source_language': "en",
+            'target_language': "it"
+        }
+
     def test_page_copy_language_copies_source_draft_placeholder_plugins(self):
         """
         A draft pages contents are copied to a different language
         """
-        page = PageFactory()
-        en_version1 = PageVersionFactory(
-            content__page=page,
-            content__language="en",
-        )
-        fr_version1 = PageVersionFactory(
-            content__page=page,
-            content__language="fr",
-        )
+        with self.login_user_context(self.user):
+            response = self.client.post(self.copy_url, self.copy_url_data)
 
-        self.assertTrue(False)
+        self.assertEqual(response.status_code, 200)
+
+        original_plugins = self.source_version.content.placeholders.get().cmsplugin_set.all()
+        new_plugins = self.target_version.content.placeholders.get().cmsplugin_set.all()
+
+        self.assertEqual(new_plugins.count(), 1)
+        self.assertNotEqual(new_plugins[0].pk, original_plugins[0].pk)
+        self.assertNotEqual(new_plugins[0].language, original_plugins[0].language)
+        self.assertEqual(new_plugins[0].language, "it")
+        self.assertEqual(new_plugins[0].position, original_plugins[0].position)
+        self.assertEqual(new_plugins[0].plugin_type, original_plugins[0].plugin_type)
+        self.assertEqual(
+            new_plugins[0].djangocms_text_ckeditor_text.body,
+            original_plugins[0].djangocms_text_ckeditor_text.body,
+        )
 
     def test_copy_language_copies_source_published_placeholder_plugins(self):
         """
         A published pages contents are copied to a different language
         """
-        self.assertTrue(False)
+        # Publish the source version
+        self.source_version.publish(self.user)
+
+        with self.login_user_context(self.user):
+            response = self.client.post(self.copy_url, self.copy_url_data)
+
+        self.assertEqual(response.status_code, 200)
+
+        original_plugins = self.source_version.content.placeholders.get().cmsplugin_set.all()
+        new_plugins = self.target_version.content.placeholders.get().cmsplugin_set.all()
+
+        self.assertEqual(new_plugins.count(), 1)
+        self.assertNotEqual(new_plugins[0].pk, original_plugins[0].pk)
+        self.assertNotEqual(new_plugins[0].language, original_plugins[0].language)
+        self.assertEqual(new_plugins[0].language, "it")
+        self.assertEqual(new_plugins[0].position, original_plugins[0].position)
+        self.assertEqual(new_plugins[0].plugin_type, original_plugins[0].plugin_type)
+        self.assertEqual(
+            new_plugins[0].djangocms_text_ckeditor_text.body,
+            original_plugins[0].djangocms_text_ckeditor_text.body,
+        )
+
+    def test_copy_language_cannot_copy_to_published_version(self):
+        """
+        A pages contents cannot be copied to a published target version!
+        """
+        # Publish the target version
+        self.target_version.publish(self.get_superuser())
+
+        with self.login_user_context(self.user):
+            response = self.client.post(self.copy_url, self.copy_url_data)
+
+        # the Target version should be protected and we should not be allowed to copy any plugins to it!
+        self.assertEqual(response.status_code, 403)
 
     def test_copy_language_copies_from_page_with_different_placeholders(self):
         """
         PageContents stores the template, this means that each PageContent can have
-        a different template and placeholders
+        a different template and placeholders. We should only copy plugins from common placeholders.
+
+        This test contains different templates and a partially populated source and target placeholders.
+        All plugins in the source should be left unnafected
         """
-        pass
-        self.assertTrue(False)
+        source_placeholder_1 = PlaceholderFactory(source=self.source_version.content, slot="source_placeholder_1")
+        self.source_version.content.placeholders.add(source_placeholder_1)
+        TextPluginFactory(placeholder=source_placeholder_1)
+        target_placeholder_1 = PlaceholderFactory(source=self.target_version.content, slot="target_placeholder_1")
+        self.target_version.content.placeholders.add(target_placeholder_1)
+        TextPluginFactory(placeholder=target_placeholder_1)
+
+        self.source_version.publish(self.user)
+
+        with self.login_user_context(self.user):
+            response = self.client.post(self.copy_url, self.copy_url_data)
+
+        self.assertEqual(response.status_code, 200)
+
+        source_placeholder_different = self.source_version.content.placeholders.get(
+            slot="source_placeholder_1").cmsplugin_set.all()
+        target_placeholder_different = self.target_version.content.placeholders.get(
+            slot="target_placeholder_1").cmsplugin_set.all()
+
+        self.assertEqual(source_placeholder_different.count(), 1)
+        self.assertEqual(target_placeholder_different.count(), 1)
+        self.assertNotEqual(
+            source_placeholder_different[0].djangocms_text_ckeditor_text.body,
+            target_placeholder_different[0].djangocms_text_ckeditor_text.body
+        )

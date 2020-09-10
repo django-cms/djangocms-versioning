@@ -1,3 +1,5 @@
+from unittest import skip, skipIf
+
 from django.contrib.sites.models import Site
 
 from cms.extensions.extension_pool import ExtensionPool
@@ -6,6 +8,7 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
 
+from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.extensions.models import (
     TestPageExtension,
@@ -226,6 +229,7 @@ class MonkeypatchPageAdminCopyLanguageTestCase(CMSTestCase):
             original_plugins[0].djangocms_text_ckeditor_text.body,
         )
 
+    @skipIf(not DJANGO_GTE_21, "Django<2.1. Change permission checks are not ran on Django<2.1")
     def test_copy_language_cannot_copy_to_published_version(self):
         """
         A pages contents cannot be copied to a published target version!

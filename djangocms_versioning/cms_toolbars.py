@@ -239,7 +239,7 @@ class VersioningPageToolbar(PageToolbar):
                 question = _('Are you sure you want to copy all plugins from %s?')
 
                 for code, name in copy:
-                    # Get the pagw content, it could be draft too!
+                    # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
                     page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
                     copy_plugins_menu.add_ajax_item(

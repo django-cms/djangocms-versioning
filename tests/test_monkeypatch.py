@@ -1,4 +1,4 @@
-from unittest import skip, skipIf
+from unittest import skipIf
 
 from django.contrib.sites.models import Site
 

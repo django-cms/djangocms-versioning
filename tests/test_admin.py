@@ -5,7 +5,6 @@ from unittest import skip, skipIf
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
-import django
 from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
@@ -33,8 +32,8 @@ from djangocms_versioning.admin import (
     VersionChangeList,
     VersioningAdminMixin,
 )
-from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,

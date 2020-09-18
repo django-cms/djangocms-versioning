@@ -126,6 +126,7 @@ class VersioningAdminMixin:
         return super().get_readonly_fields(request, obj)
 
     def has_change_permission(self, request, obj=None):
+        # Add additional version checks when they are available in Django 2.1+
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)

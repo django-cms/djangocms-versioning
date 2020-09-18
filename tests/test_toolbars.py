@@ -6,11 +6,12 @@ from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
-    PageContentFactory,
+    PageContentWithVersionFactory,
     PageVersionFactory,
     PollVersionFactory,
     UserFactory,
@@ -304,13 +305,20 @@ class VersioningToolbarTestCase(CMSTestCase):
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):
+
+    def _get_toolbar_item_by_name(self, menu, name):
+        for item in menu.items:
+            if hasattr(item, "name") and item.name == name:
+                return item
+        return None
+
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides
         Add Translation links.
         """
         version = PageVersionFactory(content__language="en")
-        PageContentFactory(page=version.content.page, language="de")
-        PageContentFactory(page=version.content.page, language="it")
+        PageContentWithVersionFactory(page=version.content.page, language="de")
+        PageContentWithVersionFactory(page=version.content.page, language="it")
         page = version.content.page
         page.update_languages(["en", "de", "it"])
 
@@ -324,20 +332,25 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         request.toolbar.post_template_populate()
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        # 3 out of 4 populated languages, Break, Add Translation menu
-        self.assertEqual(language_menu.get_item_count(), 5)
+        # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
+        self.assertEqual(language_menu.get_item_count(), 6)
 
         language_menu_dict = {
             menu.name: [item for item in menu.items]
             for key, menu in language_menu.menus.items()
         }
         self.assertIn("Add Translation", language_menu_dict.keys())
+        self.assertIn("Copy all plugins", language_menu_dict.keys())
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
-        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
 
         self.assertEquals(
             set([lang.name for lang in language_menu_dict["Add Translation"]]),
             set(["Française..."]),
+        )
+
+        self.assertEquals(
+            set([lang.name for lang in language_menu_dict["Copy all plugins"]]),
+            set(["from Italiano", "from Deutsche"]),
         )
 
         for item in language_menu_dict["Add Translation"]:
@@ -345,3 +358,64 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn("cms_page={}".format(page.pk), item.url)
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn("language={}".format(lang_code), item.url)
+
+    def test_change_language_menu_page_toolbar_language_selector_version_link(self):
+        """
+        Ensure that the correct version is navigated to in the language selector.
+
+        A real world scenario / issue seen:
+            - Version 3: Draft
+            - Version 2: Published
+            - Version 1: Archived
+
+        Version 1 was returned in the toolbar language selector which is incorrect,
+        the latest version 4 should be returned.
+        """
+        superuser = self.get_superuser()
+        en_pagecontent_1 = PageContentWithVersionFactory(language="en")
+        page = en_pagecontent_1.page
+        de_pagecontent_1 = PageContentWithVersionFactory(page=page, language="de")
+        # Create remaining 3 versions for it
+        it_pagecontent_1 = PageContentWithVersionFactory(page=page, language="it", version__state=ARCHIVED)
+        it_pagecontent_1_version = it_pagecontent_1.versions.first()
+        # Make version 1 archived by publishing the new version 2
+        it_pagecontent_2 = PageContentWithVersionFactory(page=page, language="it", version__state=PUBLISHED)
+        it_pagecontent_2_version = it_pagecontent_2.versions.first()
+        # Create a new draft, which is what we expect to use
+        it_pagecontent_3 = PageContentWithVersionFactory(page=page, language="it", version__state=DRAFT)
+        it_pagecontent_3_version = it_pagecontent_3.versions.first()
+
+        # Sanity check that all versions are int he state that we expect: Archived, Published, Draft
+        self.assertEqual(it_pagecontent_1_version.state, ARCHIVED)
+        self.assertEqual(it_pagecontent_2_version.state, PUBLISHED)
+        self.assertEqual(it_pagecontent_3_version.state, DRAFT)
+
+        page.update_languages(["en", "de", "it"])
+
+        request = self.get_page_request(
+            page=page,
+            path=get_object_edit_url(en_pagecontent_1),
+            user=superuser,
+        )
+        request.toolbar.set_object(en_pagecontent_1)
+        request.toolbar.populate()
+        request.toolbar.post_template_populate()
+
+        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+        language_menu_item_names = [item.name for item in language_menu.items if hasattr(item, "name")]
+
+        self.assertIn("English", language_menu_item_names)
+        self.assertIn("Deutsche", language_menu_item_names)
+        self.assertIn("Italiano", language_menu_item_names)
+
+        en_item = self._get_toolbar_item_by_name(language_menu, "English")
+        en_preview_url = get_object_preview_url(en_pagecontent_1, "en")
+        de_item = self._get_toolbar_item_by_name(language_menu, "Deutsche")
+        de_preview_url = get_object_preview_url(de_pagecontent_1, "de")
+        it_item = self._get_toolbar_item_by_name(language_menu, "Italiano")
+        it_preview_url = get_object_preview_url(it_pagecontent_3, "it")
+
+        # Ensure that each menu item points to the correct url
+        self.assertEqual(en_item.url, en_preview_url)
+        self.assertEqual(de_item.url, de_preview_url)
+        self.assertEqual(it_item.url, it_preview_url)

@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models.sql.where import WhereNode
 from django.urls import reverse
 
+from cms.models import PageContent
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
@@ -293,3 +294,15 @@ def remove_published_where(queryset):
     queryset.query.where = WhereNode()
     queryset.query.where.children = all_except_published
     return queryset
+
+
+# FIXME: This should reuse a generic method that uses the groupers defined filters
+def get_latest_admin_viewable_page_content(page, language):
+    """
+    Return the latest Draft or Published PageContent using the draft where possible
+    """
+    return PageContent._original_manager.filter(
+        page=page, language=language, versions__state__in=[DRAFT, PUBLISHED]
+    ).order_by(
+        "versions__state"
+    ).first()

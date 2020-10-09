@@ -7,8 +7,9 @@ from django.contrib.sites.models import Site
 from cms import constants
 from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 
-import factory
 from djangocms_text_ckeditor.models import Text
+
+import factory
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version
@@ -36,7 +37,7 @@ class UserFactory(factory.django.DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class AbstractVersionFactory(factory.DjangoModelFactory):
+class AbstractVersionFactory(factory.django.DjangoModelFactory):
     object_id = factory.SelfAttribute("content.id")
     content_type = factory.LazyAttribute(
         lambda o: ContentType.objects.get_for_model(o.content)

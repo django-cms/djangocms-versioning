@@ -1,12 +1,10 @@
 import datetime
 import warnings
 from collections import OrderedDict
-from distutils.version import LooseVersion
 from unittest import skip, skipIf
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
-import django
 from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.utils import flatten_fieldsets
@@ -35,6 +33,7 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -47,9 +46,6 @@ from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 from freezegun import freeze_time
-
-
-DJANGO_GTE_21 = LooseVersion(django.__version__) >= LooseVersion("2.1")
 
 
 class BaseStateTestCase(CMSTestCase):

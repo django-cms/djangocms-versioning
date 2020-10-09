@@ -40,7 +40,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
             if "language" in versionable.extra_grouping_fields:
                 filters["language"] = toolbar.request_language
             try:
-                qs = qs.filter(**filters)
+                qs = qs.filter(**filters).order_by(versionable.grouper_field_name).distinct(versionable.grouper_field_name)
             except:
                 # FIXME: there will be error caused by djangocms-internalsearch
                 # Cannot use QuerySet for "content model": Use a QuerySet for "grouper model"

@@ -3,7 +3,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Compare {{ v1 }} {{ v1.created }}{% if v2 %} to {{ v2 }} {{ v2.created }}{% endif %}</title>
+    <title>{% spaceless %}
+        {% if v1 and v2 %}
+        {% blocktrans with left=v1.description right=v1.description %}
+        Compare {{ left }} to {{ right }}
+        {% endblocktrans %}
+    {% elif v1 %}
+        {% blocktrans with left=v1.description %}
+        Compare {{ left }}
+        {% endblocktrans %}
+    {% elif right %}
+        {% blocktrans with right=v2.description %}
+        Compare {{ right }}
+        {% endblocktrans %}
+    {% endif %}{% endspaceless %}</title>
     <link rel="stylesheet" href="{% static_with_version "cms/css/cms.base.css" %}" />
     <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
 </head>
@@ -13,23 +26,23 @@
             "v2_url": "{{ v2_preview_url }}",
         {% endif %}
         {% if v2 %}
-        "v2_description": "{{ v2 }} {{ v2.created }}",
+            "v2_description": "{{ v2_description }}",
         {% endif %}
         "v1_url": "{{ v1_preview_url }}",
-        "v1_description": "{{ v1 }} {{ v1.created }}"
+        "v1_description": "{{ v1_description }}"
     }'>
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
                 <a class="cms-btn" href="{{ return_url }}">{% trans "Back" %}</a> &nbsp;
                 <span class="cms-versioning-title">
-                {% blocktrans  %}
-                    Comparing {{ v1 }} {{ v1.created }} with
+                {% blocktrans with left=v1_description %}
+                    Comparing {{ left }} with
                 {% endblocktrans %}
                 </span>
                 <select class="js-cms-versioning-version cms-select">
                     <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
                     {% for version in version_list %}
-                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} {{ version.created }}</option>
+                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} (#{{ version.number }}, {{ version.created|date }})</option>
                     {% endfor %}
                 </select>
                 <div class="cms-tooblar-item cms-toolbar-item-buttons">

@@ -42,7 +42,7 @@
                 <select class="js-cms-versioning-version cms-select">
                     <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
                     {% for version in version_list %}
-                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version }} (#{{ version.number }}, {{ version.created|date }})</option>
+                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{% trans  'Version'%} #{{ version.number }}({{ version.created|date }})</option>
                     {% endfor %}
                 </select>
                 <div class="cms-tooblar-item cms-toolbar-item-buttons">

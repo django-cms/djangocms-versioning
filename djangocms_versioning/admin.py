@@ -788,7 +788,7 @@ class VersionAdmin(admin.ModelAdmin):
             "v1": v1,
             "v1_preview_url": v1_preview_url,
             "v1_description": format_html(
-                '{obj} (#{number}, {date})',
+                'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
                 date=localize(localtime(v1.created)),
@@ -816,27 +816,13 @@ class VersionAdmin(admin.ModelAdmin):
                             **persist_params
                         ),
                         "v2_description": format_html(
-                            '{obj} (#{number}, {date})',
+                            'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
                             date=localize(localtime(v2.created)),
                         ),
                     }
                 )
-                # context["v2"] = v2
-                # context["v2_preview_url"] = add_url_parameters(
-                #     reverse(
-                #         "admin:cms_placeholder_render_object_preview",
-                #         args=(v2.content_type_id, v2.object_id),
-                #     ),
-                #     **persist_params
-                # )
-                # context["v2_description"] = format_html(
-                #     '{obj} (#{number}, {date})',
-                #     obj=v2,
-                #     number=v2.number,
-                #     date=localize(localtime(v2.created)),
-                # ),
         return TemplateResponse(
             request, "djangocms_versioning/admin/compare.html", context
         )

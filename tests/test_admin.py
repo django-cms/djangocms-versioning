@@ -15,7 +15,7 @@ from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.formats import localize
-from django.utils.timezone import now, utc, localtime
+from django.utils.timezone import localtime, now, utc
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url

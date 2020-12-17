@@ -14,7 +14,8 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
-from django.utils.timezone import now, utc
+from django.utils.formats import localize
+from django.utils.timezone import now, utc, localtime
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -1881,6 +1882,9 @@ class CompareViewTestCase(CMSTestCase):
         with self.login_user_context(user):
             response = self.client.get(url)
 
+        self.assertContains(response, "Version #{number} ({date})".format(
+            number=versions[0].number, date=localize(localtime(versions[0].created))))
+
         context = response.context
         self.assertIn("v1", context)
         self.assertEqual(context["v1"], versions[0])
@@ -1928,6 +1932,10 @@ class CompareViewTestCase(CMSTestCase):
 
         with self.login_user_context(user):
             response = self.client.get(url)
+
+        self.assertContains(response, "Comparing Version #{}".format(versions[0].number))
+        self.assertContains(response, "Version #{}".format(versions[0].number))
+        self.assertContains(response, "Version #{}".format(versions[1].number))
 
         context = response.context
         self.assertIn("v1", context)

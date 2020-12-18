@@ -13,7 +13,9 @@ from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
+from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
+from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
@@ -785,8 +787,15 @@ class VersionAdmin(admin.ModelAdmin):
             "version_list": version_list,
             "v1": v1,
             "v1_preview_url": v1_preview_url,
+            "v1_description": format_html(
+                'Version #{number} ({date})',
+                obj=v1,
+                number=v1.number,
+                date=localize(localtime(v1.created)),
+            ),
             "return_url": version_list_url(v1.content),
         }
+
         # Now check if version 2 has been specified and add to context
         # if yes
         if "compare_to" in request.GET:
@@ -796,13 +805,23 @@ class VersionAdmin(admin.ModelAdmin):
                     request, self.model._meta, request.GET["compare_to"]
                 )
             else:
-                context["v2"] = v2
-                context["v2_preview_url"] = add_url_parameters(
-                    reverse(
-                        "admin:cms_placeholder_render_object_preview",
-                        args=(v2.content_type_id, v2.object_id),
-                    ),
-                    **persist_params
+                context.update(
+                    {
+                        "v2": v2,
+                        "v2_preview_url": add_url_parameters(
+                            reverse(
+                                "admin:cms_placeholder_render_object_preview",
+                                args=(v2.content_type_id, v2.object_id),
+                            ),
+                            **persist_params
+                        ),
+                        "v2_description": format_html(
+                            'Version #{number} ({date})',
+                            obj=v2,
+                            number=v2.number,
+                            date=localize(localtime(v2.created)),
+                        ),
+                    }
                 )
         return TemplateResponse(
             request, "djangocms_versioning/admin/compare.html", context

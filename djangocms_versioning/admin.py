@@ -33,6 +33,13 @@ from .models import Version
 from .versionables import _cms_extension
 
 
+try:
+    from djangocms_version_locking import cms_config
+    using_version_lock = True
+except ImportError:
+    using_version_lock = False
+
+
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
@@ -139,11 +146,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
     """
-    try:
-        from djangocms_version_locking import cms_config
-        using_version_lock = True
-    except ImportError:
-        using_version_lock = False
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
@@ -210,10 +212,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return list_actions
 
     def get_list_display(self, request):
+        print(dir(request))
         versioning_list_display = None # TODO: Use provided config to generate this!
 
         versioning_list_display.extend(
-            ["get_author", "get_modified_date", "get_versioning_state"]
+            ["title", "get_author", "get_modified_date", "get_versioning_state"]
         )
         # Add version locking specific items
         if using_version_lock:
@@ -223,7 +226,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         else:
             versioning_list_display.extend(["get_version_link", "get_preview_link"]) # TODO: Check naming here!
 
-        return menu_content_list_display
+        return versioning_list_display
 
     def is_locked(self, obj):
         version = self.get_version(obj)
@@ -293,7 +296,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             msg="Use of ExtendedVersionAdminMixin requires get_object_link implementation within admin using it."
         )
 
-    get_menuitem_link.short_description = _("Menu Items")
+    get_object_link.short_description = _("Menu Items")
 
     def get_preview_link(self, obj):
         return format_html(
@@ -387,7 +390,7 @@ class VersionAdmin(admin.ModelAdmin):
     # register custom actions
     actions = ["compare_versions"]
 
-    list_display_links = None
+    list_display_links = ["title"]
 
     # FIXME disabled until GenericRelation attached to content models gets
     # fixed to include subclass (polymorphic) support

@@ -28,7 +28,7 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_admin_url, get_editable_url, get_preview_url, version_list_url
+from .helpers import get_admin_url, get_editable_url, get_preview_url, version_list_url, get_list_display_config
 from .models import Version
 from .versionables import _cms_extension
 
@@ -212,11 +212,10 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return list_actions
 
     def get_list_display(self, request):
-        print(dir(request))
-        versioning_list_display = None # TODO: Use provided config to generate this!
+        versioning_list_display = get_list_display_config(self.model)
 
         versioning_list_display.extend(
-            ["title", "get_author", "get_modified_date", "get_versioning_state"]
+            ["get_author", "get_modified_date", "get_versioning_state"]
         )
         # Add version locking specific items
         if using_version_lock:
@@ -224,7 +223,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             # Ensure actions are the last items
             versioning_list_display.extend([self._list_actions(request)])
         else:
-            versioning_list_display.extend(["get_version_link", "get_preview_link"]) # TODO: Check naming here!
+            versioning_list_display.extend(["get_preview_link"]) # TODO: Check naming here!
 
         return versioning_list_display
 
@@ -293,7 +292,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         :return: Url
         """
         raise ImproperlyConfigured(
-            msg="Use of ExtendedVersionAdminMixin requires get_object_link implementation within admin using it."
+            "Use of ExtendedVersionAdminMixin requires get_object_link implementation within admin using it."
         )
 
     get_object_link.short_description = _("Menu Items")

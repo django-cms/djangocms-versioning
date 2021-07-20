@@ -2,6 +2,7 @@ import copy
 import warnings
 from contextlib import contextmanager
 
+from django.apps import apps
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -306,3 +307,8 @@ def get_latest_admin_viewable_page_content(page, language):
     ).order_by(
         "versions__state"
     ).first()
+
+
+def get_list_display_config(model):
+    versionable = versionables.for_content(model)
+    return versionable.list_display

@@ -1,12 +1,14 @@
 from django.conf.urls import url
 from django.contrib import admin
 
+from djangocms_versioning.admin import ExtendedVersionAdminMixin
+
 from .models import Answer, Poll, PollContent
 from .views import PreviewView
 
 
 @admin.register(PollContent)
-class PollContentAdmin(admin.ModelAdmin):
+class PollContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
@@ -16,6 +18,9 @@ class PollContentAdmin(admin.ModelAdmin):
                 name="{}_{}_preview".format(*info),
             )
         ] + super().get_urls()
+
+    def get_version_link(self):
+        return
 
 
 @admin.register(Poll)

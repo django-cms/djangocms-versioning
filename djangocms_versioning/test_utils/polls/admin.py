@@ -19,9 +19,6 @@ class PollContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
             )
         ] + super().get_urls()
 
-    def get_version_link(self):
-        return
-
 
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):

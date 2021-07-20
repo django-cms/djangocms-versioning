@@ -35,9 +35,15 @@ from .versionables import _cms_extension
 
 try:
     from djangocms_version_locking import cms_config
+    from djangocms_version_locking.helpers import content_is_unlocked_for_user, version_is_locked
     using_version_lock = True
+    LOCK_MESSAGE = _(
+        "The item is currently locked or you don't "
+        "have permission to change it"
+    )
 except ImportError:
     using_version_lock = False
+    LOCK_MESSAGE = _("You don't have permission to change this item")
 
 
 class VersioningChangeListMixin:
@@ -214,9 +220,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     def get_list_display(self, request):
         versioning_list_display = get_list_display_config(self.model)
 
-        versioning_list_display.extend(
-            ["get_author", "get_modified_date", "get_versioning_state"]
-        )
+        versioning_list_display.extend(["get_versioning_state", "get_author", "get_modified_date"])
+
         # Add version locking specific items
         if using_version_lock:
             versioning_list_display.extend(["is_locked"])
@@ -307,6 +312,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         )
 
     get_preview_link.short_description = _("Preview")
+
 
 
 class VersionChangeList(ChangeList):

@@ -19,7 +19,6 @@ class PollContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
             )
         ] + super().get_urls()
 
-
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
     pass

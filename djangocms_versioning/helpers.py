@@ -312,3 +312,16 @@ def get_latest_admin_viewable_page_content(page, language):
 def get_list_display_config(model):
     versionable = versionables.for_content(model)
     return versionable.list_display
+
+
+def proxy_model(obj, content_model):
+    """
+    Get the proxy model from a
+
+    :param obj: A registered versionable object
+    :param content_model: A registered content model
+    """
+    versionable = versionables.for_content(content_model)
+    obj_ = copy.deepcopy(obj)
+    obj_.__class__ = versionable.version_model_proxy
+    return obj_

@@ -28,7 +28,14 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_admin_url, get_editable_url, get_preview_url, version_list_url, get_list_display_config
+from .helpers import (
+    get_admin_url,
+    get_editable_url,
+    get_preview_url,
+    version_list_url,
+    get_list_display_config,
+    proxy_model,
+)
 from .models import Version
 from .versionables import _cms_extension
 
@@ -225,10 +232,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         # Add version locking specific items
         if using_version_lock:
             versioning_list_display.extend(["is_locked"])
-            # Ensure actions are the last items
-            versioning_list_display.extend([self._list_actions(request)])
-        else:
-            versioning_list_display.extend(["get_preview_link"]) # TODO: Check naming here!
+        # Ensure actions are the last items
+        versioning_list_display.extend([self._list_actions(request)])
 
         return versioning_list_display
 
@@ -289,6 +294,13 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             "djangocms_versioning/admin/icons/manage_versions.html",
             {"url": url, "disabled": disabled, "action": False},
         )
+
+    def get_list_actions(self):
+        return [
+            self._get_preview_link,
+            self._get_edit_link,
+            self._get_manage_versions_link,
+        ]
 
     def get_object_link(self, obj):
         """
@@ -395,7 +407,7 @@ class VersionAdmin(admin.ModelAdmin):
     # register custom actions
     actions = ["compare_versions"]
 
-    list_display_links = ["title"]
+    list_display_links = [None]
 
     # FIXME disabled until GenericRelation attached to content models gets
     # fixed to include subclass (polymorphic) support

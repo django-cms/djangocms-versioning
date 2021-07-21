@@ -227,11 +227,6 @@ def on_page_content_archive(version):
     """Clear cache when a new PageContent version is archived."""
     page = version.content.page
     page.clear_cache(menu=True)
-'''
-def get_admin_list_display(list_display):
-    """Get default admin values"""
-    return ["get_author", "get_modified_date", "get_versioning_state"].append(list_display)
-'''
 
 
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):

@@ -273,6 +273,6 @@ class VersioningCMSConfig(CMSAppConfig):
             on_draft_create=on_page_content_draft_create,
             on_archive=on_page_content_archive,
             content_admin_mixin=VersioningCMSPageAdminMixin,
-            admin_list_display_fields=["title"],
+            admin_list_display_fields={"pagecontent": ["title"]},
         )
     ]

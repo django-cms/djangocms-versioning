@@ -117,11 +117,7 @@ class VersionableItem(BaseVersionableItem):
     def grouping_fields(self):
         """Returns an iterator for all the grouping fields"""
         return chain([self.grouper_field_name], self.extra_grouping_fields)
-    """
-    @property
-    def list_display_fields(self):
-        return self.admin_list_display_fields
-    """
+
 
     def grouping_values(self, content, relation_suffix=True):
         """Returns a dict of grouper fields as keys and values from the content instance

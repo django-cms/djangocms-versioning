@@ -324,7 +324,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     get_preview_link.short_description = _("Preview")
 
 
-
 class VersionChangeList(ChangeList):
     def get_filters_params(self, params=None):
         """Removes the grouper param from the filters as the main grouper
@@ -405,7 +404,7 @@ class VersionAdmin(admin.ModelAdmin):
     # register custom actions
     actions = ["compare_versions"]
 
-    list_display_links = [None]
+    list_display_links = None
 
     # FIXME disabled until GenericRelation attached to content models gets
     # fixed to include subclass (polymorphic) support

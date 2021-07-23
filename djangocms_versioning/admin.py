@@ -159,6 +159,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
     """
+    list_display_links = None
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
@@ -206,6 +207,15 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).modified
 
+    get_modified_date.short_description = _("Modified")
+
+    def get_base_list_display(self):
+        """
+        Return the configured list display from cms config versionable object
+        """
+        versionable = versionables.for_content(self.model)
+        return versionable.admin_list_display_fields.get(self.model._meta.model_name, None)
+
     def _list_actions(self, request):
         """
         A closure that makes it possible to pass request object to
@@ -225,17 +235,17 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return list_actions
 
     def get_list_display(self, request):
-        versioning_list_display = get_list_display_config(self.model)
-
-        versioning_list_display.extend(["get_versioning_state", "get_author", "get_modified_date"])
-
-        # Add version locking specific items
+        # Get list display from app_config
+        list_display = self.get_base_list_display()
+        versioning_list_display_items = ["get_author", "get_modified_date", "get_versioning_state"]
         if using_version_lock:
-            versioning_list_display.extend(["is_locked"])
-        # Ensure actions are the last items
-        versioning_list_display.extend([self._list_actions(request)])
+            versioning_list_display_items.extend(["is_locked"])
 
-        return versioning_list_display
+        # Ensure fields aren't already within list_display
+        if not set(versioning_list_display_items).issubset(list_display):
+            list_display.extend(versioning_list_display_items)
+            list_display.extend([self._list_actions(request)])
+        return list_display
 
     def is_locked(self, obj):
         version = self.get_version(obj)
@@ -301,18 +311,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             self._get_edit_link,
             self._get_manage_versions_link,
         ]
-
-    def get_object_link(self, obj):
-        """
-        Return an admin link to the menuitem
-        :param obj: MenuItem Instance
-        :return: Url
-        """
-        raise ImproperlyConfigured(
-            "Use of ExtendedVersionAdminMixin requires get_object_link implementation within admin using it."
-        )
-
-    get_object_link.short_description = _("Menu Items")
 
     def get_preview_link(self, obj):
         return format_html(

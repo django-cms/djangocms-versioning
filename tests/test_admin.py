@@ -33,6 +33,7 @@ from djangocms_versioning.admin import (
     VersionChangeList,
     VersioningAdminMixin,
 )
+from djangocms_versioning import versionables
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.helpers import (
@@ -2408,3 +2409,28 @@ class VersionChangeViewTestCase(CMSTestCase):
             response = self.client.post(endpoint, data, follow=True)
 
         self.assertContains(response, "Exactly two versions need to be selected.")
+
+
+class ExtendedVersionAdminTestCase(CMSTestCase):
+    def test_extended_version_list_display(self):
+
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        en_version1 = factories.PollVersionFactory(content__poll=poll, content__language="en")
+        content_model = en_version1.content
+
+        # Get list display
+        versionable = versionables.for_content(content_model)
+        polls_list_display = versionable.admin_list_display_fields.get(content_model._meta.model_name)
+
+        list_actions_function = polls_list_display.pop()
+        list_actions = list_actions_function(content_model)
+
+        with self.login_user_context(self.get_superuser()):
+            en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+
+
+        self.assertEqual(200, en_response.status_code)
+        # Check all string list display values are populated
+        for list_item in polls_list_display:
+            self.assertIn(list_item, en_response.content)

@@ -209,12 +209,13 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     get_modified_date.short_description = _("Modified")
 
-    def get_base_list_display(self):
+    def get_list_display_configuration(self):
         """
-        Return the configured list display from cms config versionable object
+        Return the configured list display from cms config versionable object, if it is not configured,
+        return the default django value if list_display is not set.
         """
         versionable = versionables.for_content(self.model)
-        return versionable.admin_list_display_fields.get(self.model._meta.model_name, None)
+        return versionable.admin_list_display_fields.get(self.model._meta.model_name, "__str__")
 
     def _list_actions(self, request):
         """
@@ -236,7 +237,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def get_list_display(self, request):
         # Get list display from app_config
-        list_display = self.get_base_list_display()
+        list_display = self.get_list_display_configuration()
         versioning_list_display_items = ["get_author", "get_modified_date", "get_versioning_state"]
         if using_version_lock:
             versioning_list_display_items.extend(["is_locked"])
@@ -244,6 +245,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         # Ensure fields aren't already within list_display
         if not set(versioning_list_display_items).issubset(list_display):
             list_display.extend(versioning_list_display_items)
+            # Add actions last
             list_display.extend([self._list_actions(request)])
         return list_display
 

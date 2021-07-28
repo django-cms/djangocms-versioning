@@ -2415,23 +2415,27 @@ class VersionChangeViewTestCase(CMSTestCase):
 
 
 class ExtendedVersionAdminTestCase(CMSTestCase):
+
+    def setup(self):
+        self.poll_content = factories.PollContentWithVersionFactory()
+
     def test_extended_version_change_list_display_renders_from_cms_config(self):
         """
-        Check the list_display options added by ExtendedVersionAdminTestCase are
+        Check the list_display options added by ExtendedVersionAdminTestCase
         populated from cms_config are rendered in change_list
         """
-        changelist_url = self.get_admin_url(PollContent, "changelist")
-        poll = factories.PollContentWithVersionFactory()
+        poll = factories.PollFactory()
+        factories.PollContentWithVersionFactory()
+        factories.PollVersionFactory(content__poll=poll)
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
 
         # Check response is valid
         self.assertEqual(200, response.status_code)
-        import pdb
-        pdb.set_trace()
-        # Check configured item is rendered
-        self.assertContains(response, '<div class="text"><a href="?language=en&amp;o=1&amp;poll=1">Text</a></div>')
+        # Check list_display item from cms_config is rendered
+        self.assertContains(response, "field-text")
+        self.assertContains(response, '<a href="?o=1">Text</a></div>')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
@@ -2445,8 +2449,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         Check the list_display options added by ExtendedVersionAdminTestCase are
         populated from cms_config are rendered in change_list
         """
-        changelist_url = self.get_admin_url(BlogContent, "changelist")
-        blog = factories.BlogContentWithVersionFactory()
+        factories.BlogContentWithVersionFactory()
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
@@ -2463,6 +2466,9 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "js-versioning-action")
 
     def test_extended_version_change_get_list_display_without_cms_config(self):
+        """
+        Admin class should correctly add a default if cms_config is not configured
+        """
 
         content_model = factories.BlogContentWithVersionFactory()
         request = self.get_request("/")

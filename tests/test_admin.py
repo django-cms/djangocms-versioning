@@ -34,8 +34,9 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning import versionables
-from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
 from djangocms_versioning.compat import DJANGO_GTE_21
+from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -43,8 +44,10 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.blogpost.admin import BlogContentAdmin
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.polls.admin import PollContentAdmin
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 from freezegun import freeze_time
@@ -2412,25 +2415,74 @@ class VersionChangeViewTestCase(CMSTestCase):
 
 
 class ExtendedVersionAdminTestCase(CMSTestCase):
-    def test_extended_version_list_display(self):
-
+    def test_extended_version_change_list_display_renders_from_cms_config(self):
+        """
+        Check the list_display options added by ExtendedVersionAdminTestCase are
+        populated from cms_config are rendered in change_list
+        """
         changelist_url = self.get_admin_url(PollContent, "changelist")
-        poll = factories.PollFactory()
-        en_version1 = factories.PollVersionFactory(content__poll=poll, content__language="en")
-        content_model = en_version1.content
-
-        # Get list display
-        versionable = versionables.for_content(content_model)
-        polls_list_display = versionable.admin_list_display_fields.get(content_model._meta.model_name)
-
-        list_actions_function = polls_list_display.pop()
-        list_actions = list_actions_function(content_model)
+        poll = factories.PollContentWithVersionFactory()
 
         with self.login_user_context(self.get_superuser()):
-            en_response = self.client.get(changelist_url, {"language": "en", "poll": poll.pk})
+            response = self.client.get(self.get_admin_url(PollContent, "changelist"))
+
+        # Check response is valid
+        self.assertEqual(200, response.status_code)
+        import pdb
+        pdb.set_trace()
+        # Check configured item is rendered
+        self.assertContains(response, '<div class="text"><a href="?language=en&amp;o=1&amp;poll=1">Text</a></div>')
+        # Check list_action links are rendered
+        self.assertContains(response, "cms-versioning-action-btn")
+        self.assertContains(response, "cms-versioning-action-preview")
+        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, "cms-versioning-action-manage-versions")
+        self.assertContains(response, "js-versioning-action")
 
 
-        self.assertEqual(200, en_response.status_code)
-        # Check all string list display values are populated
-        for list_item in polls_list_display:
-            self.assertIn(list_item, en_response.content)
+    def test_extended_version_change_list_display_renders_without_cms_config(self):
+        """
+        Check the list_display options added by ExtendedVersionAdminTestCase are
+        populated from cms_config are rendered in change_list
+        """
+        changelist_url = self.get_admin_url(BlogContent, "changelist")
+        blog = factories.BlogContentWithVersionFactory()
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
+
+        # Check response is valid
+        self.assertEqual(200, response.status_code)
+        # Check default value is populated
+        self.assertContains(response, 'class="field-__str__">')
+        # Check list_action links are rendered
+        self.assertContains(response, "cms-versioning-action-btn")
+        self.assertContains(response, "cms-versioning-action-preview")
+        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, "cms-versioning-action-manage-versions")
+        self.assertContains(response, "js-versioning-action")
+
+    def test_extended_version_change_get_list_display_without_cms_config(self):
+
+        content_model = factories.BlogContentWithVersionFactory()
+        request = self.get_request("/")
+        blog_admin = BlogContentAdmin(content_model, admin.AdminSite())
+
+        list_display = blog_admin.get_list_display(request=request)
+        list_actions_function = list_display.pop()
+
+        # list_display should return django default of __str__ if not configured!
+        self.assertEqual(('__str__',), blog_admin.list_display)
+        self.assertIn("__str__", list_display)
+        self.assertIn("get_author", list_display)
+        self.assertIn("get_modified_date", list_display)
+        self.assertIn("get_versioning_state", list_display)
+
+        # Fetching list_display through get_list_display should return extended list_display
+        list_actions = list_actions_function(content_model)
+
+        self.assertIn("cms-versioning-action-btn", list_actions)
+        self.assertIn("cms-versioning-action-preview", list_actions)
+        self.assertIn("cms-versioning-action-edit", list_actions)
+        self.assertIn("cms-versioning-action-manage-versions", list_actions)
+        self.assertIn("js-versioning-action", list_actions)

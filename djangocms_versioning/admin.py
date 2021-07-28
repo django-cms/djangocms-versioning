@@ -176,8 +176,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     def get_version(self, obj):
         """
         Return the latest version of a given object
-        :param obj: MenuContent instance
-        :return: Latest Version linked with MenuContent instance
+        :param obj: Versioned Content instance
+        :return: Latest Version linked with content instance
         """
         return obj.versions.all()[0]
 
@@ -192,7 +192,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     def get_author(self, obj):
         """
         Return the author who created a version
-        :param obj: MenuContent Instance
+        :param obj: Versioned content model Instance
         :return: Author
         """
         return self.get_version(obj).created_by
@@ -202,7 +202,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     def get_modified_date(self, obj):
         """
         Get the last modified date of a version
-        :param obj: MenuContent Instance
+        :param obj: Versioned content model Instance
         :return: Modified Date
         """
         return self.get_version(obj).modified
@@ -215,7 +215,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return the default django value if list_display is not set.
         """
         versionable = versionables.for_content(self.model)
-        return versionable.admin_list_display_fields.get(self.model._meta.model_name, "__str__")
+        return versionable.admin_list_display_fields or ["__str__"]
 
     def _list_actions(self, request):
         """
@@ -259,20 +259,20 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def _get_preview_link(self, obj, request, disabled=False):
         """
-        Return a user friendly button for previewing the menu contents
-        :param obj: Instance of Versioned MenuContent
+        Return a user friendly button for previewing the content model
+        :param obj: Instance of versioned content model
         :param request: The request to admin menu
         :param disabled: Should the link be marked disabled?
         :return: Preview icon template
         """
         return render_to_string(
             "djangocms_versioning/admin/icons/preview.html",
-            {"url": obj.get_preview_url(), "disabled": disabled},
+            {"url": get_preview_url(obj), "disabled": disabled},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
         """
-        Return a user friendly button for editing the menu contents
+        Return a user friendly button for editing the content model
         - mark disabled if user doesn't have permission
         - hide completely if instance cannot be edited
         :param obj: Instance of Versioned model

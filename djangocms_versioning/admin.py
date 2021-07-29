@@ -160,6 +160,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     Extended VersionAdminMixin for common/generic versioning admin items
     """
     list_display_links = None
+    """
+    By default preview_implemented is False, when implemented in admin class that used mixin,
+    set to True if preview is implemented!
+    """
+    preview_implemented = False
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
@@ -217,6 +222,14 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         versionable = versionables.for_content(self.model)
         return versionable.admin_list_display_fields or ["__str__"]
 
+    def get_preview_method_configuration(self):
+        """
+        Return the preview method if available, otherwise return None
+        :return: method or None
+        """
+        versionable = versionables.for_content(self.model)
+        return versionable.preview_url or None
+
     def _list_actions(self, request):
         """
         A closure that makes it possible to pass request object to
@@ -265,9 +278,13 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         :param disabled: Should the link be marked disabled?
         :return: Preview icon template
         """
+        preview_url = self.get_preview_method_configuration()
+        if not preview_url:
+            disabled = True
+
         return render_to_string(
             "djangocms_versioning/admin/icons/preview.html",
-            {"url": get_preview_url(obj), "disabled": disabled},
+            {"url": preview_url or get_preview_url(obj), "disabled": disabled},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):

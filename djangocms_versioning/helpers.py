@@ -249,7 +249,7 @@ def get_content_types_with_subclasses(models, using=None):
 
 def get_preview_url(content_obj):
     """If the object is editable the cms preview view should be used, with the toolbar.
-       This method is provides the URL for it.
+       This method provides the URL for it.
     """
     versionable = versionables.for_content(content_obj)
     if versionable.preview_url:

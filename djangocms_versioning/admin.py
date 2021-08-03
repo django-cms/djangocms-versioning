@@ -40,19 +40,6 @@ from .models import Version
 from .versionables import _cms_extension
 
 
-try:
-    from djangocms_version_locking import cms_config
-    from djangocms_version_locking.helpers import content_is_unlocked_for_user, version_is_locked
-    using_version_lock = True
-    LOCK_MESSAGE = _(
-        "The item is currently locked or you don't "
-        "have permission to change it"
-    )
-except ImportError:
-    using_version_lock = False
-    LOCK_MESSAGE = _("You don't have permission to change this item")
-
-
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
@@ -160,23 +147,16 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     Extended VersionAdminMixin for common/generic versioning admin items
     """
     list_display_links = None
-    """
-    By default preview_implemented is False, when implemented in admin class that used mixin,
-    set to True if preview is implemented!
-    """
+
+    # By default preview_implemented is False, when implemented in admin class that used mixin,
+    # set to True if preview is implemented!
     preview_implemented = False
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
-        # Verify whether version locking is installed before using its assets!
-        if using_version_lock:
-            css = {
-                "all": ("djangocms_versioning/css/actions.css", "djangocms_version_locking/css/version-locking.css",)
-            }
-        else:
-            css = {
-                "all": ("djangocms_versioning/css/actions.css",)
-            }
+        css = {
+            "all": ("djangocms_versioning/css/actions.css",)
+        }
 
     def get_version(self, obj):
         """
@@ -252,8 +232,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         # Get list display from app_config
         list_display = self.get_list_display_configuration()
         versioning_list_display_items = ["get_author", "get_modified_date", "get_versioning_state"]
-        if using_version_lock:
-            versioning_list_display_items.extend(["is_locked"])
 
         # Ensure fields aren't already within list_display
         if not set(versioning_list_display_items).issubset(list_display):
@@ -262,13 +240,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             list_display.extend([self._list_actions(request)])
         return list_display
 
-    def is_locked(self, obj):
-        version = self.get_version(obj)
-        if version.state == DRAFT and version_is_locked(version):
-            return render_to_string("djangocms_version_locking/admin/locked_icon.html")
-        return ""
-
-    is_locked.short_description = _("Lock State")
 
     def _get_preview_link(self, obj, request, disabled=False):
         """
@@ -325,6 +296,9 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         )
 
     def get_list_actions(self):
+        """
+        Collect rendered actions from implemented methods and return as list
+        """
         return [
             self._get_preview_link,
             self._get_edit_link,

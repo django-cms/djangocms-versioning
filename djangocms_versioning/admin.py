@@ -32,8 +32,8 @@ from .helpers import (
     get_admin_url,
     get_editable_url,
     get_preview_url,
-    version_list_url,
     proxy_model,
+    version_list_url,
 )
 from .models import Version
 from .versionables import _cms_extension

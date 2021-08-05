@@ -27,7 +27,7 @@ import pytz
 from bs4 import BeautifulSoup
 
 import djangocms_versioning.helpers
-from djangocms_versioning import constants, helpers, versionables
+from djangocms_versioning import constants, helpers
 from djangocms_versioning.admin import (
     VersionAdmin,
     VersionChangeList,
@@ -45,7 +45,6 @@ from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.admin import BlogContentAdmin
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
-from djangocms_versioning.test_utils.polls.admin import PollContentAdmin
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 from freezegun import freeze_time

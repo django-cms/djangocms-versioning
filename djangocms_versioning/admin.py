@@ -6,7 +6,7 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist, ImproperlyConfigured
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -31,7 +31,6 @@ from .forms import grouper_form_factory
 from .helpers import (
     get_admin_url,
     get_editable_url,
-    get_list_display_config,
     get_preview_url,
     version_list_url,
     proxy_model,
@@ -239,7 +238,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             # Add actions last
             list_display.extend([self._list_actions(request)])
         return list_display
-
 
     def _get_preview_link(self, obj, request, disabled=False):
         """

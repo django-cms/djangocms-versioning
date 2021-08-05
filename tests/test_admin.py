@@ -33,9 +33,8 @@ from djangocms_versioning.admin import (
     VersionChangeList,
     VersioningAdminMixin,
 )
-from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
+from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.compat import DJANGO_GTE_21
-from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -2440,7 +2439,6 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-edit")
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
-
 
     def test_extended_version_change_list_display_renders_without_cms_config(self):
         """

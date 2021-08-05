@@ -2414,17 +2414,13 @@ class VersionChangeViewTestCase(CMSTestCase):
 
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
-    def setup(self):
-        self.poll_content = factories.PollContentWithVersionFactory(PollContentFactory())
-
     def test_extended_version_change_list_display_renders_from_cms_config(self):
         """
         Check the list_display options added by ExtendedVersionAdminTestCase
         populated from cms_config are rendered in change_list
         """
-        poll = factories.PollFactory()
-        factories.PollContentFactory(poll=poll, language="en")
-        factories.PollVersionFactory(content__poll=poll)
+        content = factories.PollContentFactory(language="en")
+        factories.PollVersionFactory(content=content)
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))

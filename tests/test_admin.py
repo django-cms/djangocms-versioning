@@ -27,13 +27,12 @@ import pytz
 from bs4 import BeautifulSoup
 
 import djangocms_versioning.helpers
-from djangocms_versioning import constants, helpers
+from djangocms_versioning import constants, helpers, versionables
 from djangocms_versioning.admin import (
     VersionAdmin,
     VersionChangeList,
     VersioningAdminMixin,
 )
-from djangocms_versioning import versionables
 from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
 from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.datastructures import VersionableItem, default_copy
@@ -2434,7 +2433,6 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check response is valid
         self.assertEqual(200, response.status_code)
         # Check list_display item from cms_config is rendered
-        self.assertContains(response, "field-text")
         self.assertContains(response, '<a href="?o=1">Text</a></div>')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")

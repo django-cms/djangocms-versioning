@@ -31,9 +31,9 @@ from .forms import grouper_form_factory
 from .helpers import (
     get_admin_url,
     get_editable_url,
+    get_list_display_config,
     get_preview_url,
     version_list_url,
-    get_list_display_config,
     proxy_model,
 )
 from .models import Version

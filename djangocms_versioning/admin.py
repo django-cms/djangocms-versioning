@@ -147,10 +147,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     list_display_links = None
 
-    # By default preview_implemented is False, when implemented in admin class that used mixin,
-    # set to True if preview is implemented!
-    preview_implemented = False
-
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {

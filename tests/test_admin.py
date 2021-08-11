@@ -2467,7 +2467,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         list_actions_function = list_display[-1]
 
         # List display should not be set
-        self.assertEqual((), blog_admin.list_display)
+        self.assertEqual(('__str__',), blog_admin.list_display)
         # Check other values are populated
         self.assertIn("get_author", list_display)
         self.assertIn("get_modified_date", list_display)

@@ -417,8 +417,7 @@ class VersionAdmin(admin.ModelAdmin):
         return state_actions
 
     def get_list_display(self, request):
-        list_display = self.list_display
-        return list_display + (
+        return (
             "nr",
             "created",
             "modified",

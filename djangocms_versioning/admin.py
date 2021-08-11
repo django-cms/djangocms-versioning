@@ -190,13 +190,12 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     get_modified_date.short_description = _("Modified")
 
-    def get_preview_method_configuration(self):
+    def _get_preview_url(self, obj):
         """
         Return the preview method if available, otherwise return None
         :return: method or None
         """
-        versionable = versionables.for_content(self.model)
-        return versionable.preview_url or None
+        return obj.preview_url or None
 
     def _list_actions(self, request):
         """
@@ -224,7 +223,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         :param disabled: Should the link be marked disabled?
         :return: Preview icon template
         """
-        preview_url = self.get_preview_method_configuration()
+        preview_url = self._get_preview_url(obj)
         if not preview_url:
             disabled = True
 

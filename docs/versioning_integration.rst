@@ -247,6 +247,28 @@ but also new Poll and Answer objects.
 Notice that we have not created new Category objects in this example. This is because the default behaviour actually suits Category objects fine.
 If the name of a category changed, we would not want to revert the whole site to use the old name of the category when reverting a PostContent object.
 
+Adding Versioning Entries to a Content Model Admin
+--------------------------------------------------
+Versioning provides a number of actions and fields through the :term:`ExtendedVersionAdminMixin`, these function by extending the :term:`ModelAdmin` :term:`list_display`
+to add the fields:
+
+* author
+
+* modified date
+
+* versioning state
+
+* preview action
+
+* edit action
+
+* version list action
+
+
+.. code-block:: python
+    class PostAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
+        list_display = "title"
+
 
 Additional/advanced configuration
 ----------------------------------

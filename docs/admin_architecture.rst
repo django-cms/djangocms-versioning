@@ -9,6 +9,13 @@ versioning duplicates content model records every time a new version is created 
 that's content type specific). Versioning therefore needs to limit the queryset in the content model admin to
 include only the records for the latest versions.
 
+Extended Mixin
+++++++++++++++
+The ExtendedVersionAdminMixin provides fields related to versioning (such as author, state, last modified) as well as a number
+of actions (preview, edit and versions list) to prevent the need to re-implement on each :term:`content model <content model>` admin.
+It is used in the same way as any other admin mixin.
+
+
 
 The Version model admin
 ------------------------

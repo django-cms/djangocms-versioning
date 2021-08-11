@@ -195,7 +195,10 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         Return the preview method if available, otherwise return None
         :return: method or None
         """
-        return obj.preview_url or None
+        if hasattr(obj, "get_preview_url"):
+            return obj.get_preview_url()
+        else:
+            return None
 
     def _list_actions(self, request):
         """

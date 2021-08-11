@@ -3,6 +3,7 @@ from collections import OrderedDict
 from cms.app_base import CMSAppConfig
 from cms.utils.i18n import get_language_tuple
 
+from djangocms_versioning.admin import ExtendedVersionAdminMixin
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 
 from .models import PollContent
@@ -22,7 +23,7 @@ class PollsCMSConfig(CMSAppConfig):
             version_list_filter_lookups={"language": get_language_tuple},
             copy_function=default_copy,
             preview_url=PollContent.get_preview_url,
-            admin_list_display_fields=["text"],
+            # content_admin_mixin=ExtendedVersionAdminMixin,
         )
     ]
     versioning_add_to_confirmation_context = {

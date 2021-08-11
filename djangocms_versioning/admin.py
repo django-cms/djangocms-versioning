@@ -146,6 +146,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     Extended VersionAdminMixin for common/generic versioning admin items
     """
     list_display_links = None
+    list_display = ()
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
@@ -189,14 +190,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     get_modified_date.short_description = _("Modified")
 
-    def get_list_display_configuration(self):
-        """
-        Return the configured list display from cms config versionable object, if it is not configured,
-        return the default django value if list_display is not set.
-        """
-        versionable = versionables.for_content(self.model)
-        return versionable.admin_list_display_fields or ["__str__"]
-
     def get_preview_method_configuration(self):
         """
         Return the preview method if available, otherwise return None
@@ -222,18 +215,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
         list_actions.short_description = _("actions")
         return list_actions
-
-    def get_list_display(self, request):
-        # Get list display from app_config
-        list_display = self.get_list_display_configuration()
-        versioning_list_display_items = ["get_author", "get_modified_date", "get_versioning_state"]
-
-        # Ensure fields aren't already within list_display
-        if not set(versioning_list_display_items).issubset(list_display):
-            list_display.extend(versioning_list_display_items)
-            # Add actions last
-            list_display.extend([self._list_actions(request)])
-        return list_display
 
     def _get_preview_link(self, obj, request, disabled=False):
         """
@@ -309,6 +290,18 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         )
 
     get_preview_link.short_description = _("Preview")
+
+    def get_list_display(self, request):
+        # get configured list_display
+        list_display = self.list_display
+        # Add versioning information and action fields
+        list_display += (
+            "get_author",
+            "get_modified_date",
+            "get_versioning_state",
+            self._list_actions(request)
+        )
+        return list_display
 
 
 class VersionChangeList(ChangeList):
@@ -424,7 +417,8 @@ class VersionAdmin(admin.ModelAdmin):
         return state_actions
 
     def get_list_display(self, request):
-        return (
+        list_display = self.list_display
+        return list_display + (
             "nr",
             "created",
             "modified",

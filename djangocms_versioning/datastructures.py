@@ -36,7 +36,6 @@ class VersionableItem(BaseVersionableItem):
         grouper_selector_option_label=False,
         content_admin_mixin=None,
         preview_url=None,
-        admin_list_display_fields=None,
     ):
         super().__init__(content_model, content_admin_mixin)
         # Set the grouper field
@@ -52,7 +51,6 @@ class VersionableItem(BaseVersionableItem):
         self.on_draft_create = on_draft_create
         self.on_archive = on_archive
         self.preview_url = preview_url
-        self.admin_list_display_fields = admin_list_display_fields
 
     def _get_grouper_field(self):
         """Get the grouper field on the content model

@@ -1,5 +1,6 @@
 from cms.app_base import CMSAppConfig
 
+from djangocms_versioning.admin import ExtendedVersionAdminMixin
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 
 from .models import BlogContent, CommentContent

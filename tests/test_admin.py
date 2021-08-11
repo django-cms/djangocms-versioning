@@ -42,7 +42,6 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.admin import BlogContentAdmin
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -2413,7 +2412,7 @@ class VersionChangeViewTestCase(CMSTestCase):
 
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
-    def test_extended_version_change_list_display_renders_from_cms_config(self):
+    def test_extended_version_change_list_display_renders_from_provided_list_display(self):
         """
         Check the list_display options added by ExtendedVersionAdminTestCase
         populated from cms_config are rendered in change_list
@@ -2436,7 +2435,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
-    def test_extended_version_change_list_display_renders_without_cms_config(self):
+    def test_extended_version_change_list_display_renders_without_list_display(self):
         """
         Check the list_display options added by ExtendedVersionAdminTestCase are
         populated from cms_config are rendered in change_list
@@ -2448,8 +2447,6 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         # Check response is valid
         self.assertEqual(200, response.status_code)
-        # Check default value is populated
-        self.assertContains(response, 'class="field-__str__">')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
@@ -2464,14 +2461,14 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         content_model = factories.BlogContentWithVersionFactory()
         request = self.get_request("/")
-        blog_admin = BlogContentAdmin(content_model, admin.AdminSite())
+        blog_admin = admin.site._registry[BlogContent]
 
         list_display = blog_admin.get_list_display(request=request)
-        list_actions_function = list_display.pop()
+        list_actions_function = list_display[-1]
 
-        # list_display should return django default of __str__ if not configured!
-        self.assertEqual(('__str__',), blog_admin.list_display)
-        self.assertIn("__str__", list_display)
+        # List display should not be set
+        self.assertEqual((), blog_admin.list_display)
+        # Check other values are populated
         self.assertIn("get_author", list_display)
         self.assertIn("get_modified_date", list_display)
         self.assertIn("get_versioning_state", list_display)
@@ -2484,3 +2481,46 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertIn("cms-versioning-action-edit", list_actions)
         self.assertIn("cms-versioning-action-manage-versions", list_actions)
         self.assertIn("js-versioning-action", list_actions)
+
+
+class ListActionsTestCase(CMSTestCase):
+    def setUp(self):
+        self.modeladmin = admin.site._registry[PollContent]
+
+    def test_edit_link(self):
+        content_model = factories.BlogContentWithVersionFactory()
+        version = content_model.versions.last()
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        menu_content = version.content
+
+        func = self.modeladmin._list_actions(request)
+        edit_endpoint = reverse("admin:djangocms_versioning_pollcontentversion_edit_redirect", args=(version.pk,),)
+        response = func(menu_content)
+
+        self.assertIn("cms-versioning-action-btn", response)
+        self.assertIn('title="Edit"', response)
+        self.assertIn(edit_endpoint, response)
+
+    def test_edit_link_inactive(self):
+        content_model = factories.BlogContentWithVersionFactory()
+        version = content_model.versions.last()
+        request = self.get_request("/")
+        request.user = self.get_staff_user_with_no_permissions()
+
+        func = self.modeladmin._list_actions(request)
+        edit_endpoint = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,),)
+        response = func(version.content)
+
+        self.assertIn("inactive", response)
+        self.assertIn('title="Edit"', response)
+        self.assertNotIn(edit_endpoint, response)
+
+    def test_edit_link_not_shown(self):
+        content_model = factories.BlogContentWithVersionFactory()
+        version = content_model.versions.last()
+        func = self.modeladmin._list_actions(self.get_request("/"))
+
+        response = func(version.content)
+
+        self.assertNotIn("cms-versioning-action-edit ", response)

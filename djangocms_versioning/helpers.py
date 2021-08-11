@@ -308,11 +308,6 @@ def get_latest_admin_viewable_page_content(page, language):
     ).first()
 
 
-def get_list_display_config(model):
-    versionable = versionables.for_content(model)
-    return versionable.list_display
-
-
 def proxy_model(obj, content_model):
     """
     Get the proxy model from a

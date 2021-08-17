@@ -2414,8 +2414,9 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_from_provided_list_display(self):
         """
-        Check the list_display options added by ExtendedVersionAdminTestCase
-        populated from cms_config are rendered in change_list
+        All fields are present for a content object if the class inheriting the mixin:
+        ExtendedVersionAdminMixin has set any fields to display.
+        This will be the list of fields the user has added and the fields & actions set by the mixin.
         """
         content = factories.PollContentFactory(language="en")
         factories.PollVersionFactory(content=content)
@@ -2437,7 +2438,8 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_without_list_display(self):
         """
-        A default is set for the content object if the class inheriting the mixin: ExtendedVersionAdminMixin has not set any fields to display.
+        A default is set for the content object if the class inheriting the mixin:
+        ExtendedVersionAdminMixin has not set any fields to display.
         populated from cms_config are rendered in change_list
         """
         factories.BlogContentWithVersionFactory()
@@ -2447,40 +2449,14 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         # Check response is valid
         self.assertEqual(200, response.status_code)
+        # Check for default value
+        self.assertContains(response, 'class ="field-__str__"')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
         self.assertContains(response, "cms-versioning-action-edit")
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
-
-    def test_extended_version_change_get_list_display_without_cms_config(self):
-        """
-        Admin class should correctly add a default if cms_config is not configured
-        """
-
-        content_model = factories.BlogContentWithVersionFactory()
-        request = self.get_request("/")
-        blog_admin = admin.site._registry[BlogContent]
-
-        list_display = blog_admin.get_list_display(request=request)
-        list_actions_function = list_display[-1]
-
-        # List display should not be set
-        self.assertEqual(('__str__',), blog_admin.list_display)
-        # Check other values are populated
-        self.assertIn("get_author", list_display)
-        self.assertIn("get_modified_date", list_display)
-        self.assertIn("get_versioning_state", list_display)
-
-        # Fetching list_display through get_list_display should return extended list_display
-        list_actions = list_actions_function(content_model)
-
-        self.assertIn("cms-versioning-action-btn", list_actions)
-        self.assertIn("cms-versioning-action-preview", list_actions)
-        self.assertIn("cms-versioning-action-edit", list_actions)
-        self.assertIn("cms-versioning-action-manage-versions", list_actions)
-        self.assertIn("js-versioning-action", list_actions)
 
 
 class ListActionsTestCase(CMSTestCase):

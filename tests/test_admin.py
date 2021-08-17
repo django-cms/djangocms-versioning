@@ -2437,7 +2437,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_without_list_display(self):
         """
-        Check the list_display options added by ExtendedVersionAdminTestCase are
+        A default is set for the content object if the class inheriting the mixin: ExtendedVersionAdminMixin has not set any fields to display.
         populated from cms_config are rendered in change_list
         """
         factories.BlogContentWithVersionFactory()

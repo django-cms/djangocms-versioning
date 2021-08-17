@@ -2427,7 +2427,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check response is valid
         self.assertEqual(200, response.status_code)
 
-        # Check list_display item from cms_config is rendered
+        # Check list_display item is rendered
         self.assertContains(response, '<a href="?o=1">Text</a></div>')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
@@ -2439,8 +2439,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
     def test_extended_version_change_list_display_renders_without_list_display(self):
         """
         A default is set for the content object if the class inheriting the mixin:
-        ExtendedVersionAdminMixin has not set any fields to display.
-        populated from cms_config are rendered in change_list
+        ExtendedVersionAdminMixin has not set any list_display fields.
         """
         factories.BlogContentWithVersionFactory()
 

@@ -2464,6 +2464,10 @@ class ListActionsTestCase(CMSTestCase):
         self.modeladmin = admin.site._registry[PollContent]
 
     def test_edit_link(self):
+        """
+        The edit link should be shown when a version is editable. A published version can show an edit button
+        which causes a new draft to be created.
+        """
         content_model = factories.BlogContentWithVersionFactory()
         version = content_model.versions.last()
         request = self.get_request("/")
@@ -2479,6 +2483,9 @@ class ListActionsTestCase(CMSTestCase):
         self.assertIn(edit_endpoint, response)
 
     def test_edit_link_inactive(self):
+        """
+        The edit link should not be shown for a user that does not have the edit permission.
+        """
         content_model = factories.BlogContentWithVersionFactory()
         version = content_model.versions.last()
         request = self.get_request("/")
@@ -2491,12 +2498,3 @@ class ListActionsTestCase(CMSTestCase):
         self.assertIn("inactive", response)
         self.assertIn('title="Edit"', response)
         self.assertNotIn(edit_endpoint, response)
-
-    def test_edit_link_not_shown(self):
-        content_model = factories.BlogContentWithVersionFactory()
-        version = content_model.versions.last()
-        func = self.modeladmin._list_actions(self.get_request("/"))
-
-        response = func(version.content)
-
-        self.assertNotIn("cms-versioning-action-edit ", response)

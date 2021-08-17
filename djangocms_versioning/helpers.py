@@ -248,7 +248,7 @@ def get_content_types_with_subclasses(models, using=None):
 
 def get_preview_url(content_obj):
     """If the object is editable the cms preview view should be used, with the toolbar.
-       This method is provides the URL for it.
+       This method provides the URL for it.
     """
     versionable = versionables.for_content(content_obj)
     if versionable.preview_url:
@@ -306,3 +306,16 @@ def get_latest_admin_viewable_page_content(page, language):
     ).order_by(
         "versions__state"
     ).first()
+
+
+def proxy_model(obj, content_model):
+    """
+    Get the proxy model from a
+
+    :param obj: A registered versionable object
+    :param content_model: A registered content model
+    """
+    versionable = versionables.for_content(content_model)
+    obj_ = copy.deepcopy(obj)
+    obj_.__class__ = versionable.version_model_proxy
+    return obj_

@@ -2408,3 +2408,92 @@ class VersionChangeViewTestCase(CMSTestCase):
             response = self.client.post(endpoint, data, follow=True)
 
         self.assertContains(response, "Exactly two versions need to be selected.")
+
+
+class ExtendedVersionAdminTestCase(CMSTestCase):
+
+    def test_extended_version_change_list_display_renders_from_provided_list_display(self):
+        """
+        All fields are present for a content object if the class inheriting the mixin:
+        ExtendedVersionAdminMixin has set any fields to display.
+        This will be the list of fields the user has added and the fields & actions set by the mixin.
+        """
+        content = factories.PollContentFactory(language="en")
+        factories.PollVersionFactory(content=content)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(PollContent, "changelist"))
+
+        # Check response is valid
+        self.assertEqual(200, response.status_code)
+
+        # Check list_display item is rendered
+        self.assertContains(response, '<a href="?o=1">Text</a></div>')
+        # Check list_action links are rendered
+        self.assertContains(response, "cms-versioning-action-btn")
+        self.assertContains(response, "cms-versioning-action-preview")
+        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, "cms-versioning-action-manage-versions")
+        self.assertContains(response, "js-versioning-action")
+
+    def test_extended_version_change_list_display_renders_without_list_display(self):
+        """
+        A default is set for the content object if the class inheriting the mixin:
+        ExtendedVersionAdminMixin has not set any list_display fields.
+        """
+        factories.BlogContentWithVersionFactory()
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
+
+        # Check response is valid
+        self.assertEqual(200, response.status_code)
+        # Check for default value
+        self.assertContains(response, 'class="field-__str__"')
+        # Check list_action links are rendered
+        self.assertContains(response, "cms-versioning-action-btn")
+        self.assertContains(response, "cms-versioning-action-preview")
+        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, "cms-versioning-action-manage-versions")
+        self.assertContains(response, "js-versioning-action")
+
+
+class ListActionsTestCase(CMSTestCase):
+    def setUp(self):
+        self.modeladmin = admin.site._registry[PollContent]
+
+    def test_edit_link(self):
+        """
+        The edit link should be shown when a version is editable. A published version can show an edit button
+        which causes a new draft to be created.
+        """
+        content_model = factories.BlogContentWithVersionFactory()
+        version = content_model.versions.last()
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        menu_content = version.content
+
+        func = self.modeladmin._list_actions(request)
+        edit_endpoint = reverse("admin:djangocms_versioning_pollcontentversion_edit_redirect", args=(version.pk,),)
+        response = func(menu_content)
+
+        self.assertIn("cms-versioning-action-btn", response)
+        self.assertIn('title="Edit"', response)
+        self.assertIn(edit_endpoint, response)
+
+    def test_edit_link_inactive(self):
+        """
+        The edit link should not be shown for a user that does not have the edit permission.
+        """
+        content_model = factories.BlogContentWithVersionFactory()
+        version = content_model.versions.last()
+        request = self.get_request("/")
+        request.user = self.get_staff_user_with_no_permissions()
+
+        func = self.modeladmin._list_actions(request)
+        edit_endpoint = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,),)
+        response = func(version.content)
+
+        self.assertIn("inactive", response)
+        self.assertIn('title="Edit"', response)
+        self.assertNotIn(edit_endpoint, response)

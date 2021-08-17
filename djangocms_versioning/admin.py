@@ -28,7 +28,13 @@ from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_admin_url, get_editable_url, get_preview_url, version_list_url
+from .helpers import (
+    get_admin_url,
+    get_editable_url,
+    get_preview_url,
+    proxy_model,
+    version_list_url,
+)
 from .models import Version
 from .versionables import _cms_extension
 
@@ -133,6 +139,169 @@ class VersioningAdminMixin:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)
+
+
+class ExtendedVersionAdminMixin(VersioningAdminMixin):
+    """
+    Extended VersionAdminMixin for common/generic versioning admin items
+    """
+
+    class Media:
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
+        css = {
+            "all": ("djangocms_versioning/css/actions.css",)
+        }
+
+    def get_version(self, obj):
+        """
+        Return the latest version of a given object
+        :param obj: Versioned Content instance
+        :return: Latest Version linked with content instance
+        """
+        return obj.versions.all()[0]
+
+    def get_versioning_state(self, obj):
+        """
+        Return the state of a given version
+        """
+        return self.get_version(obj).get_state_display()
+
+    get_versioning_state.short_description = _("State")
+
+    def get_author(self, obj):
+        """
+        Return the author who created a version
+        :param obj: Versioned content model Instance
+        :return: Author
+        """
+        return self.get_version(obj).created_by
+
+    get_author.short_description = _("Author")
+
+    def get_modified_date(self, obj):
+        """
+        Get the last modified date of a version
+        :param obj: Versioned content model Instance
+        :return: Modified Date
+        """
+        return self.get_version(obj).modified
+
+    get_modified_date.short_description = _("Modified")
+
+    def _get_preview_url(self, obj):
+        """
+        Return the preview method if available, otherwise return None
+        :return: method or None
+        """
+        if hasattr(obj, "get_preview_url"):
+            return obj.get_preview_url()
+        else:
+            return None
+
+    def _list_actions(self, request):
+        """
+        A closure that makes it possible to pass request object to
+        list action button functions.
+        """
+
+        def list_actions(obj):
+            """Display links to state change endpoints
+            """
+            return format_html_join(
+                "",
+                "{}",
+                ((action(obj, request),) for action in self.get_list_actions()),
+            )
+
+        list_actions.short_description = _("actions")
+        return list_actions
+
+    def _get_preview_link(self, obj, request, disabled=False):
+        """
+        Return a user friendly button for previewing the content model
+        :param obj: Instance of versioned content model
+        :param request: The request to admin menu
+        :param disabled: Should the link be marked disabled?
+        :return: Preview icon template
+        """
+        preview_url = self._get_preview_url(obj)
+        if not preview_url:
+            disabled = True
+
+        return render_to_string(
+            "djangocms_versioning/admin/icons/preview.html",
+            {"url": preview_url or get_preview_url(obj), "disabled": disabled},
+        )
+
+    def _get_edit_link(self, obj, request, disabled=False):
+        """
+        Return a user friendly button for editing the content model
+        - mark disabled if user doesn't have permission
+        - hide completely if instance cannot be edited
+        :param obj: Instance of Versioned model
+        :param request: The request to admin menu
+        :param disabled: Should the link be marked disabled?
+        :return: Preview icon template
+        """
+        version = proxy_model(self.get_version(obj), self.model)
+
+        if version.state not in (DRAFT, PUBLISHED):
+            # Don't display the link if it can't be edited
+            return ""
+
+        if not version.check_edit_redirect.as_bool(request.user):
+            disabled = True
+
+        url = reverse(
+            "admin:{app}_{model}_edit_redirect".format(
+                app=version._meta.app_label, model=version._meta.model_name
+            ),
+            args=(version.pk,),
+        )
+        return render_to_string(
+            "djangocms_versioning/admin/icons/edit_icon.html",
+            {"url": url, "disabled": disabled, "get": False},
+        )
+
+    def _get_manage_versions_link(self, obj, request, disabled=False):
+        url = version_list_url(obj)
+        return render_to_string(
+            "djangocms_versioning/admin/icons/manage_versions.html",
+            {"url": url, "disabled": disabled, "action": False},
+        )
+
+    def get_list_actions(self):
+        """
+        Collect rendered actions from implemented methods and return as list
+        """
+        return [
+            self._get_preview_link,
+            self._get_edit_link,
+            self._get_manage_versions_link,
+        ]
+
+    def get_preview_link(self, obj):
+        return format_html(
+            '<a href="{}" class="js-moderation-close-sideframe" target="_top">'
+            '<span class="cms-icon cms-icon-eye"></span> {}'
+            "</a>",
+            obj.get_preview_url(),
+            _("Preview"),
+        )
+
+    get_preview_link.short_description = _("Preview")
+
+    def get_list_display(self, request):
+        # get configured list_display
+        list_display = self.list_display
+        # Add versioning information and action fields
+        list_display += (
+            "get_author",
+            "get_modified_date",
+            "get_versioning_state",
+            self._list_actions(request)
+        )
+        return list_display
 
 
 class VersionChangeList(ChangeList):

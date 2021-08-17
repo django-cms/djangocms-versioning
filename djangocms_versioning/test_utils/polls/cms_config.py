@@ -22,7 +22,6 @@ class PollsCMSConfig(CMSAppConfig):
             version_list_filter_lookups={"language": get_language_tuple},
             copy_function=default_copy,
             preview_url=PollContent.get_preview_url,
-            # content_admin_mixin=ExtendedVersionAdminMixin,
         )
     ]
     versioning_add_to_confirmation_context = {

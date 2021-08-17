@@ -2450,7 +2450,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check response is valid
         self.assertEqual(200, response.status_code)
         # Check for default value
-        self.assertContains(response, 'class ="field-__str__"')
+        self.assertContains(response, 'class="field-__str__"')
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")

@@ -2006,6 +2006,40 @@ class CompareViewTestCase(CMSTestCase):
             'poll content version with ID "134" doesn\'t exist. Perhaps it was deleted?',
         )
 
+    def test_compare_view_handles_naive_datetime_object(self):
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(
+            3, content__poll=poll, content__language="en"
+        )
+        poll_version_1 = factories.PollVersionFactory(
+            content__poll=poll, content__language="fr"
+        )  # Same grouper different language
+        poll_version_2 = factories.PollVersionFactory(
+            content__language="fr"
+        )  # different grouper and different language
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "compare", versions[0].pk
+        )
+        url += "?compare_to=%d" % versions[1].pk
+
+        user = self.get_staff_user_with_no_permissions()
+
+        # Make datetime object timezone unaware
+        poll_version_1.created.replace(tzinfo=None)
+        poll_version_2.created.replace(tzinfo=None)
+
+        poll_version_1.save()
+        poll_version_2.save()
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+
+        # Verify datetimes returned correctly
+        self.assertContains(response, "Version #{number} ({date})".format(
+            number=versions[0].number, date=localize(localtime(versions[0].created))))
+        self.assertContains(response, "Version #{number} ({date})".format(
+            number=versions[1].number, date=localize(localtime(versions[1].created))))
+
 
 class VersionChangeListViewTestCase(CMSTestCase):
     def setUp(self):

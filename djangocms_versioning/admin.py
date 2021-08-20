@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
-from django.utils.timezone import localtime
+from django.utils.timezone import is_naive, localtime, make_aware
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
@@ -782,6 +782,11 @@ class VersionAdmin(admin.ModelAdmin):
         version_list = Version.objects.filter_by_content_grouping_values(
             v1.content
         ).order_by("-number")
+        # localtime method expects aware datetime object, convert if it is naive
+        if is_naive(v1.created):
+            aware_datetime_v1 = make_aware(v1.created)
+        else:
+            aware_datetime_v1 = v1.created
         # Add the above to context
         context = {
             "version_list": version_list,
@@ -791,7 +796,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
-                date=localize(localtime(v1.created)),
+                date=localize(localtime(aware_datetime_v1)),
             ),
             "return_url": version_list_url(v1.content),
         }
@@ -805,6 +810,11 @@ class VersionAdmin(admin.ModelAdmin):
                     request, self.model._meta, request.GET["compare_to"]
                 )
             else:
+                # localtime method expects aware datetime object, convert if it is naive
+                if is_naive(v2.created):
+                    aware_datetime_v2 = make_aware(v2.created)
+                else:
+                    aware_datetime_v2 = v2.created
                 context.update(
                     {
                         "v2": v2,
@@ -819,7 +829,7 @@ class VersionAdmin(admin.ModelAdmin):
                             'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
-                            date=localize(localtime(v2.created)),
+                            date=localize(localtime(aware_datetime_v2)),
                         ),
                     }
                 )

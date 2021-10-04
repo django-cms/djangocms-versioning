@@ -155,9 +155,9 @@ const breakOutOfAnIframe = () => {
     }, 0);
 };
 
-const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
-
 $(function() {
+    const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
+
     breakOutOfAnIframe();
     initControls();
 

@@ -33,6 +33,7 @@
     }'>
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
+                <a class="cms-btn" href="{{ return_url }}">{% trans "Back" %}</a> &nbsp;
                 <span class="cms-versioning-title">
                 {% blocktrans with left=left.description %}
                     Comparing {{ left }} with
@@ -41,7 +42,7 @@
                 <select class="js-cms-versioning-version cms-select">
                     <option disabled {% if not request.GET.right %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
                     {% for version in versions %}
-                        <option value="{{ version.pk }}" {% if right and right.obj == version %} selected{% endif %}>{{ version }} (#{{ version.number }}, {{ version.created|date }})</option>
+                        <option value="{{ version.pk }}" {% if right and right.obj == version %} selected{% endif %}>{% trans  'Version'%} #{{ version.number }}({{ version.created|date }})</option>
                     {% endfor %}
                 </select>
                 <div class="cms-tooblar-item cms-toolbar-item-buttons">

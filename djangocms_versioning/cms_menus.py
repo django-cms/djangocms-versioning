@@ -2,18 +2,17 @@ from django.apps import apps
 
 from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
-from cms.cms_menus import CMSMenu, get_visible_nodes
+from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
 from menus.base import Menu, NavigationNode
 from menus.menu_pool import menu_pool
 
-from . import constants
+from . import conf, constants
 
 
 class CMSVersionedNavigationNode(NavigationNode):
-
     def is_selected(self, request):
         try:
             page_id = request.current_page.pk
@@ -26,32 +25,32 @@ def _get_attrs_for_node(renderer, page_content):
     page = page_content.page
     language = renderer.request_language
     attr = {
-        'is_page': True,
-        'soft_root': page_content.soft_root,
-        'auth_required': page.login_required,
-        'reverse_id': page.reverse_id,
+        "is_page": True,
+        "soft_root": page_content.soft_root,
+        "auth_required": page.login_required,
+        "reverse_id": page.reverse_id,
     }
     limit_visibility_in_menu = page_content.limit_visibility_in_menu
 
     if limit_visibility_in_menu is cms_constants.VISIBILITY_ALL:
-        attr['visible_for_authenticated'] = True
-        attr['visible_for_anonymous'] = True
+        attr["visible_for_authenticated"] = True
+        attr["visible_for_anonymous"] = True
     else:
-        attr['visible_for_authenticated'] = (
+        attr["visible_for_authenticated"] = (
             limit_visibility_in_menu == cms_constants.VISIBILITY_USERS
         )
-        attr['visible_for_anonymous'] = (
+        attr["visible_for_anonymous"] = (
             limit_visibility_in_menu == cms_constants.VISIBILITY_ANONYMOUS
         )
 
-    attr['is_home'] = page.is_home
+    attr["is_home"] = page.is_home
     extenders = []
 
     if page.navigation_extenders:
         if page.navigation_extenders in renderer.menus:
             extenders.append(page.navigation_extenders)
-        elif '{0}:{1}'.format(page.navigation_extenders, page.pk) in renderer.menus:
-            extenders.append('{0}:{1}'.format(page.navigation_extenders, page.pk))
+        elif "{0}:{1}".format(page.navigation_extenders, page.pk) in renderer.menus:
+            extenders.append("{0}:{1}".format(page.navigation_extenders, page.pk))
 
     if page.application_urls:
         app = apphook_pool.get_apphook(page.application_urls)
@@ -62,33 +61,32 @@ def _get_attrs_for_node(renderer, page_content):
     exts = []
 
     for ext in extenders:
-        if hasattr(ext, 'get_instances'):
-            exts.append('{0}:{1}'.format(ext.__name__, page.pk))
-        elif hasattr(ext, '__name__'):
+        if hasattr(ext, "get_instances"):
+            exts.append("{0}:{1}".format(ext.__name__, page.pk))
+        elif hasattr(ext, "__name__"):
             exts.append(ext.__name__)
         else:
             exts.append(ext)
 
     if exts:
-        attr['navigation_extenders'] = exts
+        attr["navigation_extenders"] = exts
 
-    attr['redirect_url'] = page_content.redirect
+    attr["redirect_url"] = page_content.redirect
 
     return attr
 
 
-class CMSVersionedMenu(Menu):
-
+class CMSMenu(Menu):
     def get_nodes(self, request):
         site = self.renderer.site
         language = self.renderer.request_language
-        pages_qs = get_page_queryset(site).select_related('node')
+        pages_qs = get_page_queryset(site).select_related("node")
         visible_pages_for_user = get_visible_nodes(request, pages_qs, site)
 
         if not visible_pages_for_user:
             return []
 
-        cms_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        cms_extension = apps.get_app_config("djangocms_versioning").cms_extension
         toolbar = get_toolbar_from_request(request)
         edit_or_preview = toolbar.edit_mode_active or toolbar.preview_mode_active
         menu_nodes = []
@@ -106,17 +104,12 @@ class CMSVersionedMenu(Menu):
 
         versionable_item = cms_extension.versionables_by_grouper[Page]
         versioned_page_contents = (
-            versionable_item
-            .content_model
-            ._base_manager
-            .filter(
-                language=language,
-                page__in=pages_qs,
-                versions__state__in=states,
+            versionable_item.content_model._base_manager.filter(
+                language=language, page__in=pages_qs, versions__state__in=states
             )
-            .order_by('page__node__path', 'versions__state')
-            .select_related('page', 'page__node')
-            .prefetch_related('versions')
+            .order_by("page__node__path", "versions__state")
+            .select_related("page", "page__node")
+            .prefetch_related("versions")
         )
         added_pages = []
 
@@ -131,9 +124,9 @@ class CMSVersionedMenu(Menu):
             version = page_content.versions.all()[0]
 
             if (
-                page.pk in added_pages and
-                edit_or_preview and
-                version.state == constants.PUBLISHED
+                page.pk in added_pages
+                and edit_or_preview
+                and version.state == constants.PUBLISHED
             ):
                 # Page content is already added. This is the case where you
                 # have both draft and published and in edit/preview mode.
@@ -183,6 +176,7 @@ class CMSVersionedMenu(Menu):
         return menu_nodes
 
 
-# Remove the core djangoCMS CMSMenu and register the new CMSVersionedMenu.
-menu_pool.menus.pop(CMSMenu.__name__)
-menu_pool.register_menu(CMSVersionedMenu)
+if conf.ENABLE_MENU_REGISTRATION:
+    # Remove the core djangoCMS CMSMenu and register the new CMSVersionedMenu.
+    menu_pool.menus.pop(OriginalCMSMenu.__name__)
+    menu_pool.register_menu(CMSMenu)

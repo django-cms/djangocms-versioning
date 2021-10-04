@@ -1,42 +1,55 @@
 from collections import OrderedDict
+from copy import copy
 
 from django.apps import apps
+from django.conf import settings
+from django.contrib.auth import get_permission_codename
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from cms.cms_toolbars import PlaceholderToolbar
+from cms.cms_toolbars import (
+    ADD_PAGE_LANGUAGE_BREAK,
+    LANGUAGE_MENU_IDENTIFIER,
+    PageToolbar,
+    PlaceholderToolbar,
+)
 from cms.toolbar.items import ButtonList
+from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
+from cms.utils import page_permissions
+from cms.utils.conf import get_cms_setting
+from cms.utils.i18n import get_language_dict, get_language_tuple
+from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from djangocms_versioning.helpers import (
+    get_latest_admin_viewable_page_content,
+    version_list_url,
+)
 from djangocms_versioning.models import Version
 
-from .helpers import version_list_url
 
-
-VERSIONING_MENU_IDENTIFIER = 'version'
+VERSIONING_MENU_IDENTIFIER = "version"
 
 
 class VersioningToolbar(PlaceholderToolbar):
     class Media:
-        js = ('djangocms_versioning/js/actions.js',)
+        js = ("djangocms_versioning/js/actions.js",)
 
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
         of the version
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
-        return versioning_extension.versionables_by_content[
-            self.toolbar.obj.__class__]
+        versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
+        return versioning_extension.versionables_by_content[self.toolbar.obj.__class__]
 
     def _is_versioned(self):
         """Helper method to check if the model has been registered for
         versioning
         """
-        versioning_extension = apps.get_app_config(
-            'djangocms_versioning').cms_extension
+        versioning_extension = apps.get_app_config("djangocms_versioning").cms_extension
         return versioning_extension.is_content_model_versioned(
-            self.toolbar.obj.__class__)
+            self.toolbar.obj.__class__
+        )
 
     def _get_proxy_model(self):
         """Helper method to get the proxy model class for the content
@@ -56,15 +69,17 @@ class VersioningToolbar(PlaceholderToolbar):
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
             version = Version.objects.get_for_content(self.toolbar.obj)
-            publish_url = reverse('admin:{app}_{model}_publish'.format(
-                app=proxy_model._meta.app_label,
-                model=proxy_model.__name__.lower(),
-            ), args=(version.pk,))
+            publish_url = reverse(
+                "admin:{app}_{model}_publish".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ),
+                args=(version.pk,),
+            )
             item.add_button(
-                _('Publish'),
+                _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=['cms-btn-action', 'cms-versioning-js-publish-btn'],
+                extra_classes=["cms-btn-action", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -83,15 +98,17 @@ class VersioningToolbar(PlaceholderToolbar):
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)
-        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-            app=proxy_model._meta.app_label,
-            model=proxy_model.__name__.lower(),
-        ), args=(version.pk,))
+        edit_url = reverse(
+            "admin:{app}_{model}_edit_redirect".format(
+                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+            ),
+            args=(version.pk,),
+        )
         item.add_button(
-            _('Edit'),
+            _("Edit"),
             url=edit_url,
             disabled=disabled,
-            extra_classes=['cms-btn-action', 'cms-versioning-js-edit-btn'],
+            extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
         )
         self.toolbar.add_item(item)
 
@@ -106,10 +123,21 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
+        version_menu_label = _("Version #{number} ({state})").format(
+            number=version.number, state=version.state
+        )
         versioning_menu = self.toolbar.get_or_create_menu(
-            VERSIONING_MENU_IDENTIFIER, _('Versions'), disabled=False)
-        url = version_list_url(version.content)
-        versioning_menu.add_sideframe_item(_('Manage Versions'), url=url)
+            VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
+        )
+        version = version.convert_to_proxy()
+        if self.request.user.has_perm(
+            "{app_label}.{codename}".format(
+                app_label=version._meta.app_label,
+                codename=get_permission_codename("change", version._meta),
+            )
+        ):
+            url = version_list_url(version.content)
+            versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
@@ -117,16 +145,123 @@ class VersioningToolbar(PlaceholderToolbar):
         self._add_versioning_menu()
 
 
+class VersioningPageToolbar(PageToolbar):
+    """
+    Overriding the original Page toolbar to ensure that draft and published pages
+    can be accessed and to allow full control over the Page toolbar for versioned pages.
+    """
+    def get_page_content(self, language=None):
+        if not language:
+            language = self.current_lang
+
+        return get_latest_admin_viewable_page_content(self.page, language)
+
+    def populate(self):
+        self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
+        self.title = self.get_page_content() if self.page else None
+        self.permissions_activated = get_cms_setting('PERMISSION')
+
+        self.override_language_menu()
+        self.change_admin_menu()
+        self.add_page_menu()
+        self.change_language_menu()
+
+    def override_language_menu(self):
+        """
+        Override the default language menu for pages that are versioned.
+        The default language menu is too generic so for pages we need to replace it.
+        """
+        # Only override the menu if a page can be found
+        if settings.USE_I18N and self.page:
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _('Language'))
+
+            # remove_item uses `items` attribute so we have to copy object
+            for _item in copy(language_menu.items):
+                language_menu.remove_item(item=_item)
+
+            for code, name in get_language_tuple(self.current_site.pk):
+                # Get the pagw content, it could be draft too!
+                page_content = self.get_page_content(language=code)
+                if page_content:
+                    url = get_object_preview_url(page_content, code)
+                    language_menu.add_link_item(name, url=url, active=self.current_lang == code)
+
+    def change_language_menu(self):
+        if self.toolbar.edit_mode_active and self.page:
+            can_change = page_permissions.user_can_change_page(
+                user=self.request.user, page=self.page, site=self.current_site
+            )
+        else:
+            can_change = False
+
+        if can_change:
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            if not language_menu:
+                return None
+
+            languages = get_language_dict(self.current_site.pk)
+            remove = [
+                (code, languages.get(code, code))
+                for code in self.page.get_languages()
+                if code in languages
+            ]
+            add = [
+                code
+                for code in languages.items()
+                if code not in remove
+            ]
+            copy = [
+                (code, name)
+                for code, name in languages.items()
+                if code != self.current_lang and (code, name) in remove
+            ]
+
+            if add:
+                language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
+
+                add_plugins_menu = language_menu.get_or_create_menu(
+                    "{0}-add".format(LANGUAGE_MENU_IDENTIFIER), _("Add Translation")
+                )
+
+                page_add_url = admin_reverse("cms_pagecontent_add")
+
+                for code, name in add:
+                    url = add_url_parameters(
+                        page_add_url, cms_page=self.page.pk, language=code
+                    )
+                    add_plugins_menu.add_modal_item(name, url=url)
+
+            if copy:
+                copy_plugins_menu = language_menu.get_or_create_menu(
+                    '{0}-copy'.format(LANGUAGE_MENU_IDENTIFIER), _('Copy all plugins')
+                )
+                title = _('from %s')
+                question = _('Are you sure you want to copy all plugins from %s?')
+
+                for code, name in copy:
+                    # Get the Draft or Published PageContent.
+                    page_content = self.get_page_content(language=code)
+                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                    copy_plugins_menu.add_ajax_item(
+                        title % name, action=page_copy_url,
+                        data={'source_language': code, 'target_language': self.current_lang},
+                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                    )
+
+
 def replace_toolbar(old, new):
     """Replace `old` toolbar class with `new` class,
     while keeping its position in toolbar_pool.
     """
-    new_name = '.'.join((new.__module__, new.__name__))
-    old_name = '.'.join((old.__module__, old.__name__))
-    toolbar_pool.toolbars = OrderedDict([
-        (new_name, new) if name == old_name else (name, toolbar)
-        for name, toolbar in toolbar_pool.toolbars.items()
-    ])
+    new_name = ".".join((new.__module__, new.__name__))
+    old_name = ".".join((old.__module__, old.__name__))
+    toolbar_pool.toolbars = OrderedDict(
+        [
+            (new_name, new) if name == old_name else (name, toolbar)
+            for name, toolbar in toolbar_pool.toolbars.items()
+        ]
+    )
 
 
+replace_toolbar(PageToolbar, VersioningPageToolbar)
 replace_toolbar(PlaceholderToolbar, VersioningToolbar)

@@ -3,15 +3,14 @@ from django.utils.timezone import now
 from cms.test_utils.testcases import CMSTestCase
 
 from django_fsm import TransitionNotAllowed
-from freezegun import freeze_time
 
 from djangocms_versioning import constants
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
+from freezegun import freeze_time
 
 
 class TestVersionState(CMSTestCase):
-
     def test_direct_modification_of_state_not_allowed(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         with self.assertRaises(AttributeError):
@@ -22,8 +21,8 @@ class TestVersionState(CMSTestCase):
         # could potentially be overriding the value of state and we
         # want to know the default
         version = Version.objects.create(
-            content=factories.PollContentFactory(),
-            created_by=factories.UserFactory())
+            content=factories.PollContentFactory(), created_by=factories.UserFactory()
+        )
         self.assertEqual(version.state, constants.DRAFT)
 
     def test_new_draft_causes_old_drafts_to_change_to_archived(self):
@@ -32,20 +31,24 @@ class TestVersionState(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(
-            3, state=constants.DRAFT, content__poll=poll, content__language='en')
+            3, state=constants.DRAFT, content__poll=poll, content__language="en"
+        )
 
         version = Version.objects.create(
-            content=factories.PollContentFactory(poll=poll, language='en'),
+            content=factories.PollContentFactory(poll=poll, language="en"),
             created_by=factories.UserFactory(),
-            state=constants.DRAFT)
+            state=constants.DRAFT,
+        )
 
         # Only one draft
-        self.assertEqual(
-            Version.objects.filter(state=constants.DRAFT).count(), 1)
+        self.assertEqual(Version.objects.filter(state=constants.DRAFT).count(), 1)
         # Everything other than the last draft we created has status archived
         self.assertEqual(
-            Version.objects.exclude(pk=version.pk).filter(state=constants.ARCHIVED).count(),
-            3)
+            Version.objects.exclude(pk=version.pk)
+            .filter(state=constants.ARCHIVED)
+            .count(),
+            3,
+        )
 
     def test_new_draft_doesnt_change_status_of_drafts_from_other_groupers(self):
         """When versions relating to different groupers have a new draft
@@ -55,12 +58,13 @@ class TestVersionState(CMSTestCase):
         factories.PollVersionFactory(state=constants.DRAFT)
 
         Version.objects.create(
-            content=factories.PollContentFactory(), state=constants.DRAFT,
-            created_by=factories.UserFactory())
+            content=factories.PollContentFactory(),
+            state=constants.DRAFT,
+            created_by=factories.UserFactory(),
+        )
 
         # Both are still drafts because they relate to different groupers
-        self.assertEqual(
-            Version.objects.filter(state=constants.DRAFT).count(), 2)
+        self.assertEqual(Version.objects.filter(state=constants.DRAFT).count(), 2)
 
     def test_new_draft_doesnt_change_status_of_drafts_with_other_states(self):
         """When versions relating to the same grouper have non-draft
@@ -73,12 +77,16 @@ class TestVersionState(CMSTestCase):
         version = Version.objects.create(
             content=factories.PollContentFactory(poll=poll),
             created_by=factories.UserFactory(),
-            state=constants.DRAFT)
+            state=constants.DRAFT,
+        )
 
         # Nothing has an archived state cause there were no drafts
         self.assertEqual(
-            Version.objects.exclude(pk=version.pk).filter(state=constants.ARCHIVED).count(),
-            0)
+            Version.objects.exclude(pk=version.pk)
+            .filter(state=constants.ARCHIVED)
+            .count(),
+            0,
+        )
 
     def test_new_draft_doesnt_change_status_of_drafts_of_other_content_types(self):
         """Regression test for a bug in which filtering by content_type
@@ -87,14 +95,15 @@ class TestVersionState(CMSTestCase):
         just the versions we want to archive.
         """
         pv = factories.PollVersionFactory(
-            state=constants.DRAFT, content__id=11, content__language='en',)
-        bv = factories.BlogPostVersionFactory(
-            state=constants.DRAFT, content__id=11)
+            state=constants.DRAFT, content__id=11, content__language="en"
+        )
+        bv = factories.BlogPostVersionFactory(state=constants.DRAFT, content__id=11)
 
         Version.objects.create(
-            content=factories.PollContentFactory(poll=pv.content.poll, language='en',),
+            content=factories.PollContentFactory(poll=pv.content.poll, language="en"),
             created_by=factories.UserFactory(),
-            state=constants.DRAFT)
+            state=constants.DRAFT,
+        )
 
         # Only poll version was changed
         pv_ = Version.objects.get(pk=pv.pk)
@@ -102,76 +111,78 @@ class TestVersionState(CMSTestCase):
         bv_ = Version.objects.get(pk=bv.pk)
         self.assertEqual(bv_.state, constants.DRAFT)
 
-    def test_new_published_version_causes_old_published_versions_to_change_to_unpublished(self):
+    def test_new_published_version_causes_old_published_versions_to_change_to_unpublished(
+        self
+    ):
         """When versions relating to the same grouper have a new published
         version created, all old published version should be marked unpublished
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(
-            3, state=constants.PUBLISHED, content__poll=poll, content__language='en')
+            3, state=constants.PUBLISHED, content__poll=poll, content__language="en"
+        )
         user = factories.UserFactory()
         version = factories.PollVersionFactory(
-            state=constants.DRAFT, content__poll=poll, content__language='en',)
+            state=constants.DRAFT, content__poll=poll, content__language="en"
+        )
 
         version.publish(user)
 
         # Only one published version
-        self.assertEqual(
-            Version.objects.filter(state=constants.PUBLISHED).count(), 1)
+        self.assertEqual(Version.objects.filter(state=constants.PUBLISHED).count(), 1)
         # Everything other than the last published version has status unpublished
         self.assertEqual(
-            Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
-            3)
+            Version.objects.exclude(pk=version.pk)
+            .filter(state=constants.UNPUBLISHED)
+            .count(),
+            3,
+        )
 
-    def test_new_published_version_doesnt_change_status_of_published_versions_from_other_groupers(self):
+    def test_new_published_version_doesnt_change_status_of_published_versions_from_other_groupers(
+        self
+    ):
         """When versions relating to different groupers have a new
         published version created, then this should not change the other
         published versions' status to unpublished.
         """
-        factories.PollVersionFactory(
-            state=constants.PUBLISHED,
-            content__language='en',
-        )
+        factories.PollVersionFactory(state=constants.PUBLISHED, content__language="en")
         user = factories.UserFactory()
         version = factories.PollVersionFactory(
-            state=constants.DRAFT,
-            content__language='en',
+            state=constants.DRAFT, content__language="en"
         )
 
         version.publish(user)
 
         # Both are still published versions because they relate to different groupers
-        self.assertEqual(
-            Version.objects.filter(state=constants.PUBLISHED).count(), 2)
+        self.assertEqual(Version.objects.filter(state=constants.PUBLISHED).count(), 2)
 
-    def test_new_published_version_doesnt_change_status_of_versions_with_other_states(self):
+    def test_new_published_version_doesnt_change_status_of_versions_with_other_states(
+        self
+    ):
         """When versions relating to the same grouper have non-published
         states, these should not change upon creating a new published version
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory(
-            state=constants.DRAFT,
-            content__poll=poll,
-            content__language='en',
+            state=constants.DRAFT, content__poll=poll, content__language="en"
         )
         factories.PollVersionFactory(
-            state=constants.ARCHIVED,
-            content__poll=poll,
-            content__language='en',
+            state=constants.ARCHIVED, content__poll=poll, content__language="en"
         )
         user = factories.UserFactory()
         version = factories.PollVersionFactory(
-            state=constants.DRAFT,
-            content__poll=poll,
-            content__language='en',
+            state=constants.DRAFT, content__poll=poll, content__language="en"
         )
 
         version.publish(user)
 
         # Nothing has an unpublished state cause there were no published versions
         self.assertEqual(
-            Version.objects.exclude(pk=version.pk).filter(state=constants.UNPUBLISHED).count(),
-            0)
+            Version.objects.exclude(pk=version.pk)
+            .filter(state=constants.UNPUBLISHED)
+            .count(),
+            0,
+        )
 
     def test_new_published_version_doesnt_change_status_of_other_content_types(self):
         """Regression test for a bug in which filtering byt content_type
@@ -180,13 +191,11 @@ class TestVersionState(CMSTestCase):
         just the versions we want to unpublish.
         """
         pv = factories.PollVersionFactory(
-            state=constants.PUBLISHED, content__id=11, content__language='en')
-        bv = factories.BlogPostVersionFactory(
-            state=constants.PUBLISHED, content__id=11)
+            state=constants.PUBLISHED, content__id=11, content__language="en"
+        )
+        bv = factories.BlogPostVersionFactory(state=constants.PUBLISHED, content__id=11)
         version = factories.PollVersionFactory(
-            state=constants.DRAFT,
-            content__poll=pv.content.poll,
-            content__language='en',
+            state=constants.DRAFT, content__poll=pv.content.poll, content__language="en"
         )
         user = factories.UserFactory()
 
@@ -288,7 +297,6 @@ class TestVersionState(CMSTestCase):
 
 
 class TestVersionStateLogging(CMSTestCase):
-
     @freeze_time(None)
     def test_draft_change_to_archived_is_logged(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)

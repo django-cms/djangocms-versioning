@@ -7,12 +7,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djangocms_versioning', '0001_initial'),
-    ]
+    dependencies = [("djangocms_versioning", "0001_initial")]
 
-    operations = [
-        migrations.DeleteModel(
-            name='Campaign',
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="Campaign")]

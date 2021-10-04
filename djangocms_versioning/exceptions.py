@@ -1,0 +1,2 @@
+class ConditionFailed(Exception):
+    pass

@@ -1,12 +1,13 @@
 # test libraries
 coverage
-djangocms_helper
+pyflakes>=2.1.1
 flake8
 isort
-factory-boy
-freezegun
 mock
-https://github.com/divio/djangocms-text-ckeditor/archive/support/4.0.x.zip
+python-dateutil
+beautifulsoup4
+django-classy-tags<2.0.0
+django-sekizai<2.0.0
 
-# libraries specified in setup.py
-django-fsm>=2.6,<2.7
+# Get the lastest cms v4 compatible djangocms-text-ckeditor
+https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor

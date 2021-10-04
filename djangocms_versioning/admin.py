@@ -1,14 +1,15 @@
 from collections import OrderedDict
 
 from django.conf.urls import url
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -18,33 +19,49 @@ from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
-from cms.toolbar.utils import get_object_preview_url
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
 from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
-from .helpers import get_editable_url, version_list_url
+from .helpers import (
+    get_admin_url,
+    get_editable_url,
+    get_preview_url,
+    proxy_model,
+    version_list_url,
+)
 from .models import Version
+from .versionables import _cms_extension
 
 
 class VersioningChangeListMixin:
+    """Mixin used for ChangeList classes of content models."""
 
     def get_queryset(self, request):
+        """Limit the content model queryset to latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
-        return queryset.filter(pk__in=versionable.distinct_groupers())
+
+        # TODO: Improve the grouping filters to use anything defined in the
+        #       apps versioning config extra_grouping_fields
+        grouping_filters = {}
+        if 'language' in versionable.extra_grouping_fields:
+            grouping_filters['language'] = get_language_from_request(request)
+
+        return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
 
 
-def versioning_change_list_factory(ChangeList):
+def versioning_change_list_factory(base_changelist_cls):
+    """Generate a ChangeList class to use for the content model"""
     return type(
-        'Versioned' + ChangeList.__name__,
-        (VersioningChangeListMixin, ChangeList),
-        {},
+        "Versioned" + base_changelist_cls.__name__,
+        (VersioningChangeListMixin, base_changelist_cls),
+        {}
     )
 
 
@@ -52,6 +69,7 @@ class VersioningAdminMixin:
     """Mixin providing versioning functionality to admin classes of
     content models.
     """
+
     def save_model(self, request, obj, form, change):
         """
         Overrides the save method to create a version object
@@ -67,7 +85,9 @@ class VersioningAdminMixin:
             Version.objects.create(content=obj, created_by=request.user)
 
     def get_queryset(self, request):
+        """Override manager so records not in published state can be displayed"""
         from .helpers import override_default_manager
+
         with override_default_manager(self.model, self.model._original_manager):
             queryset = super().get_queryset(request)
         return queryset
@@ -76,35 +96,220 @@ class VersioningAdminMixin:
         ChangeList = super().get_changelist(request, **kwargs)
         return versioning_change_list_factory(ChangeList)
 
-    def _can_modify_version(self, version, user):
-        return version.state == DRAFT
+    change_form_template = "djangocms_versioning/admin/mixin/change_form.html"
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        """Add a link to the version table to the change form view"""
+        if "versioning_fallback_change_form_template" not in context:
+            context[
+                "versioning_fallback_change_form_template"
+            ] = super().change_form_template
+
+        return super().render_change_form(request, context, add, change, form_url, obj)
 
     def get_readonly_fields(self, request, obj=None):
+        """Port permission code from django >= 2.1.
+
+        In later versions of django if a user has view perms but no
+        change perms, fields are set as read-only. This is not the case
+        in django < 2.1.
+        """
         if obj and not DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            if not self._can_modify_version(version, request.user):
+            if not version.check_modify.as_bool(request.user):
                 if self.fields:
                     return self.fields
                 if self.fieldsets:
                     return flatten_fieldsets(self.fieldsets)
                 if self.form.declared_fields:
                     return self.form.declared_fields
-                return list(set(
-                    [field.name for field in self.opts.local_fields] +
-                    [field.name for field in self.opts.local_many_to_many]
-                ))
+                return list(
+                    set(
+                        [field.name for field in self.opts.local_fields]
+                        + [field.name for field in self.opts.local_many_to_many]
+                    )
+                )
         return super().get_readonly_fields(request, obj)
 
     def has_change_permission(self, request, obj=None):
+        # Add additional version checks when they are available in Django 2.1+
         if obj and DJANGO_GTE_21:
             version = Version.objects.get_for_content(obj)
-            return self._can_modify_version(version, request.user)
+            return version.check_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)
 
 
-class VersionChangeList(ChangeList):
+class ExtendedVersionAdminMixin(VersioningAdminMixin):
+    """
+    Extended VersionAdminMixin for common/generic versioning admin items
+    """
 
+    class Media:
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
+        css = {
+            "all": ("djangocms_versioning/css/actions.css",)
+        }
+
+    def get_version(self, obj):
+        """
+        Return the latest version of a given object
+        :param obj: Versioned Content instance
+        :return: Latest Version linked with content instance
+        """
+        return obj.versions.all()[0]
+
+    def get_versioning_state(self, obj):
+        """
+        Return the state of a given version
+        """
+        return self.get_version(obj).get_state_display()
+
+    get_versioning_state.short_description = _("State")
+
+    def get_author(self, obj):
+        """
+        Return the author who created a version
+        :param obj: Versioned content model Instance
+        :return: Author
+        """
+        return self.get_version(obj).created_by
+
+    get_author.short_description = _("Author")
+
+    def get_modified_date(self, obj):
+        """
+        Get the last modified date of a version
+        :param obj: Versioned content model Instance
+        :return: Modified Date
+        """
+        return self.get_version(obj).modified
+
+    get_modified_date.short_description = _("Modified")
+
+    def _get_preview_url(self, obj):
+        """
+        Return the preview method if available, otherwise return None
+        :return: method or None
+        """
+        if hasattr(obj, "get_preview_url"):
+            return obj.get_preview_url()
+        else:
+            return None
+
+    def _list_actions(self, request):
+        """
+        A closure that makes it possible to pass request object to
+        list action button functions.
+        """
+
+        def list_actions(obj):
+            """Display links to state change endpoints
+            """
+            return format_html_join(
+                "",
+                "{}",
+                ((action(obj, request),) for action in self.get_list_actions()),
+            )
+
+        list_actions.short_description = _("actions")
+        return list_actions
+
+    def _get_preview_link(self, obj, request, disabled=False):
+        """
+        Return a user friendly button for previewing the content model
+        :param obj: Instance of versioned content model
+        :param request: The request to admin menu
+        :param disabled: Should the link be marked disabled?
+        :return: Preview icon template
+        """
+        preview_url = self._get_preview_url(obj)
+        if not preview_url:
+            disabled = True
+
+        return render_to_string(
+            "djangocms_versioning/admin/icons/preview.html",
+            {"url": preview_url or get_preview_url(obj), "disabled": disabled},
+        )
+
+    def _get_edit_link(self, obj, request, disabled=False):
+        """
+        Return a user friendly button for editing the content model
+        - mark disabled if user doesn't have permission
+        - hide completely if instance cannot be edited
+        :param obj: Instance of Versioned model
+        :param request: The request to admin menu
+        :param disabled: Should the link be marked disabled?
+        :return: Preview icon template
+        """
+        version = proxy_model(self.get_version(obj), self.model)
+
+        if version.state not in (DRAFT, PUBLISHED):
+            # Don't display the link if it can't be edited
+            return ""
+
+        if not version.check_edit_redirect.as_bool(request.user):
+            disabled = True
+
+        url = reverse(
+            "admin:{app}_{model}_edit_redirect".format(
+                app=version._meta.app_label, model=version._meta.model_name
+            ),
+            args=(version.pk,),
+        )
+        return render_to_string(
+            "djangocms_versioning/admin/icons/edit_icon.html",
+            {"url": url, "disabled": disabled, "get": False},
+        )
+
+    def _get_manage_versions_link(self, obj, request, disabled=False):
+        url = version_list_url(obj)
+        return render_to_string(
+            "djangocms_versioning/admin/icons/manage_versions.html",
+            {"url": url, "disabled": disabled, "action": False},
+        )
+
+    def get_list_actions(self):
+        """
+        Collect rendered actions from implemented methods and return as list
+        """
+        return [
+            self._get_preview_link,
+            self._get_edit_link,
+            self._get_manage_versions_link,
+        ]
+
+    def get_preview_link(self, obj):
+        return format_html(
+            '<a href="{}" class="js-moderation-close-sideframe" target="_top">'
+            '<span class="cms-icon cms-icon-eye"></span> {}'
+            "</a>",
+            obj.get_preview_url(),
+            _("Preview"),
+        )
+
+    get_preview_link.short_description = _("Preview")
+
+    def get_list_display(self, request):
+        # get configured list_display
+        list_display = self.list_display
+        # Add versioning information and action fields
+        list_display += (
+            "get_author",
+            "get_modified_date",
+            "get_versioning_state",
+            self._list_actions(request)
+        )
+        return list_display
+
+
+class VersionChangeList(ChangeList):
     def get_filters_params(self, params=None):
+        """Removes the grouper param from the filters as the main grouper
+        filtering is not handled by the UI filters and therefore needs to be
+        handled differently.
+        """
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         filter_params = super().get_filters_params(params)
@@ -112,6 +317,12 @@ class VersionChangeList(ChangeList):
         return filter_params
 
     def get_grouping_field_filters(self, request):
+        """Handles extra grouping params (such as PageContent.language).
+
+        The get_filters_params method does return these filters as they are
+        visible in the UI, however they need extra handling due to db
+        optimization and the difficulties involved in handling the
+        generic foreign key from Version to the content model."""
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         fields = versionable.grouping_fields
@@ -167,13 +378,11 @@ class VersionAdmin(admin.ModelAdmin):
     """
 
     class Media:
-        js = ('djangocms_versioning/js/actions.js',)
-        css = {
-            'all': ('djangocms_versioning/css/actions.css',)
-        }
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js",)
+        css = {"all": ("djangocms_versioning/css/actions.css",)}
 
     # register custom actions
-    actions = ['compare_versions']
+    actions = ["compare_versions"]
 
     list_display_links = None
 
@@ -187,6 +396,7 @@ class VersionAdmin(admin.ModelAdmin):
         return VersionChangeList
 
     def get_list_filter(self, request):
+        """Adds the filters for the extra grouping fields to the UI."""
         versionable = versionables.for_content(self.model._source_model)
         return [
             fake_filter_factory(versionable, field)
@@ -198,28 +408,31 @@ class VersionAdmin(admin.ModelAdmin):
             """Display links to state change endpoints
             """
             return format_html_join(
-                '',
-                '{}',
-                ((action(obj, request), ) for action in self.get_state_actions()),
+                "",
+                "{}",
+                ((action(obj, request),) for action in self.get_state_actions()),
             )
-        state_actions.short_description = _('actions')
+
+        state_actions.short_description = _("actions")
         return state_actions
 
     def get_list_display(self, request):
         return (
-            'nr',
-            'created',
-            'content_link',
-            'created_by',
-            'state',
+            "nr",
+            "created",
+            "modified",
+            "content_link",
+            "created_by",
+            "state",
             self._state_actions(request),
         )
 
     def get_actions(self, request):
+        """Removes the standard django admin delete action."""
         actions = super().get_actions(request)
         # disable delete action
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
         return actions
 
     def nr(self, obj):
@@ -227,49 +440,43 @@ class VersionAdmin(admin.ModelAdmin):
         than the pk eventually.
         """
         return obj.number
-    nr.admin_order_field = 'pk'
-    nr.short_description = _('version number')
+
+    nr.admin_order_field = "pk"
+    nr.short_description = _("version number")
 
     def content_link(self, obj):
+        """Display html for the content preview url"""
         content = obj.content
-
-        # If the object is editable the preview view should be used.
-        if is_editable_model(content.__class__):
-            url = get_object_preview_url(content)
-        # Or else, the standard change view should be used
-        else:
-            url = reverse('admin:{app}_{model}_change'.format(
-                app=content._meta.app_label,
-                model=content._meta.model_name,
-            ), args=[content.pk])
+        url = get_preview_url(content)
 
         return format_html(
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
             url=url,
             label=content,
         )
-    content_link.short_description = _('Content')
-    content_link.admin_order_field = 'content'
+
+    content_link.short_description = _("Content")
+    content_link.admin_order_field = "content"
 
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
         if not obj.state == DRAFT:
             # Don't display the link if it can't be archived
-            return ''
-        archive_url = reverse('admin:{app}_{model}_archive'.format(
-            app=obj._meta.app_label, model=self.model._meta.model_name,
-        ), args=(obj.pk,))
+            return ""
+        archive_url = reverse(
+            "admin:{app}_{model}_archive".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
+            ),
+            args=(obj.pk,),
+        )
 
-        if not self.can_archive(obj, request.user):
+        if not obj.can_be_archived() or not obj.check_archive.as_bool(request.user):
             disabled = True
 
         return render_to_string(
-            'djangocms_versioning/admin/archive_icon.html',
-            {
-                'archive_url': archive_url,
-                'disabled': disabled
-            }
+            "djangocms_versioning/admin/archive_icon.html",
+            {"archive_url": archive_url, "disabled": disabled},
         )
 
     def _get_publish_link(self, obj, request):
@@ -277,13 +484,15 @@ class VersionAdmin(admin.ModelAdmin):
         """
         if not obj.state == DRAFT:
             # Don't display the link if it can't be published
-            return ''
-        publish_url = reverse('admin:{app}_{model}_publish'.format(
-            app=obj._meta.app_label, model=self.model._meta.model_name,
-        ), args=(obj.pk,))
+            return ""
+        publish_url = reverse(
+            "admin:{app}_{model}_publish".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
+            ),
+            args=(obj.pk,),
+        )
         return render_to_string(
-            'djangocms_versioning/admin/publish_icon.html',
-            {'publish_url': publish_url}
+            "djangocms_versioning/admin/publish_icon.html", {"publish_url": publish_url}
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):
@@ -291,20 +500,22 @@ class VersionAdmin(admin.ModelAdmin):
         """
         if not obj.state == PUBLISHED:
             # Don't display the link if it can't be unpublished
-            return ''
-        unpublish_url = reverse('admin:{app}_{model}_unpublish'.format(
-            app=obj._meta.app_label, model=self.model._meta.model_name,
-        ), args=(obj.pk,))
+            return ""
+        unpublish_url = reverse(
+            "admin:{app}_{model}_unpublish".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
+            ),
+            args=(obj.pk,),
+        )
 
-        if not self.can_unpublish(obj, request.user):
+        if not obj.can_be_unpublished() or not obj.check_unpublish.as_bool(
+            request.user
+        ):
             disabled = True
 
         return render_to_string(
-            'djangocms_versioning/admin/unpublish_icon.html',
-            {
-                'unpublish_url': unpublish_url,
-                'disabled': disabled,
-            }
+            "djangocms_versioning/admin/unpublish_icon.html",
+            {"unpublish_url": unpublish_url, "disabled": disabled},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -312,25 +523,31 @@ class VersionAdmin(admin.ModelAdmin):
         """
         if obj.state == PUBLISHED:
             pks_for_grouper = obj.versionable.for_content_grouping_values(
-                obj.content).values_list('pk', flat=True)
+                obj.content
+            ).values_list("pk", flat=True)
             drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper, content_type=obj.content_type,
-                state=DRAFT)
+                object_id__in=pks_for_grouper,
+                content_type=obj.content_type,
+                state=DRAFT,
+            )
             if drafts.exists():
-                return ''
-        elif not obj.state == DRAFT:
-            # Don't display the link if it's a draft
-            return ''
+                return ""
+        elif obj.state != DRAFT:
+            # Don't display the link if it's not a draft
+            return ""
 
-        edit_url = reverse('admin:{app}_{model}_edit_redirect'.format(
-            app=obj._meta.app_label, model=self.model._meta.model_name,
-        ), args=(obj.pk,))
+        if not obj.check_edit_redirect.as_bool(request.user):
+            disabled = True
+
+        edit_url = reverse(
+            "admin:{app}_{model}_edit_redirect".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
+            ),
+            args=(obj.pk,),
+        )
         return render_to_string(
-            'djangocms_versioning/admin/edit_icon.html',
-            {
-                'edit_url': edit_url,
-                'disabled': disabled
-            }
+            "djangocms_versioning/admin/edit_icon.html",
+            {"edit_url": edit_url, "disabled": disabled},
         )
 
     def _get_revert_link(self, obj, request, disabled=False):
@@ -338,52 +555,47 @@ class VersionAdmin(admin.ModelAdmin):
         """
         if obj.state not in (UNPUBLISHED, ARCHIVED):
             # Don't display the link if it's a draft or published
-            return ''
+            return ""
 
         revert_url = reverse(
-            'admin:{app}_{model}_revert'.format(
-                app=obj._meta.app_label,
-                model=self.model._meta.model_name,
+            "admin:{app}_{model}_revert".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
             ),
-            args=(obj.pk,))
+            args=(obj.pk,),
+        )
 
-        if not self.can_revert(obj, request.user):
+        if not obj.check_revert.as_bool(request.user):
             disabled = True
 
         return render_to_string(
-            'djangocms_versioning/admin/revert_icon.html',
-            {
-                'revert_url': revert_url,
-                'disabled': disabled,
-            }
+            "djangocms_versioning/admin/revert_icon.html",
+            {"revert_url": revert_url, "disabled": disabled},
         )
 
     def _get_discard_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the discard action
         """
-        if obj.state not in (DRAFT, ):
+        if obj.state not in (DRAFT,):
             # Don't display the link if it's not a draft
-            return ''
+            return ""
 
         discard_url = reverse(
-            'admin:{app}_{model}_discard'.format(
-                app=obj._meta.app_label,
-                model=self.model._meta.model_name,
+            "admin:{app}_{model}_discard".format(
+                app=obj._meta.app_label, model=self.model._meta.model_name
             ),
-            args=(obj.pk,))
+            args=(obj.pk,),
+        )
 
-        if not self.can_discard(obj, request.user):
+        if not obj.check_discard.as_bool(request.user):
             disabled = True
 
         return render_to_string(
-            'djangocms_versioning/admin/discard_icon.html',
-            {
-                'discard_url': discard_url,
-                'disabled': disabled,
-            }
+            "djangocms_versioning/admin/discard_icon.html",
+            {"discard_url": discard_url, "disabled": disabled},
         )
 
     def get_state_actions(self):
+        """Returns all action links as a list"""
         return [
             self._get_edit_link,
             self._get_archive_link,
@@ -397,7 +609,7 @@ class VersionAdmin(admin.ModelAdmin):
         """
         Redirects to a compare versions view based on a users choice
         """
-        queryset = queryset.order_by('pk')
+        queryset = queryset.order_by("pk")
 
         # Validate that only two versions are selected
         if queryset.count() != 2:
@@ -426,7 +638,7 @@ class VersionAdmin(admin.ModelAdmin):
             opts=self.model._meta,
             form=grouper_form_factory(self.model._source_model, language)(),
         )
-        return render(request, 'djangocms_versioning/admin/grouper_form.html', context)
+        return render(request, "djangocms_versioning/admin/grouper_form.html", context)
 
     def archive_view(self, request, object_id):
         """Archives the specified version and redirects back to the
@@ -437,28 +649,35 @@ class VersionAdmin(admin.ModelAdmin):
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(
-                request, self.model._meta, object_id)
-        # Raise 404 if not in draft status
-        if version.state != DRAFT:
-            raise Http404
+                request, self.model._meta, object_id
+            )
 
-        if not self.can_archive(version, request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+        if not version.can_be_archived():
+            self.message_user(request, _("Version cannot be archived"), messages.ERROR)
+            return redirect(version_list_url(version.content))
+        try:
+            version.check_archive(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
 
-        if request.method != 'POST':
+        if request.method != "POST":
             context = dict(
                 object_name=version.content,
                 version_number=version.number,
                 object_id=object_id,
                 archive_url=reverse(
-                    'admin:{app}_{model}_archive'.format(
+                    "admin:{app}_{model}_archive".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
-                    args=(version.content.pk,)),
+                    args=(version.content.pk,),
+                ),
                 back_url=version_list_url(version.content),
             )
-            return render(request, 'djangocms_versioning/admin/archive_confirmation.html', context)
+            return render(
+                request, "djangocms_versioning/admin/archive_confirmation.html", context
+            )
         else:
             # Archive the version
             version.archive(request.user)
@@ -472,17 +691,27 @@ class VersionAdmin(admin.ModelAdmin):
         version changelist
         """
         # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
+        if request.method != "POST":
+            return HttpResponseNotAllowed(
+                ["POST"], _("This view only supports POST method.")
+            )
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(
-                request, self.model._meta, object_id)
-        # Raise 404 if not in draft status
-        if version.state != DRAFT:
-            raise Http404
+                request, self.model._meta, object_id
+            )
+
+        if not version.can_be_published():
+            self.message_user(request, _("Version cannot be published"), messages.ERROR)
+            return redirect(version_list_url(version.content))
+        try:
+            version.check_publish(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
+
         # Publish the version
         version.publish(request.user)
         # Display message
@@ -498,29 +727,48 @@ class VersionAdmin(admin.ModelAdmin):
         version = self.get_object(request, unquote(object_id))
         if version is None:
             return self._get_obj_does_not_exist_redirect(
-                request, self.model._meta, object_id)
-        # Raise 404 if not in published status
-        if version.state != PUBLISHED:
-            raise Http404
+                request, self.model._meta, object_id
+            )
 
-        if not self.can_unpublish(version, request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
+        if not version.can_be_unpublished():
+            self.message_user(
+                request, _("Version cannot be unpublished"), messages.ERROR
+            )
+            return redirect(version_list_url(version.content))
+        try:
+            version.check_unpublish(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
 
-        # This view always changes data so only POST requests should work
-        if request.method != 'POST':
+        if request.method != "POST":
             context = dict(
                 object_name=version.content,
                 version_number=version.number,
                 object_id=object_id,
                 unpublish_url=reverse(
-                    'admin:{app}_{model}_unpublish'.format(
+                    "admin:{app}_{model}_unpublish".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
-                    args=(version.content.pk,)),
+                    args=(version.content.pk,),
+                ),
                 back_url=version_list_url(version.content),
             )
-            return render(request, 'djangocms_versioning/admin/unpublish_confirmation.html', context)
+            extra_context = OrderedDict(
+                [
+                    (key, func(request, version))
+                    for key, func in _cms_extension()
+                    .add_to_context.get("unpublish", {})
+                    .items()
+                ]
+            )
+            context.update({"extra_context": extra_context})
+            return render(
+                request,
+                "djangocms_versioning/admin/unpublish_confirmation.html",
+                context,
+            )
         else:
             # Unpublish the version
             version.unpublish(request.user)
@@ -529,96 +777,107 @@ class VersionAdmin(admin.ModelAdmin):
         # Redirect
         return redirect(version_list_url(version.content))
 
-    def _get_edit_redirect_version(self, request, object_id):
-        version = self.get_object(request, unquote(object_id))
-        if version is None:
-            return
+    def _get_edit_redirect_version(self, request, version):
+        """Helper method to get the latest draft or create one if one does not exist."""
         # If published then there's extra things to do...
         if version.state == PUBLISHED:
             # First check there is no draft record for this grouper
             # already.
             pks_for_grouper = version.versionable.for_content_grouping_values(
-                version.content).values_list('pk', flat=True)
+                version.content
+            ).values_list("pk", flat=True)
             content_type = ContentType.objects.get_for_model(version.content)
             drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper, content_type=content_type,
-                state=DRAFT)
+                object_id__in=pks_for_grouper, content_type=content_type, state=DRAFT
+            )
             if drafts.exists():
                 # There is a draft record so people should be editing
                 # the draft record not the published one. Redirect to draft.
                 draft = drafts.first()
+                # Run edit checks for the found draft as well
+                draft.check_edit_redirect(request.user)
                 return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
-            version = version.copy(request.user)
-        # Raise 404 if the version is neither draft or published
-        elif version.state != DRAFT:
-            return
-        return version
+            return version.copy(request.user)
+        elif version.state == DRAFT:
+            # Return current version as it is a draft
+            return version
 
     def edit_redirect_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
         if no draft exists yet.
         """
         # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
+        if request.method != "POST":
+            return HttpResponseNotAllowed(
+                ["POST"], _("This view only supports POST method.")
+            )
 
-        version = self._get_edit_redirect_version(request, object_id)
-
+        version = self.get_object(request, unquote(object_id))
         if version is None:
             raise Http404
 
+        try:
+            version.check_edit_redirect(request.user)
+            target = self._get_edit_redirect_version(request, version)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
+
         # Redirect
-        return redirect(get_editable_url(version.content))
+        return redirect(get_editable_url(target.content))
 
     def revert_view(self, request, object_id):
-        """Redirects to the admin change view and creates a draft version
-        if no draft exists yet.
-        """
+        """Reverts to the specified version i.e. creates a draft from it."""
         version = self.get_object(request, unquote(object_id))
 
         if version is None:
             raise Http404
 
-        if version.state not in (UNPUBLISHED, ARCHIVED):
-            # if version state not unpublished or archived then raise 404
-            raise Http404
+        try:
+            version.check_revert(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
-            version.content).values_list('pk', flat=True)
+            version.content
+        ).values_list("pk", flat=True)
         drafts = Version.objects.filter(
-            object_id__in=pks_for_grouper, content_type=version.content_type,
-            state=DRAFT)
+            object_id__in=pks_for_grouper,
+            content_type=version.content_type,
+            state=DRAFT,
+        )
 
         draft_version = None
         if drafts.exists():
             draft_version = drafts.first()
 
-        if not self.can_revert(version, request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
-
-        if request.method != 'POST':
+        if request.method != "POST":
             context = dict(
                 object_name=version.content,
                 version_number=version.number,
                 draft_version=draft_version,
                 object_id=object_id,
                 revert_url=reverse(
-                    'admin:{app}_{model}_revert'.format(
+                    "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
-                        ),
-                    args=(version.content.pk,)),
+                    ),
+                    args=(version.content.pk,),
+                ),
                 back_url=version_list_url(version.content),
             )
-            return render(request, 'djangocms_versioning/admin/revert_confirmation.html', context)
+            return render(
+                request, "djangocms_versioning/admin/revert_confirmation.html", context
+            )
         else:
 
-            if draft_version and request.POST.get('archive'):
+            if draft_version and request.POST.get("archive"):
                 draft_version.archive(request.user)
 
-            if draft_version and request.POST.get('discard'):
+            if draft_version and request.POST.get("discard"):
                 draft_version.delete()
 
             version = version.copy(request.user)
@@ -626,44 +885,45 @@ class VersionAdmin(admin.ModelAdmin):
             return redirect(version_list_url(version.content))
 
     def discard_view(self, request, object_id):
-        """Redirects to the admin change view and creates a draft version
-        if no draft exists yet.
-        """
+        """Discards the specified version"""
         version = self.get_object(request, unquote(object_id))
-
         if version is None:
             raise Http404
 
-        if version.state not in (DRAFT, ):
-            # if version state not unpublished or archived then raise 404
-            raise Http404
+        try:
+            version.check_discard(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_text(e), messages.ERROR)
+            return redirect(version_list_url(version.content))
 
-        if not self.can_discard(version, request.user):
-            return HttpResponseForbidden(force_text(_("You are not authorise to perform this action")))
-
-        if request.method != 'POST':
+        if request.method != "POST":
             context = dict(
                 object_name=version.content,
                 version_number=version.number,
                 draft_version=version,
                 object_id=object_id,
                 revert_url=reverse(
-                    'admin:{app}_{model}_revert'.format(
+                    "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
-                        ),
-                    args=(version.content.pk,)),
+                    ),
+                    args=(version.content.pk,),
+                ),
                 back_url=version_list_url(version.content),
             )
-            return render(request, 'djangocms_versioning/admin/discard_confirmation.html', context)
-        else:
-            version_url = version_list_url(version.content)
-            if request.POST.get('discard'):
-                version.content.delete()
-                version.delete()
+            return render(
+                request, "djangocms_versioning/admin/discard_confirmation.html", context
+            )
 
-            # Redirect
-            return redirect(version_url)
+        version_url = version_list_url(version.content)
+        if request.POST.get("discard"):
+            ModelClass = version.content.__class__
+            deleted = version.delete()
+            if deleted[1]['last']:
+                version_url = get_admin_url(ModelClass, 'changelist')
+                self.message_user(request, _('The last version has been deleted'))
+
+        return redirect(version_url)
 
     def compare_view(self, request):
         """Compares two versions
@@ -684,10 +944,11 @@ class VersionAdmin(admin.ModelAdmin):
 
         context = {}
         persist_params = {
-            get_cms_setting('CMS_TOOLBAR_URL__DISABLE'): 1,
-            get_cms_setting('CMS_TOOLBAR_URL__PERSIST'): 0,
+            get_cms_setting("CMS_TOOLBAR_URL__DISABLE"): 1,
+            get_cms_setting("CMS_TOOLBAR_URL__PERSIST"): 0,
         }
 
+        # Get the list of versions for the grouper. This is for use
         for side, version in versions.items():
             context[side] = {
                 'obj': version,
@@ -712,105 +973,127 @@ class VersionAdmin(admin.ModelAdmin):
         context['versions'] = Version.objects.filter_by_content_grouping_values(
             version.content)
         return TemplateResponse(
-            request, 'djangocms_versioning/admin/compare.html', context)
+            request, "djangocms_versioning/admin/compare.html", context
+        )
 
     def changelist_view(self, request, extra_context=None):
+        """Handle grouper filtering on the changelist"""
         if not request.GET:
             # redirect to grouper form when there's no GET parameters
             opts = self.model._meta
-            return redirect(reverse('admin:{}_{}_grouper'.format(
-                opts.app_label,
-                opts.model_name,
-            )))
+            return redirect(
+                reverse("admin:{}_{}_grouper".format(opts.app_label, opts.model_name))
+            )
         extra_context = extra_context or {}
         versionable = versionables.for_content(self.model._source_model)
 
         try:
             grouper = versionable.get_grouper_with_fallbacks(
-                int(request.GET.get(versionable.grouper_field_name)),
+                int(request.GET.get(versionable.grouper_field_name))
             )
         except (TypeError, ValueError):
             grouper = None
+        else:
+            if grouper is None:
+                # no exception and no grouper, thus the querydict is invalid
+                raise Http404
+
         if grouper:
+            # CAVEAT: as the breadcrumb trails expect a value for latest content in the template
+            extra_context["latest_content"] = ({'pk': None})
+
             extra_context.update(
                 grouper=grouper,
                 title=_('Displaying versions of "{grouper}"').format(grouper=grouper),
             )
+            breadcrumb_opts = self.model._source_model._meta
+            extra_context["breadcrumb_opts"] = breadcrumb_opts
+            # Check if custom breadcrumb template defined, otherwise
+            # fallback on default
+            breadcrumb_templates = [
+                "admin/djangocms_versioning/{app_label}/{model_name}/versioning_breadcrumbs.html".format(
+                    app_label=breadcrumb_opts.app_label,
+                    model_name=breadcrumb_opts.model_name,
+                ),
+                "admin/djangocms_versioning/versioning_breadcrumbs.html",
+            ]
+            extra_context["breadcrumb_template"] = select_template(breadcrumb_templates)
 
-        return super().changelist_view(request, extra_context)
+        response = super().changelist_view(request, extra_context)
+
+        # This is a slightly hacky way of accessing the instance of
+        # the changelist that the admin changelist_view instantiates.
+        # We do this to make sure that the latest content object is
+        # picked from the same queryset as is being displayed in the
+        # version table.
+        if grouper and response.status_code == 200:
+            # Catch the edge case where a grouper can have empty contents
+            # when additional filters are present and the result set will be
+            # empty for the additional values.
+            try:
+                response.context_data["latest_content"] = (
+                    response.context_data["cl"].get_queryset(request)
+                        .latest("created")
+                        .content
+                )
+            except ObjectDoesNotExist:
+                pass
+        return response
 
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
             url(
-                r'^select/$',
+                r"^select/$",
                 self.admin_site.admin_view(self.grouper_form_view),
-                name='{}_{}_grouper'.format(*info),
+                name="{}_{}_grouper".format(*info),
             ),
             url(
-                r'^compare/$',
-                self.admin_site.admin_view(self.compare_view),
-                name='{}_{}_compare'.format(*info),
-            ),
-            url(
-                r'^(.+)/archive/$',
+                r"^(.+)/archive/$",
                 self.admin_site.admin_view(self.archive_view),
-                name='{}_{}_archive'.format(*info),
+                name="{}_{}_archive".format(*info),
             ),
             url(
-                r'^(.+)/publish/$',
+                r"^(.+)/publish/$",
                 self.admin_site.admin_view(self.publish_view),
-                name='{}_{}_publish'.format(*info),
+                name="{}_{}_publish".format(*info),
             ),
             url(
-                r'^(.+)/unpublish/$',
+                r"^(.+)/unpublish/$",
                 self.admin_site.admin_view(self.unpublish_view),
-                name='{}_{}_unpublish'.format(*info),
+                name="{}_{}_unpublish".format(*info),
             ),
             url(
-                r'^(.+)/edit-redirect/$',
+                r"^(.+)/edit-redirect/$",
                 self.admin_site.admin_view(self.edit_redirect_view),
-                name='{}_{}_edit_redirect'.format(*info),
+                name="{}_{}_edit_redirect".format(*info),
             ),
             url(
-                r'^(.+)/revert/$',
+                r"^(.+)/revert/$",
                 self.admin_site.admin_view(self.revert_view),
-                name='{}_{}_revert'.format(*info),
+                name="{}_{}_revert".format(*info),
             ),
             url(
-                r'^(.+)/discard/$',
+                r"^(.+)/compare/$",
+                self.admin_site.admin_view(self.compare_view),
+                name="{}_{}_compare".format(*info),
+            ),
+            url(
+                r"^(.+)/discard/$",
                 self.admin_site.admin_view(self.discard_view),
-                name='{}_{}_discard'.format(*info),
-                ),
+                name="{}_{}_discard".format(*info),
+            ),
         ] + super().get_urls()
 
     def has_add_permission(self, request):
         return False
 
     def has_change_permission(self, request, obj=None):
-        """Return True for changelist and False for change view.
+        """Disable change view access
         """
-        return obj is None
+        if obj is not None:
+            return False
+        return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-    def can_revert(self, version, user):
-        """Method to check if user can perform revert action
-        """
-        return True
-
-    def can_discard(self, version, user):
-        """Method to check if user can perform discard action
-        """
-        return True
-
-    def can_archive(self, version, user):
-        """Method to check if user can perform archive action
-        """
-        return True
-
-    def can_unpublish(self, version, user):
-        """Method to check if user can perform unpublish action
-        """
-        return True

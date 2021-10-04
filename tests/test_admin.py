@@ -1877,16 +1877,13 @@ class CompareViewTestCase(CMSTestCase):
             content__language="fr"
         )  # different grouper and different language
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", versions[0].pk
+            self.versionable.version_model_proxy, "compare"
         )
-                url += '?left=%d' % versions[0].pk
+        url += '?left=%d' % versions[0].pk
         user = self.get_staff_user_with_no_permissions()
 
         with self.login_user_context(user):
             response = self.client.get(url)
-
-        self.assertContains(response, "Version #{number} ({date})".format(
-            number=versions[0].number, date=localize(localtime(versions[0].created))))
 
         context = response.context
         self.assertIn("left", context)
@@ -1902,7 +1899,7 @@ class CompareViewTestCase(CMSTestCase):
             self.disable_toolbar_params,
         )
         self.assertNotIn("right", context)
-        self.assertNotIn("versions", context)
+        self.assertIn("versions", context)
         self.assertQuerysetEqual(
             context["versions"],
             [versions[0].pk, versions[1].pk],

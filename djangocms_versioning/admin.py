@@ -1054,6 +1054,11 @@ class VersionAdmin(admin.ModelAdmin):
                 name="{}_{}_archive".format(*info),
             ),
             url(
+               r"^compare/$",
+               self.admin_site.admin_view(self.compare_view),
+               name="{}_{}_compare".format(*info),
+            ),
+            url(
                 r"^(.+)/publish/$",
                 self.admin_site.admin_view(self.publish_view),
                 name="{}_{}_publish".format(*info),
@@ -1072,11 +1077,6 @@ class VersionAdmin(admin.ModelAdmin):
                 r"^(.+)/revert/$",
                 self.admin_site.admin_view(self.revert_view),
                 name="{}_{}_revert".format(*info),
-            ),
-            url(
-                r"^(.+)/compare/$",
-                self.admin_site.admin_view(self.compare_view),
-                name="{}_{}_compare".format(*info),
             ),
             url(
                 r"^(.+)/discard/$",

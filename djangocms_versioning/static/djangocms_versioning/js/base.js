@@ -39,12 +39,12 @@ const getOrAddFrame = () => {
 const switchVersion = version => {
     const url = window.location.href;
 
-    if (url.match(/compare_to=\d+/)) {
-        window.location.href = window.location.href.replace(/compare_to=\d+/, `compare_to=${version}`);
+    if (url.match(/right=\d+/)) {
+        window.location.href = window.location.href.replace(/right=\d+/, `right=${version}`);
     } else if (url.match(/\?/)) {
-        window.location.href += `&compare_to=${version}`;
+        window.location.href += `&right=${version}`;
     } else {
-        window.location.href += `?compare_to=${version}`;
+        window.location.href += `?right=${version}`;
     }
 };
 
@@ -155,9 +155,9 @@ const breakOutOfAnIframe = () => {
     }, 0);
 };
 
-const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
-
 $(function() {
+    const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
+
     breakOutOfAnIframe();
     initControls();
 

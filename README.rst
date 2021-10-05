@@ -63,3 +63,14 @@ Run::
 
 This should generate all html files from rst documents under `docs/_build` folder, which can be browsed.
 
+
+Generating the Frontend distribution
+====================================
+
+Re-build static files: (always use a clean clone, make sure that node 6 on is used (use nvm to manage it). Order of commands is important
+
+Run::
+
+    npm install -g gulp
+    npm install
+    gulp build

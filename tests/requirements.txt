@@ -5,8 +5,11 @@ django-sekizai<2.0.0
 djangocms_helper
 factory-boy
 flake8
+freezegun
 isort
+lxml
 mock
+pillow
 pyflakes>=2.1.1
 python-dateutil
 

@@ -60,7 +60,7 @@ def _save_model(self, request, obj, form, change):
     if not user_can_change_page(request.user, page=title.page):
         raise PermissionDenied()
 
-    super().save_model(request, obj, form, change)
+    super(TitleExtensionAdmin, self).save_model(request, obj, form, change)
 
 
 TitleExtensionAdmin.save_model = _save_model
@@ -89,7 +89,7 @@ def _add_view(self, request, form_url='', extra_context=None):
             return HttpResponseRedirect(change_url)
         except self.model.DoesNotExist:
             pass
-    return super().add_view(request, form_url, extra_context)
+    return super(TitleExtensionAdmin, self).add_view(request, form_url, extra_context)
 
 
 TitleExtensionAdmin.add_view = _add_view

@@ -134,7 +134,9 @@ def replace_default_manager(model):
 def inject_generic_relation_to_version(model):
     from .models import Version
 
-    model.add_to_class("versions", GenericRelation(Version))
+    related_query_name = f"{model._meta.app_label}_{model._meta.model_name}"
+    model.add_to_class("versions", GenericRelation(
+        Version, related_query_name=related_query_name))
 
 
 def _set_default_manager(model, manager):

@@ -9,7 +9,6 @@ from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 
 import factory
 from djangocms_text_ckeditor.models import Text
-
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version

@@ -90,9 +90,9 @@ jobs:
          paths: py39.tar
 
   flake8:
-    <<: *py39default
+    <<: *py38default
   isort:
-    <<: *py39default
+    <<: *py38default
 
   py37-dj22-sqlite-cms40:
     <<: *py37default

@@ -13,3 +13,5 @@ htmlcov/
 .python-version
 !djangocms_versioning/static/djangocms_versioning/js/dist
 docs/_build/
+venv/
+node_modules/

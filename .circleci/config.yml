@@ -119,10 +119,10 @@ workflows:
       - py39_base
       - flake8:
           requires:
-            - py39_base
+            - py38_base
       - isort:
           requires:
-            - py39_base
+            - py38_base
 
       - py37-dj22-sqlite-cms40:
           requires:

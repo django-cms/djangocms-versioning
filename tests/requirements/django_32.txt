@@ -1,0 +1,4 @@
+-r requirements_base.txt
+
+django-classy-tags
+django-sekizai

@@ -8,6 +8,7 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
 
+from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.extensions.models import (
@@ -21,13 +22,15 @@ from djangocms_versioning.test_utils.factories import (
     PlaceholderFactory,
     PollVersionFactory,
     TextPluginFactory,
+    PollTitleExtensionFactory,
 )
+from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
 
 
 class MonkeypatchExtensionTestCase(CMSTestCase):
     def setUp(self):
         self.version = PageVersionFactory(content__language="en")
-        pagecontent = PageContentFactory(
+        self.pagecontent = PageContentFactory(
             page=self.version.content.page, language="de"
         )
         self.page = self.version.content.page
@@ -40,7 +43,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
             extensions=False,
         )
         new_page_content = PageContentFactory(page=self.new_page, language='de')
-        self.new_page.title_cache[pagecontent.language] = new_page_content
+        self.new_page.title_cache[self.pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):
         """Try to copy the extension, without the monkeypatch this tests fails"""
@@ -53,6 +56,24 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         # No asserts, this test originally failed because the versioned manager was called
         # in copy_extensions, now we call the original manager instead
         # https://github.com/divio/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
+
+    def test_save_title_extension(self):
+        poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
+        poll_extension.votes = 5
+
+        new_poll_extension = poll_extension.save()
+
+        self.assertEqual(new_poll_extension.votes, 5)
+        self.assertNotEqual(new_poll_extension.id, poll_extension)
+
+    def test_title_extension_copy_method(self):
+        poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
+        poll_extension.votes = 5
+
+        new_pagecontent = copy_page_content(self.pagecontent)
+
+        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
+        self.assertEqual(PollTitleExtension._base_manager.count(), 2)
 
 
 class MonkeypatchTestCase(CMSTestCase):

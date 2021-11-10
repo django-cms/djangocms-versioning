@@ -21,6 +21,7 @@ from djangocms_versioning.test_utils.factories import (
     PageVersionFactory,
     PlaceholderFactory,
     PollVersionFactory,
+    TestTitleExtensionFactory,
     TextPluginFactory,
     PollTitleExtensionFactory,
 )
@@ -57,23 +58,44 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         # in copy_extensions, now we call the original manager instead
         # https://github.com/divio/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
 
-    def test_save_title_extension(self):
-        poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
-        poll_extension.votes = 5
-
-        new_poll_extension = poll_extension.save()
-
-        self.assertEqual(new_poll_extension.votes, 5)
-        self.assertNotEqual(new_poll_extension.id, poll_extension)
-
-    def test_title_extension_copy_method(self):
+    def test_pagecontent_copy_method_creates_extension_title_extension_attached(self):
+        """
+        The page content copy method should create a new title extension, if one is attached to it.
+        """
         poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
         poll_extension.votes = 5
 
         new_pagecontent = copy_page_content(self.pagecontent)
 
         self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
+        self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
         self.assertEqual(PollTitleExtension._base_manager.count(), 2)
+
+    def test_pagecontent_copy_method_not_created_extension_title_extension_attached(self):
+        """
+        The pagecontent copy method should not create a new title extension, if one isn't attached to the pagecontent
+        being copied
+        """
+        new_pagecontent = copy_page_content(self.pagecontent)
+
+        self.assertFalse(hasattr(new_pagecontent, "polltitleextension"))
+        self.assertEqual(PollTitleExtension._base_manager.count(), 0)
+
+    def test_pagecontent_copy_method_creates_extension_multiple_title_extension_attached(self):
+        """
+        The page content copy method should handle creation of multiple extensions
+        """
+        poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
+        poll_extension.votes = 5
+        title_extension = TestTitleExtensionFactory(extended_object=self.pagecontent)
+
+        new_pagecontent = copy_page_content(self.pagecontent)
+
+        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
+        self.assertNotEqual(new_pagecontent.testtitleextension, title_extension)
+        self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
+        self.assertEqual(PollTitleExtension._base_manager.count(), 2)
+        self.assertEqual(TestTitleExtension._base_manager.count(), 2)
 
 
 class MonkeypatchTestCase(CMSTestCase):

@@ -5,7 +5,7 @@ from cms.extensions.extension_pool import extension_pool
 
 
 class PollTitleExtension(TitleExtension):
-    votes = models.CharField(max_length=255)
+    votes = models.IntegerField()
 
 
 extension_pool.register(PollTitleExtension)

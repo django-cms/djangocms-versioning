@@ -1,6 +1,8 @@
 from unittest import skipIf
 
+from django.contrib import admin
 from django.contrib.sites.models import Site
+from django.test import RequestFactory
 
 from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
@@ -25,6 +27,7 @@ from djangocms_versioning.test_utils.factories import (
     TextPluginFactory,
     PollTitleExtensionFactory,
 )
+from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
 from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
 
 
@@ -96,6 +99,35 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
         self.assertEqual(PollTitleExtension._base_manager.count(), 2)
         self.assertEqual(TestTitleExtension._base_manager.count(), 2)
+
+    def test_title_extension_admin_monkey_patch_save(self):
+        """
+        When we have a page in x state, we must show the unfiltered queryset
+        TODO: Write this comment properly!!!!!
+        """
+        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
+        request = RequestFactory().get("/admin/extended_polls/pollextension/")
+        import pdb
+        pdb.set_trace()
+        poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
+        request.extended_object = poll_extension
+        request.user = self.get_superuser()
+        model_site.save_model(request, poll_extension, form=None, change=False)
+
+    def test_title_extension_admin_monkeypatch_add_view(self):
+        """
+
+        """
+        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
+        request = RequestFactory().get("/admin/extended_polls/pollextension/")
+        user = self.get_superuser()
+        with self.login_user_context(user):
+            response = model_site.add_view(request)
+            rendered_response = response.render()
+            import pdb
+            pdb.set_trace()
+
+
 
 
 class MonkeypatchTestCase(CMSTestCase):

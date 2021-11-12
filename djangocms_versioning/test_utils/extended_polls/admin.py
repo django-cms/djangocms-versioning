@@ -2,9 +2,9 @@ from django.contrib import admin
 
 from cms.extensions import TitleExtensionAdmin
 
-from .models import PollExtension
+from .models import PollTitleExtension
 
 
-@admin.register(PollExtension)
+@admin.register(PollTitleExtension)
 class PollExtensionAdmin(TitleExtensionAdmin):
     pass

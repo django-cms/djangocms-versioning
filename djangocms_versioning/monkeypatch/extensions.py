@@ -63,7 +63,7 @@ def _save_model(self, request, obj, form, change):
     super(TitleExtensionAdmin, self).save_model(request, obj, form, change)
 
 
-# TitleExtensionAdmin.save_model = _save_model
+TitleExtensionAdmin.save_model = _save_model
 
 
 @csrf_protect_m

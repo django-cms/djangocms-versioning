@@ -7,13 +7,14 @@ from django.contrib.sites.models import Site
 from cms import constants
 from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 
-from djangocms_text_ckeditor.models import Text
-
 import factory
+from djangocms_text_ckeditor.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
+from .extended_polls.models import PollTitleExtension
+from .extensions.models import TestTitleExtension
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
 
@@ -241,3 +242,18 @@ class FancyPollFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = FancyPoll
+
+
+class PollTitleExtensionFactory(factory.django.DjangoModelFactory):
+    extended_object = factory.SubFactory(PageContentFactory)
+    votes = FuzzyInteger(0, 100)
+
+    class Meta:
+        model = PollTitleExtension
+
+
+class TestTitleExtensionFactory(factory.django.DjangoModelFactory):
+    extended_object = factory.SubFactory(PageContentFactory)
+
+    class Meta:
+        model = TestTitleExtension

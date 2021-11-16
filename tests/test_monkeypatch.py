@@ -108,7 +108,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
         model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
         test_url = admin_reverse("extended_polls_polltitleextension_change", args=(poll_extension.pk,))
-        test_url = test_url + f"?extended_object={self.version.content.pk}"
+        test_url = test_url + "?extended_object=%s" % self.version.content.pk
         request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
 

@@ -25,7 +25,6 @@ from djangocms_versioning.test_utils.factories import (
     PollVersionFactory,
     TestTitleExtensionFactory,
     TextPluginFactory,
-    PollTitleExtensionFactory,
 )
 from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
 from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension

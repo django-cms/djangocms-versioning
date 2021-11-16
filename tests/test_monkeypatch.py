@@ -13,6 +13,8 @@ from cms.utils.urlutils import admin_reverse
 from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.compat import DJANGO_GTE_21
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
+from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
 from djangocms_versioning.test_utils.extensions.models import (
     TestPageExtension,
     TestTitleExtension,
@@ -27,8 +29,6 @@ from djangocms_versioning.test_utils.factories import (
     TestTitleExtensionFactory,
     TextPluginFactory,
 )
-from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
-from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
 
 
 class MonkeypatchExtensionTestCase(CMSTestCase):

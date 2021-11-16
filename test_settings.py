@@ -9,6 +9,7 @@ HELPER_SETTINGS = {
         "djangocms_versioning.test_utils.text",
         "djangocms_versioning.test_utils.people",
         "djangocms_versioning.test_utils.unversioned_editable_app",
+        "djangocms_versioning.test_utils.extended_polls",
     ],
     "MIGRATION_MODULES": {
         "auth": None,

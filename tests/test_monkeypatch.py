@@ -102,32 +102,33 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
 
     def test_title_extension_admin_monkey_patch_save(self):
         """
-        When we have a page in x state, we must show the unfiltered queryset
-        TODO: Write this comment properly!!!!!
+        When hitting the monkeypatched save method, with a draft pagecontent, ensure that we don't see failures
+        due to versioning overriding monkeypatches
         """
-        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
-        request = RequestFactory().get("/admin/extended_polls/pollextension/")
-        import pdb
-        pdb.set_trace()
         poll_extension = PollTitleExtensionFactory(extended_object=self.pagecontent)
-        request.extended_object = poll_extension
+        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
+        test_url = admin_reverse("extended_polls_polltitleextension_change", args=(poll_extension.pk,))
+        test_url = test_url + f"?extended_object={self.version.content.pk}"
+        request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
+
+        poll_extension.votes = 1
         model_site.save_model(request, poll_extension, form=None, change=False)
+
+        self.assertEqual(PollTitleExtension.objects.first().votes, 1)
+        self.assertEqual(PollTitleExtension.objects.count(), 1)
 
     def test_title_extension_admin_monkeypatch_add_view(self):
         """
-
+        When hitting the add view, without the monkeypatch, the pagecontent queryset will be filtered to only show
+        published. Hit it with a draft, to make sure the monkeypatch works.
         """
-        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
-        request = RequestFactory().get("/admin/extended_polls/pollextension/")
-        user = self.get_superuser()
-        with self.login_user_context(user):
-            response = model_site.add_view(request)
-            rendered_response = response.render()
-            import pdb
-            pdb.set_trace()
-
-
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(
+                admin_reverse("extended_polls_polltitleextension_add") + "?extended_object=%s" % self.pagecontent.pk,
+                follow=True
+            )
+            self.assertEqual(response.status_code, 200)
 
 
 class MonkeypatchTestCase(CMSTestCase):

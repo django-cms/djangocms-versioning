@@ -22,6 +22,7 @@ from djangocms_versioning.test_utils.factories import (
     PageFactory,
     PageVersionFactory,
     PlaceholderFactory,
+    PollTitleExtensionFactory,
     PollVersionFactory,
     TestTitleExtensionFactory,
     TextPluginFactory,

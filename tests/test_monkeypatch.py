@@ -71,6 +71,8 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         new_pagecontent = copy_page_content(self.pagecontent)
 
         self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
+        self.assertEqual(self.pagecontent.polltitleextension.pk, poll_extension.pk)
+        self.assertNotEqual(self.pagecontent.polltitleextension.pk, new_pagecontent.polltitleextension.pk)
         self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
         self.assertEqual(PollTitleExtension._base_manager.count(), 2)
 
@@ -94,6 +96,10 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
 
         new_pagecontent = copy_page_content(self.pagecontent)
 
+        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
+        self.assertEqual(self.pagecontent.polltitleextension.pk, poll_extension.pk)
+        self.assertNotEqual(new_pagecontent.testtitleextension, poll_extension)
+        self.assertEqual(self.pagecontent.testtitleextension.pk, poll_extension.pk)
         self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
         self.assertNotEqual(new_pagecontent.testtitleextension, title_extension)
         self.assertEqual(new_pagecontent.polltitleextension.votes, 5)

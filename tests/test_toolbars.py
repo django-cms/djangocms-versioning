@@ -343,12 +343,12 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertIn("Copy all plugins", language_menu_dict.keys())
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
 
-        self.assertEquals(
+        self.assertEqual(
             set([lang.name for lang in language_menu_dict["Add Translation"]]),
             set(["Française..."]),
         )
 
-        self.assertEquals(
+        self.assertEqual(
             set([lang.name for lang in language_menu_dict["Copy all plugins"]]),
             set(["from Italiano", "from Deutsche"]),
         )

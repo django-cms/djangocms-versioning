@@ -5,7 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,

@@ -16,7 +16,7 @@ from django.utils.encoding import force_text
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
 from django.utils.timezone import localtime
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.models import PageContent
 from cms.utils import get_language_from_request

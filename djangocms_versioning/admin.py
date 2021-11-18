@@ -12,7 +12,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
 from django.utils.timezone import localtime
@@ -659,7 +659,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_archive(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
@@ -710,7 +710,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # Publish the version
@@ -739,7 +739,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_unpublish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
@@ -823,7 +823,7 @@ class VersionAdmin(admin.ModelAdmin):
             version.check_edit_redirect(request.user)
             target = self._get_edit_redirect_version(request, version)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # Redirect
@@ -839,7 +839,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_revert(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
@@ -894,7 +894,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_discard(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":

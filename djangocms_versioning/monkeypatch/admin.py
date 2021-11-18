@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 
 from cms import admin
@@ -66,7 +66,7 @@ def copy_language(self, request, object_id):
     page = source_page_content.page
 
     if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
-        return HttpResponseBadRequest(force_text(_("Language must be set to a supported language!")))
+        return HttpResponseBadRequest(force_str(_("Language must be set to a supported language!")))
 
     target_page_content = get_latest_admin_viewable_page_content(page, target_language)
 
@@ -84,7 +84,7 @@ def copy_language(self, request, object_id):
         plugins = placeholder.get_plugins_list(source_page_content.language)
 
         if not target.has_add_plugins_permission(request.user, plugins):
-            return HttpResponseForbidden(force_text(_('You do not have permission to copy these plugins.')))
+            return HttpResponseForbidden(force_str(_('You do not have permission to copy these plugins.')))
         copy_plugins_to_placeholder(plugins, target, language=target_language)
     return HttpResponse("ok")
 

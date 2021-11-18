@@ -1,8 +1,6 @@
 beautifulsoup4
 coverage
-django-classy-tags<2.0.0
-django-sekizai<2.0.0
-djangocms_helper
+django-app-helper
 factory-boy
 flake8
 freezegun
@@ -14,4 +12,7 @@ pyflakes>=2.1.1
 python-dateutil
 
 # Unreleased dependancies
-https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor
+# FIXME: Unreleased 3.2 changes - https://github.com/divio/django-cms/archive/develop-4.zip
+https://github.com/Aiky30/django-cms/archive/feature/cms-4-django-32-support.zip
+# FIXME: Unreleased 3.2 changes - https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor
+https://github.com/Aiky30/djangocms-text-ckeditor/archive/feature/cms-40-django-30-support-.zip

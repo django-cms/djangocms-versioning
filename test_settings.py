@@ -1,4 +1,5 @@
 HELPER_SETTINGS = {
+    "SECRET_KEY": "Test1234",
     "TIME_ZONE": "America/Chicago",
     "INSTALLED_APPS": [
         "djangocms_text_ckeditor",
@@ -50,7 +51,7 @@ HELPER_SETTINGS = {
 
 
 def run():
-    from djangocms_helper import runner
+    from app_helper import runner
 
     runner.cms("djangocms_versioning", extra_args=[])
 

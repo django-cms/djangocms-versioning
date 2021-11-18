@@ -108,33 +108,9 @@ class VersioningAdminMixin:
 
         return super().render_change_form(request, context, add, change, form_url, obj)
 
-    def get_readonly_fields(self, request, obj=None):
-        """Port permission code from django >= 2.1.
-
-        In later versions of django if a user has view perms but no
-        change perms, fields are set as read-only. This is not the case
-        in django < 2.1.
-        """
-        if obj and not DJANGO_GTE_21:
-            version = Version.objects.get_for_content(obj)
-            if not version.check_modify.as_bool(request.user):
-                if self.fields:
-                    return self.fields
-                if self.fieldsets:
-                    return flatten_fieldsets(self.fieldsets)
-                if self.form.declared_fields:
-                    return self.form.declared_fields
-                return list(
-                    set(
-                        [field.name for field in self.opts.local_fields]
-                        + [field.name for field in self.opts.local_many_to_many]
-                    )
-                )
-        return super().get_readonly_fields(request, obj)
-
     def has_change_permission(self, request, obj=None):
-        # Add additional version checks when they are available in Django 2.1+
-        if obj and DJANGO_GTE_21:
+        # Add additional version checks
+        if obj:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)

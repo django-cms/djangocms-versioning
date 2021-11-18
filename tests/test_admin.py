@@ -1,7 +1,7 @@
 import datetime
 import warnings
 from collections import OrderedDict
-from unittest import skip, skipIf
+from unittest import skip
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -36,7 +36,7 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning.cms_config import VersioningCMSConfig
-from djangocms_versioning.compat import DJANGO_GTE_21
+from djangocms_versioning.compat import DJANGO_GTE_21, DJANGO_GTE_30
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -962,18 +962,6 @@ class VersionAdminViewTestCase(CMSTestCase):
             )
         self.assertEqual(response.status_code, 403)
 
-    @skipIf(DJANGO_GTE_21, "Django>=2.1")
-    def test_version_editing_is_disabled(self):
-        version = factories.PollVersionFactory(content__text="test5")
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_admin_url(
-                    self.versionable.version_model_proxy, "change", version.pk
-                )
-            )
-        self.assertEqual(response.status_code, 403)
-
-    @skipIf(not DJANGO_GTE_21, "Django<2.1")
     def test_version_editing_readonly_fields(self):
         version = factories.PollVersionFactory(content__text="test5")
         with self.login_user_context(self.superuser):
@@ -1348,7 +1336,13 @@ class PublishViewTestCase(BaseStateTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+
+        # Django 2.2 backwards compatibility
+        if hasattr(response, '_headers'):
+            self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+        else:
+            self.assertEqual(response.headers.get("Allow"), "POST")
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)
@@ -1836,7 +1830,13 @@ class EditRedirectTestCase(BaseStateTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+
+        # Django 2.2 backwards compatibility
+        if hasattr(response, '_headers'):
+            self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+        else:
+            self.assertEqual(response.headers.get("Allow"), "POST")
+
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
@@ -2334,7 +2334,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
         self.assertEqual(
             mocked_messages.call_args[0][2],
-            'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?',
+            "poll content with ID \"144\" doesn\'t exist. Perhaps it was deleted?",
         )
 
     def test_change_view_action_compare_versions_one_selected(self):

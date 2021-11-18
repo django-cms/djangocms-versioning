@@ -1,6 +1,5 @@
 from collections import OrderedDict
 
-from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -11,7 +10,7 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import reverse
+from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
@@ -1063,42 +1062,42 @@ class VersionAdmin(admin.ModelAdmin):
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
-            url(
+            re_path(
                 r"^select/$",
                 self.admin_site.admin_view(self.grouper_form_view),
                 name="{}_{}_grouper".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/archive/$",
                 self.admin_site.admin_view(self.archive_view),
                 name="{}_{}_archive".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/publish/$",
                 self.admin_site.admin_view(self.publish_view),
                 name="{}_{}_publish".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/unpublish/$",
                 self.admin_site.admin_view(self.unpublish_view),
                 name="{}_{}_unpublish".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/edit-redirect/$",
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name="{}_{}_edit_redirect".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/revert/$",
                 self.admin_site.admin_view(self.revert_view),
                 name="{}_{}_revert".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/compare/$",
                 self.admin_site.admin_view(self.compare_view),
                 name="{}_{}_compare".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/discard/$",
                 self.admin_site.admin_view(self.discard_view),
                 name="{}_{}_discard".format(*info),

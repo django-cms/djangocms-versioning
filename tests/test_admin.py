@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.apps import apps
 from django.contrib import admin, messages
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -2352,7 +2353,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["2"],
+                ACTION_CHECKBOX_NAME: ["2"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
@@ -2378,7 +2379,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["1", "2"],
+                ACTION_CHECKBOX_NAME: ["1", "2"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
@@ -2402,7 +2403,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["1", "2", "3"],
+                ACTION_CHECKBOX_NAME: ["1", "2", "3"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)

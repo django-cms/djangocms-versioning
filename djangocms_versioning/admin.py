@@ -960,7 +960,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
-                date=localize(localtime(v1.created)),
+                date=localize(v1.created),
             ),
             "return_url": version_list_url(v1.content),
         }
@@ -988,7 +988,7 @@ class VersionAdmin(admin.ModelAdmin):
                             'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
-                            date=localize(localtime(v2.created)),
+                            date=localize(v2.created),
                         ),
                     }
                 )

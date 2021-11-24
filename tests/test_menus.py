@@ -309,6 +309,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
     @override_settings(CMS_PUBLIC_FOR="staff")
     def test_show_menu_only_visible_for_user(self):
         from django.contrib.auth.models import Group
+
         from cms.models import ACCESS_PAGE, PagePermission
 
         group = Group.objects.create(name="test_group")

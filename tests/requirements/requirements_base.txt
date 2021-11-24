@@ -1,6 +1,7 @@
 beautifulsoup4
 coverage
 djangocms_helper
+django-fsm<2.7
 factory-boy
 flake8
 freezegun

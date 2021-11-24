@@ -15,7 +15,7 @@ from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.formats import localize
-from django.utils.timezone import localtime, now, utc
+from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -23,7 +23,6 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
-import pytz
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 

@@ -12,7 +12,7 @@ pyflakes>=2.1.1
 python-dateutil
 
 # Unreleased dependancies
-# FIXME: Unreleased 3.2 changes - https://github.com/divio/django-cms/archive/develop-4.zip
+# FIXME: Unreleased 3.2 changes - https://github.com/django-cms/django-cms/tarball/release/4.0.x#egg=django-cms
 https://github.com/Aiky30/django-cms/archive/feature/cms-4-django-32-support.zip
 # FIXME: Unreleased 3.2 changes - https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor
 https://github.com/Aiky30/djangocms-text-ckeditor/archive/feature/cms-40-django-30-support-.zip

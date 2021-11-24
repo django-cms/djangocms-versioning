@@ -15,7 +15,7 @@ from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.formats import localize
-from django.utils.timezone import localtime, now, utc
+from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -23,7 +23,6 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
-import pytz
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
@@ -175,7 +174,7 @@ class AdminAddVersionTestCase(CMSTestCase):
             )
             self.assertTrue(check_obj)
             self.assertEqual(
-                check_obj.created, datetime.datetime(2011, 1, 6, tzinfo=pytz.utc)
+                check_obj.created, datetime.datetime(2011, 1, 6)
             )
 
     def test_poll_version_is_not_added_for_change_true(self):
@@ -1034,7 +1033,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version.modified,
-            datetime.datetime(2999, 1, 11, 00, 00, 00, tzinfo=utc),
+            datetime.datetime(2999, 1, 11, 00, 00, 00),
         )
 
     def test_archive_view_doesnt_allow_user_without_staff_permissions(self):
@@ -1247,7 +1246,7 @@ class PublishViewTestCase(BaseStateTestCase):
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version.modified,
-            datetime.datetime(2999, 1, 11, 00, 00, 00, tzinfo=utc),
+            datetime.datetime(2999, 1, 11, 00, 00, 00),
         )
 
     @patch("django.contrib.messages.add_message")
@@ -1418,7 +1417,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version.modified,
-            datetime.datetime(2999, 1, 11, 00, 00, 00, tzinfo=utc),
+            datetime.datetime(2999, 1, 11, 00, 00, 00),
         )
 
     @patch("django.contrib.messages.add_message")
@@ -1604,7 +1603,7 @@ class RevertViewTestCase(BaseStateTestCase):
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version_.modified,
-            datetime.datetime(2999, 1, 11, 00, 00, 00, tzinfo=utc),
+            datetime.datetime(2999, 1, 11, 00, 00, 00),
         )
 
 
@@ -1883,7 +1882,7 @@ class CompareViewTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertContains(response, "Version #{number} ({date})".format(
-            number=versions[0].number, date=localize(localtime(versions[0].created))))
+            number=versions[0].number, date=localize(versions[0].created)))
 
         context = response.context
         self.assertIn("v1", context)
@@ -1918,12 +1917,15 @@ class CompareViewTestCase(CMSTestCase):
         versions = factories.PollVersionFactory.create_batch(
             3, content__poll=poll, content__language="en"
         )
+        # Same grouper and different language
         factories.PollVersionFactory(
             content__poll=poll, content__language="fr"
-        )  # Same grouper different language
+        )
+        # different grouper and different language
         factories.PollVersionFactory(
             content__language="fr"
-        )  # different grouper and different language
+        )
+
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "compare", versions[0].pk
         )

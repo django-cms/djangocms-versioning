@@ -1,4 +1,5 @@
 HELPER_SETTINGS = {
+    "USE_TZ": False,
     "TIME_ZONE": "America/Chicago",
     "INSTALLED_APPS": [
         "djangocms_text_ckeditor",

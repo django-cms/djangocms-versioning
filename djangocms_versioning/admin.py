@@ -15,7 +15,6 @@ from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
-from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 
 from cms.models import PageContent
@@ -960,7 +959,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
-                date=localize(localtime(v1.created)),
+                date=localize(v1.created),
             ),
             "return_url": version_list_url(v1.content),
         }
@@ -988,7 +987,7 @@ class VersionAdmin(admin.ModelAdmin):
                             'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
-                            date=localize(localtime(v2.created)),
+                            date=localize(v2.created),
                         ),
                     }
                 )

@@ -1,7 +1,6 @@
 beautifulsoup4
 coverage
-djangocms_helper
-django-fsm<2.7
+django-app-helper
 factory-boy
 flake8
 freezegun
@@ -12,6 +11,8 @@ pillow
 pyflakes>=2.1.1
 python-dateutil
 
-# Unreleased django-cms 4.0 compatible packages
-https://github.com/django-cms/django-cms/tarball/release/4.0.x#egg=django-cms
-https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor
+# Unreleased dependancies
+# FIXME: Unreleased 3.2 changes - https://github.com/django-cms/django-cms/tarball/release/4.0.x#egg=django-cms
+https://github.com/Aiky30/django-cms/archive/feature/cms-4-django-32-support.zip
+# FIXME: Unreleased 3.2 changes - https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor
+https://github.com/Aiky30/djangocms-text-ckeditor/archive/feature/cms-40-django-30-support-.zip

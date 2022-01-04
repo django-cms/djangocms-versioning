@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
-from django.contrib.admin.utils import flatten_fieldsets, unquote
+from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,7 +14,6 @@ from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import gettext_lazy as _
 
 from cms.models import PageContent

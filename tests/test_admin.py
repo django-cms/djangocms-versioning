@@ -1593,7 +1593,6 @@ class UnpublishViewTestCase(BaseStateTestCase):
         else:
             self.assertIn("Don&#x27;t unpublish cats. Seriously.", str(response.content))
 
-
         self.assertIn("Unpublish the mice instead.", str(response.content))
         self.assertNotIn("Publish cat pictures only.", str(response.content))
 

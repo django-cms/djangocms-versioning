@@ -14,7 +14,7 @@ from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
-from django.utils.timezone import localtime
+from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import gettext_lazy as _
 
 from cms.models import PageContent
@@ -23,7 +23,6 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
-from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
@@ -935,7 +934,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
-                date=localize(localtime(v1.created)),
+                date=localize(v1.created),
             ),
             "return_url": version_list_url(v1.content),
         }
@@ -963,7 +962,7 @@ class VersionAdmin(admin.ModelAdmin):
                             'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
-                            date=localize(localtime(v2.created)),
+                            date=localize(v2.created),
                         ),
                     }
                 )

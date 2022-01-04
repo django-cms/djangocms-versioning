@@ -1,5 +1,6 @@
 HELPER_SETTINGS = {
-    "SECRET_KEY": "Test1234",
+    "SECRET_KEY": "djangocms-versioning-test-suite",
+    "USE_TZ": False,
     "TIME_ZONE": "America/Chicago",
     "INSTALLED_APPS": [
         "djangocms_text_ckeditor",

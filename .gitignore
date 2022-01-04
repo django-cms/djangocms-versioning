@@ -7,11 +7,11 @@
 dist/
 build/
 .env
+venv
 local.sqlite
 .coverage
 htmlcov/
 .python-version
 !djangocms_versioning/static/djangocms_versioning/js/dist
 docs/_build/
-venv/
-node_modules/
+node_modules

@@ -4,6 +4,7 @@ Changelog
 
 unreleased
 ==========
+* fix: Added field ordering to the generic versioning mixing
 
 0.0.32 (2022-01-05)
 ===================

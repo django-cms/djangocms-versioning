@@ -144,8 +144,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 
-    CAVEAT: Ordered fields are implemented by this mixin, if custom ordering is added to any models that inherits thi Mixin
-    it will require accommodating/reimplementing this.
+    CAVEAT: Ordered fields are implemented by this mixin, if custom ordering is added to any models that
+    inherits this Mixin it will require accommodating/reimplementing this.
     """
 
     class Media:

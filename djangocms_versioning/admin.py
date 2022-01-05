@@ -117,6 +117,9 @@ class VersioningAdminMixin:
 class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
+
+    CAVEAT: Ordered fields are implemented by this mixin, if custom ordering is added to any models that
+    inherits this Mixin it will require accommodating/reimplementing this.
     """
 
     class Media:
@@ -139,6 +142,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).get_state_display()
 
+    get_versioning_state.admin_order_field = "versions__state"
     get_versioning_state.short_description = _("State")
 
     def get_author(self, obj):
@@ -149,6 +153,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
+    get_author.admin_order_field = "versions__created_by"
     get_author.short_description = _("Author")
 
     def get_modified_date(self, obj):
@@ -159,6 +164,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).modified
 
+    get_modified_date.admin_order_field = "versions__modified"
     get_modified_date.short_description = _("Modified")
 
     def _get_preview_url(self, obj):

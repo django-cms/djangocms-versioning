@@ -9,6 +9,10 @@ Unreleased
 * Python 3.5 and 3.6 support removed
 * Django 1.11 support removed
 
+0.0.32 (2022-01-05)
+===================
+* fix: Added field ordering to the generic versioning admin mixin
+
 0.0.31 (2021-11-24)
 ===================
 * fix: Remove forcing a Timezone (USE_TZ=False) for the test suite which doesn't help for projects where the TZ is not forced to True.

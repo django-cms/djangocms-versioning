@@ -144,7 +144,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 
-    WARNING: This makes use of ordered fields, if custom ordering is on anything that inherits this,
+    CAVEAT: Ordered fields are implemented by this mixin, if custom ordering is added to any models that inherits thi Mixin
     it will require accommodating/reimplementing this.
     """
 

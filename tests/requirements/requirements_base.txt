@@ -11,7 +11,7 @@ mock
 pillow
 pyflakes>=2.1.1
 python-dateutil
-djangocms-text-ckeditor==4.0.0dev5
 
 # Unreleased django-cms 4.0 compatible packages
 https://github.com/django-cms/django-cms/tarball/release/4.0.x#egg=django-cms
+https://github.com/divio/djangocms-text-ckeditor/tarball/support/4.0.x#egg=djangocms-text-ckeditor@50364c3a4b693fa93a8bfbd7152aff03a3849c1e

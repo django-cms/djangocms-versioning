@@ -136,13 +136,13 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         poll_extension = PollTitleExtensionFactory(extended_object=self.version.content)
         model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
         pre_changes_date_modified = Version.objects.get(id=self.version.pk).modified
-
         test_url = admin_reverse("extended_polls_polltitleextension_change", args=(poll_extension.pk,))
         test_url += "?extended_object=%s" % self.version.content.pk
+
         request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
-
         model_site.save_model(request, poll_extension, form=None, change=False)
+
         post_changes_date_modified = Version.objects.get(id=self.version.pk).modified
 
         self.assertNotEqual(pre_changes_date_modified, post_changes_date_modified)

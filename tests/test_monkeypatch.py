@@ -128,6 +128,11 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         self.assertEqual(PollTitleExtension.objects.count(), 1)
 
     def test_title_extension_admin_monkey_patch_save_date_modified_updated(self):
+        """
+        When making changes to an extended model that is attached to a PageContent via
+        the Title Extension the date modified in a version should also be updated to reflect
+        the correct date timestamp.
+        """
         poll_extension = PollTitleExtensionFactory(extended_object=self.version.content)
         model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
         pre_changes_date_modified = Version.objects.get(id=self.version.pk).modified

@@ -12,6 +12,7 @@ from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.compat import DJANGO_GTE_21
+from djangocms_versioning.models import Version
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
 from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
@@ -29,7 +30,6 @@ from djangocms_versioning.test_utils.factories import (
     TestTitleExtensionFactory,
     TextPluginFactory,
 )
-from djangocms_versioning.models import Version
 
 
 class MonkeypatchExtensionTestCase(CMSTestCase):
@@ -150,7 +150,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(
                 admin_reverse("extended_polls_polltitleextension_add") +
-                    "?extended_object=%s" % self.version.content.pk,
+                "?extended_object=%s" % self.version.content.pk,
                 follow=True
             )
             self.assertEqual(response.status_code, 200)

@@ -8,6 +8,8 @@ from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
 from cms.utils.page_permissions import user_can_change_page
 
+from djangocms_versioning.handlers import _update_modified
+
 
 def _copy_title_extensions(self, source_page, target_page, language, clone=False):
     """
@@ -61,6 +63,10 @@ def _save_model(self, request, obj, form, change):
         raise PermissionDenied()
 
     super(TitleExtensionAdmin, self).save_model(request, obj, form, change)
+
+    # Ensure that we update the version modified date of the attached version
+    if title:
+        _update_modified(title)
 
 
 TitleExtensionAdmin.save_model = _save_model

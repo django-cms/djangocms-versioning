@@ -4,6 +4,9 @@ Changelog
 
 unreleased
 ==========
+
+0.0.33 (2022-01-11)
+===================
 * fix: Page Content Extended models do no update the version modified date as they should.
 
 0.0.32 (2022-01-05)

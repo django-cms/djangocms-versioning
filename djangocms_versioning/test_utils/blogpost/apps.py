@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class BlogpostConfig(AppConfig):
-    name = "blogpost"
+    name = "djangocms_versioning.test_utils.blogpost"

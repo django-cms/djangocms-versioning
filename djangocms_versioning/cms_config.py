@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder

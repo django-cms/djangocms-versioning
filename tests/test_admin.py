@@ -1,12 +1,13 @@
 import datetime
 import warnings
 from collections import OrderedDict
-from unittest import skip, skipIf
+from unittest import skip
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 from django.apps import apps
 from django.contrib import admin, messages
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -34,7 +35,7 @@ from djangocms_versioning.admin import (
     VersioningAdminMixin,
 )
 from djangocms_versioning.cms_config import VersioningCMSConfig
-from djangocms_versioning.compat import DJANGO_GTE_21
+from djangocms_versioning.compat import DJANGO_GTE_30
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -960,18 +961,6 @@ class VersionAdminViewTestCase(CMSTestCase):
             )
         self.assertEqual(response.status_code, 403)
 
-    @skipIf(DJANGO_GTE_21, "Django>=2.1")
-    def test_version_editing_is_disabled(self):
-        version = factories.PollVersionFactory(content__text="test5")
-        with self.login_user_context(self.superuser):
-            response = self.client.get(
-                self.get_admin_url(
-                    self.versionable.version_model_proxy, "change", version.pk
-                )
-            )
-        self.assertEqual(response.status_code, 403)
-
-    @skipIf(not DJANGO_GTE_21, "Django<2.1")
     def test_version_editing_readonly_fields(self):
         version = factories.PollVersionFactory(content__text="test5")
         with self.login_user_context(self.superuser):
@@ -1161,10 +1150,19 @@ class ArchiveViewTestCase(BaseStateTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content version with ID “89” doesn’t exist. Perhaps it was deleted?",
+            )
 
     def test_archive_view_can_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1331,10 +1329,19 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content version with ID “89” doesn’t exist. Perhaps it was deleted?",
+            )
 
     def test_publish_view_cant_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1346,7 +1353,13 @@ class PublishViewTestCase(BaseStateTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+
+        # Django 2.2 backwards compatibility
+        if hasattr(response, '_headers'):
+            self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+        else:
+            self.assertEqual(response.headers.get("Allow"), "POST")
+
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)
         self.assertEqual(poll_version_.state, constants.DRAFT)
@@ -1503,10 +1516,19 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content version with ID “89” doesn’t exist. Perhaps it was deleted?",
+            )
 
     def test_unpublish_view_can_be_accessed_by_get_request(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -1563,7 +1585,14 @@ class UnpublishViewTestCase(BaseStateTestCase):
             ]
         )
         self.assertDictEqual(response.context["extra_context"], expected)
-        self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertIn("Don&#39;t unpublish cats. Seriously.", str(response.content))
+        # django >= 3 support
+        else:
+            self.assertIn("Don&#x27;t unpublish cats. Seriously.", str(response.content))
+
         self.assertIn("Unpublish the mice instead.", str(response.content))
         self.assertNotIn("Publish cat pictures only.", str(response.content))
 
@@ -1834,7 +1863,13 @@ class EditRedirectTestCase(BaseStateTestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 405)
-        self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+
+        # Django 2.2 backwards compatibility
+        if hasattr(response, '_headers'):
+            self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+        else:
+            self.assertEqual(response.headers.get("Allow"), "POST")
+
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
 
@@ -1984,10 +2019,19 @@ class CompareViewTestCase(CMSTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content version with ID "89" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content version with ID “89” doesn’t exist. Perhaps it was deleted?",
+            )
 
     @patch("django.contrib.messages.add_message")
     def test_edit_compare_view_handles_nonexistent_v2(self, mocked_messages):
@@ -2003,10 +2047,19 @@ class CompareViewTestCase(CMSTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content version with ID "134" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content version with ID "134" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content version with ID “134” doesn’t exist. Perhaps it was deleted?",
+            )
 
 
 class VersionChangeListViewTestCase(CMSTestCase):
@@ -2333,10 +2386,19 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertRedirects(response, "/en/admin/", target_status_code=302)
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], 30)  # warning level
-        self.assertEqual(
-            mocked_messages.call_args[0][2],
-            'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?',
-        )
+
+        # Django < 3 support
+        if not DJANGO_GTE_30:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                'poll content with ID "144" doesn\'t exist. Perhaps it was deleted?',
+            )
+        # django >= 3 support
+        else:
+            self.assertEqual(
+                mocked_messages.call_args[0][2],
+                "poll content with ID “144” doesn’t exist. Perhaps it was deleted?",
+            )
 
     def test_change_view_action_compare_versions_one_selected(self):
         """
@@ -2354,7 +2416,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["2"],
+                ACTION_CHECKBOX_NAME: ["2"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
@@ -2380,7 +2442,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["1", "2"],
+                ACTION_CHECKBOX_NAME: ["1", "2"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
@@ -2404,7 +2466,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                admin.ACTION_CHECKBOX_NAME: ["1", "2", "3"],
+                ACTION_CHECKBOX_NAME: ["1", "2", "3"],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)

@@ -431,7 +431,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             version, request, disabled=False
         )
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action"'
+            '<a class="btn cms-versioning-action-btn js-versioning-action cms-versioning-action-edit"'
             ' href="%s" title="Edit">'
         ) % draft_edit_url
 
@@ -450,7 +450,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             version, request, disabled=True
         )
         expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
+            '<a class="btn cms-versioning-action-btn cms-versioning-action-edit inactive" title="Edit">'
         )
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
@@ -2524,40 +2524,42 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):
-        self.modeladmin = admin.site._registry[PollContent]
+        self.modeladmin = admin.site._registry[BlogContent]
 
-    def test_edit_link(self):
+    def test_edit_action_link_enabled_state(self):
         """
-        The edit link should be shown when a version is editable. A published version can show an edit button
-        which causes a new draft to be created.
+        Editable content models render the edit endpoint as active, with a url
         """
-        content_model = factories.BlogContentWithVersionFactory()
-        version = content_model.versions.last()
-        request = self.get_request("/")
-        request.user = self.get_superuser()
-        menu_content = version.content
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/blogcontent/")
+        request.user = user
+        draft_edit_url = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,), )
 
-        func = self.modeladmin._list_actions(request)
-        edit_endpoint = reverse("admin:djangocms_versioning_pollcontentversion_edit_redirect", args=(version.pk,),)
-        response = func(menu_content)
+        actual_enabled_control = self.modeladmin._get_edit_link(
+            version.content, request, disabled=False
+        )
+        expected_enabled_state = (
+            '<a class="btn cms-versioning-action-btn js-versioning-action cms-versioning-action-edit"'
+            ' href="%s" title="Edit">'
+        ) % draft_edit_url
 
-        self.assertIn("cms-versioning-action-btn", response)
-        self.assertIn('title="Edit"', response)
-        self.assertIn(edit_endpoint, response)
+        self.assertIn(expected_enabled_state, actual_enabled_control)
 
-    def test_edit_link_inactive(self):
+    def test_edit_action_link_disabled_state(self):
         """
-        The edit link should not be shown for a user that does not have the edit permission.
+        Un-editable content models render the edit endpoint as inactive, without a url
         """
-        content_model = factories.BlogContentWithVersionFactory()
-        version = content_model.versions.last()
-        request = self.get_request("/")
-        request.user = self.get_staff_user_with_no_permissions()
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/blogcontent/")
+        request.user = user
 
-        func = self.modeladmin._list_actions(request)
-        edit_endpoint = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,),)
-        response = func(version.content)
+        actual_disabled_control = self.modeladmin._get_edit_link(
+            version.content, request, disabled=True
+        )
+        expected_disabled_control = (
+            '<a class="btn cms-versioning-action-btn cms-versioning-action-edit inactive" title="Edit">'
+        )
 
-        self.assertIn("inactive", response)
-        self.assertIn('title="Edit"', response)
-        self.assertNotIn(edit_endpoint, response)
+        self.assertIn(expected_disabled_control, actual_disabled_control)

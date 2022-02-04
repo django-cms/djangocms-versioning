@@ -1,9 +1,9 @@
 {% load static i18n %}
 
 {% if disabled %}
-<a class="btn cms-versioning-action-btn inactive" title="{% trans "Edit" %}">
+<a class="btn cms-versioning-action-btn cms-versioning-action-edit inactive" title="{% trans "Edit" %}">
 {% else %}
-<a class="btn cms-versioning-action-btn js-versioning-action" href="{{ edit_url }}" title="{% trans "Edit" %}">
+<a class="btn cms-versioning-action-btn js-versioning-action cms-versioning-action-edit" href="{{ edit_url }}" title="{% trans "Edit" %}">
 {% endif %}
     <img src="{% static 'djangocms_versioning/svg/edit.svg' %}">
 </a>

@@ -431,7 +431,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             version, request, disabled=False
         )
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action cms-versioning-action-edit"'
+            '<a class="btn cms-versioning-action-btn js-versioning-action"'
             ' href="%s" title="Edit">'
         ) % draft_edit_url
 
@@ -450,7 +450,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             version, request, disabled=True
         )
         expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn cms-versioning-action-edit inactive" title="Edit">'
+            '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
         )
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
@@ -2496,7 +2496,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
-        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, 'title="Edit"')
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
@@ -2517,7 +2517,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
-        self.assertContains(response, "cms-versioning-action-edit")
+        self.assertContains(response, 'title="Edit"')
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
@@ -2540,7 +2540,7 @@ class ListActionsTestCase(CMSTestCase):
             version.content, request, disabled=False
         )
         expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action cms-versioning-action-edit"'
+            '<a class="btn cms-versioning-action-btn js-versioning-action"'
             ' href="%s" title="Edit">'
         ) % draft_edit_url
 
@@ -2552,14 +2552,14 @@ class ListActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         user = factories.UserFactory()
-        request = RequestFactory().get("/admin/polls/blogcontent/")
+        request = RequestFactory().get("/admin/polls/pollcontent/")
         request.user = user
 
         actual_disabled_control = self.modeladmin._get_edit_link(
             version.content, request, disabled=True
         )
         expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn cms-versioning-action-edit inactive" title="Edit">'
+            '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
         )
 
         self.assertIn(expected_disabled_control, actual_disabled_control)

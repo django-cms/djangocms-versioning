@@ -47,6 +47,7 @@ from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfi
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
+from djangocms_versioning.versionables import _cms_extension
 
 
 class BaseStateTestCase(CMSTestCase):
@@ -2524,17 +2525,17 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):
-        self.modeladmin = admin.site._registry[BlogContent]
+        self.modeladmin = admin.site._registry[PollContent]
 
     def test_edit_action_link_enabled_state(self):
         """
-        Editable content models render the edit endpoint as active, with a url
+        Editable content models render the edit endpoint as active, with a URL
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         user = factories.UserFactory()
-        request = RequestFactory().get("/admin/polls/blogcontent/")
+        request = RequestFactory().get("/admin/polls/pollcontent/")
         request.user = user
-        draft_edit_url = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,), )
+        draft_edit_url = reverse("admin:djangocms_versioning_pollcontentversion_edit_redirect", args=(version.pk,), )
 
         actual_enabled_control = self.modeladmin._get_edit_link(
             version.content, request, disabled=False
@@ -2548,7 +2549,7 @@ class ListActionsTestCase(CMSTestCase):
 
     def test_edit_action_link_disabled_state(self):
         """
-        Un-editable content models render the edit endpoint as inactive, without a url
+        Un-editable content models render the edit endpoint as inactive, without a URL
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         user = factories.UserFactory()
@@ -2563,3 +2564,46 @@ class ListActionsTestCase(CMSTestCase):
         )
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
+
+
+    def test_versions_list_action_active(self):
+        """
+        Version list admin action is rendered when enabled, with appropriate URL
+        """
+        draft_version = factories.PollVersionFactory(state=constants.DRAFT)
+        versionable = _cms_extension().versionables_by_content[draft_version.content.__class__]
+        proxy = versionable.version_model_proxy
+        manage_versions_url = admin_reverse(
+            "{app}_{model}_changelist".format(
+                app=proxy._meta.app_label,
+                model=proxy._meta.model_name
+            )
+        )
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+
+        actual_enabled_manage_versions_control = self.modeladmin._get_manage_versions_link(
+            draft_version.content, request,
+        )
+        expected_enabled_manage_versions_control = \
+            '<a\n    title="Manage versions"\n    class="btn\n\n    cms-versioning-action-btn\n'
+        self.assertIn(expected_enabled_manage_versions_control, actual_enabled_manage_versions_control)
+        self.assertIn(f'href="{manage_versions_url}', actual_enabled_manage_versions_control)
+
+    def test_versions_list_action_inactive(self):
+        """
+        Version list admin action is rendered as disabled, without a URL
+        """
+        draft_version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+
+        actual_enabled_manage_versions_control = self.modeladmin._get_manage_versions_link(
+            draft_version.content, request, disabled=True
+        )
+        expected_enabled_manage_versions_control = \
+            '<a\n    title="Manage versions"\n    class="btn\n\n    inactive\n\n    cms-versioning-action-btn\n'
+
+        self.assertIn(expected_enabled_manage_versions_control, actual_enabled_manage_versions_control)

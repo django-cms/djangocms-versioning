@@ -2532,9 +2532,8 @@ class ListActionsTestCase(CMSTestCase):
         Editable content models render the edit endpoint as active, with a URL
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
         draft_edit_url = reverse("admin:djangocms_versioning_pollcontentversion_edit_redirect", args=(version.pk,), )
 
         actual_enabled_control = self.modeladmin._get_edit_link(
@@ -2552,9 +2551,8 @@ class ListActionsTestCase(CMSTestCase):
         Un-editable content models render the edit endpoint as inactive, without a URL
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
 
         actual_disabled_control = self.modeladmin._get_edit_link(
             version.content, request, disabled=True

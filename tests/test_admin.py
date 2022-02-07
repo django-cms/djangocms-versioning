@@ -2578,15 +2578,15 @@ class ListActionsTestCase(CMSTestCase):
                 model=proxy._meta.model_name
             )
         )
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
 
         actual_enabled_manage_versions_control = self.modeladmin._get_manage_versions_link(
             draft_version.content, request,
         )
         expected_enabled_manage_versions_control = \
             '<a\n    title="Manage versions"\n    class="btn\n\n    cms-versioning-action-btn\n'
+
         self.assertIn(expected_enabled_manage_versions_control, actual_enabled_manage_versions_control)
         self.assertIn(f'href="{manage_versions_url}', actual_enabled_manage_versions_control)
 
@@ -2595,9 +2595,8 @@ class ListActionsTestCase(CMSTestCase):
         Version list admin action is rendered as disabled, without a URL
         """
         draft_version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
 
         actual_enabled_manage_versions_control = self.modeladmin._get_manage_versions_link(
             draft_version.content, request, disabled=True

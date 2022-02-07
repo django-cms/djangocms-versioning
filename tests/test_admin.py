@@ -2565,7 +2565,6 @@ class ListActionsTestCase(CMSTestCase):
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
 
-
     def test_versions_list_action_active(self):
         """
         Version list admin action is rendered when enabled, with appropriate URL

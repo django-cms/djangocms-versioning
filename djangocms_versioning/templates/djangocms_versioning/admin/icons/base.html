@@ -2,12 +2,16 @@
 <a
     title="{% block title %}{% endblock %}"
     class="btn
-{% if disabled %}
-    inactive
+    cms-versioning-action-btn
+    cms-versioning-action-{% block name %}{% endblock %}
+    {% if get|default_if_none:True %} cms-form-get-method {% endif %}
+    {% if action|default_if_none:True %} js-versioning-action{% endif %}
+    js-versioning-admin-keep-sideframe
+    {% if disabled %}
+    inactive"
 {% endif %}
-    cms-versioning-action-btn"
 {% if not disabled %}
-    href="{{ url }}"
+    " href="{{ url }}"
 {% endif %}
 >
     <img src="{% block icon %}{% endblock %}">

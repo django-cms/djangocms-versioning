@@ -238,8 +238,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             args=(version.pk,),
         )
         return render_to_string(
-            "djangocms_versioning/admin/edit_icon.html",
-            {"edit_url": url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/edit_icon.html",
+            {"url": url, "disabled": disabled},
         )
 
     def _get_manage_versions_link(self, obj, request, disabled=False):

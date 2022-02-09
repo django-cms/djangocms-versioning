@@ -2518,7 +2518,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
-        self.assertContains(response, 'title="Edit"')
+        self.assertContains(response, "cms-versioning-action-edit")
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
@@ -2543,7 +2543,10 @@ class ListActionsTestCase(CMSTestCase):
             '<a class="btn cms-versioning-action-btn js-versioning-action"'
             ' href="%s" title="Edit">'
         ) % draft_edit_url
+        with self.login_user_context(user=self.get_superuser()):
+            response = self.client.get(draft_edit_url, follow=True)
 
+        # TODO: Do something with the response!
         self.assertIn(expected_enabled_state, actual_enabled_control)
 
     def test_edit_action_link_disabled_state(self):

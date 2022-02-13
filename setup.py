@@ -27,6 +27,8 @@ setup(
     author="Divio AG",
     test_suite="test_settings.run",
     author_email="info@divio.ch",
-    url="http://github.com/divio/djangocms-versioning",
+    maintainer='Django CMS Association and contributors',
+    maintainer_email='info@django-cms.org',
+    url="http://github.com/django-cms/djangocms-versioning",
     license="BSD",
 )

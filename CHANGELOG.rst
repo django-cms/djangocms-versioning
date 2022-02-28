@@ -12,7 +12,6 @@ Unreleased
 * Django 3.0, 3.1 and 3.2 support added
 * Python 3.5 and 3.6 support removed
 * Django 1.11 support removed
-* Open compare view in new tab
 
 0.0.33 (2022-01-11)
 ===================

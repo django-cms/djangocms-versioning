@@ -5,6 +5,7 @@ Changelog
 Unreleased
 ==========
 * Open compare view in new tab
+* Hiding the back button in compare view
 
 1.0.0 (2022-02-23)
 ==================

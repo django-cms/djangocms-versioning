@@ -14,9 +14,9 @@ window.addEventListener('load', function() {
     const submitButton = actionsForm.querySelector('[type="submit"]')
 
     if (selectVal == "compare_versions") {
+        // Setting the target to blank to ensure the compare view is opened in a new tab
+        actionsForm.setAttribute('target', '_blank');
         if (handlersBound === false) {
-            // Setting the target to blank to ensure the compare view is opened in a new tab
-            actionsForm.setAttribute('target', '_blank');
             bindHandlers(submitButton);
             handlersBound = true
         }

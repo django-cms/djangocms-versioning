@@ -5,9 +5,12 @@ Changelog
 Unreleased
 ==========
 
-1.0.1 (2022-03-03)
+1.0.2 (2022-03-03)
 ==================
 * Fix: Updated icon base template to include proper closesideframe tag
+
+1.0.1 (2022-03-03)
+==================
 * feat: Open compare view in new tab
 * Hiding the back button in compare view
 

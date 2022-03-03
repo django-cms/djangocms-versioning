@@ -4,6 +4,9 @@ Changelog
 
 Unreleased
 ==========
+
+1.0.2 (2022-03-03)
+==================
 * Fix: Updated icon base template to include proper closesideframe tag
 
 1.0.1 (2022-03-03)

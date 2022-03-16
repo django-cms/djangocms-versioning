@@ -357,7 +357,8 @@ class VersionAdmin(admin.ModelAdmin):
     """
 
     class Media:
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js")
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",
+              "djangocms_versioning/js/messages.js")
         css = {"all": ("djangocms_versioning/css/actions.css",)}
 
     # register custom actions

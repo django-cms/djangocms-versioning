@@ -42,4 +42,14 @@
         });
     });
 
+    // Hide django messages after timeout occurs to prevent content overlap
+    $('document').ready(function(){
+        let djangoMessages = document.getElementsByClassName("messagelist");
+        setTimeout(function(){
+            for (var i = 0; i < djangoMessages.length; i ++) {
+                djangoMessages[i].setAttribute('style', 'visibility: hidden; opacity: 0; ' +
+                    'transition: visibility 0s linear 300ms, opacity 300ms; !important');
+            }
+        }, 3000);
+    });
 })((typeof django !== 'undefined' && django.jQuery) || (typeof CMS !== 'undefined' && CMS.$) || false);

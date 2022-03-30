@@ -2521,6 +2521,22 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
+    def test_extended_version_change_list_actions_burger_menu_available(self):
+        """
+        The actions burger menu should be available for anything that inherits ExtendedVersionAdminMixin.
+        """
+        content = factories.PollContentFactory(language="en")
+        factories.PollVersionFactory(content=content)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(PollContent, "changelist"))
+
+        # Check response is valid
+        self.assertEqual(200, response.status_code)
+
+        # Check burger menu class exists in list_actions
+        self.assertContains(response, "cms-versioning-action-btn")
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

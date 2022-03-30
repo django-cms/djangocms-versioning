@@ -1,3 +1,7 @@
+/*-------------------------------------
+Classes for Action btn & Burger menu 
+---------------------------------------*/
+
 a.btn.cms-versioning-action-btn {
     position: relative;
     display: -webkit-inline-box;
@@ -14,10 +18,10 @@ a.btn.cms-versioning-action-btn {
     height: 34px;
     margin-top: -12px !important;
     position: relative;
-    height: 34px;
     bottom: -6px;
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
+    cursor: pointer;
 }
 a.btn.cms-versioning-action-btn img {
     width: 20px;
@@ -27,4 +31,78 @@ a.btn.cms-versioning-action-btn img {
 a.btn.cms-versioning-action-btn.inactive {
     opacity: 0.3;
     filter: alpha(opacity=30);
+}
+
+
+/* disable clicking for inactive buttons */
+.btn.cms-versioning-action-btn.inactive {
+    pointer-events: none;
+    background-color: #e1e1e1 !important;
+}
+
+.btn.cms-versioning-action-btn.inactive img {
+    opacity: 0.5;
+}
+
+/* set size and spacing between for the action icons */
+a.btn.cms-versioning-action-btn img {
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+}
+
+
+/*-------------------------------------
+This governs the drop-down behaviour 
+extending the pagetree classes provided by CMS
+---------------------------------------*/
+
+/* add shadow on burger menu trigger */
+a.btn.cms-versioning-action-btn:hover, a.btn.cms-versioning-action-btn.open {
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+}
+
+/* style for each option row */
+ul.cms-pagetree-dropdown-menu-inner li {
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 2px 6px;
+}
+ul.cms-pagetree-dropdown-menu-inner li:hover {
+    list-style-type: none;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #0bf;
+}
+
+/* set the size of the option icon */
+.cms-page-admin-action-burger-options-anchor img{
+    width: 20px;
+    height: 20px;
+}
+
+/* align the option text with it's icon */
+ul.cms-pagetree-dropdown-menu-inner li a span {
+    line-height: 1rem;
+    vertical-align: 20%;
+    margin-left: 10px;
+}
+
+/* disable any inactive option */
+ul.cms-pagetree-dropdown-menu-inner li a.inactive {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.3;
+    filter: alpha(opacity=30);
+}
+
+/* set the size of the drop-down */
+.cms-pagetree-dropdown-menu.open {
+    display: block;
+    width: 200px;
+}
+
+/* hide when closed */
+.cms-pagetree-dropdown-menu.closed, .cms-icon-menu.closed .cms-pagetree-dropdown-menu {
+    display: none;
 }

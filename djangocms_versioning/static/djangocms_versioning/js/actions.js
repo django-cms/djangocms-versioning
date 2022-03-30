@@ -60,6 +60,15 @@
     // Create burger menu:
     $(function() {
         var createBurgerMenu = function createBurgerMenu(row) {
+            var li;
+            var text;
+            var actions = $(row).children('.field-list_actions');
+      
+            if (!actions.length) {
+              /* skip any rows without actions to avoid errors */
+              return;
+            }
+            
             /* create burger menu anchor icon */
             var anchor = document.createElement('A');
             var cssclass = document.createAttribute('class');
@@ -87,14 +96,6 @@
             ul.setAttributeNode(cssclass);
             /* get the existing actions and move them into the options container */
       
-            var li;
-            var text;
-            var actions = $(row).children('.field-list_actions');
-      
-            if (!actions.length) {
-              /* skip any rows without actions to avoid errors */
-              return;
-            }
       
             $(actions[0]).children('.cms-versioning-action-btn').each(function (index, item) {
 

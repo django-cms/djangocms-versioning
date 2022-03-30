@@ -355,6 +355,7 @@ def fake_filter_factory(versionable, field_name):
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
+    change_list_template = "admin/djangocms_versioning/change_list.html"
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)

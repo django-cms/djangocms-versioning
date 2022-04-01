@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.urlutils import add_url_parameters, static_with_version
+from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
@@ -129,8 +129,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         css = {
             "all": (
                 "djangocms_versioning/css/actions.css",
-                static_with_version("cms/css/cms.base.css"),
-                static_with_version("cms/css/cms.pagetree.css"),
             )
         }
 

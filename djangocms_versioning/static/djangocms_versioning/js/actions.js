@@ -10,7 +10,7 @@
         $(` .js-versioning-action,
             .cms-versioning-js-publish-btn, 
             .cms-versioning-js-edit-btn, 
-            .cms-page-admin-action-burger-options-anchor`)
+            .cms-actions-dropdown-menu-item-anchor`)
             .on('click', function(e) {
                 e.preventDefault();
 
@@ -23,6 +23,7 @@
                            formMethod + '">' + csrfToken +
                     '</form>'
                 );
+                let body = window.top.document.body;
                 let keepSideFrame = action.attr('class').indexOf('js-versioning-keep-sideframe') !== -1;
                 // always break out of the sideframe, cause it was never meant to open cms views inside it
                 try {
@@ -33,8 +34,6 @@
                 } catch (err) {}
                 if (keepSideFrame) {
                     let body = window.document.body;
-                } else {
-                    let body = window.top.document.body;
                 }
                 fakeForm.appendTo(body).submit();
             });
@@ -90,12 +89,12 @@
             let optionsContainer = document.createElement('div');
             let ul = document.createElement('ul');
             
-            /* 'cms-pagetree-dropdown-menu' class is the main selector for the menu,
-            'cms-pagetree-dropdown-menu-arrow-right-top' keeps the menu arrow in position. */
+            /* 'cms-actions-dropdown-menu' class is the main selector for the menu,
+            'cms-actions-dropdown-menu-arrow-right-top' keeps the menu arrow in position. */
             optionsContainer.setAttribute(
               'class',
-              'cms-pagetree-dropdown-menu cms-pagetree-dropdown-menu-arrow-right-top');
-            ul.setAttribute('class', 'cms-pagetree-dropdown-menu-inner');
+              'cms-actions-dropdown-menu cms-actions-dropdown-menu-arrow-right-top');
+            ul.setAttribute('class', 'cms-actions-dropdown-menu-inner');
 
             /* get the existing actions and move them into the options container */
             $(actions[0]).children('.cms-versioning-action-btn').each(function (index, item) {
@@ -108,7 +107,7 @@
               let li = document.createElement('li');
               /* create an anchor from the item */
               let li_anchor = document.createElement('a');
-              li_anchor.setAttribute('class', 'cms-page-admin-action-burger-options-anchor');
+              li_anchor.setAttribute('class', 'cms-actions-dropdown-menu-item-anchor');
               li_anchor.setAttribute('href', $(item).attr('href'));
 
               if ($(item).hasClass('cms-form-get-method')) {
@@ -168,8 +167,8 @@
           };
       
           let closeBurgerMenu = function closeBurgerMenu() {
-            $('.cms-pagetree-dropdown-menu').removeClass('open');
-            $('.cms-pagetree-dropdown-menu').addClass('closed');
+            $('.cms-actions-dropdown-menu').removeClass('open');
+            $('.cms-actions-dropdown-menu').addClass('closed');
             $('.cms-versioning-action-btn').removeClass('open');
             $('.cms-versioning-action-btn').addClass('closed');
           };

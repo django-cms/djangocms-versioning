@@ -19,7 +19,7 @@ from django.utils.translation import gettext_lazy as _
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.urlutils import add_url_parameters
+from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
@@ -122,10 +122,16 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     inherits this Mixin it will require accommodating/reimplementing this.
     """
 
+    # change_list_template = 'admin/djangocms_versioning/change_list.html'
+
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
-            "all": ("djangocms_versioning/css/actions.css",)
+            "all": (
+                "djangocms_versioning/css/actions.css",
+                static_with_version("cms/css/cms.base.css"),
+                static_with_version("cms/css/cms.pagetree.css"),
+            )
         }
 
     def get_version(self, obj):
@@ -355,7 +361,6 @@ def fake_filter_factory(versionable, field_name):
 class VersionAdmin(admin.ModelAdmin):
     """Admin class used for version models.
     """
-    change_list_template = "admin/djangocms_versioning/change_list.html"
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)

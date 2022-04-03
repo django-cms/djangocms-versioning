@@ -122,7 +122,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     inherits this Mixin it will require accommodating/reimplementing this.
     """
 
-    # change_list_template = 'admin/djangocms_versioning/change_list.html'
+    change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")

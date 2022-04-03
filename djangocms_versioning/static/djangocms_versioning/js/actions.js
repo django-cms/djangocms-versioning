@@ -47,13 +47,22 @@
 
     // Hide django messages after timeout occurs to prevent content overlap
     $('document').ready(function(){
-        let djangoMessages = document.getElementsByClassName("messagelist");
-        setTimeout(function(){
-            for (let i = 0; i < djangoMessages.length; i ++) {
-                djangoMessages[i].setAttribute('style', 'visibility: hidden; opacity: 0; ' +
-                    'transition: visibility 0s linear 300ms, opacity 300ms; !important');
-            }
-        }, 3000);
+        // Targeting first item returned (there's only ever one messagelist per template):
+        let messageList = document.getElementsByClassName("messagelist")[0];
+        if(messageList != undefined){
+          for(let item of messageList.children){
+            item.style.opacity = 1;
+            setTimeout(() => {
+              let fader = setInterval(() => {
+                item.style.opacity -= 0.05;
+                  if(item.style.opacity < 0) {
+                    item.style.display = "none";
+                    clearInterval(fader);
+                  }
+              }, 20);
+            }, 5000);
+          }
+        }
     });
 
     // Create burger menu:

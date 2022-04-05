@@ -2534,14 +2534,10 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         soup = BeautifulSoup(str(response.content), features="lxml")
 
-        # Check response is valid
         self.assertEqual(200, response.status_code)
-        
-        # Check an actions dropdown menu has been generated:
+        # action script exists and static path variable exists
+        self.assertContains(response, "versioning_static_url_prefix")
         self.assertTrue(soup.find("script", src=re.compile("djangocms_versioning/js/actions.js")))
-        # FIXME: The response returned does not include html rendered client side via the javascript,
-        # so test is failing as the cms-actions-dropdown-menu classes are not present.
-        # self.assertTrue(soup.find_all("div", class_="cms-actions-dropdown-menu"))
 
 
 class ListActionsTestCase(CMSTestCase):

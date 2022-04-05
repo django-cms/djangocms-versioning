@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* feat: Added a burger menu in the actions column of the ExtendedVersionAdminMixin.
 
 1.0.3 (2022-03-18)
 ==================

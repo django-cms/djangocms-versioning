@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* ci: Added concurrency option to cancel in progress runs when new changes occur
 
 1.0.4 (2022-04-05)
 ==================

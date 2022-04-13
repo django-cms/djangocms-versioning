@@ -1,0 +1,6 @@
+{% load static i18n %}
+{% spaceless %}
+<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action js-versioning-keep-sideframe" href="{{ published_url }}"
+   title="{% trans "View published" %}">
+<img src="{% static 'djangocms_versioning/svg/preview.svg' %}"></a>
+{% endspaceless %}

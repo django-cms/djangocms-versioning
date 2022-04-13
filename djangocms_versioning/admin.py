@@ -239,7 +239,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             return ""
 
         return render_to_string(
-            "djangocms_versioning/admin/icons/published_icon.html",
+            "djangocms_versioning/admin/published_icon.html",
             {"published_url": published_url},
         )
 

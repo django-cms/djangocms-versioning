@@ -122,10 +122,14 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     inherits this Mixin it will require accommodating/reimplementing this.
     """
 
+    change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
+
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
-            "all": ("djangocms_versioning/css/actions.css",)
+            "all": (
+                "djangocms_versioning/css/actions.css",
+            )
         }
 
     def get_version(self, obj):
@@ -385,7 +389,7 @@ class VersionAdmin(admin.ModelAdmin):
     """
 
     class Media:
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js")
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
         css = {"all": ("djangocms_versioning/css/actions.css",)}
 
     # register custom actions

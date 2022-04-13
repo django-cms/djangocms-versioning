@@ -7,6 +7,7 @@ Unreleased
 * feat: Added an action button to view the published content
 * ci: Updated isort params in lint workflow to meet current requirements.
 * ci: Updated workflows to use version 3
+* ci: Added concurrency option to cancel in progress runs when new changes occur
 
 1.0.2 (2022-03-03)
 ==================

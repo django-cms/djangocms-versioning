@@ -13,9 +13,6 @@ jobs:
             dj22_cms40.txt,
             dj32_cms40.txt,
         ]
-        os: [
-            ubuntu-20.04,
-        ]
 
     steps:
     - uses: actions/checkout@v1

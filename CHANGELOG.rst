@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* ci: Remove ``os`` from test workflow matrix because it's unused
 
 1.0.4 (2022-04-05)
 ==================

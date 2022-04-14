@@ -608,6 +608,46 @@ class VersionAdminActionsTestCase(CMSTestCase):
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
 
+    def test_action_published_link_visible_state(self):
+        """The published content link action is available"""
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+        published_url = version.content.get_absolute_url()
+
+        expected_action_state = (
+            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            'js-versioning-keep-sideframe" href="%s" title="View published">'
+        ) % published_url
+        actual_action_control = self.version_admin._get_published_link(version, request)
+
+        self.assertIn(expected_action_state, actual_action_control)
+
+    def test_action_published_link_not_visible_state(self):
+        """The published content link action is not available"""
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+
+        expected_action_state = ''
+        actual_action_control = self.version_admin._get_published_link(version, request)
+
+        self.assertIn(expected_action_state, actual_action_control)
+
+    def test_action_published_link_not_valid_obj(self):
+        """The published content link is not applicable with this object"""
+        version = factories.AnswerFactory()
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/answer/")
+        request.user = user
+
+        expected_action_state = ''
+        actual_action_control = self.version_admin._get_published_link(version, request)
+
+        self.assertIn(expected_action_state, actual_action_control)
+
 
 class StateActionsTestCase(CMSTestCase):
     def test_archive_in_state_actions_for_draft_version(self):

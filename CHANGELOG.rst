@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 
 1.0.4 (2022-04-05)
 ==================

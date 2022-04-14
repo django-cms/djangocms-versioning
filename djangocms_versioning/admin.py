@@ -233,6 +233,12 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         :param request: The request to admin menu
         :return: Published link icon template
         """
+        version = proxy_model(self.get_version(obj), self.model)
+
+        if version.state != PUBLISHED:
+            # Don't display the link if it can't be edited
+            return ""
+
         published_url = self._get_published_url(obj)
 
         if not published_url:
@@ -530,12 +536,12 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
     def _get_published_link(self, obj, request):
-        """Helper function to get the html link to the published page"""
-        if not obj.state == PUBLISHED:
-            # Don't display the link if it isn't published
-            return ""
-
+        """Helper function to get the link to the published page"""
         try:
+            if not obj.state == PUBLISHED:
+                # Don't display the link if it isn't published
+                return ""
+
             published_url = obj.content.get_absolute_url()
         except AttributeError:
             return ""

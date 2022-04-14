@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* feat: Added action button on published versions to view the content.
 
 1.0.4 (2022-04-05)
 ==================

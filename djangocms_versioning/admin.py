@@ -181,16 +181,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         else:
             return None
 
-    def _get_published_url(self, obj):
-        """
-        Return the published url method if available, otherwise return None
-        :return: method or None
-        """
-        try:
-            return obj.content.get_absolute_url()
-        except AttributeError:
-            return None
-
     def _list_actions(self, request):
         """
         A closure that makes it possible to pass request object to
@@ -224,29 +214,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return render_to_string(
             "djangocms_versioning/admin/icons/preview.html",
             {"url": preview_url or get_preview_url(obj), "disabled": disabled},
-        )
-
-    def _get_published_link(self, obj, request):
-        """
-        Return a user-friendly button for viewing the published content
-        :param obj: Instance of versioned content model
-        :param request: The request to admin menu
-        :return: Published link icon template
-        """
-        version = proxy_model(self.get_version(obj), self.model)
-
-        if version.state != PUBLISHED:
-            # Don't display the link if it can't be edited
-            return ""
-
-        published_url = self._get_published_url(obj)
-
-        if not published_url:
-            return ""
-
-        return render_to_string(
-            "djangocms_versioning/admin/published_icon.html",
-            {"published_url": published_url},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -293,7 +260,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return [
             self._get_preview_link,
             self._get_edit_link,
-            self._get_published_link,
             self._get_manage_versions_link,
         ]
 

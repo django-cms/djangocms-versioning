@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* ci: Updated isort params in lint workflow to meet current requirements.
 
 1.0.4 (2022-04-05)
 ==================

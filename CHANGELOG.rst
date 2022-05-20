@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Added ``related_name`` attribute to the ``content_type`` foreign key of the ``Version`` model.
 
 1.0.4 (2022-04-05)
 ==================

@@ -1,9 +1,8 @@
 from collections import OrderedDict
 
-from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
-from django.contrib.admin.utils import flatten_fieldsets, unquote
+from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -11,12 +10,11 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import reverse
-from django.utils.encoding import force_text
+from django.urls import re_path, reverse
+from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
-from django.utils.timezone import localtime
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.models import PageContent
 from cms.utils import get_language_from_request
@@ -24,7 +22,6 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
-from .compat import DJANGO_GTE_21
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
@@ -109,33 +106,9 @@ class VersioningAdminMixin:
 
         return super().render_change_form(request, context, add, change, form_url, obj)
 
-    def get_readonly_fields(self, request, obj=None):
-        """Port permission code from django >= 2.1.
-
-        In later versions of django if a user has view perms but no
-        change perms, fields are set as read-only. This is not the case
-        in django < 2.1.
-        """
-        if obj and not DJANGO_GTE_21:
-            version = Version.objects.get_for_content(obj)
-            if not version.check_modify.as_bool(request.user):
-                if self.fields:
-                    return self.fields
-                if self.fieldsets:
-                    return flatten_fieldsets(self.fieldsets)
-                if self.form.declared_fields:
-                    return self.form.declared_fields
-                return list(
-                    set(
-                        [field.name for field in self.opts.local_fields]
-                        + [field.name for field in self.opts.local_many_to_many]
-                    )
-                )
-        return super().get_readonly_fields(request, obj)
-
     def has_change_permission(self, request, obj=None):
-        # Add additional version checks when they are available in Django 2.1+
-        if obj and DJANGO_GTE_21:
+        # Add additional version checks
+        if obj:
             version = Version.objects.get_for_content(obj)
             return version.check_modify.as_bool(request.user)
         return super().has_change_permission(request, obj)
@@ -144,12 +117,19 @@ class VersioningAdminMixin:
 class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
+
+    CAVEAT: Ordered fields are implemented by this mixin, if custom ordering is added to any models that
+    inherits this Mixin it will require accommodating/reimplementing this.
     """
+
+    change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
-            "all": ("djangocms_versioning/css/actions.css",)
+            "all": (
+                "djangocms_versioning/css/actions.css",
+            )
         }
 
     def get_version(self, obj):
@@ -166,6 +146,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).get_state_display()
 
+    get_versioning_state.admin_order_field = "versions__state"
     get_versioning_state.short_description = _("State")
 
     def get_author(self, obj):
@@ -176,6 +157,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
+    get_author.admin_order_field = "versions__created_by"
     get_author.short_description = _("Author")
 
     def get_modified_date(self, obj):
@@ -186,6 +168,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).modified
 
+    get_modified_date.admin_order_field = "versions__modified"
     get_modified_date.short_description = _("Modified")
 
     def _get_preview_url(self, obj):
@@ -378,7 +361,7 @@ class VersionAdmin(admin.ModelAdmin):
     """
 
     class Media:
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js",)
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
         css = {"all": ("djangocms_versioning/css/actions.css",)}
 
     # register custom actions
@@ -659,7 +642,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_archive(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
@@ -710,7 +693,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # Publish the version
@@ -739,7 +722,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_unpublish(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
@@ -823,7 +806,7 @@ class VersionAdmin(admin.ModelAdmin):
             version.check_edit_redirect(request.user)
             target = self._get_edit_redirect_version(request, version)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         # Redirect
@@ -839,7 +822,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_revert(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         pks_for_grouper = version.versionable.for_content_grouping_values(
@@ -894,7 +877,7 @@ class VersionAdmin(admin.ModelAdmin):
         try:
             version.check_discard(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_text(e), messages.ERROR)
+            self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
@@ -960,7 +943,7 @@ class VersionAdmin(admin.ModelAdmin):
                 'Version #{number} ({date})',
                 obj=v1,
                 number=v1.number,
-                date=localize(localtime(v1.created)),
+                date=localize(v1.created),
             ),
             "return_url": version_list_url(v1.content),
         }
@@ -988,7 +971,7 @@ class VersionAdmin(admin.ModelAdmin):
                             'Version #{number} ({date})',
                             obj=v2,
                             number=v2.number,
-                            date=localize(localtime(v2.created)),
+                            date=localize(v2.created),
                         ),
                     }
                 )
@@ -1063,42 +1046,42 @@ class VersionAdmin(admin.ModelAdmin):
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
-            url(
+            re_path(
                 r"^select/$",
                 self.admin_site.admin_view(self.grouper_form_view),
                 name="{}_{}_grouper".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/archive/$",
                 self.admin_site.admin_view(self.archive_view),
                 name="{}_{}_archive".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/publish/$",
                 self.admin_site.admin_view(self.publish_view),
                 name="{}_{}_publish".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/unpublish/$",
                 self.admin_site.admin_view(self.unpublish_view),
                 name="{}_{}_unpublish".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/edit-redirect/$",
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name="{}_{}_edit_redirect".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/revert/$",
                 self.admin_site.admin_view(self.revert_view),
                 name="{}_{}_revert".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/compare/$",
                 self.admin_site.admin_view(self.compare_view),
                 name="{}_{}_compare".format(*info),
             ),
-            url(
+            re_path(
                 r"^(.+)/discard/$",
                 self.admin_site.admin_view(self.discard_view),
                 name="{}_{}_discard".format(*info),

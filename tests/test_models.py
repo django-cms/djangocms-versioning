@@ -5,6 +5,8 @@ from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 
+from freezegun import freeze_time
+
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.helpers import remove_published_where
@@ -12,7 +14,6 @@ from djangocms_versioning.models import Version, VersionQuerySet
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
-from freezegun import freeze_time
 
 
 class CopyTestCase(CMSTestCase):

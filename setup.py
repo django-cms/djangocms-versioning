@@ -4,9 +4,9 @@ import djangocms_versioning
 
 
 INSTALL_REQUIREMENTS = [
-    "Django>=1.11,<3.0",
+    "Django>=1.11,<4.0",
     "django-cms",
-    "django-fsm>=2.6,<2.7"
+    "django-fsm"
 ]
 
 setup(
@@ -27,6 +27,8 @@ setup(
     author="Divio AG",
     test_suite="test_settings.run",
     author_email="info@divio.ch",
-    url="http://github.com/divio/djangocms-versioning",
+    maintainer='Django CMS Association and contributors',
+    maintainer_email='info@django-cms.org',
+    url="http://github.com/django-cms/djangocms-versioning",
     license="BSD",
 )

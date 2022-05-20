@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
@@ -184,6 +184,18 @@ def copy_page_content(original_content):
         placeholder.copy_plugins(new_placeholder)
         new_placeholders.append(new_placeholder)
     new_content.placeholders.add(*new_placeholders)
+
+    # If pagecontent has an associated title or page extension, also copy this!
+    for field in PageContent._meta.related_objects:
+        if hasattr(original_content, field.name):
+            extension = getattr(original_content, field.name)
+            extension_fields = {
+                field.name: getattr(extension, field.name)
+                for field in extension._meta.fields
+                if field.name not in (PageContent._meta.pk.name, "extended_object")
+            }
+            extension_fields["extended_object"] = new_content
+            field.related_model.objects.create(**extension_fields)
 
     return new_content
 

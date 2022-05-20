@@ -1,4 +1,6 @@
 HELPER_SETTINGS = {
+    "SECRET_KEY": "djangocms-versioning-test-suite",
+    "USE_TZ": False,
     "TIME_ZONE": "America/Chicago",
     "INSTALLED_APPS": [
         "djangocms_text_ckeditor",
@@ -9,6 +11,7 @@ HELPER_SETTINGS = {
         "djangocms_versioning.test_utils.text",
         "djangocms_versioning.test_utils.people",
         "djangocms_versioning.test_utils.unversioned_editable_app",
+        "djangocms_versioning.test_utils.extended_polls",
     ],
     "MIGRATION_MODULES": {
         "auth": None,
@@ -45,11 +48,12 @@ HELPER_SETTINGS = {
     },
     "PARLER_ENABLE_CACHING": False,
     "LANGUAGE_CODE": "en",
+    "DEFAULT_AUTO_FIELD": "django.db.models.AutoField",
 }
 
 
 def run():
-    from djangocms_helper import runner
+    from app_helper import runner
 
     runner.cms("djangocms_versioning", extra_args=[])
 

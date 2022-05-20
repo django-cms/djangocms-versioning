@@ -1,20 +1,19 @@
 from datetime import datetime
 
-from django.utils import timezone
-
 from cms.api import add_plugin
 from cms.models import Placeholder, UserSettings
 from cms.test_utils.testcases import CMSTestCase
 
+from freezegun import freeze_time
+
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
-from freezegun import freeze_time
 
 
 class HandlersTestCase(CMSTestCase):
     def test_modified_date(self):
         pv = factories.PollVersionFactory()
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             pv.content.save()
         pv = Version.objects.get(pk=pv.pk)
@@ -24,7 +23,7 @@ class HandlersTestCase(CMSTestCase):
         version = factories.PageVersionFactory()
         placeholder = factories.PlaceholderFactory(source=version.content)
         poll = factories.PollFactory()
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_add_plugin_uri(
                 placeholder=placeholder,
@@ -48,7 +47,7 @@ class HandlersTestCase(CMSTestCase):
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_change_plugin_uri(plugin)
             data = {"poll": poll.pk}
@@ -64,7 +63,7 @@ class HandlersTestCase(CMSTestCase):
         version = factories.PageVersionFactory()
         placeholder = factories.PlaceholderFactory(source=version.content)
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_clear_placeholder_url(placeholder)
 
@@ -84,7 +83,7 @@ class HandlersTestCase(CMSTestCase):
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_delete_plugin_uri(plugin)
             data = {"poll": poll.pk}
@@ -106,7 +105,7 @@ class HandlersTestCase(CMSTestCase):
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_copy_plugin_uri(plugin)
             data = {
@@ -140,7 +139,7 @@ class HandlersTestCase(CMSTestCase):
             placeholder_plugin.placeholder_ref, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_move_plugin_uri(plugin)
             data = {
@@ -168,7 +167,7 @@ class HandlersTestCase(CMSTestCase):
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_move_plugin_uri(plugin)
             data = {
@@ -200,7 +199,7 @@ class HandlersTestCase(CMSTestCase):
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_move_plugin_uri(plugin)
             data = {
@@ -226,7 +225,7 @@ class HandlersTestCase(CMSTestCase):
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
 
-        dt = datetime(2016, 6, 6, tzinfo=timezone.utc)
+        dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_move_plugin_uri(plugin)
             data = {

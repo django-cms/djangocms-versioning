@@ -4,7 +4,7 @@ Changelog
 
 Unreleased
 ==========
-* feat: Add related name to the versions generic foreign key field to allow reverse querying
+* feat: Reversable generic foreign key lookup from version
 
 1.0.4 (2022-04-05)
 ==================

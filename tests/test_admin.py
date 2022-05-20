@@ -1,4 +1,5 @@
 import datetime
+import re
 import warnings
 from collections import OrderedDict
 from unittest import skip
@@ -2520,6 +2521,23 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-edit")
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
+
+    def test_extended_version_change_list_actions_burger_menu_available(self):
+        """
+        The actions burger menu should be available for anything that inherits ExtendedVersionAdminMixin.
+        """
+        content = factories.PollContentFactory(language="en")
+        factories.PollVersionFactory(content=content)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(PollContent, "changelist"))
+
+        soup = BeautifulSoup(str(response.content), features="lxml")
+
+        self.assertEqual(200, response.status_code)
+        # action script exists and static path variable exists
+        self.assertContains(response, "versioning_static_url_prefix")
+        self.assertTrue(soup.find("script", src=re.compile("djangocms_versioning/js/actions.js")))
 
 
 class ListActionsTestCase(CMSTestCase):

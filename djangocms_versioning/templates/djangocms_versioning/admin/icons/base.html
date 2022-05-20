@@ -9,7 +9,7 @@
     cms-versioning-action-{% block name %}{% endblock %}
     {% if get|default_if_none:True %} cms-form-get-method {% endif %}
     {% if action|default_if_none:True %} js-versioning-action{% endif %}
-    js-versioning-admin-keep-sideframe"
+    {% if keepsideframe|default_if_none:True %}js-versioning-keep-sideframe {% else %}js-versioning-close-sideframe {% endif %}"
 {% if not disabled %}
     href="{{ url }}"
 {% endif %}

@@ -4,6 +4,26 @@ Changelog
 
 Unreleased
 ==========
+
+1.0.4 (2022-04-05)
+==================
+* feat: Added a burger menu in the actions column of the ExtendedVersionAdminMixin.
+
+1.0.3 (2022-03-18)
+==================
+* Enable django messages to be hidden after set timeout
+
+1.0.2 (2022-03-03)
+==================
+* Fix: Updated icon base template to include proper closesideframe tag
+
+1.0.1 (2022-03-03)
+==================
+* feat: Open compare view in new tab
+* Hiding the back button in compare view
+
+1.0.0 (2022-02-23)
+==================
 * Python 3.8, 3.9 support added
 * Django 3.0, 3.1 and 3.2 support added
 * Python 3.5 and 3.6 support removed

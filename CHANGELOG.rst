@@ -5,6 +5,14 @@ Changelog
 Unreleased
 ==========
 
+1.0.4 (2022-04-05)
+==================
+* feat: Added a burger menu in the actions column of the ExtendedVersionAdminMixin.
+
+1.0.3 (2022-03-18)
+==================
+* Enable django messages to be hidden after set timeout
+
 1.0.2 (2022-03-03)
 ==================
 * Fix: Updated icon base template to include proper closesideframe tag

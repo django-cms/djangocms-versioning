@@ -150,6 +150,7 @@ class IncorrectBlogPostVersionFactory(AbstractVersionFactory):
     class Meta:
         model = Version
 
+
 class IncorrectBlogContentWithVersionFactory(IncorrectBlogContentFactory):
     @factory.post_generation
     def version(self, create, extracted, **kwargs):

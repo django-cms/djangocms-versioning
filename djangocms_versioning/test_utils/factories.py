@@ -15,6 +15,7 @@ from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .extended_polls.models import PollTitleExtension
 from .extensions.models import TestTitleExtension
+from .incorrectly_configured_blogpost.models import IncorrectBlogContent, IncorrectBlogPost
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
 
@@ -126,6 +127,35 @@ class BlogContentWithVersionFactory(BlogContentFactory):
             # Simple build, do nothing.
             return
         BlogPostVersionFactory(content=self, **kwargs)
+
+
+class IncorrectBlogPostFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=6)
+
+    class Meta:
+        model = IncorrectBlogPost
+
+
+class IncorrectBlogContentFactory(factory.django.DjangoModelFactory):
+    blogpost = factory.SubFactory(IncorrectBlogPostFactory)
+    text = FuzzyText(length=24)
+
+    class Meta:
+        model = IncorrectBlogContent
+
+
+class IncorrectBlogPostVersionFactory(AbstractVersionFactory):
+    content = factory.SubFactory(IncorrectBlogContentFactory)
+
+    class Meta:
+        model = Version
+
+class IncorrectBlogContentWithVersionFactory(IncorrectBlogContentFactory):
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        if not create:
+            return
+        IncorrectBlogPostVersionFactory(content=self, **kwargs)
 
 
 class TreeNodeFactory(factory.django.DjangoModelFactory):

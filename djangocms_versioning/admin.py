@@ -290,6 +290,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             "get_versioning_state",
             self._list_actions(request)
         )
+        # Get the versioning extension
         extension = _cms_extension()
         modifier_dict = extension.add_to_field_extension.get(self.model, None)
         if modifier_dict:
@@ -302,7 +303,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
                     list_display[tuple_display.index(field)].short_description = field
                     tuple_display = list_display
                 except ValueError:
-                    raise ImproperlyConfigured("The field to be extended does not exist in this context")
+                    raise ImproperlyConfigured("The target field does not exist in this context")
         return tuple_display
 
 

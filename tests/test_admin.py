@@ -12,6 +12,7 @@ from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
@@ -45,6 +46,7 @@ from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import IncorrectBlogContent
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
@@ -2523,6 +2525,46 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-edit")
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
+
+    def test_extended_version_get_list_display_with_field_modifier_cms_config(self):
+        """
+        With extended_admin_field_modifiers configured, the list_display swaps the field provided, with the method
+        provided
+        """
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        list_display = modeladmin.get_list_display(request)
+
+        self.assertTrue(callable(list_display[0]))
+
+    def test_extended_version_get_list_display_without_field_modifier_cms_config(self):
+        """
+        Without extended_admin_field_modifiers, no change to the list_display is required
+        """
+        factories.BlogContentWithVersionFactory()
+        modeladmin = admin.site._registry[BlogContent]
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        list_display = modeladmin.get_list_display(request)
+
+        self.assertEqual("__str__", list_display[0])
+
+    def test_extended_version_get_list_display_incorrectly_configured(self):
+        """
+        With an incorrect configuration provided, the admin should raise the appropriate error
+        """
+        factories.IncorrectBlogContentWithVersionFactory()
+        modeladmin = admin.site._registry[IncorrectBlogContent]
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.get_list_display(request)
 
 
 class ListActionsTestCase(CMSTestCase):

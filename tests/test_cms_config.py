@@ -20,6 +20,7 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import IncorrectBlogpostCMSConfig
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
@@ -422,9 +423,10 @@ class VersioningIntegrationTestCase(CMSTestCase):
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
+        incorrect_blog_versionable = IncorrectBlogpostCMSConfig.versioning[0]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [page_versionable, poll_versionable, blog_versionable, comment_versionable],
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable, incorrect_blog_versionable],
         )
 
     def test_admin_classes_reregistered(self):

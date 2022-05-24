@@ -15,6 +15,7 @@ def unpublish_warning(request, version, *args, **kwargs):
 def poll_modifier(obj, field):
     return "[TEST]" + getattr(obj, field)
 
+
 poll_modifier.short_description = "Title"
 
 

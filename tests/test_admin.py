@@ -2492,7 +2492,7 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertEqual(200, response.status_code)
 
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="/en/admin/polls/pollcontent/{}/change/">{}</a>'.format(
+        self.assertContains(response, '<a href="/en/admin/polls/pollcontent/{}/change/">[TEST]{}</a>'.format(
             content.id,
             content.text
         ))

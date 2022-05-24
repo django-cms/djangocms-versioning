@@ -25,6 +25,7 @@ class VersioningCMSExtension(CMSAppExtension):
     def __init__(self):
         self.versionables = []
         self.add_to_context = {}
+        self.add_to_field_extension = {}
 
     @cached_property
     def versionables_by_content(self):
@@ -129,7 +130,17 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             replace_default_manager(versionable.content_model)
 
+    def handle_admin_field_modifiers(self, cms_config):
+        """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
+        """
+        extended_admin_field_modifiers = getattr(cms_config, "extended_admin_field_modifiers", None)
+        for model, field, method in extended_admin_field_modifiers:
+            self.add_to_field_extension[model] = dict()
+            self.add_to_field_extension[model][field] = method
+
     def configure_app(self, cms_config):
+        if hasattr(cms_config, "extended_admin_field_modifiers"):
+            self.handle_admin_field_modifiers(cms_config)
         # Validation to ensure either the versioning or the
         # versioning_add_to_confirmation_context config has been defined
         has_extra_context = hasattr(
@@ -268,7 +279,6 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
-
     djangocms_versioning_enabled = getattr(
         settings, "VERSIONING_CMS_MODELS_ENABLED", True
     )

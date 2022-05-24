@@ -173,3 +173,28 @@ Versioning modifies how the admin of the :term:`content model <content model>` w
                 content_admin_mixin=SomeContentAdminMixin,
             ),
         ]
+extended_admin_field_modifiers
+++++++++++++++++++++++++++++++
+These allow for the alteration of how a field is displayed, by providing a method,
+when the admin menu containing it uses the ExtendedVersionAdminMixin.
+
+This can be provided as a tuple of (model, field, method).
+
+model - the model which is registered with an admin that inherits ExtendedVersionAdminMixin
+field - field to be modified
+method - the method used to modify the field
+
+.. code-block:: python
+
+    # some_app/cms_config.py
+    from cms.app_base import CMSAppConfig
+
+    from .models import SomeModel
+
+    def transform_text_field(obj, field):
+        return obj.field + " Extra Value!"
+
+     class SomeCMSConfig(CMSAppConfig):
+        djangocms_versioning_enabled = True
+        ...
+        extended_admin_field_modifiers = (SomeModel, "text", transform_text_field)

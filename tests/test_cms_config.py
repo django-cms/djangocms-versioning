@@ -20,7 +20,9 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
-from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import IncorrectBlogpostCMSConfig
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import (
+    IncorrectBlogpostCMSConfig
+)
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 

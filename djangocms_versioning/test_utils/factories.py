@@ -15,7 +15,10 @@ from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
 from .extended_polls.models import PollTitleExtension
 from .extensions.models import TestTitleExtension
-from .incorrectly_configured_blogpost.models import IncorrectBlogContent, IncorrectBlogPost
+from .incorrectly_configured_blogpost.models import (
+    IncorrectBlogContent,
+    IncorrectBlogPost
+)
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
 

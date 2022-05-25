@@ -412,6 +412,48 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             admin.site._registry[versionable.version_model_proxy].__class__.mro(),
         )
 
+    def test_field_extension_populates(self):
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers = [(PollContent, "text", poll_modifier),]
+        )
+        extensions.handle_admin_field_modifiers(cms_config)
+
+        self.assertEqual(extensions.add_to_field_extension, {PollContent: {"text": poll_modifier}})
+
+    def test_field_extension_proper_error_non_iterable(self):
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers = (PollContent, "text", poll_modifier)
+        )
+
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_admin_field_modifiers(cms_config)
+
 
 # NOTE: These tests simply test what has already happened on start up
 # when the app registry has been instantiated.
@@ -482,3 +524,7 @@ class VersioningIntegrationTestCase(CMSTestCase):
         )
 
         self.assertNotIn(Comment, source_models_in_proxies)
+
+
+class VersioningFieldExtensionCmsConfigTestCase(CMSTestCase):
+    pass

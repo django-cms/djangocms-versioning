@@ -134,6 +134,10 @@ class VersioningCMSExtension(CMSAppExtension):
         """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
         """
         extended_admin_field_modifiers = getattr(cms_config, "extended_admin_field_modifiers", None)
+
+        if not isinstance(extended_admin_field_modifiers, collections.abc.Iterable):
+            raise ImproperlyConfigured("extended_admin_field_modifiers must be iterable of tuples")
+
         for model, field, method in extended_admin_field_modifiers:
             self.add_to_field_extension[model] = dict()
             self.add_to_field_extension[model][field] = method

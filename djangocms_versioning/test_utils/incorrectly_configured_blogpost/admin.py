@@ -5,8 +5,8 @@ from djangocms_versioning.admin import ExtendedVersionAdminMixin
 from .models import IncorrectBlogContent
 
 
-class BlogContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
+class IncorrectBlogContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
     pass
 
 
-admin.site.register(IncorrectBlogContent, BlogContentAdmin)
+admin.site.register(IncorrectBlogContent, IncorrectBlogContentAdmin)

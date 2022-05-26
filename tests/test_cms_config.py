@@ -427,7 +427,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
                     copy_function=default_copy,
                 )
             ],
-            extended_admin_field_modifiers=[(PollContent, "text", poll_modifier), ]
+            extended_admin_field_modifiers=[{PollContent:{ "text": poll_modifier}}, ]
         )
         extensions.handle_admin_field_modifiers(cms_config)
 

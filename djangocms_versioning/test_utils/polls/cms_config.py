@@ -35,5 +35,5 @@ class PollsCMSConfig(CMSAppConfig):
         "unpublish": OrderedDict([("warning", unpublish_warning)])
     }
     extended_admin_field_modifiers = [
-        (PollContent, "text", poll_modifier),
+        {PollContent: {"text": poll_modifier}},
     ]

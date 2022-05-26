@@ -1,8 +1,10 @@
 import collections
+from functools import reduce
 
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -134,13 +136,11 @@ class VersioningCMSExtension(CMSAppExtension):
         """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
         """
         extended_admin_field_modifiers = getattr(cms_config, "extended_admin_field_modifiers", None)
-
         if not isinstance(extended_admin_field_modifiers, list):
-            raise ImproperlyConfigured("extended_admin_field_modifiers must be list of tuples")
-
-        for model, field, method in extended_admin_field_modifiers:
-            self.add_to_field_extension[model] = dict()
-            self.add_to_field_extension[model][field] = method
+            raise ImproperlyConfigured("extended_admin_field_modifiers must be list of dictionaries")
+        for modifier in extended_admin_field_modifiers:
+            for key in modifier.keys():
+                self.add_to_field_extension[key] = modifier[key]
 
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):

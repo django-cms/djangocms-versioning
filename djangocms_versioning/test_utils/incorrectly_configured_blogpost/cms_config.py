@@ -19,5 +19,5 @@ class IncorrectBlogpostCMSConfig(CMSAppConfig):
         ),
     ]
     extended_admin_field_modifiers = [
-        (IncorrectBlogContent, "non_existent_field", blog_method),
+        {IncorrectBlogContent: {"non_existent_field": blog_method}},
     ]

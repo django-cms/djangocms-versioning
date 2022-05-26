@@ -2557,6 +2557,57 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         self.assertEqual("__str__", list_display[0])
 
+    def test_extended_version_extend_list_display(self):
+        """
+        With a valid config the target field should be replaced with the field modifier method
+        """
+        def field_modifier(obj, field):
+            return obj.getattr(field)
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": field_modifier}
+        list_display = ("text", )
+
+        list_display = modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+        self.assertTrue(callable(list_display[0]))
+
+    def test_extended_version_extend_list_display_handles_non_callable(self):
+        """
+        When a non-callable is provided as the field modifier method, ImproperlyConfigured is raised
+        """
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": "field_modifier"}
+        list_display = ("text", )
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+    def test_extended_version_extend_list_display_handles_non_existent_field(self):
+        """
+        When a non-existent field is provided as the target, ImproperlyConfigured is raised
+        """
+        def field_modifier(obj, field):
+            return obj.getattr(field)
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"non_existent": field_modifier}
+        list_display = ("text", )
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+
     def test_extended_version_get_list_display_incorrectly_configured(self):
         """
         With an incorrect configuration provided, the admin should raise the appropriate error

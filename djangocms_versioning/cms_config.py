@@ -1,10 +1,8 @@
 import collections
-from functools import reduce
 
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models.base import ModelBase
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 

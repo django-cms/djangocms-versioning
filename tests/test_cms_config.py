@@ -524,7 +524,3 @@ class VersioningIntegrationTestCase(CMSTestCase):
         )
 
         self.assertNotIn(Comment, source_models_in_proxies)
-
-
-class VersioningFieldExtensionCmsConfigTestCase(CMSTestCase):
-    pass

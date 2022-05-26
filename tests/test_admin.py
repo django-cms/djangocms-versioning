@@ -2607,7 +2607,6 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             modeladmin.extend_list_display(request, modifier_dict, list_display)
 
-
     def test_extended_version_get_list_display_incorrectly_configured(self):
         """
         With an incorrect configuration provided, the admin should raise the appropriate error

@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Sideframe always closing when it has been specified to stay open
 
 1.0.4 (2022-04-05)
 ==================

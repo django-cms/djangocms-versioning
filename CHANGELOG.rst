@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Version Changelist table edit button opens all items out of the sideframe
 
 1.0.5 (2022-05-27)
 ==================

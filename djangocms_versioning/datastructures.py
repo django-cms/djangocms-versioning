@@ -83,6 +83,24 @@ class VersionableItem(BaseVersionableItem):
         """Returns the grouper model class"""
         return self.grouper_field.remote_field.model
 
+    @cached_property
+    def content_model_is_sideframe_editable(self):
+        """Determine if a content model can be opened in the sideframe or not.
+
+        :return: Default True, False if the content model is not suitable for the sideframe
+        :rtype: bool
+        """
+        from cms.models import Placeholder
+
+        # Any models that contain a placeholder are deemed as not sideframe editing
+        # compatible i.e. they are toolbar enabled and contain placeholders. We can't
+        # use toolbar enabled status alone because any models that use version compare
+        # enable the toolbar to display.
+        for field in self.content_model._meta.get_fields(include_hidden=True):
+            if field.related_model == Placeholder:
+                return False
+        return True
+
     def distinct_groupers(self, **kwargs):
         """Returns a queryset of `self.content` objects with unique
         grouper objects.

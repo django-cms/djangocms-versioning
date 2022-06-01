@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* feat: Added injection point for field modification in the ExtendedAdminMixin
 
 1.0.4 (2022-04-05)
 ==================

@@ -422,47 +422,52 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
     def test_edit_action_link_enabled_state(self):
         """
-        The edit action is active
+        The edit action is active, a user can follow a link
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
-        draft_edit_url = self.get_admin_url(
+        request.user = factories.UserFactory()
+        expected_disabled_control = "inactive"
+        expected_href = self.get_admin_url(
             self.versionable.version_model_proxy, "edit_redirect", version.pk
         )
 
-        actual_enabled_control = self.version_admin._get_edit_link(
+        edit_link = self.version_admin._get_edit_link(
             version, request, disabled=False
         )
-        expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action"'
-            ' href="%s" title="Edit">'
-        ) % draft_edit_url
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_disabled_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
 
-        self.assertIn(expected_enabled_state, actual_enabled_control)
+        self.assertIn(expected_href, actual_href)
+        self.assertNotIn(expected_disabled_control, actual_disabled_control)
 
     def test_edit_action_link_disabled_state(self):
         """
-        The edit action is disabled
+        The edit action is disabled, a user cannot follow a link
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
+        expected_disabled_control = "inactive"
+        expected_href = None
 
-        actual_disabled_control = self.version_admin._get_edit_link(
+        edit_link = self.version_admin._get_edit_link(
             version, request, disabled=True
         )
-        expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
-        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_disabled_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
+        # No href should be present in the edit link when it is disabled
+        self.assertEqual(expected_href, actual_href)
 
     def test_revert_action_link_enable_state(self):
         """
-        The edit action is active
+        The revert action is active
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         user = factories.UserFactory()
@@ -611,6 +616,56 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
+
+    def test_edit_action_link_sideframe_editing_disabled_state(self):
+        """
+        Sideframe editing is disabled for objects with placeholders i.e. PageContent
+        """
+        version = factories.PageVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get("/")
+        request.user = factories.UserFactory()
+        expected_sideframe_open_control = "js-versioning-keep-sideframe"
+        expected_sideframe_close_control = "js-versioning-close-sideframe"
+        expected_href = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", version.pk
+        )
+
+        edit_link = self.version_admin._get_edit_link(
+            version, request, disabled=False
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
+
+        self.assertIn(expected_href, actual_href)
+        self.assertNotIn(expected_sideframe_open_control, actual_sideframe_control)
+        self.assertIn(expected_sideframe_close_control, actual_sideframe_control)
+
+    def test_edit_action_link_sideframe_editing_enabled_state(self):
+        """
+        Sideframe editing is enabled for all other objects without placeholders.
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
+        expected_sideframe_open_control = "js-versioning-keep-sideframe"
+        expected_sideframe_close_control = "js-versioning-close-sideframe"
+        expected_href = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", version.pk
+        )
+
+        edit_link = self.version_admin._get_edit_link(
+            version, request, disabled=False
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
+
+        self.assertIn(expected_href, actual_href)
+        self.assertIn(expected_sideframe_open_control, actual_sideframe_control)
+        self.assertNotIn(expected_sideframe_close_control, actual_sideframe_control)
 
 
 class StateActionsTestCase(CMSTestCase):

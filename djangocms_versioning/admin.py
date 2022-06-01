@@ -549,15 +549,24 @@ class VersionAdmin(admin.ModelAdmin):
         if not obj.check_edit_redirect.as_bool(request.user):
             disabled = True
 
+        # Don't open in the sideframe if the item is not sideframe compatible
+        keep_sideframe = obj.versionable.content_model_is_sideframe_editable
+
         edit_url = reverse(
             "admin:{app}_{model}_edit_redirect".format(
                 app=obj._meta.app_label, model=self.model._meta.model_name
             ),
             args=(obj.pk,),
         )
+
         return render_to_string(
-            "djangocms_versioning/admin/edit_icon.html",
-            {"edit_url": edit_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/edit_icon.html",
+            {
+                "url": edit_url,
+                "disabled": disabled,
+                "get": False,
+                "keepsideframe": keep_sideframe
+            },
         )
 
     def _get_revert_link(self, obj, request, disabled=False):

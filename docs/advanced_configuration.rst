@@ -173,6 +173,7 @@ Versioning modifies how the admin of the :term:`content model <content model>` w
                 content_admin_mixin=SomeContentAdminMixin,
             ),
         ]
+
 extended_admin_field_modifiers
 ++++++++++++++++++++++++++++++
 These allow for the alteration of how a field is displayed, by providing a method,

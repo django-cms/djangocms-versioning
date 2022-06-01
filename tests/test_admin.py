@@ -1,4 +1,5 @@
 import datetime
+import pdb
 import re
 import warnings
 from collections import OrderedDict
@@ -2589,6 +2590,23 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         with self.assertRaises(ImproperlyConfigured):
             modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+    def test_get_field_modifier(self):
+        """
+        Get field modifier returns modified field from returned inner method
+        """
+        def field_modifier(obj, field):
+            return getattr(obj, field) + " Test!"
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": field_modifier}
+
+        modified_field = modeladmin._get_field_modifier(request, modifier_dict, "text")
+
+        self.assertEqual("{} {}".format(content.text, "Test!"), modified_field(content))
 
     def test_extended_version_extend_list_display_handles_non_existent_field(self):
         """

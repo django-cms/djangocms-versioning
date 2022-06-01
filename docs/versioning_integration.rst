@@ -270,7 +270,7 @@ to add the fields:
         list_display = "title"
 
 The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`admin_field_modifiers` to a given apps :term:`cms_config`,
-in the form of a tuple of (model_name, field, method), the admin for the model, will alter the field, using the method provided.
+in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
 
 .. code-block:: python
     # cms_config.py
@@ -280,7 +280,7 @@ in the form of a tuple of (model_name, field, method), the admin for the model, 
     class PostCMSConfig(CMSAppConfig):
         # Other versioning configurations...
         admin_field_modifiers = [
-            (PostContent, "title", post_modifier),
+            {PostContent: {"title": post_modifier}},
         ]
 
 Given the code sample above, "This is how we add" would be displayed as

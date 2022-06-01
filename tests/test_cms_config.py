@@ -413,6 +413,9 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         )
 
     def test_field_extension_populates(self):
+        """
+        With proper configuration provided, cms extension populates
+        """
         def poll_modifier(obj, field):
             return obj
 
@@ -434,6 +437,10 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         self.assertEqual(extensions.add_to_field_extension, {PollContent: {"text": poll_modifier}})
 
     def test_field_extension_proper_error_non_iterable(self):
+        """
+        When a non-iterable is passed as the method for modifying a field,
+        raise ImproperlyConfigured
+        """
         def poll_modifier(obj, field):
             return obj
 

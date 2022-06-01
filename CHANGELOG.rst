@@ -6,6 +6,14 @@ Unreleased
 ==========
 * feat: Added injection point for field modification in the ExtendedAdminMixin
 
+1.0.6 (2022-05-31)
+==================
+* fix: Version Changelist table edit button opens all items out of the sideframe
+
+1.0.5 (2022-05-27)
+==================
+* fix: Sideframe always closing when it has been specified to stay open
+
 1.0.4 (2022-04-05)
 ==================
 * feat: Added a burger menu in the actions column of the ExtendedVersionAdminMixin.

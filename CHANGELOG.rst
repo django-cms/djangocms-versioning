@@ -4,7 +4,7 @@ Changelog
 
 Unreleased
 ==========
-
+* fix: Added correct relationship description to get_created_by admin_order_field
 1.0.6 (2022-05-31)
 ==================
 * fix: Version Changelist table edit button opens all items out of the sideframe

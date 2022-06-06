@@ -157,7 +157,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
-    get_author.admin_order_field = "versions__created_by"
+    get_author.admin_order_field = "versions__created_by__username"
     get_author.short_description = _("Author")
 
     def get_modified_date(self, obj):

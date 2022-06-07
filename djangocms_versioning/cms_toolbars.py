@@ -22,12 +22,13 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
 )
 from djangocms_versioning.models import Version
-from .constants import DRAFT, PUBLISHED
+
 
 
 VERSIONING_MENU_IDENTIFIER = "version"

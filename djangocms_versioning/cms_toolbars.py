@@ -13,6 +13,7 @@ from cms.cms_toolbars import (
     PageToolbar,
     PlaceholderToolbar,
 )
+from cms.models import PageContent
 from cms.toolbar.items import ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
@@ -26,6 +27,7 @@ from djangocms_versioning.helpers import (
     version_list_url,
 )
 from djangocms_versioning.models import Version
+from .constants import DRAFT, PUBLISHED
 
 
 VERSIONING_MENU_IDENTIFIER = "version"
@@ -139,8 +141,43 @@ class VersioningToolbar(PlaceholderToolbar):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
+    def _has_published_version(self):
+        language = self.current_lang
+
+        return PageContent._original_manager.filter(
+            page=self.page, language=language, versions__state__in=[PUBLISHED]
+        ).first()
+
+    def _add_view_published_button(self):
+        """Helper method to add a publish button to the toolbar
+        """
+        # Only add the View Published button if the content type is registered, PageContent and
+        # with versioning
+        if not self._is_versioned():
+            return
+        if type(self.toolbar.obj) != PageContent or not self.page:
+            return
+
+        # Add the View published button if in edit or preview mode
+        published_version = self._has_published_version()
+        if (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active)  and published_version:
+            item = ButtonList(side=self.toolbar.RIGHT)
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            if version.state not in DRAFT:
+                # Don't display the link if it can't be edited
+                return ""
+            item.add_button(
+                _("View Published"),
+                url=published_version.get_absolute_url(),
+                disabled=False,
+                extra_classes=['cms-btn', 'cms-btn-switch-save'],
+            )
+            self.toolbar.add_item(item)
+
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
+        self._add_view_published_button()
         self._add_publish_button()
         self._add_versioning_menu()
 

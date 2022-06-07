@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Permission
+from django.utils.text import slugify
 
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
@@ -13,6 +14,7 @@ from djangocms_versioning.test_utils.factories import (
     FancyPollFactory,
     PageContentWithVersionFactory,
     PageVersionFactory,
+    PageUrlFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -302,6 +304,32 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
 
         self.assertEqual(expected_label, version_menu.name)
+
+    # def test_view_published_in_toolbar_in_edit_mode(self):
+    #     # Add page url to the version and check the view published for edit/preview mode
+    #     pagecontent_version = PageVersionFactory(content__template="")
+    #     PageUrlFactory(
+    #         page=self.pagecontent_version.content.page,
+    #         language='en',
+    #         path=slugify('test_page'),
+    #         slug=slugify('test_page'),
+    #     )
+    #     pagecontent_version.publish(user=self.get_superuser())
+    #     draft_version = pagecontent_version.copy(self.get_superuser())
+    #     url = get_object_edit_url(draft_version.content)
+    #
+    #
+    #     with self.login_user_context(self.get_superuser()):
+    #         response = self.client.get(url)
+    #
+    #     found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
+    #     import pdb;pdb.set_trace()
+    #
+    #
+    #     # check View Published button exists
+    #     self.assertEqual(len(found_button_list), 1)
+    #     # The only edit button that exists is the versioning button
+    #     # self.assertEqual(found_button_list[0].url, edit_url)
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):

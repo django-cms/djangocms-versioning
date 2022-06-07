@@ -2594,6 +2594,71 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "versioning_static_url_prefix")
         self.assertTrue(soup.find("script", src=re.compile("djangocms_versioning/js/actions.js")))
 
+    def test_extended_version_change_list_author_ordering(self):
+        """
+        The author is sortable by username in both ascending and descending order
+        """
+        # Create a series of users, so we can order them alphabetically by username!
+        user_first = factories.UserFactory(username="A Username Capitalised")
+        user_first_lower = factories.UserFactory(username="a username lower")
+        user_middle = factories.UserFactory(username="Middle Username Capitalised")
+        user_middle_lower = factories.UserFactory(username="middle username lower")
+        user_last = factories.UserFactory(username="Z Username Capitalised")
+        user_last_lower = factories.UserFactory(username="z username lower")
+        # Create some pollcontent and their corresponding versions, and polls!
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_first
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_first_lower
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_middle
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_middle_lower
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_last,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_last_lower,
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            base_url = self.get_admin_url(PollContent, "changelist")
+            base_url += "?o=3"
+            response = self.client.get(base_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        results = soup.findAll("td", class_="field-get_author")
+
+        self.assertEqual(results[0].text, user_first.username)
+        self.assertEqual(results[1].text, user_first_lower.username)
+        self.assertEqual(results[2].text, user_middle.username)
+        self.assertEqual(results[3].text, user_middle_lower.username)
+        self.assertEqual(results[4].text, user_last.username)
+        self.assertEqual(results[5].text, user_last_lower.username)
+
+        with self.login_user_context(self.get_superuser()):
+            base_url = self.get_admin_url(PollContent, "changelist")
+            base_url += "?o=-3"
+            response = self.client.get(base_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        results = soup.findAll("td", class_="field-get_author")
+
+        self.assertEqual(results[5].text, user_first.username)
+        self.assertEqual(results[4].text, user_first_lower.username)
+        self.assertEqual(results[3].text, user_middle.username)
+        self.assertEqual(results[2].text, user_middle_lower.username)
+        self.assertEqual(results[1].text, user_last.username)
+        self.assertEqual(results[0].text, user_last_lower.username)
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

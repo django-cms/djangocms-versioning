@@ -157,6 +157,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
+    # This needs to target username, otherwise ordering will be on pk!
     get_author.admin_order_field = "versions__created_by__username"
     get_author.short_description = _("Author")
 

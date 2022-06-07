@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* feat: Add View Published button for page edit or preview mode
 
 1.0.6 (2022-05-31)
 ==================

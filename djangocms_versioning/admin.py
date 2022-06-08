@@ -5,7 +5,7 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -274,6 +274,28 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     get_preview_link.short_description = _("Preview")
 
+    def _get_field_modifier(self, request, modifier_dict, field):
+        method = modifier_dict[field]
+
+        def get_field_modifier(obj):
+            return method(obj, field)
+
+        get_field_modifier.short_description = field
+        return get_field_modifier
+
+    def extend_list_display(self, request, modifier_dict, list_display):
+        list_display = [*list_display]
+        for field in modifier_dict:
+            if not callable(modifier_dict[field]):
+                raise ImproperlyConfigured("Field provided must be callable")
+            try:
+                list_display[list_display.index(field)] = self._get_field_modifier(request, modifier_dict, field)
+                list_display = tuple(list_display)
+                return list_display
+            except ValueError:
+                raise ImproperlyConfigured("The target field does not exist in this context")
+        return tuple(list_display)
+
     def get_list_display(self, request):
         # get configured list_display
         list_display = self.list_display
@@ -284,6 +306,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             "get_versioning_state",
             self._list_actions(request)
         )
+        # Get the versioning extension
+        extension = _cms_extension()
+        modifier_dict = extension.add_to_field_extension.get(self.model, None)
+        if modifier_dict:
+            list_display = self.extend_list_display(request, modifier_dict, list_display)
         return list_display
 
 

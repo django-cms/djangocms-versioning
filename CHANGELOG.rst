@@ -5,6 +5,7 @@ Changelog
 Unreleased
 ==========
 * fix: Added correct relationship description to get_created_by admin_order_field
+* feat: Added injection point for field modification in the ExtendedAdminMixin
 
 1.0.6 (2022-05-31)
 ==================

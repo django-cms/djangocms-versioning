@@ -13,8 +13,8 @@ from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentWithVersionFactory,
-    PageVersionFactory,
     PageUrlFactory,
+    PageVersionFactory,
     PollVersionFactory,
     UserFactory,
 )
@@ -310,24 +310,24 @@ class VersioningToolbarTestCase(CMSTestCase):
         The 'View Published' control is only relevant for pages that
         are published
         """
-        draft_version = PageVersionFactory(content__language="en", state=PUBLISHED)
-        toolbar = get_toolbar(draft_version.content, edit_mode=True)
+        published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(published_version.content, edit_mode=True)
 
         toolbar.post_template_populate()
 
-        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
 
     def test_view_published_in_toolbar_in_preview_mode_for_published_page(self):
         """
         The 'View Published' control is only relevant for pages that
         are published
         """
-        draft_version = PageVersionFactory(content__language="en", state=PUBLISHED)
-        toolbar = get_toolbar(draft_version.content, preview_mode=True)
+        published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(published_version.content, preview_mode=True)
 
         toolbar.post_template_populate()
 
-        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
 
     def test_view_published_not_in_toolbar_in_edit_mode_for_draft_page(self):
         """

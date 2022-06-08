@@ -20,6 +20,9 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import (
+    IncorrectBlogpostCMSConfig,
+)
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
@@ -409,6 +412,55 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             admin.site._registry[versionable.version_model_proxy].__class__.mro(),
         )
 
+    def test_field_extension_populates(self):
+        """
+        With proper configuration provided, cms extension populates
+        """
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers=[{PollContent: {"text": poll_modifier}}, ]
+        )
+        extensions.handle_admin_field_modifiers(cms_config)
+
+        self.assertEqual(extensions.add_to_field_extension, {PollContent: {"text": poll_modifier}})
+
+    def test_field_extension_proper_error_non_iterable(self):
+        """
+        When a non-iterable is passed as the method for modifying a field,
+        raise ImproperlyConfigured
+        """
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers=(PollContent, "text", poll_modifier)
+        )
+
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_admin_field_modifiers(cms_config)
+
 
 # NOTE: These tests simply test what has already happened on start up
 # when the app registry has been instantiated.
@@ -422,9 +474,10 @@ class VersioningIntegrationTestCase(CMSTestCase):
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
+        incorrect_blog_versionable = IncorrectBlogpostCMSConfig.versioning[0]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [page_versionable, poll_versionable, blog_versionable, comment_versionable],
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable, incorrect_blog_versionable],
         )
 
     def test_admin_classes_reregistered(self):

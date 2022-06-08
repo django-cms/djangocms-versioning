@@ -165,7 +165,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        if (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active) and published_version:
+        if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
                 _("View Published"),

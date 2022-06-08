@@ -305,31 +305,131 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         self.assertEqual(expected_label, version_menu.name)
 
-    # def test_view_published_in_toolbar_in_edit_mode(self):
-    #     # Add page url to the version and check the view published for edit/preview mode
-    #     pagecontent_version = PageVersionFactory(content__template="")
-    #     PageUrlFactory(
-    #         page=self.pagecontent_version.content.page,
-    #         language='en',
-    #         path=slugify('test_page'),
-    #         slug=slugify('test_page'),
-    #     )
-    #     pagecontent_version.publish(user=self.get_superuser())
-    #     draft_version = pagecontent_version.copy(self.get_superuser())
-    #     url = get_object_edit_url(draft_version.content)
-    #
-    #
-    #     with self.login_user_context(self.get_superuser()):
-    #         response = self.client.get(url)
-    #
-    #     found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
-    #     import pdb;pdb.set_trace()
-    #
-    #
-    #     # check View Published button exists
-    #     self.assertEqual(len(found_button_list), 1)
-    #     # The only edit button that exists is the versioning button
-    #     # self.assertEqual(found_button_list[0].url, edit_url)
+    def test_view_published_in_toolbar_in_edit_mode_for_published_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(draft_version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_in_toolbar_in_preview_mode_for_published_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(draft_version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_edit_mode_for_draft_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en")
+        toolbar = get_toolbar(draft_version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_preview_mode_for_draft_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en")
+        toolbar = get_toolbar(draft_version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_edit_mode_for_poll(self):
+        """
+        The 'View Published' toolbar control is only relevant for pages that have
+        the concept of a live url / web viewable url with the toolbar
+        """
+        version = PollVersionFactory(state=PUBLISHED)
+        toolbar = get_toolbar(version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_preview_mode_for_poll(self):
+        """
+        The 'View Published' toolbar control is only relevant for pages that have
+        the concept of a live url / web viewable url with the toolbar
+        """
+        version = PollVersionFactory(state=PUBLISHED)
+        toolbar = get_toolbar(version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_in_toolbar_in_edit_mode_button_url(self):
+        """
+        The 'View Published' toolbar control url should be a valid
+        live url when in the edit mode
+        """
+        published_version = PageVersionFactory(content__language="en")
+        language = published_version.content.language
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=language,
+            path=slugify('test_page'),
+            slug=slugify('test_page'),
+        )
+        published_version.publish(user=self.get_superuser())
+        draft_version = published_version.copy(self.get_superuser())
+        edit_endpoint = get_object_edit_url(draft_version.content)
+        expected_url = published_version.content.page.get_absolute_url(language=language)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(edit_endpoint)
+
+        found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
+
+        # check only one View Published button exists
+        self.assertEqual(len(found_button_list), 1)
+        self.assertEqual(found_button_list[0].url, expected_url)
+
+    def test_view_published_in_toolbar_in_preview_mode_button_url(self):
+        """
+        The 'View Published' toolbar control url should be a valid
+        live url when in the preview mode
+        """
+        published_version = PageVersionFactory(content__language="en")
+        language = published_version.content.language
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=language,
+            path=slugify('test_page'),
+            slug=slugify('test_page'),
+        )
+        published_version.publish(user=self.get_superuser())
+        draft_version = published_version.copy(self.get_superuser())
+        preview_endpoint = get_object_preview_url(draft_version.content)
+        expected_url = published_version.content.page.get_absolute_url(language=language)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(preview_endpoint)
+
+        found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
+
+        # check only one View Published button exists
+        self.assertEqual(len(found_button_list), 1)
+        self.assertEqual(found_button_list[0].url, expected_url)
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):

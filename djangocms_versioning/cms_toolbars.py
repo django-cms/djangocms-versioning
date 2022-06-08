@@ -30,7 +30,6 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import Version
 
 
-
 VERSIONING_MENU_IDENTIFIER = "version"
 
 
@@ -63,8 +62,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Only add the publish button if the content type is registered
-        # with versioning
+        # Check if object is registered with versioning otherwise dont add
         if not self._is_versioned():
             return
         # Add the publish button if in edit mode
@@ -118,7 +116,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
-        # Check if object is registred with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise dont add
         if not self._is_versioned():
             return
 
@@ -142,31 +140,33 @@ class VersioningToolbar(PlaceholderToolbar):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
-    def _has_published_version(self):
+    def _get_published_page_version(self):
+        """Returns a published page if one exists for the toolbar object
+        """
         language = self.current_lang
 
+        # Exit the current toolbar object is not a Page / PageContent instance
+        if not isinstance(self.toolbar.obj, PageContent) or not self.page:
+            return
+
         return PageContent._original_manager.filter(
-            page=self.page, language=language, versions__state__in=[PUBLISHED]
+            page=self.page, language=language, versions__state=PUBLISHED
         ).first()
 
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Only add the View Published button if the content type is registered, PageContent and
-        # with versioning
+        # Check if object is registered with versioning otherwise dont add
         if not self._is_versioned():
-            return
-        if type(self.toolbar.obj) != PageContent or not self.page:
             return
 
         # Add the View published button if in edit or preview mode
-        published_version = self._has_published_version()
-        if (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active)  and published_version:
+        published_version = self._get_published_page_version()
+        if not published_version:
+            return
+
+        if (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active) and published_version:
             item = ButtonList(side=self.toolbar.RIGHT)
-            version = Version.objects.get_for_content(self.toolbar.obj)
-            if version.state not in DRAFT:
-                # Don't display the link if it can't be edited
-                return ""
             item.add_button(
                 _("View Published"),
                 url=published_version.get_absolute_url(),
@@ -174,7 +174,6 @@ class VersioningToolbar(PlaceholderToolbar):
                 extra_classes=['cms-btn', 'cms-btn-switch-save'],
             )
             self.toolbar.add_item(item)
-
 
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()

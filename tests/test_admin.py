@@ -2747,11 +2747,13 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         request = self.client.get("/")
         modeladmin = admin.site._registry[PollContent]
         admin_field_list = modeladmin.get_list_display(request)
-        author_index = admin_field_list.index("get_author")
+        # 1 has to be added to the index, because get_field_modifier and text are classified as seperate fields when
+        # rendered, even though the former replaces the latter in the list display
+        author_index = admin_field_list.index("get_author") + 1
 
         with self.login_user_context(self.get_superuser()):
             base_url = self.get_admin_url(PollContent, "changelist")
-            base_url += f"?o={-abs(author_index)}"
+            base_url += f"?o={author_index}"
             response = self.client.get(base_url)
         soup = BeautifulSoup(response.content, "html.parser")
         results = soup.find_all("td", class_="field-get_author")

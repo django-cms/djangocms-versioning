@@ -6,7 +6,6 @@ Unreleased
 ==========
 * fix: Added correct relationship description to get_created_by admin_order_field
 
-
 1.2.0 (2022-06-09)
 ==================
 * feat: Add View Published button for page edit or preview mode
@@ -14,7 +13,6 @@ Unreleased
 1.1.0 (2022-06-08)
 ==================
 * feat: Added injection point for field modification in the ExtendedAdminMixin
-
 
 1.0.6 (2022-05-31)
 ==================

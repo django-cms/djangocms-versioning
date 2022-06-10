@@ -5,6 +5,17 @@ Changelog
 Unreleased
 ==========
 * fix: Added correct relationship description to get_created_by admin_order_field
+
+
+1.2.0 (2022-06-09)
+==================
+* feat: Add View Published button for page edit or preview mode
+
+1.1.0 (2022-06-08)
+==================
+* feat: Added injection point for field modification in the ExtendedAdminMixin
+
+>>>>>>> 021fec8ba5ff26995da2a802dc1a0fe27af63e2d
 1.0.6 (2022-05-31)
 ==================
 * fix: Version Changelist table edit button opens all items out of the sideframe

@@ -2608,19 +2608,19 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # Create some pollcontent and their corresponding versions, and polls!
         factories.PollVersionFactory(
             content=factories.PollContentFactory(language="en"),
-            created_by=user_first
+            created_by=user_first,
         )
         factories.PollVersionFactory(
             content=factories.PollContentFactory(language="en"),
-            created_by=user_first_lower
+            created_by=user_first_lower,
         )
         factories.PollVersionFactory(
             content=factories.PollContentFactory(language="en"),
-            created_by=user_middle
+            created_by=user_middle,
         )
         factories.PollVersionFactory(
             content=factories.PollContentFactory(language="en"),
-            created_by=user_middle_lower
+            created_by=user_middle_lower,
         )
         factories.PollVersionFactory(
             content=factories.PollContentFactory(language="en"),
@@ -2630,13 +2630,17 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
             content=factories.PollContentFactory(language="en"),
             created_by=user_last_lower,
         )
+        request = self.client.get("/")
+        modeladmin = admin.site._registry[PollContent]
+        admin_field_list = modeladmin.get_list_display(request)
+        author_index = admin_field_list.index("get_author")
 
         with self.login_user_context(self.get_superuser()):
             base_url = self.get_admin_url(PollContent, "changelist")
-            base_url += "?o=3"
+            base_url += f"?o={author_index}"
             response = self.client.get(base_url)
         soup = BeautifulSoup(response.content, "html.parser")
-        results = soup.findAll("td", class_="field-get_author")
+        results = soup.find_all("td", class_="field-get_author")
 
         self.assertEqual(results[0].text, user_first.username)
         self.assertEqual(results[1].text, user_first_lower.username)
@@ -2647,10 +2651,10 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
 
         with self.login_user_context(self.get_superuser()):
             base_url = self.get_admin_url(PollContent, "changelist")
-            base_url += "?o=-3"
+            base_url += f"?o={-abs(author_index)}"
             response = self.client.get(base_url)
         soup = BeautifulSoup(response.content, "html.parser")
-        results = soup.findAll("td", class_="field-get_author")
+        results = soup.find_all("td", class_="field-get_author")
 
         self.assertEqual(results[5].text, user_first.username)
         self.assertEqual(results[4].text, user_first_lower.username)

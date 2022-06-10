@@ -2744,12 +2744,12 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
             content=factories.PollContentFactory(language="en"),
             created_by=user_last_lower,
         )
-        request = self.client.get("/")
+        request = RequestFactory().get("/", IS_POPUP_VAR=1)
+        request.user = self.get_superuser()
         modeladmin = admin.site._registry[PollContent]
-        admin_field_list = modeladmin.get_list_display(request)
-        # 1 has to be added to the index, because get_field_modifier and text are classified as seperate fields when
-        # rendered, even though the former replaces the latter in the list display
-        author_index = admin_field_list.index("get_author") + 1
+        # List display must be accessed via the changelist, as the list may be incomplete when accessed from admin
+        admin_field_list = modeladmin.get_changelist_instance(request).list_display
+        author_index = admin_field_list.index("get_author")
 
         with self.login_user_context(self.get_superuser()):
             base_url = self.get_admin_url(PollContent, "changelist")

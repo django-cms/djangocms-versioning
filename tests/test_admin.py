@@ -2749,19 +2749,19 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         admin_field_list = modeladmin.get_list_display(request)
         author_index = admin_field_list.index("get_author")
 
-        #with self.login_user_context(self.get_superuser()):
-        #    base_url = self.get_admin_url(PollContent, "changelist")
-        #    base_url += f"?o={author_index}"
-        #    response = self.client.get(base_url)
-        #soup = BeautifulSoup(response.content, "html.parser")
-        #results = soup.find_all("td", class_="field-get_author")
+        with self.login_user_context(self.get_superuser()):
+            base_url = self.get_admin_url(PollContent, "changelist")
+            base_url += f"?o={-abs(author_index)}"
+            response = self.client.get(base_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        results = soup.find_all("td", class_="field-get_author")
 
-        #self.assertEqual(results[0].text, user_first.username)
-        #self.assertEqual(results[1].text, user_first_lower.username)
-        #self.assertEqual(results[2].text, user_middle.username)
-        #self.assertEqual(results[3].text, user_middle_lower.username)
-        #self.assertEqual(results[4].text, user_last.username)
-        #self.assertEqual(results[5].text, user_last_lower.username)
+        self.assertEqual(results[0].text, user_first.username)
+        self.assertEqual(results[1].text, user_first_lower.username)
+        self.assertEqual(results[2].text, user_middle.username)
+        self.assertEqual(results[3].text, user_middle_lower.username)
+        self.assertEqual(results[4].text, user_last.username)
+        self.assertEqual(results[5].text, user_last_lower.username)
 
         with self.login_user_context(self.get_superuser()):
             base_url = self.get_admin_url(PollContent, "changelist")

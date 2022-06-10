@@ -15,7 +15,7 @@ Unreleased
 ==================
 * feat: Added injection point for field modification in the ExtendedAdminMixin
 
->>>>>>> 021fec8ba5ff26995da2a802dc1a0fe27af63e2d
+
 1.0.6 (2022-05-31)
 ==================
 * fix: Version Changelist table edit button opens all items out of the sideframe

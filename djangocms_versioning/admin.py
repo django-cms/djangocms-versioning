@@ -6,6 +6,7 @@ from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.db.models.functions import Lower
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -132,6 +133,13 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             )
         }
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        # Due to django admin ordering using unicode, to alphabetically order regardless of case, we must
+        # annotate the queryset, with the usernames all lower case, and then order based on that!
+        queryset = queryset.annotate(created_by_username_ordering=Lower("versions__created_by__username"))
+        return queryset
+
     def get_version(self, obj):
         """
         Return the latest version of a given object
@@ -157,7 +165,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
-    get_author.admin_order_field = "versions__created_by"
+    # This needs to target the annotation, or ordering will be alphabetically, with uppercase then lowercase
+    get_author.admin_order_field = "created_by_username_ordering"
     get_author.short_description = _("Author")
 
     def get_modified_date(self, obj):

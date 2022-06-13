@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Added correct relationship description to get_created_by admin_order_field
 
 1.2.0 (2022-06-09)
 ==================

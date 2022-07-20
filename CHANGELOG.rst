@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Admin burger menu excluding Preview and Edit buttons in all languages
 
 1.2.1 (2022-06-13)
 ==================

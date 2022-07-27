@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 
 from cms import api
 from cms.models import Placeholder, pagemodel
+
+
 # Compat for change in django-cms
 try:
     # Original v4 module
@@ -10,6 +12,7 @@ try:
 except ImportError:
     # Updated v4 attribute based on content models module name change
     from cms.models import contentmodels
+
 from cms.utils.permissions import _thread_locals
 
 from djangocms_versioning.models import Version
@@ -33,6 +36,7 @@ def _get_page_content_cache(func):
         return language
 
     return inner
+
 
 try:
     pagemodel.Page._get_title_cache = _get_page_content_cache(

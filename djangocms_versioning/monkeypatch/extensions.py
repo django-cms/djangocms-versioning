@@ -3,10 +3,12 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
+
 try:
     from cms.extensions.admin import TitleExtensionAdmin
 except ImportError:
     from cms.extensions.admin import PageContentExtensionAdmin
+
 from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
 from cms.utils.page_permissions import user_can_change_page
@@ -49,6 +51,7 @@ def _copy_content_extensions(self, source_page, target_page, language, clone=Fal
             else:
                 instance.copy_to_public(target_title, language)
 
+
 # Compat for change in django-cms
 try:
     # Original v4 attribute
@@ -84,10 +87,10 @@ def _save_model(self, request, obj, form, change):
     except NameError:
         super(PageContentExtensionAdmin, self).save_model(request, obj, form, change)
 
-
     # Ensure that we update the version modified date of the attached version
     if title:
         _update_modified(title)
+
 
 try:
     TitleExtensionAdmin.save_model = _save_model

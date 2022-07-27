@@ -5,6 +5,9 @@ Changelog
 Unreleased
 ==========
 
+* feat: Compatibility with page content extension changes to django-cms
+* ci: Added basic linting pre-commit hooks
+
 1.2.2 (2022-07-20)
 ==================
 * fix: Admin burger menu excluding Preview and Edit buttons in all languages

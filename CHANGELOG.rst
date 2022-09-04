@@ -5,6 +5,31 @@ Changelog
 Unreleased
 ==========
 * ci: Remove ``os`` from test workflow matrix because it's unused
+* ci: Added concurrency option to cancel in progress runs when new changes occur
+
+1.2.2 (2022-07-20)
+==================
+* fix: Admin burger menu excluding Preview and Edit buttons in all languages
+
+1.2.1 (2022-06-13)
+==================
+* fix: Added correct relationship description to get_created_by admin_order_field
+
+1.2.0 (2022-06-09)
+==================
+* feat: Add View Published button for page edit or preview mode
+
+1.1.0 (2022-06-08)
+==================
+* feat: Added injection point for field modification in the ExtendedAdminMixin
+
+1.0.6 (2022-05-31)
+==================
+* fix: Version Changelist table edit button opens all items out of the sideframe
+
+1.0.5 (2022-05-27)
+==================
+* fix: Sideframe always closing when it has been specified to stay open
 
 1.0.4 (2022-04-05)
 ==================

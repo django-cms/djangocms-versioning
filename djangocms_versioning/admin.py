@@ -5,7 +5,8 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.db.models.functions import Lower
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -132,6 +133,13 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             )
         }
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        # Due to django admin ordering using unicode, to alphabetically order regardless of case, we must
+        # annotate the queryset, with the usernames all lower case, and then order based on that!
+        queryset = queryset.annotate(created_by_username_ordering=Lower("versions__created_by__username"))
+        return queryset
+
     def get_version(self, obj):
         """
         Return the latest version of a given object
@@ -157,7 +165,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).created_by
 
-    get_author.admin_order_field = "versions__created_by"
+    # This needs to target the annotation, or ordering will be alphabetically, with uppercase then lowercase
+    get_author.admin_order_field = "created_by_username_ordering"
     get_author.short_description = _("Author")
 
     def get_modified_date(self, obj):
@@ -274,6 +283,28 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     get_preview_link.short_description = _("Preview")
 
+    def _get_field_modifier(self, request, modifier_dict, field):
+        method = modifier_dict[field]
+
+        def get_field_modifier(obj):
+            return method(obj, field)
+
+        get_field_modifier.short_description = field
+        return get_field_modifier
+
+    def extend_list_display(self, request, modifier_dict, list_display):
+        list_display = [*list_display]
+        for field in modifier_dict:
+            if not callable(modifier_dict[field]):
+                raise ImproperlyConfigured("Field provided must be callable")
+            try:
+                list_display[list_display.index(field)] = self._get_field_modifier(request, modifier_dict, field)
+                list_display = tuple(list_display)
+                return list_display
+            except ValueError:
+                raise ImproperlyConfigured("The target field does not exist in this context")
+        return tuple(list_display)
+
     def get_list_display(self, request):
         # get configured list_display
         list_display = self.list_display
@@ -284,6 +315,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             "get_versioning_state",
             self._list_actions(request)
         )
+        # Get the versioning extension
+        extension = _cms_extension()
+        modifier_dict = extension.add_to_field_extension.get(self.model, None)
+        if modifier_dict:
+            list_display = self.extend_list_display(request, modifier_dict, list_display)
         return list_display
 
 
@@ -522,15 +558,24 @@ class VersionAdmin(admin.ModelAdmin):
         if not obj.check_edit_redirect.as_bool(request.user):
             disabled = True
 
+        # Don't open in the sideframe if the item is not sideframe compatible
+        keep_sideframe = obj.versionable.content_model_is_sideframe_editable
+
         edit_url = reverse(
             "admin:{app}_{model}_edit_redirect".format(
                 app=obj._meta.app_label, model=self.model._meta.model_name
             ),
             args=(obj.pk,),
         )
+
         return render_to_string(
-            "djangocms_versioning/admin/edit_icon.html",
-            {"edit_url": edit_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/edit_icon.html",
+            {
+                "url": edit_url,
+                "disabled": disabled,
+                "get": False,
+                "keepsideframe": keep_sideframe
+            },
         )
 
     def _get_revert_link(self, obj, request, disabled=False):

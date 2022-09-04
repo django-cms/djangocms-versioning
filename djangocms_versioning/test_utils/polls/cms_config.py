@@ -12,6 +12,13 @@ def unpublish_warning(request, version, *args, **kwargs):
     return "<b>Warning: Polls don't like to be unpublished!</b>"
 
 
+def poll_modifier(obj, field):
+    return "[TEST]" + getattr(obj, field)
+
+
+poll_modifier.short_description = "Title"
+
+
 class PollsCMSConfig(CMSAppConfig):
     djangocms_versioning_enabled = True
     versioning = [
@@ -27,3 +34,6 @@ class PollsCMSConfig(CMSAppConfig):
     versioning_add_to_confirmation_context = {
         "unpublish": OrderedDict([("warning", unpublish_warning)])
     }
+    extended_admin_field_modifiers = [
+        {PollContent: {"text": poll_modifier}},
+    ]

@@ -13,6 +13,7 @@ from cms.cms_toolbars import (
     PageToolbar,
     PlaceholderToolbar,
 )
+from cms.models import PageContent
 from cms.toolbar.items import ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
@@ -21,6 +22,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
+from djangocms_versioning.constants import PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -60,8 +62,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Only add the publish button if the content type is registered
-        # with versioning
+        # Check if object is registered with versioning otherwise dont add
         if not self._is_versioned():
             return
         # Add the publish button if in edit mode
@@ -115,7 +116,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
-        # Check if object is registred with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise dont add
         if not self._is_versioned():
             return
 
@@ -139,8 +140,44 @@ class VersioningToolbar(PlaceholderToolbar):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
 
+    def _get_published_page_version(self):
+        """Returns a published page if one exists for the toolbar object
+        """
+        language = self.current_lang
+
+        # Exit the current toolbar object is not a Page / PageContent instance
+        if not isinstance(self.toolbar.obj, PageContent) or not self.page:
+            return
+
+        return PageContent._original_manager.filter(
+            page=self.page, language=language, versions__state=PUBLISHED
+        ).first()
+
+    def _add_view_published_button(self):
+        """Helper method to add a publish button to the toolbar
+        """
+        # Check if object is registered with versioning otherwise dont add
+        if not self._is_versioned():
+            return
+
+        # Add the View published button if in edit or preview mode
+        published_version = self._get_published_page_version()
+        if not published_version:
+            return
+
+        if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
+            item = ButtonList(side=self.toolbar.RIGHT)
+            item.add_button(
+                _("View Published"),
+                url=published_version.get_absolute_url(),
+                disabled=False,
+                extra_classes=['cms-btn', 'cms-btn-switch-save'],
+            )
+            self.toolbar.add_item(item)
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
+        self._add_view_published_button()
         self._add_publish_button()
         self._add_versioning_menu()
 

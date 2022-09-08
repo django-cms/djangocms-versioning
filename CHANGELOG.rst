@@ -5,6 +5,8 @@ Changelog
 Unreleased
 ==========
 * feat: Added action button on published versions to view the content.
+* ci: Updated isort params in lint workflow to meet current requirements.
+* ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused
 * ci: Added concurrency option to cancel in progress runs when new changes occur
 

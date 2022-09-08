@@ -546,7 +546,7 @@ class VersionAdmin(admin.ModelAdmin):
         published_url = obj.content.get_absolute_url()
 
         return render_to_string(
-            "djangocms_versioning/admin/published_icon.html",
+            "djangocms_versioning/admin/icons/published_icon.html",
             {"url": published_url, "disabled": False},
         )
 

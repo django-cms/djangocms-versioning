@@ -626,8 +626,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
         published_url = version.content.get_absolute_url()
 
         expected_action_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
-            'js-versioning-keep-sideframe" href="%s" title="View published">'
+            '<a title="View published" class="btn cms-versioning-action-btn cms-versioning-action-view published '
+            'cms-form-get-method js-versioning-action js-versioning-keep-sideframe " href="%s">'
         ) % published_url
         actual_action_control = self.version_admin._get_published_link(version, request)
 

@@ -539,18 +539,15 @@ class VersionAdmin(admin.ModelAdmin):
 
     def _get_published_link(self, obj, request):
         """Helper function to get the link to the published page"""
-        try:
-            if not obj.state == PUBLISHED:
-                # Don't display the link if it isn't published
-                return ""
-
-            published_url = obj.content.get_absolute_url()
-        except AttributeError:
+        if not obj.state == PUBLISHED:
+            # Don't display the link if it isn't published
             return ""
+
+        published_url = obj.content.get_absolute_url()
 
         return render_to_string(
             "djangocms_versioning/admin/published_icon.html",
-            {"published_url": published_url},
+            {"url": published_url, "disabled": False},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):

@@ -653,10 +653,8 @@ class VersionAdminActionsTestCase(CMSTestCase):
         request = RequestFactory().get("/admin/polls/answer/")
         request.user = user
 
-        expected_action_state = ''
-        actual_action_control = self.version_admin._get_published_link(version, request)
-
-        self.assertIn(expected_action_state, actual_action_control)
+        with self.assertRaises(AttributeError):
+            self.version_admin._get_published_link(version, request)
 
     def test_edit_action_link_sideframe_editing_disabled_state(self):
         """

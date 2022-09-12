@@ -4,6 +4,14 @@ Changelog
 
 Unreleased
 ==========
+* ci: Updated isort params in lint workflow to meet current requirements.
+* ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
+* ci: Remove ``os`` from test workflow matrix because it's unused
+* ci: Added concurrency option to cancel in progress runs when new changes occur
+
+1.2.2 (2022-07-20)
+==================
+* fix: Admin burger menu excluding Preview and Edit buttons in all languages
 
 1.2.1 (2022-06-13)
 ==================

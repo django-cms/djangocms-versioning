@@ -23,6 +23,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
+from .conf import USERNAME_FIELD
 from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
@@ -137,7 +138,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         queryset = super().get_queryset(request)
         # Due to django admin ordering using unicode, to alphabetically order regardless of case, we must
         # annotate the queryset, with the usernames all lower case, and then order based on that!
-        queryset = queryset.annotate(created_by_username_ordering=Lower("versions__created_by__username"))
+
+        queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{USERNAME_FIELD}"))
         return queryset
 
     def get_version(self, obj):

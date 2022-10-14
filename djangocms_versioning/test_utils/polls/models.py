@@ -39,3 +39,10 @@ class PollPlugin(CMSPlugin):
 
     def __str__(self):
         return str(self.poll)
+
+
+class PollManyPlugin(CMSPlugin):
+    polls = models.ManyToManyField(Poll, blank=True)
+
+    def __str__(self):
+        return ''

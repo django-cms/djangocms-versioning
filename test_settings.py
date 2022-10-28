@@ -3,6 +3,7 @@ HELPER_SETTINGS = {
     "USE_TZ": False,
     "TIME_ZONE": "America/Chicago",
     "INSTALLED_APPS": [
+        "django.contrib.contenttypes",
         "djangocms_text_ckeditor",
         "djangocms_versioning",
         "djangocms_versioning.test_utils.extensions",

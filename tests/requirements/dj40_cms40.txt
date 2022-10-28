@@ -1,6 +1,6 @@
 -r requirements_base.txt
 
-Django>=3.2,<4.0
+Django>=4.0,<4.1
 django-classy-tags
 django-fsm>=2.6
 django-sekizai

@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('cms', '0035_auto_20221028_2233'),
+        ('cms', '0034_remove_pagecontent_placeholders'),
     ]
 
     operations = [

@@ -33,8 +33,6 @@ jobs:
 
     - name: Run coverage
       run: coverage run setup.py test
-      env:
-        DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2

@@ -138,7 +138,7 @@ class VersioningToolbar(PlaceholderToolbar):
             )
         ):
             url = version_list_url(version.content)
-            versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            versioning_menu.add_sideframe_item(_("Manage versions"), url=url)
 
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object

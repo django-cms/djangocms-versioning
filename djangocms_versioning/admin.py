@@ -7,7 +7,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db.models.functions import Lower
-from django.http import Http404, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
@@ -731,22 +731,25 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id
             )
+        if request.accepts("application/json"):  # Request from page tree?
+            response = JsonResponse({})
+        else:
+            response = redirect(version_list_url(version.content))
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
-            return redirect(version_list_url(version.content))
+            return response
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(version_list_url(version.content))
+            return response
 
         # Publish the version
         version.publish(request.user)
         # Display message
         self.message_user(request, _("Version published"))
-        # Redirect
-        return redirect(version_list_url(version.content))
+        return response
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the
@@ -759,16 +762,21 @@ class VersionAdmin(admin.ModelAdmin):
                 request, self.model._meta, object_id
             )
 
+        if request.accepts("application/json"):  # Request from page tree?
+            response = JsonResponse({})  # Just return empty object
+        else:
+            response = redirect(version_list_url(version.content))  # Redirect to version
+
         if not version.can_be_unpublished():
             self.message_user(
                 request, _("Version cannot be unpublished"), messages.ERROR
             )
-            return redirect(version_list_url(version.content))
+            return response
         try:
             version.check_unpublish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(version_list_url(version.content))
+            return response
 
         if request.method != "POST":
             context = dict(
@@ -803,8 +811,7 @@ class VersionAdmin(admin.ModelAdmin):
             version.unpublish(request.user)
             # Display message
             self.message_user(request, _("Version unpublished"))
-        # Redirect
-        return redirect(version_list_url(version.content))
+        return response
 
     def _get_edit_redirect_version(self, request, version):
         """Helper method to get the latest draft or create one if one does not exist."""
@@ -910,6 +917,8 @@ class VersionAdmin(admin.ModelAdmin):
                 draft_version.delete()
 
             version = version.copy(request.user)
+            if request.accepts("application/json"):  # Request from page tree?
+                return JsonResponse({})
             # Redirect
             return redirect(version_list_url(version.content))
 

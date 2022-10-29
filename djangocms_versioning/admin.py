@@ -731,7 +731,7 @@ class VersionAdmin(admin.ModelAdmin):
             return self._get_obj_does_not_exist_redirect(
                 request, self.model._meta, object_id
             )
-        if request.accepts("application/json"):  # Request from page tree?
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # Request from page tree?
             response = JsonResponse({})
         else:
             response = redirect(version_list_url(version.content))
@@ -762,7 +762,7 @@ class VersionAdmin(admin.ModelAdmin):
                 request, self.model._meta, object_id
             )
 
-        if request.accepts("application/json"):  # Request from page tree?
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # Request from page tree?
             response = JsonResponse({})  # Just return empty object
         else:
             response = redirect(version_list_url(version.content))  # Redirect to version
@@ -917,7 +917,7 @@ class VersionAdmin(admin.ModelAdmin):
                 draft_version.delete()
 
             version = version.copy(request.user)
-            if request.accepts("application/json"):  # Request from page tree?
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':  # Request from page tree?
                 return JsonResponse({})
             # Redirect
             return redirect(version_list_url(version.content))

@@ -257,7 +257,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar = get_toolbar(version.content, user=user, preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
-        self.assertEqual(version_menu.get_items()[0].name, "Manage Versions...")
+        self.assertEqual(version_menu.get_items()[0].name, "Manage versions...")
 
     def test_version_menu_for_version_content_no_permission(self):
         """Manage versions entry shouldn't appear if user doesn't have

@@ -22,7 +22,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.constants import PUBLISHED, UNPUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -99,19 +99,50 @@ class VersioningToolbar(PlaceholderToolbar):
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)
-        edit_url = reverse(
-            "admin:{app}_{model}_edit_redirect".format(
-                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-            ),
-            args=(version.pk,),
-        )
-        item.add_button(
-            _("Edit"),
-            url=edit_url,
-            disabled=disabled,
-            extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
-        )
-        self.toolbar.add_item(item)
+        if version.check_edit_redirect.as_bool(self.request.user):
+            edit_url = reverse(
+                "admin:{app}_{model}_edit_redirect".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ),
+                args=(version.pk,),
+            )
+            item.add_button(
+                _("Edit"),
+                url=edit_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
+            )
+            self.toolbar.add_item(item)
+
+    def add_revert_button(self):
+        """
+        Offer to revert unpublished pages
+        """
+        if self._is_versioned():
+            self._add_revert_button()
+
+    def _add_revert_button(self, disabled=False):
+        """Helper method to add a revert button to the toolbar
+         """
+        item = ButtonList(side=self.toolbar.RIGHT)
+        proxy_model = self._get_proxy_model()
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        if version.check_revert.as_bool(self.request.user):
+            revert_url = reverse(
+                "admin:{app}_{model}_revert".format(
+                    app=proxy_model._meta.app_label,
+                    model=proxy_model._meta.model_name,
+                ),
+                args=(version.pk,),
+            )
+            item.add_button(
+                _("Revert"),
+                url=revert_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action"],
+            )
+            self.toolbar.add_item(item)
+
 
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
@@ -178,6 +209,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
         self._add_view_published_button()
+        self._add_revert_button()
         self._add_publish_button()
         self._add_versioning_menu()
 

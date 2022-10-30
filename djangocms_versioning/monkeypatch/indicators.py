@@ -28,6 +28,10 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
             ),
             ("cms-pagetree-node-state cms-pagetree-node-state-dirty", _("Changed")),
             (
+                "cms-pagetree-node-state cms-pagetree-node-state-draft",
+                _("Draft"),
+            ),
+            (
                 "cms-pagetree-node-state cms-pagetree-node-state-unpublished",
                 _("Unpublished"),
             ),
@@ -44,34 +48,26 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
             if not hasattr(page_content, "_indicator_status"):
                 versions = Version.objects.filter_by_content_grouping_values(
                     page_content
-                )
+                ).order_by("-pk")
                 signature = {
-                    state: versions.filter(state=state).exists()
+                    state: versions.filter(state=state)
                     for state, name in VERSION_STATES
                 }
                 if signature[DRAFT] and not signature[PUBLISHED]:
                     page_content._indicator_status = DRAFT
-                    page_content._version = (
-                        versions.filter(state=DRAFT).order_by("-pk").first()
-                    )
+                    page_content._version = signature[DRAFT]
                 elif signature[DRAFT] and signature[PUBLISHED]:
                     page_content._indicator_status = "changed"
-                    page_content._version = (
-                        versions.filter(state=DRAFT).order_by("-pk").first()
-                    )
+                    page_content._version = (signature[DRAFT][0], signature[PUBLISHED][0])
                 elif signature[PUBLISHED]:
                     page_content._indicator_status = PUBLISHED
-                    page_content._version = versions.get(state=PUBLISHED)
+                    page_content._version = signature[PUBLISHED]
                 elif signature[UNPUBLISHED]:
                     page_content._indicator_status = UNPUBLISHED
-                    page_content._version = (
-                        versions.filter(state=UNPUBLISHED).order_by("-pk").first()
-                    )
+                    page_content._version = signature[UNPUBLISHED]
                 elif not any(signature.values()):
                     page_content._indicator_status = ARCHIVED
-                    page_content._version = (
-                        versions.filter(state=ARCHIVED).order_by("-pk").first()
-                    )
+                    page_content._version = signature[ARCHIVED]
                 else:
                     page_content._indicator_status = None
                     page_content._version = None
@@ -98,7 +94,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
             )
         elif status == DRAFT:
             return (
-                "cms-pagetree-node-state cms-pagetree-node-state-unpublished unpublished",
+                "cms-pagetree-node-state cms-pagetree-node-state-draft draft",
                 _("Draft"),
             )
         else:
@@ -112,13 +108,13 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
     def indicator_patch(func):
         def _get_indicator_menu(self, context, page, language):
             page_content = page.title_cache.get(language)
-            status, version = get_indicator_status(page_content)
-            if status is None or version is None:
+            status, versions = get_indicator_status(page_content)  # get status and most relevant versions
+            if status is None or versions is None:
                 return func(self, context, page, language)
             menu = []
             if context["request"].user.has_perm(
                 "cms.{codename}".format(
-                    codename=get_permission_codename("change", version._meta),
+                    codename=get_permission_codename("change", versions[0]._meta),
                 )
             ):
                 if status == DRAFT or status == "changed":
@@ -128,7 +124,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                             "cms-icon-check-o",
                             reverse(
                                 "admin:djangocms_versioning_pagecontentversion_publish",
-                                args=(version.pk,),
+                                args=(versions[0].pk,),
                             ),
                             "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
                         )
@@ -140,7 +136,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                             "cms-icon-check-o",
                             reverse(
                                 "admin:djangocms_versioning_pagecontentversion_revert",
-                                args=(version.pk,),
+                                args=(versions[0].pk,),
                             ),
                             "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
                         )
@@ -152,7 +148,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                             "cms-icon-forbidden",
                             reverse(
                                 "admin:djangocms_versioning_pagecontentversion_unpublish",
-                                args=(version.pk,),
+                                args=(versions[0 if status == PUBLISHED else 1].pk,),
                             ),
                             "js-cms-tree-lang-trigger",
                         )
@@ -161,7 +157,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                     (
                         _("Manage versions..."),
                         "cms-icon-copy",
-                        version_list_url(version.content),
+                        version_list_url(versions[0].content),
                         "",
                     )
                 )
@@ -171,4 +167,19 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
 
     cms_admin.TreePublishRowMenu.get_indicator_menu = indicator_patch(
         cms_admin.TreePublishRowMenu.get_indicator_menu
+    )
+
+    # Step 4: Check if current version is editable
+    def edit_patch(func):
+        def _is_editable(self, context, page, language):
+            if not func(self, context, page, language):
+                return False
+            page_content = page.title_cache.get(language)
+            status, versions = get_indicator_status(page_content)  # get status and most relevant versions
+            return status in (DRAFT, "changed")
+
+        return _is_editable
+
+    cms_admin.GetAdminUrlForLanguage.is_editable = edit_patch(
+        cms_admin.GetAdminUrlForLanguage.is_editable
     )

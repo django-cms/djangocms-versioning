@@ -274,16 +274,24 @@ class VersioningPageToolbar(PageToolbar):
                 )
                 title = _('from %s')
                 question = _('Are you sure you want to copy all plugins from %s?')
-
+                item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
-                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
-                    copy_plugins_menu.add_ajax_item(
-                        title % name, action=page_copy_url,
-                        data={'source_language': code, 'target_language': self.current_lang},
-                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
-                    )
+                    if page_content:  # Only offer to copy if content for source language exists
+                        page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                        copy_plugins_menu.add_ajax_item(
+                            title % name, action=page_copy_url,
+                            data={'source_language': code, 'target_language': self.current_lang},
+                            question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                        )
+                        item_added = True
+                    if not item_added:
+                        copy_plugins_menu.add_link_item(
+                            _("No further languages available"),
+                            url="#",
+                            disabled=True,
+                        )
 
 
 def replace_toolbar(old, new):

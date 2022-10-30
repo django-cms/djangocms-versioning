@@ -27,10 +27,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 _("Published"),
             ),
             ("cms-pagetree-node-state cms-pagetree-node-state-dirty", _("Changed")),
-            (
-                "cms-pagetree-node-state cms-pagetree-node-state-draft",
-                _("Draft"),
-            ),
+            ("cms-pagetree-node-state cms-pagetree-node-state-draft", _("Draft")),
             (
                 "cms-pagetree-node-state cms-pagetree-node-state-unpublished",
                 _("Unpublished"),
@@ -84,8 +81,9 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 _("Published"),
             )
         elif status == "changed":
-            return "cms-pagetree-node-state cms-pagetree-node-state-dirty dirty", _(
-                "Unpublished changes"
+            return (
+                "cms-pagetree-node-state cms-pagetree-node-state-dirty dirty",
+                _("Unpublished changes"),
             )
         elif status == UNPUBLISHED:
             return (
@@ -98,8 +96,9 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 _("Draft"),
             )
         else:
-            return "cms-pagetree-node-state cms-pagetree-node-state-empty empty", _(
-                "Empty"
+            return (
+                "cms-pagetree-node-state cms-pagetree-node-state-empty empty",
+                _("Empty"),
             )
 
     cms_admin.TreePublishRow.get_indicator = _get_indicator
@@ -176,7 +175,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 return False
             page_content = page.title_cache.get(language)
             status, versions = get_indicator_status(page_content)  # get status and most relevant versions
-            return status in (DRAFT, "changed")
+            return versions[0].check_modify.as_bool(context["request"].user) if versions else True
 
         return _is_editable
 

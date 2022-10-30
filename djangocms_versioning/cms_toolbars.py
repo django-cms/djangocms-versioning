@@ -22,7 +22,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED, UNPUBLISHED
+from djangocms_versioning.constants import PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -62,7 +62,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
         # Add the publish button if in edit mode
@@ -118,12 +118,14 @@ class VersioningToolbar(PlaceholderToolbar):
         """
         Offer to revert unpublished pages
         """
-        if self._is_versioned():
-            self._add_revert_button()
+        self._add_revert_button()
 
     def _add_revert_button(self, disabled=False):
         """Helper method to add a revert button to the toolbar
          """
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)

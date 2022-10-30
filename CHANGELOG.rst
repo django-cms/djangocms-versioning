@@ -4,6 +4,10 @@ Changelog
 
 Unreleased
 ==========
+* add: Revert button as replacement for dysfunctional Edit button for unpublished
+  versions
+* add: status indicators and drop down menus for django cms page tree
+* fix: only offer languages for plugin copy with available content
 * ci: Updated isort params in lint workflow to meet current requirements.
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused

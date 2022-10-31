@@ -69,7 +69,7 @@ class VersioningToolbarTestCase(CMSTestCase):
             ["cms-btn-action", "cms-versioning-js-publish-btn"],
         )
 
-    def test_publish_in_toolbar_in_edit_mode(self):
+    def test_revert_in_toolbar_in_preview_mode(self):
         """Test for Revert button outside mode"""
 
         version = PollVersionFactory()
@@ -77,7 +77,6 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar = get_toolbar(version.content, edit_mode=False)
 
         toolbar.post_template_populate()
-        print(toolbar.toolbar.get_right_items())
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)
         self.assertListEqual(publish_button, [])  # No publish button
 

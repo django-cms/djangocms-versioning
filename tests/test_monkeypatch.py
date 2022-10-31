@@ -379,6 +379,7 @@ class MonkeypatchPageAdminCopyLanguageTestCase(CMSTestCase):
             target_placeholder_different[0].djangocms_text_ckeditor_text.body
         )
 
+
 class MonkeypatchIndicatorTestCase(CMSTestCase):
     def test_get_legend(self):
         """Test if monkey patching the legend worked"""
@@ -391,4 +392,3 @@ class MonkeypatchIndicatorTestCase(CMSTestCase):
         self.assertIn("state-draft", legend[2][0])
         self.assertIn("state-unpublished", legend[3][0])
         self.assertIn("state-empty", legend[4][0])
-

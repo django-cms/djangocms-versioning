@@ -145,7 +145,6 @@ class VersioningToolbar(PlaceholderToolbar):
             )
             self.toolbar.add_item(item)
 
-
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
@@ -322,7 +321,7 @@ class VersioningPageToolbar(PageToolbar):
                         item_added = True
                     if not item_added:
                         copy_plugins_menu.add_link_item(
-                            _("No further languages available"),
+                            _("No other language available"),
                             url="#",
                             disabled=True,
                         )
@@ -335,10 +334,8 @@ def replace_toolbar(old, new):
     new_name = ".".join((new.__module__, new.__name__))
     old_name = ".".join((old.__module__, old.__name__))
     toolbar_pool.toolbars = OrderedDict(
-        [
-            (new_name, new) if name == old_name else (name, toolbar)
-            for name, toolbar in toolbar_pool.toolbars.items()
-        ]
+        (new_name, new) if name == old_name else (name, toolbar)
+        for name, toolbar in toolbar_pool.toolbars.items()
     )
 
 

@@ -745,6 +745,7 @@ class VersionAdmin(admin.ModelAdmin):
         version.publish(request.user)
         # Display message
         self.message_user(request, _("Version published"))
+        # Redirect
         return redirect(version_list_url(version.content))
 
     def unpublish_view(self, request, object_id):

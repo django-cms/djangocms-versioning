@@ -17,12 +17,12 @@ def get_admin_url_for_language(page, language):
     return admin_reverse("cms_pagecontent_change", args=[page_content.pk])
 
 
-if not hasattr(cms_admin, "GetAdminUrlForLanguage"):
-    # Patch only if classy tag is not there (4.0.0...).
-    cms_admin.get_admin_url_for_language = get_admin_url_for_language  # noqa: E305
-else:
+if hasattr(cms_admin, "GetAdminUrlForLanguage"):
     # Patch only if classy tag is there (4.1....)
     def _get_admin(self, context, page, language):
         return get_admin_url_for_language(page, language)
 
     cms_admin.GetAdminUrlForLanguage.get_admin_url_for_language = _get_admin
+else:
+    # Patch only if classy tag is not there (4.0....).
+    cms_admin.get_admin_url_for_language = get_admin_url_for_language  # noqa: E305

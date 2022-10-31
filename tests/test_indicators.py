@@ -1,8 +1,8 @@
-from cms.utils.urlutils import admin_reverse
 from cms.test_utils.testcases import CMSTestCase
+from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.factories import PageVersionFactory, PageFactory
+from djangocms_versioning.test_utils.factories import PageFactory, PageVersionFactory
 
 
 class TestVersionState(CMSTestCase):

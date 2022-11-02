@@ -114,12 +114,6 @@ class VersioningToolbar(PlaceholderToolbar):
             )
             self.toolbar.add_item(item)
 
-    def add_revert_button(self):
-        """
-        Offer to revert unpublished pages
-        """
-        self._add_revert_button()
-
     def _add_revert_button(self, disabled=False):
         """Helper method to add a revert button to the toolbar
          """
@@ -319,7 +313,7 @@ class VersioningPageToolbar(PageToolbar):
                             question=question % name, on_success=self.toolbar.REFRESH_PAGE
                         )
                         item_added = True
-                    if not item_added:
+                    if not item_added:  # pragma: no cover
                         copy_plugins_menu.add_link_item(
                             _("No other language available"),
                             url="#",

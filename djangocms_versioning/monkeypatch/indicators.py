@@ -1,5 +1,5 @@
 from django.contrib.auth import get_permission_codename
-from django.urls import reverse, NoReverseMatch
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
 from cms.templatetags import cms_admin

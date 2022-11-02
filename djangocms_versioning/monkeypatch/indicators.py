@@ -140,7 +140,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 if versions[0].check_unpublish.as_bool(context["request"].user):
                     menu.append((
                         _("Unpublish"), "cms-icon-forbidden",
-                        reverse("admin:djangocms_versioning_pagecontentversion_unpublish",args=(versions[0].pk,)),
+                        reverse("admin:djangocms_versioning_pagecontentversion_unpublish", args=(versions[0].pk,)),
                         "js-cms-tree-lang-trigger",
                     ))
                 if len(versions) > 1 and versions[1].check_unpublish.as_bool(context["request"].user):

@@ -53,9 +53,31 @@ class TestVersionState(CMSTestCase):
             response = self.client.get(page_tree, {"language": "en"})
             self.assertContains(response, "cms-pagetree-node-state-draft")
             self.assertNotContains(response, "cms-pagetree-node-state-unpublished")
-
             # New draft was created, get new pk
             pk = Version.objects.filter_by_content_grouping_values(version1.content).order_by("-pk")[0].pk
+
+            # Now archive
+            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_archive",
+                                        args=(pk,)))
+            self.assertEqual(response.status_code, 302)  # Sends a redirect
+
+            # Is unpublished indicator? No draft indicator
+            response = self.client.get(page_tree, {"language": "en"})
+            self.assertContains(response, "cms-pagetree-node-state-unpublished")
+            self.assertNotContains(response, "cms-pagetree-node-state-draft")
+
+            # Now revert
+            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
+                                        args=(pk,)))
+            self.assertEqual(response.status_code, 302)  # Sends a redirect
+
+            # Is draft indicator? No unpublished indicator
+            response = self.client.get(page_tree, {"language": "en"})
+            self.assertContains(response, "cms-pagetree-node-state-draft")
+            self.assertNotContains(response, "cms-pagetree-node-state-unpublished")
+            # New draft was created, get new pk
+            pk = Version.objects.filter_by_content_grouping_values(version1.content).order_by("-pk")[0].pk
+
             # Now publish again and then edit redirect to create a draft on top of published version
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_publish",
                                                       args=(pk,)))

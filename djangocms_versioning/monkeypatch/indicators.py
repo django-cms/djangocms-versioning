@@ -82,7 +82,8 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                     "cms-pagetree-node-state cms-pagetree-node-state-published published",
                     _("Published"),
                 )
-            except NoReverseMatch:
+            except NoReverseMatch:  # pragma: no cover
+                # If the core should decide that the pagecontent is not reachable
                 return (
                     "cms-pagetree-node-state cms-pagetree-node-state-unpublished-parent unpublished-parent",
                     _("Unpublished parent"),

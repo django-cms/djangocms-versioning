@@ -1,5 +1,5 @@
 from django.contrib.auth import get_permission_codename
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 
 from cms.templatetags import cms_admin
@@ -76,10 +76,17 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
         page_content = page.title_cache.get(language)
         status, version = get_indicator_status(page_content)
         if status == PUBLISHED:
-            return (
-                "cms-pagetree-node-state cms-pagetree-node-state-published published",
-                _("Published"),
-            )
+            try:
+                page.get_absolute_url(language=language, fallback=False)
+                return (
+                    "cms-pagetree-node-state cms-pagetree-node-state-published published",
+                    _("Published"),
+                )
+            except NoReverseMatch:
+                return (
+                    "cms-pagetree-node-state cms-pagetree-node-state-unpublished-parent unpublished-parent",
+                    _("Unpublished parent"),
+                )
         elif status == "changed":
             return (
                 "cms-pagetree-node-state cms-pagetree-node-state-dirty dirty",
@@ -131,8 +138,8 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 if status == UNPUBLISHED:
                     menu.append(
                         (
-                            _("Revert from unpublish"),
-                            "cms-icon-check-o",
+                            _("Revert from Unpublish"),
+                            "cms-icon-undo cms-icon-check-o",  # check-o: fallback for cms versions without undo icon
                             reverse(
                                 "admin:djangocms_versioning_pagecontentversion_revert",
                                 args=(versions[0].pk,),
@@ -152,9 +159,21 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                             "js-cms-tree-lang-trigger",
                         )
                     )
+                if status == DRAFT or status == "changed":
+                    menu.append(
+                        (
+                            _("Delete Draft") if status == DRAFT else _("Delete Changes"),
+                            "cms-icon-bin",
+                            reverse(
+                                "admin:djangocms_versioning_pagecontentversion_discard",
+                                args=(versions[0].pk,),
+                            ),
+                            "",  # Let view ask for confirmation
+                        )
+                    )
                 menu.append(
                     (
-                        _("Manage versions..."),
+                        _("Manage Versions..."),
                         "cms-icon-copy",
                         version_list_url(versions[0].content),
                         "",

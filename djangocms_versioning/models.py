@@ -212,7 +212,9 @@ class Version(models.Model):
         )
         return new_version
 
-    check_archive = Conditions()
+    check_archive = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_archived(self):
         return can_proceed(self._set_archive)
@@ -257,7 +259,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_publish = Conditions()
+    check_publish = Conditions(
+        [in_state([constants.DRAFT], _("Version already is not in draft state"))]
+    )
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -315,7 +319,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_unpublish = Conditions()
+    check_unpublish = Conditions([
+        in_state([constants.PUBLISHED], _("Version is not in published state"))
+    ])
 
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)

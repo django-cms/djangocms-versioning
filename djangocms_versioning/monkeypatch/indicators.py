@@ -124,62 +124,44 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                     codename=get_permission_codename("change", versions[0]._meta),
                 )
             ):
-                if status == DRAFT or status == "changed":
-                    menu.append(
-                        (
-                            _("Publish"),
-                            "cms-icon-check-o",
-                            reverse(
-                                "admin:djangocms_versioning_pagecontentversion_publish",
-                                args=(versions[0].pk,),
-                            ),
-                            "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
-                        )
-                    )
-                if status == UNPUBLISHED:
-                    menu.append(
-                        (
-                            _("Revert from Unpublish"),
-                            "cms-icon-undo cms-icon-check-o",  # check-o: fallback for cms versions without undo icon
-                            reverse(
-                                "admin:djangocms_versioning_pagecontentversion_revert",
-                                args=(versions[0].pk,),
-                            ),
-                            "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
-                        )
-                    )
-                if status == PUBLISHED or status == "changed":
-                    menu.append(
-                        (
-                            _("Unpublish"),
-                            "cms-icon-forbidden",
-                            reverse(
-                                "admin:djangocms_versioning_pagecontentversion_unpublish",
-                                args=(versions[0 if status == PUBLISHED else 1].pk,),
-                            ),
-                            "js-cms-tree-lang-trigger",
-                        )
-                    )
-                if status == DRAFT or status == "changed":
-                    menu.append(
-                        (
-                            _("Delete Draft") if status == DRAFT else _("Delete Changes"),
-                            "cms-icon-bin",
-                            reverse(
-                                "admin:djangocms_versioning_pagecontentversion_discard",
-                                args=(versions[0].pk,),
-                            ),
-                            "",  # Let view ask for confirmation
-                        )
-                    )
-                menu.append(
-                    (
-                        _("Manage Versions..."),
-                        "cms-icon-copy",
-                        version_list_url(versions[0].content),
-                        "",
-                    )
+                if versions[0].check_publish.as_bool(context["request"].user):
+                    menu.append((
+                        _("Publish"), "cms-icon-check-o",
+                        reverse("admin:djangocms_versioning_pagecontentversion_publish", args=(versions[0].pk,)),
+                        "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
+                    ))
+                if versions[0].check_revert.as_bool(context["request"].user):
+                    menu.append((
+                        _("Revert from Unpublish"), "cms-icon-undo cms-icon-check-o",
+                        # check-o: fallback for cms versions without undo icon
+                        reverse("admin:djangocms_versioning_pagecontentversion_revert", args=(versions[0].pk,)),
+                        "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
+                    ))
+                if versions[0].check_unpublish.as_bool(context["request"].user):
+                    menu.append((
+                        _("Unpublish"), "cms-icon-forbidden",
+                        reverse("admin:djangocms_versioning_pagecontentversion_unpublish",args=(versions[0].pk,)),
+                        "js-cms-tree-lang-trigger",
+                    ))
+                if len(versions) > 1 and versions[1].check_unpublish.as_bool(context["request"].user):
+                    menu.append((
+                        _("Unpublish"), "cms-icon-forbidden",
+                        reverse("admin:djangocms_versioning_pagecontentversion_unpublish", args=(versions[1].pk,)),
+                        "js-cms-tree-lang-trigger",
+                    ))
+                if versions[0].check_discard.as_bool(context["request"].user):
+                    menu.append((
+                        _("Delete Draft") if status == DRAFT else _("Delete Changes"), "cms-icon-bin",
+                        reverse("admin:djangocms_versioning_pagecontentversion_discard", args=(versions[0].pk,)),
+                        "",  # Let view ask for confirmation
+                    ))
+            menu.append(
+                (
+                    _("Manage Versions..."), "cms-icon-copy",
+                    version_list_url(versions[0].content),
+                    "",
                 )
+            )
             return self.menu_template if menu else "", menu
 
         return _get_indicator_menu

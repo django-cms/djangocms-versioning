@@ -69,7 +69,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                     page_content._indicator_status = None
                     page_content._version = None
             return page_content._indicator_status, page_content._version
-        return None, None
+        return None, None  # pragma: no cover
 
     # Step 2:  Individual indicators
     def _get_indicator(self, context, page, language):
@@ -103,7 +103,8 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
                 "cms-pagetree-node-state cms-pagetree-node-state-draft draft",
                 _("Draft"),
             )
-        else:
+        else:  # pragma: no cover
+            # No pagecontents
             return (
                 "cms-pagetree-node-state cms-pagetree-node-state-empty empty",
                 _("Empty"),
@@ -116,7 +117,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
         def _get_indicator_menu(self, context, page, language):
             page_content = page.title_cache.get(language)
             status, versions = get_indicator_status(page_content)  # get status and most relevant versions
-            if status is None or versions is None:
+            if status is None or versions is None:  # pragma: no cover
                 return func(self, context, page, language)
             menu = []
             if context["request"].user.has_perm(
@@ -173,7 +174,7 @@ if hasattr(cms_admin, "TreePublishRow") and hasattr(cms_admin, "TreePublishRowMe
     # Step 4: Check if current version is editable
     def edit_patch(func):
         def _is_editable(self, context, page, language):
-            if not func(self, context, page, language):
+            if not func(self, context, page, language):  # pragma: no cover
                 return False
             page_content = page.title_cache.get(language)
             status, versions = get_indicator_status(page_content)  # get status and most relevant versions

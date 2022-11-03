@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
-from . import constants, versionables
+from . import conf, constants, versionables
 from .conditions import Conditions, in_state
 from .operations import send_post_version_operation, send_pre_version_operation
 
@@ -212,7 +212,9 @@ class Version(models.Model):
         )
         return new_version
 
-    check_archive = Conditions()
+    check_archive = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_archived(self):
         return can_proceed(self._set_archive)
@@ -257,7 +259,11 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_publish = Conditions()
+    check_publish = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))] if conf.STRICT_VERSIONING else
+        [in_state([constants.DRAFT, constants.UNPUBLISHED, constants.ARCHIVED],
+                  _("Version is already published"))]
+    )
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -302,7 +308,7 @@ class Version(models.Model):
 
     @transition(
         field=state,
-        source=constants.DRAFT,
+        source=constants.DRAFT if conf.STRICT_VERSIONING else "+",
         target=constants.PUBLISHED,
         permission=check_publish.as_bool,
     )
@@ -315,7 +321,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_unpublish = Conditions()
+    check_unpublish = Conditions([
+        in_state([constants.PUBLISHED], _("Version is not in published state"))
+    ])
 
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)

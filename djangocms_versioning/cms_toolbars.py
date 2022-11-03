@@ -5,6 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from cms.cms_toolbars import (
@@ -22,7 +23,8 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning import conf
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -139,7 +141,10 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+        if conf.EXTENDED_MENU and version.state == DRAFT and self._get_published_page_version:
+            versioning_menu.add_sideframe_item(_("Compare to published version"), url="/")
 
+    @cached_property
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object
         """
@@ -161,7 +166,7 @@ class VersioningToolbar(PlaceholderToolbar):
             return
 
         # Add the View published button if in edit or preview mode
-        published_version = self._get_published_page_version()
+        published_version = self._get_published_page_version
         if not published_version:
             return
 

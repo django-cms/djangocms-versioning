@@ -191,7 +191,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_absolute_url()
+        url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(

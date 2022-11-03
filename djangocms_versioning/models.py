@@ -260,7 +260,7 @@ class Version(models.Model):
         pass
 
     check_publish = Conditions(
-        [in_state([constants.DRAFT], _("Version already is not in draft state"))]
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
     )
 
     def can_be_published(self):

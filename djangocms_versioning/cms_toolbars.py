@@ -191,11 +191,12 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
+        url = published_version.get_absolute_url()
+        if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
                 _("View Published"),
-                url=published_version.get_absolute_url(),
+                url=url,
                 disabled=False,
                 extra_classes=['cms-btn', 'cms-btn-switch-save'],
             )

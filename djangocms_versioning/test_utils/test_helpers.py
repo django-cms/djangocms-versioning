@@ -2,6 +2,7 @@ from django.test import RequestFactory
 
 from cms.toolbar.toolbar import CMSToolbar
 
+from djangocms_versioning import conf
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import UserFactory
 
@@ -72,3 +73,19 @@ def toolbar_button_exists(button_name, toolbar):
     """
     found = find_toolbar_buttons(button_name, toolbar)
     return bool(len(found))
+
+
+def override_conf(**kwargs):
+    """Decorator to temporarily change settings stored in djangocms_versioning.conf"""
+    def inner(func):
+        def exec(*args, **kw):
+            old_conf = dict()
+            for key, value in kwargs.items():
+                old_conf[key] = getattr(conf, key, None)
+                setattr(conf, key, value)
+            ret = func(*args, **kw)
+            for key, value in kwargs.items():
+                setattr(conf, key, old_conf[key])
+            return ret
+        return exec
+    return inner

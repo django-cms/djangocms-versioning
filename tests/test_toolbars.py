@@ -6,6 +6,7 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 
+from djangocms_versioning import conf
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
@@ -22,7 +23,7 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.test_helpers import (
     find_toolbar_buttons,
     get_toolbar,
-    toolbar_button_exists,
+    toolbar_button_exists, override_conf,
 )
 
 
@@ -260,8 +261,18 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertEqual(version_menu.get_items()[0].name, "Manage Versions...")
 
     def test_version_menu_for_version_content_no_permission(self):
-        """Manage versions entry shouldn't appear if user doesn't have
-        access to that endpoint"""
+        """Manage versions entry shouldn't appear if user doesn't have access to that endpoint"""
+        user = UserFactory(is_staff=True)
+        version = PollVersionFactory()
+        toolbar = get_toolbar(version.content, user=user, preview_mode=True)
+        toolbar.post_template_populate()
+        version_menu = toolbar.toolbar.get_menu("version")
+        for item in version_menu.get_items():
+            self.assertNotEqual(item.name, "Manage Versions....")
+
+    @override_conf(EXTENDED_MENU=False)
+    def test_version_menu_for_version_content_no_permission_no_extended_menu(self):
+        """Manage versions entry shouldn't appear if user doesn't have access to that endpoint"""
         user = UserFactory(is_staff=True)
         version = PollVersionFactory()
         toolbar = get_toolbar(version.content, user=user, preview_mode=True)
@@ -270,7 +281,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(version_menu.get_items())
 
     def test_version_menu_for_none_version(self):
-        # Version menu shouldnt be generated if version is None
+        # Version menu shouldn't be generated if version is None
         version = None
         toolbar = get_toolbar(version, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
@@ -302,7 +313,6 @@ class VersioningToolbarTestCase(CMSTestCase):
         expected_label = "Version #{number} ({state})".format(
             number=version.number, state=version.state
         )
-
         self.assertEqual(expected_label, version_menu.name)
 
     def test_view_published_in_toolbar_in_edit_mode_for_published_page(self):
@@ -355,7 +365,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_view_published_not_in_toolbar_in_edit_mode_for_poll(self):
         """
-        The 'View Published' toolbar control is only relevant for pages that have
+        The 'View Published' toolbar control is only relevant for objects that have
         the concept of a live url / web viewable url with the toolbar
         """
         version = PollVersionFactory(state=PUBLISHED)
@@ -363,11 +373,11 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         toolbar.post_template_populate()
 
-        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
 
     def test_view_published_not_in_toolbar_in_preview_mode_for_poll(self):
         """
-        The 'View Published' toolbar control is only relevant for pages that have
+        The 'View Published' toolbar control is only relevant for pagobjectses that have
         the concept of a live url / web viewable url with the toolbar
         """
         version = PollVersionFactory(state=PUBLISHED)
@@ -375,7 +385,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         toolbar.post_template_populate()
 
-        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
 
     def test_view_published_in_toolbar_in_edit_mode_button_url(self):
         """

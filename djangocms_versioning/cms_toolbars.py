@@ -6,7 +6,6 @@ from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.db.models import F
 from django.urls import reverse
-from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 from cms.cms_toolbars import (
@@ -15,7 +14,6 @@ from cms.cms_toolbars import (
     PageToolbar,
     PlaceholderToolbar,
 )
-from cms.models import PageContent
 from cms.toolbar.items import ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
@@ -150,7 +148,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 proxy_model = self._get_proxy_model()
                 url = reverse("admin:{app}_{model}_compare".format(
                     app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ), args = (version.pk,))
+                ), args=(version.pk,))
 
                 url += "?compare_to=%d" % published.pk
                 versioning_menu.add_sideframe_item(_("Compare to published version"), url=url)
@@ -159,7 +157,7 @@ class VersioningToolbar(PlaceholderToolbar):
             nearby_versions = versions \
                                   .annotate(vicinity=(F("pk")-version.pk)*(F("pk")-version.pk)) \
                                   .order_by("vicinity")[:conf.EXTENDED_MENU]
-            if nearby_versions:
+            if len(nearby_versions) > 1:
                 submenu = versioning_menu.get_or_create_menu(f"{VERSIONING_MENU_IDENTIFIER}-list", _("View version"))
                 for v in sorted(nearby_versions, key=lambda x: -x.pk):
                     submenu.add_link_item(_("Version #{number} ({state})").format(
@@ -167,9 +165,8 @@ class VersioningToolbar(PlaceholderToolbar):
                     ), url=get_preview_url(v.content), active=(v == version))
 
     def _get_published_page_version(self):
-        """Returns a published page if one exists for the toolbar object
+        """Returns a published content (e.g. PageContent) if one exists for the toolbar object
         """
-
         public_version = self._get_all_versions().filter(state=PUBLISHED).first()
         return getattr(public_version, "content", None)
 

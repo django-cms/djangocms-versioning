@@ -6,7 +6,6 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 
-from djangocms_versioning import conf
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
@@ -23,7 +22,8 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.test_helpers import (
     find_toolbar_buttons,
     get_toolbar,
-    toolbar_button_exists, override_conf,
+    override_conf,
+    toolbar_button_exists,
 )
 
 

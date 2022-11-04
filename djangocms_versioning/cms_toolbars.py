@@ -4,6 +4,7 @@ from copy import copy
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
+from django.db.models import F
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -23,7 +24,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning import conf, versionables
+from djangocms_versioning import conf
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
@@ -123,7 +124,8 @@ class VersioningToolbar(PlaceholderToolbar):
         if not self._is_versioned():
             return
 
-        version = Version.objects.get_for_content(self.toolbar.obj)
+        versions = self._get_all_versions()
+        version = versions.filter(object_id=self.toolbar.obj.pk).first()
         if version is None:
             return
 
@@ -142,44 +144,37 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
-        if conf.EXTENDED_MENU and version.state == DRAFT and self._get_published_page_version:
-            proxy_model = self._get_proxy_model()
-            url = reverse("admin:{app}_{model}_compare".format(
-                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-            ), args = (version.content.pk,))
+        if conf.EXTENDED_MENU and version.state == DRAFT:
+            published = versions.filter(state=PUBLISHED).first()
+            if published:
+                proxy_model = self._get_proxy_model()
+                url = reverse("admin:{app}_{model}_compare".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ), args = (version.pk,))
 
-            url += "?compare_to=%d" % self._get_published_page_version.pk
-            versioning_menu.add_sideframe_item(_("Compare to published version"), url=url)
+                url += "?compare_to=%d" % published.pk
+                versioning_menu.add_sideframe_item(_("Compare to published version"), url=url)
         if conf.EXTENDED_MENU and isinstance(conf.EXTENDED_MENU, int):
             # Show up to conf.EXTENDED_MENU previous versions of the object
-            count = 0
-            prev = version.source
-            while prev and count < conf.EXTENDED_MENU:
-                if count == 0:
-                    versioning_menu.add_break()
-                versioning_menu.add_link_item(_("View") + " " + _("Version #{number} ({state})").format(
-                    number=prev.number, state=prev.state
-                ), url=get_preview_url(prev.content))
-                count += 1
-                prev = prev.source
+            nearby_versions = versions \
+                                  .annotate(vicinity=(F("pk")-version.pk)*(F("pk")-version.pk)) \
+                                  .order_by("vicinity")[:conf.EXTENDED_MENU]
+            if nearby_versions:
+                submenu = versioning_menu.get_or_create_menu(f"{VERSIONING_MENU_IDENTIFIER}-list", _("View version"))
+                for v in sorted(nearby_versions, key=lambda x: -x.pk):
+                    submenu.add_link_item(_("Version #{number} ({state})").format(
+                        number=v.number, state=v.state
+                    ), url=get_preview_url(v.content), active=(v == version))
 
-    @cached_property
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object
         """
-        language = self.current_lang
 
-        # Exit the current toolbar object is not a Page / PageContent instance
-        if not isinstance(self.toolbar.obj, PageContent) or not self.page:
-            return
+        public_version = self._get_all_versions().filter(state=PUBLISHED).first()
+        return getattr(public_version, "content", None)
 
-        return PageContent._original_manager.filter(
-            page=self.page, language=language, versions__state=PUBLISHED
-        ).first()
-
-    @cached_property
-    def _get_published_version(self):
-        return Version.objects.filter(state=PUBLISHED, object_id=self.toolbar.obj.pk).first()
+    def _get_all_versions(self):
+        return Version.objects.filter_by_content_grouping_values(self.toolbar.obj)
 
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
@@ -189,7 +184,7 @@ class VersioningToolbar(PlaceholderToolbar):
             return
 
         # Add the View published button if in edit or preview mode
-        published_version = self._get_published_page_version
+        published_version = self._get_published_page_version()
         if not published_version:
             return
 

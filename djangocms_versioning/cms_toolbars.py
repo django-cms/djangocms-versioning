@@ -23,10 +23,11 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning import conf
+from djangocms_versioning import conf, versionables
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
+    get_preview_url,
     version_list_url,
 )
 from djangocms_versioning.models import Version
@@ -142,7 +143,25 @@ class VersioningToolbar(PlaceholderToolbar):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
         if conf.EXTENDED_MENU and version.state == DRAFT and self._get_published_page_version:
-            versioning_menu.add_sideframe_item(_("Compare to published version"), url="/")
+            proxy_model = self._get_proxy_model()
+            url = reverse("admin:{app}_{model}_compare".format(
+                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+            ), args = (version.content.pk,))
+
+            url += "?compare_to=%d" % self._get_published_page_version.pk
+            versioning_menu.add_sideframe_item(_("Compare to published version"), url=url)
+        if conf.EXTENDED_MENU and isinstance(conf.EXTENDED_MENU, int):
+            # Show up to conf.EXTENDED_MENU previous versions of the object
+            count = 0
+            prev = version.source
+            while prev and count < conf.EXTENDED_MENU:
+                if count == 0:
+                    versioning_menu.add_break()
+                versioning_menu.add_link_item(_("View") + " " + _("Version #{number} ({state})").format(
+                    number=prev.number, state=prev.state
+                ), url=get_preview_url(prev.content))
+                count += 1
+                prev = prev.source
 
     @cached_property
     def _get_published_page_version(self):
@@ -157,6 +176,10 @@ class VersioningToolbar(PlaceholderToolbar):
         return PageContent._original_manager.filter(
             page=self.page, language=language, versions__state=PUBLISHED
         ).first()
+
+    @cached_property
+    def _get_published_version(self):
+        return Version.objects.filter(state=PUBLISHED, object_id=self.toolbar.obj.pk).first()
 
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
@@ -283,12 +306,13 @@ class VersioningPageToolbar(PageToolbar):
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
-                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
-                    copy_plugins_menu.add_ajax_item(
-                        title % name, action=page_copy_url,
-                        data={'source_language': code, 'target_language': self.current_lang},
-                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
-                    )
+                    if page_content:
+                        page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                        copy_plugins_menu.add_ajax_item(
+                            title % name, action=page_copy_url,
+                            data={'source_language': code, 'target_language': self.current_lang},
+                            question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                        )
 
 
 def replace_toolbar(old, new):

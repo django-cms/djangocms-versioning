@@ -15,6 +15,16 @@ HELPER_SETTINGS = {
         "djangocms_versioning.test_utils.extended_polls",
     ],
 #    "MIGRATE": False,
+    "MIGRATION_MODULES": {
+        'auth': None,
+        'admin': None,
+        'contenttypes': None,
+        'sessions': None,
+        'sites': None,
+        'cms': None,
+        'menus': None,
+        'djangocms_text_ckeditor': None,
+    },
     "CMS_PERMISSION": True,
     "LANGUAGES": (
         ("en", "English"),

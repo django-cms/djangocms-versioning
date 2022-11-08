@@ -13,11 +13,8 @@ def forwards(apps, schema_editor):
         schema_editor.alter_unique_together(
             PageContent, old_unique_together, new_unique_together
         )
-    except:
+    finally:
         schema_editor.connection.in_atomic_block = in_atomic_block
-        raise
-    schema_editor.connection.in_atomic_block = in_atomic_block
-
 
 
 def backwards(apps, schema_editor):

@@ -5,7 +5,6 @@ from django.apps import apps
 from django.contrib import admin
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
-from django.db import transaction
 from django.test import RequestFactory
 from django.utils.text import slugify
 
@@ -225,8 +224,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             spec=[], djangocms_versioning_enabled=True, versioning=[poll_versionable]
         )
         try:
-            with transaction.atomic():
-                extension.configure_app(cms_config)
+            extension.configure_app(cms_config)
         except ImproperlyConfigured:
             self.fail(
                 "versioning_add_to_confirmation_context setting should be optional"

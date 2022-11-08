@@ -14,7 +14,7 @@ HELPER_SETTINGS = {
         "djangocms_versioning.test_utils.unversioned_editable_app",
         "djangocms_versioning.test_utils.extended_polls",
     ],
-    "MIGRATE": False,
+#    "MIGRATE": False,
     "CMS_PERMISSION": True,
     "LANGUAGES": (
         ("en", "English"),

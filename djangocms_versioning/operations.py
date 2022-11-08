@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import uuid
 
+from django.db import transaction
+
 from .signals import post_version_operation, pre_version_operation
 
 
+@transaction.atomic
 def send_pre_version_operation(operation, version, **kwargs):
     """
     Signal emitter for before a version operation occurs.
@@ -25,6 +28,7 @@ def send_pre_version_operation(operation, version, **kwargs):
     return token
 
 
+@transaction.atomic
 def send_post_version_operation(operation, version, token, **kwargs):
     """
     Signal emitter for after a version operation occurs

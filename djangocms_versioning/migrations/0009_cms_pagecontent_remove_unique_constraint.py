@@ -7,14 +7,15 @@ def forwards(apps, schema_editor):
     PageContent = apps.get_model("cms", "PageContent")
     old_unique_together = PageContent._meta.unique_together
     new_unique_together = old_unique_together - {("language", "page")}
-    in_atomic_block = schema_editor.connection.in_atomic_block
+    # in_atomic_block = schema_editor.connection.in_atomic_block
     schema_editor.connection.in_atomic_block = False
     try:
         schema_editor.alter_unique_together(
             PageContent, old_unique_together, new_unique_together
         )
     finally:
-        schema_editor.connection.in_atomic_block = in_atomic_block
+        pass
+        # schema_editor.connection.in_atomic_block = in_atomic_block
 
 
 

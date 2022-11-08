@@ -377,7 +377,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_view_published_not_in_toolbar_in_preview_mode_for_poll(self):
         """
-        The 'View Published' toolbar control is only relevant for pagobjectses that have
+        The 'View Published' toolbar control is only relevant for objects that have
         the concept of a live url / web viewable url with the toolbar
         """
         version = PollVersionFactory(state=PUBLISHED)

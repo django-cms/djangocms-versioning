@@ -1,12 +1,17 @@
 from functools import lru_cache
 
 from cms.toolbar import toolbar
-from cms.utils.patching import patch_cms
 
 from djangocms_versioning.plugin_rendering import (
     VersionContentRenderer,
     VersionStructureRenderer,
 )
+
+
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
 
 
 @lru_cache(16)

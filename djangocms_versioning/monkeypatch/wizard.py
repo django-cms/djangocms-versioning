@@ -3,10 +3,15 @@ from django.apps import apps
 from cms.cms_wizards import CMSPageWizard, CMSSubPageWizard
 from cms.toolbar.utils import get_object_preview_url
 from cms.utils.helpers import is_editable_model
-from cms.utils.patching import patch_cms
 from cms.wizards.wizard_base import Wizard
 
 from djangocms_versioning.constants import DRAFT
+
+
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
 
 
 original_get_wizard_success_url = Wizard.get_success_url

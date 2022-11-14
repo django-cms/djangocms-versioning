@@ -1,6 +1,11 @@
 from cms.templatetags import cms_admin
-from cms.utils.patching import patch_cms
 from cms.utils.urlutils import admin_reverse
+
+
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
 
 
 @cms_admin.register.simple_tag(takes_context=False)

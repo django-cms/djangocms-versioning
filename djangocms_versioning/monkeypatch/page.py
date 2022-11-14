@@ -3,10 +3,15 @@ from django.contrib.auth import get_user_model
 
 from cms import api
 from cms.models import Placeholder, pagemodel, titlemodels
-from cms.utils.patching import patch_cms
 from cms.utils.permissions import _thread_locals
 
 from djangocms_versioning.models import Version
+
+
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
 
 
 User = get_user_model()

@@ -1,3 +1,4 @@
+from cms.utils.patching import patch_cms
 from django.apps import apps
 from django.contrib.auth import get_user_model
 
@@ -38,12 +39,12 @@ def get_placeholders(func):
     return inner
 
 
-pagemodel.Page.get_placeholders = get_placeholders(
+patch_cms(pagemodel.Page, "get_placeholders", get_placeholders(
     pagemodel.Page.get_placeholders
-)  # noqa: E305
+))  # noqa: E305
 
 
-def create_title(func):
+def create_page_content(func):
     def inner(language, title, page, **kwargs):
         created_by = kwargs.get("created_by")
         if not isinstance(created_by, User):
@@ -59,7 +60,10 @@ def create_title(func):
     return inner
 
 
-api.create_title = create_title(api.create_title)  # noqa: E305
+if hasattr(api, "create_page_content"):
+    patch_cms(api, "create_page_content", create_page_content(api.create_page_content))  # noqa: E305
+else:
+    patch_cms(api, "create_title", create_page_content(api.create_title))  # noqa: E305
 
 
 pagecontent_unique_together = tuple(

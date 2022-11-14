@@ -11,6 +11,12 @@ from cms.utils.page_permissions import user_can_change_page
 from djangocms_versioning.handlers import _update_modified
 
 
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
+
+
 def _copy_title_extensions(self, source_page, target_page, language, clone=False):
     """
     djangocms-cms/extensions/admin.py, last changed in: divio/django-cms@2894ae8
@@ -38,7 +44,7 @@ def _copy_title_extensions(self, source_page, target_page, language, clone=False
                 instance.copy_to_public(target_title, language)
 
 
-ExtensionPool._copy_title_extensions = _copy_title_extensions
+patch_cms(ExtensionPool, "_copy_title_extensions", _copy_title_extensions)
 
 
 def _save_model(self, request, obj, form, change):
@@ -69,7 +75,7 @@ def _save_model(self, request, obj, form, change):
         _update_modified(title)
 
 
-TitleExtensionAdmin.save_model = _save_model
+patch_cms(TitleExtensionAdmin, "save_model", _save_model)
 
 
 @csrf_protect_m
@@ -98,4 +104,4 @@ def _add_view(self, request, form_url='', extra_context=None):
     return super(TitleExtensionAdmin, self).add_view(request, form_url, extra_context)
 
 
-TitleExtensionAdmin.add_view = _add_view
+patch_cms(TitleExtensionAdmin, "add_view", _add_view)

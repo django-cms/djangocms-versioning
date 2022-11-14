@@ -3,6 +3,12 @@ from cms.utils.conf import get_cms_setting
 from menus.menu_pool import MenuRenderer
 
 
+try:
+    from cms.utils.patching import patch_cms
+except ModuleNotFoundError:
+    patch_cms = setattr
+
+
 def menu_renderer_cache_key(self):
     prefix = get_cms_setting("CACHE_PREFIX")
 
@@ -20,4 +26,4 @@ def menu_renderer_cache_key(self):
     return key
 
 
-MenuRenderer.cache_key = property(menu_renderer_cache_key)  # noqa: E305
+patch_cms(MenuRenderer, "cache_key", property(menu_renderer_cache_key))  # noqa: E305

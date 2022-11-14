@@ -1,4 +1,5 @@
 from cms.templatetags import cms_admin
+from cms.utils.patching import patch_cms
 from cms.utils.urlutils import admin_reverse
 
 
@@ -18,4 +19,4 @@ def get_admin_url_for_language(page, language):
     return admin_reverse("cms_pagecontent_change", args=[page_content.pk])
 
 
-cms_admin.get_admin_url_for_language = get_admin_url_for_language  # noqa: E305
+patch_cms(cms_admin, "get_admin_url_for_language", get_admin_url_for_language)  # noqa: E305

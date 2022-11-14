@@ -14,7 +14,7 @@ from djangocms_versioning.helpers import get_latest_admin_viewable_page_content
 
 try:
     from cms.utils.patching import patch_cms
-except (ImportError, ModuleNotFoundError):
+except ModuleNotFoundError:
     patch_cms = setattr
 
 
@@ -94,4 +94,4 @@ def copy_language(self, request, object_id):
     return HttpResponse("ok")
 
 
-admin.pageadmin.PageContentAdmin.copy_language = copy_language
+patch_cms(admin.pageadmin.PageContentAdmin, "copy_language", copy_language)

@@ -1,3 +1,4 @@
+from cms.utils.patching import patch_cms
 from django.apps import apps
 
 from cms.cms_wizards import CMSPageWizard, CMSSubPageWizard
@@ -20,7 +21,7 @@ def get_wizard_success_url(self, obj, **kwargs):  # noqa: E302
     return original_get_wizard_success_url(self, obj, **kwargs)
 
 
-Wizard.get_success_url = get_wizard_success_url  # noqa: E305
+patch_cms(Wizard, "get_success_url", get_wizard_success_url)
 
 
 def get_page_wizard_success_url(self, obj, **kwargs):
@@ -35,5 +36,5 @@ def get_page_wizard_success_url(self, obj, **kwargs):
     return get_wizard_success_url(self, page_content, **kwargs)
 
 
-CMSPageWizard.get_success_url = get_page_wizard_success_url  # noqa: E305
-CMSSubPageWizard.get_success_url = get_page_wizard_success_url
+patch_cms(CMSPageWizard, "get_success_url", get_page_wizard_success_url)
+patch_cms(CMSSubPageWizard, "get_success_url", get_page_wizard_success_url)

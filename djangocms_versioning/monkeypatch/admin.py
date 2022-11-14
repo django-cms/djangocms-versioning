@@ -12,6 +12,11 @@ from cms.utils.plugins import copy_plugins_to_placeholder
 from djangocms_versioning import versionables
 from djangocms_versioning.helpers import get_latest_admin_viewable_page_content
 
+try:
+    from cms.utils.patching import patch_cms
+except (ImportError, ModuleNotFoundError):
+    patch_cms = setattr
+
 
 def get_queryset(func):
     def inner(self, request):
@@ -32,16 +37,16 @@ def get_queryset(func):
     return inner
 
 
-admin.pageadmin.PageContentAdmin.get_queryset = get_queryset(
+patch_cms(admin.pageadmin.PageContentAdmin, "get_queryset",  get_queryset(
     admin.pageadmin.PageContentAdmin.get_queryset
-)
+))
 
 
 def get_admin_model_object_by_id(model_class, obj_id):
     return model_class._original_manager.get(pk=obj_id)
 
 
-helpers.get_admin_model_object_by_id = get_admin_model_object_by_id
+patch_cms(helpers, "get_admin_model_object_by_id", get_admin_model_object_by_id)
 
 
 # CAVEAT:

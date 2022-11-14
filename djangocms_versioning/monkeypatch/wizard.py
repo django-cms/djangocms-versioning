@@ -1,9 +1,9 @@
-from cms.utils.patching import patch_cms
 from django.apps import apps
 
 from cms.cms_wizards import CMSPageWizard, CMSSubPageWizard
 from cms.toolbar.utils import get_object_preview_url
 from cms.utils.helpers import is_editable_model
+from cms.utils.patching import patch_cms
 from cms.wizards.wizard_base import Wizard
 
 from djangocms_versioning.constants import DRAFT

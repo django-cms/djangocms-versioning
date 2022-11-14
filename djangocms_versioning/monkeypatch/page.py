@@ -1,9 +1,9 @@
-from cms.utils.patching import patch_cms
 from django.apps import apps
 from django.contrib.auth import get_user_model
 
 from cms import api
 from cms.models import Placeholder, pagemodel, titlemodels
+from cms.utils.patching import patch_cms
 from cms.utils.permissions import _thread_locals
 
 from djangocms_versioning.models import Version

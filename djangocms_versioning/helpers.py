@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models.sql.where import WhereNode
 from django.urls import reverse
 
-from cms.models import PageContent
+from cms.models import EmptyPageContent, PageContent
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
@@ -304,8 +304,8 @@ def get_latest_admin_viewable_page_content(page, language):
     return PageContent._original_manager.filter(
         page=page, language=language, versions__state__in=[DRAFT, PUBLISHED]
     ).order_by(
-        "versions__state"
-    ).first()
+        "versions__state"  # "draft" < "published"
+    ).first() or EmptyPageContent(language)
 
 
 def proxy_model(obj, content_model):

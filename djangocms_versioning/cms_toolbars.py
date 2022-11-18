@@ -217,7 +217,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
-                # Get the pagw content, it could be draft too!
+                # Get the page content, it could be draft too!
                 page_content = self.get_page_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)
@@ -278,12 +278,19 @@ class VersioningPageToolbar(PageToolbar):
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
-                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
-                    copy_plugins_menu.add_ajax_item(
-                        title % name, action=page_copy_url,
-                        data={'source_language': code, 'target_language': self.current_lang},
-                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
-                    )
+                    if page_content:
+                        page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                        copy_plugins_menu.add_ajax_item(
+                            title % name, action=page_copy_url,
+                            data={'source_language': code, 'target_language': self.current_lang},
+                            question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                        )
+                    else:
+                        copy_plugins_menu.add_ajax_item(
+                            title % name, action="#",
+                            disabled=True,
+                        )
+
 
 
 def replace_toolbar(old, new):

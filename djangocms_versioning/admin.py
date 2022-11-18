@@ -40,7 +40,8 @@ from .versionables import _cms_extension
 try:
     from cms.utils.patching import patch_hook
 except ModuleNotFoundError:
-    patch_hook = lambda x: x
+    def patch_hook(func):
+        return func
 
 
 class VersioningChangeListMixin:

@@ -17,7 +17,8 @@ from .operations import send_post_version_operation, send_pre_version_operation
 try:
     from cms.utils.patching import patch_hook
 except ModuleNotFoundError:
-    patch_hook = lambda x: x
+    def patch_hook(func):
+        return func
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change

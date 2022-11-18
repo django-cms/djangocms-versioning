@@ -292,7 +292,6 @@ class VersioningPageToolbar(PageToolbar):
                         )
 
 
-
 def replace_toolbar(old, new):
     """Replace `old` toolbar class with `new` class,
     while keeping its position in toolbar_pool.

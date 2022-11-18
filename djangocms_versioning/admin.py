@@ -37,6 +37,12 @@ from .models import Version
 from .versionables import _cms_extension
 
 
+try:
+    from cms.utils.patching import patch_hook
+except ModuleNotFoundError:
+    patch_hook = lambda x: x
+
+
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
@@ -498,6 +504,7 @@ class VersionAdmin(admin.ModelAdmin):
             {"archive_url": archive_url, "disabled": disabled},
         )
 
+    @patch_hook
     def _get_publish_link(self, obj, request):
         """Helper function to get the html link to the publish action
         """
@@ -622,6 +629,7 @@ class VersionAdmin(admin.ModelAdmin):
             {"discard_url": discard_url, "disabled": disabled},
         )
 
+    @patch_hook
     def get_state_actions(self):
         """Returns all action links as a list"""
         return [

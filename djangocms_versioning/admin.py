@@ -210,7 +210,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def _get_preview_link(self, obj, request, disabled=False):
         """
-        Return a user friendly button for previewing the content model
+        Return a user-friendly button for previewing the content model
         :param obj: Instance of versioned content model
         :param request: The request to admin menu
         :param disabled: Should the link be marked disabled?
@@ -537,6 +537,19 @@ class VersionAdmin(admin.ModelAdmin):
             {"unpublish_url": unpublish_url, "disabled": disabled},
         )
 
+    def _get_published_link(self, obj, request):
+        """Helper function to get the link to the published page"""
+        if not obj.state == PUBLISHED:
+            # Don't display the link if it isn't published
+            return ""
+
+        published_url = getattr(obj.content, "get_absolute_url", None)
+
+        return render_to_string(
+            "djangocms_versioning/admin/icons/published_icon.html",
+            {"url": published_url, "disabled": False},
+        ) if published_url else ""
+
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
@@ -629,6 +642,7 @@ class VersionAdmin(admin.ModelAdmin):
             self._get_archive_link,
             self._get_publish_link,
             self._get_unpublish_link,
+            self._get_published_link,
             self._get_revert_link,
             self._get_discard_link,
         ]

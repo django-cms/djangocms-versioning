@@ -617,6 +617,45 @@ class VersionAdminActionsTestCase(CMSTestCase):
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
 
+    def test_action_published_link_visible_state(self):
+        """The published content link action is available"""
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+        published_url = version.content.get_absolute_url()
+
+        expected_action_state = (
+            '<a\n    title="View published"\n    class="btn\n\n    cms-versioning-action-btn\n    '
+            'cms-versioning-action-view published\n     cms-form-get-method \n     js-versioning-action\n    '
+            'js-versioning-keep-sideframe "\n\n    href="%s"'
+        ) % published_url
+        actual_action_control = self.version_admin._get_published_link(version, request)
+
+        self.assertIn(expected_action_state, actual_action_control)
+
+    def test_action_published_link_not_visible_state(self):
+        """The published content link action is not available"""
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = user
+
+        expected_action_state = ''
+        actual_action_control = self.version_admin._get_published_link(version, request)
+
+        self.assertIn(expected_action_state, actual_action_control)
+
+    def test_action_published_link_not_valid_obj(self):
+        """The published content link is not applicable with this object"""
+        version = factories.AnswerFactory()
+        user = factories.UserFactory()
+        request = RequestFactory().get("/admin/polls/answer/")
+        request.user = user
+
+        with self.assertRaises(AttributeError):
+            self.version_admin._get_published_link(version, request)
+
     def test_edit_action_link_sideframe_editing_disabled_state(self):
         """
         Sideframe editing is disabled for objects with placeholders i.e. PageContent

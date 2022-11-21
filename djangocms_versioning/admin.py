@@ -543,12 +543,12 @@ class VersionAdmin(admin.ModelAdmin):
             # Don't display the link if it isn't published
             return ""
 
-        published_url = obj.content.get_absolute_url()
+        published_url = getattr(obj.content, "get_absolute_url", None)
 
         return render_to_string(
             "djangocms_versioning/admin/icons/published_icon.html",
             {"url": published_url, "disabled": False},
-        )
+        ) if published_url else ""
 
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action

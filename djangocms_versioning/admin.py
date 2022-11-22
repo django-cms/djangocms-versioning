@@ -237,7 +237,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         version = proxy_model(self.get_version(obj), self.model)
 
-        if version.state not in (DRAFT, PUBLISHED):
+        if not version.check_edit_redirect.as_bool(request.user):
             # Don't display the link if it can't be edited
             return ""
 
@@ -480,7 +480,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
-        if not obj.state == DRAFT:
+        if not obj.can_be_archived():
             # Don't display the link if it can't be archived
             return ""
         archive_url = reverse(
@@ -489,9 +489,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        if not obj.can_be_archived() or not obj.check_archive.as_bool(request.user):
-            disabled = True
+        disabled = not obj.check_archive.as_bool(request.user)
 
         return render_to_string(
             "djangocms_versioning/admin/archive_icon.html",
@@ -501,7 +499,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_publish_link(self, obj, request):
         """Helper function to get the html link to the publish action
         """
-        if not obj.state == DRAFT:
+        if not obj.can_be_published():
             # Don't display the link if it can't be published
             return ""
         publish_url = reverse(
@@ -510,14 +508,16 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
+        disabled = not obj.check_publish.as_bool(request.user)
+
         return render_to_string(
-            "djangocms_versioning/admin/publish_icon.html", {"publish_url": publish_url}
+            "djangocms_versioning/admin/publish_icon.html", {"publish_url": publish_url, "disabled": disabled}
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the unpublish action
         """
-        if not obj.state == PUBLISHED:
+        if not obj.can_be_unpublished():
             # Don't display the link if it can't be unpublished
             return ""
         unpublish_url = reverse(
@@ -526,11 +526,7 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        if not obj.can_be_unpublished() or not obj.check_unpublish.as_bool(
-            request.user
-        ):
-            disabled = True
+        disabled = not obj.check_unpublish.as_bool(request.user)
 
         return render_to_string(
             "djangocms_versioning/admin/unpublish_icon.html",

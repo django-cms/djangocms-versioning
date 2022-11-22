@@ -174,10 +174,9 @@ class MonkeypatchTestCase(CMSTestCase):
         With the mocked get_admin_model_object_by_id it is able to fetch objects
         in draft mode.
         """
-        from cms.utils.helpers import get_admin_model_object_by_id
 
         version = PageVersionFactory()
-        content = get_admin_model_object_by_id(PageContent, version.content.pk)
+        content = PageContent.get_admin_model_object_by_id(version.content.pk)
 
         self.assertEqual(version.state, 'draft')
         self.assertEqual(content.pk, version.content.pk)

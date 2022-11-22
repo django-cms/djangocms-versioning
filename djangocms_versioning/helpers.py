@@ -129,6 +129,8 @@ def replace_default_manager(model):
     ]
     model.add_to_class("objects", manager)
     model.add_to_class("_original_manager", original_manager())
+    model.add_to_class("get_admin_model_object_by_id",
+                       classmethod(lambda cls, obj_id: cls._original_manager.get(pk=obj_id)))
 
 
 def inject_generic_relation_to_version(model):

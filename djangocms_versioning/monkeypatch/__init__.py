@@ -1,6 +1,1 @@
-from . import (  # noqa: F401
-    checks,
-    extensions,
-    page,
-    wizard,
-)
+from . import checks, extensions, page, wizard  # noqa: F401

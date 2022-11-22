@@ -1,10 +1,13 @@
 import collections
 
-from cms.utils.plugins import copy_plugins_to_placeholder
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied, ObjectDoesNotExist
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    ObjectDoesNotExist,
+    PermissionDenied,
+)
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -12,16 +15,18 @@ from django.utils.translation import gettext_lazy as _
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils import get_language_from_request
-from cms.utils.i18n import get_language_tuple, get_language_list
+from cms.utils.i18n import get_language_list, get_language_tuple
+from cms.utils.plugins import copy_plugins_to_placeholder
 
 from . import versionables
 from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
+    get_latest_admin_viewable_page_content,
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
     replace_admin_for_models,
-    replace_default_manager, get_latest_admin_viewable_page_content,
+    replace_default_manager,
 )
 from .models import Version
 from .plugin_rendering import CMSToolbarVersioningMixin

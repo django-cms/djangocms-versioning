@@ -250,7 +250,3 @@ class WizzardTestCase(CMSTestCase):
             poll_wizard.get_success_url(version.content),
             version.content.get_absolute_url(),
         )
-
-
-
-

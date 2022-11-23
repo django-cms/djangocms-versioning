@@ -149,4 +149,4 @@ class ExtensionTestCase(CMSTestCase):
                 follow=True
             )
             self.assertEqual(response.status_code, 200)
-
+    

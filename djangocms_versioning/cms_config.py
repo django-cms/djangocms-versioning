@@ -307,8 +307,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     # CAVEAT:
     #   - PageContent contains the template, this can differ for each language,
     #     it is assumed that templates would be the same when copying from one language to another
-    # FIXME: This monkeypatch exists to allow the language copy feature to work
-    #        The long term solution will require knowing:
+    # FIXME: The long term solution will require knowing:
     #           - why this view is an ajax call
     #           - where it should live going forwards (cms vs versioning)
     #           - A better way of making the feature extensible / modifiable for versioning

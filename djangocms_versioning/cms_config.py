@@ -10,6 +10,7 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
 
+from . import indicators
 from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
 from .helpers import (
@@ -254,7 +255,7 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
-class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdminMixin):
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -299,3 +300,6 @@ class VersioningCMSConfig(CMSAppConfig):
             content_admin_mixin=VersioningCMSPageAdminMixin,
         )
     ]
+    PageContent.add_to_class("is_editable", indicators.is_editable)
+    PageContent.add_to_class("content_indicator", indicators.content_indicator)
+    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

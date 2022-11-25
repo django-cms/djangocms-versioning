@@ -1,4 +1,5 @@
 import warnings
+from copy import copy
 
 from django.contrib.auth import get_user_model
 
@@ -24,7 +25,7 @@ class PublishedContentManagerMixin:
         obj = super().create(*args, **kwargs)
         created_by = kwargs.get("created_by", None)
         if not isinstance(created_by, get_user_model()):
-            created_by = getattr(self, "_user", None) or getattr(_thread_locals, "user", None)
+            created_by = getattr(self, "_user", None)
         if created_by:
             Version.objects.create(content=obj, created_by=created_by)
         else:
@@ -37,7 +38,8 @@ class PublishedContentManagerMixin:
         return obj
 
     def with_user(self, user):
-        if not isinstance(user, get_user_model()):
+        if not isinstance(user, get_user_model()) and user is not None:
             raise TypeError(f"User for with_user must be of type {get_user_model().__name__}")
-        self._user = user
-        return self
+        new_manager = copy(self)
+        new_manager._user = user
+        return new_manager

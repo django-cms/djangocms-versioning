@@ -3,8 +3,6 @@ from copy import copy
 
 from django.contrib.auth import get_user_model
 
-from cms.utils.permissions import _thread_locals
-
 from .constants import PUBLISHED
 from .models import Version
 

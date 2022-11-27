@@ -461,7 +461,7 @@ class VersionAdmin(admin.ModelAdmin):
         return obj.number
 
     nr.admin_order_field = "pk"
-    nr.short_description = _("#")
+    nr.short_description = _("version number")
 
     def content_link(self, obj):
         """Display html for the content preview url"""

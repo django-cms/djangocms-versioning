@@ -10,10 +10,13 @@ Unreleased
   versions (activate by setting DJANGOCMS_VERSIONING_STRICT = False)
 * add: Offer "View published" on all models that provide a get_absolute_path
   method (and not only PageContent)
+* feat: Add support for Django 4.0, 4.1 and Python 3.10 and 3.11
+* fix: migrations for MySql
 * ci: Updated isort params in lint workflow to meet current requirements.
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused
 * ci: Added concurrency option to cancel in progress runs when new changes occur
+* ci: Run tests on sqlite, mysql and postgres db
 
 1.2.2 (2022-07-20)
 ==================

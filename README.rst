@@ -1,6 +1,13 @@
-****************
+*********************
 django CMS Versioning
-****************
+*********************
+
+.. warning::
+
+    This is the development branch for django CMS version 4.1 support.
+
+    For django CMS V4.0 support, see `support/django-cms-4.0.x branch <https://github.com/django-cms/djangocms-versioning/tree/support/django-cms-4.0.x>`_
+
 
 ============
 Installation

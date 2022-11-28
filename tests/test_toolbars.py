@@ -183,14 +183,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         pagecontent = PageVersionFactory(content__template="")
         url = get_object_preview_url(pagecontent.content)
         edit_url = self._get_edit_url(
-            pagecontent.content, VersioningCMSConfig.versioning[0]
+            pagecontent, VersioningCMSConfig.versioning[0]
         )
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
         found_button_list = find_toolbar_buttons("Edit", response.wsgi_request.toolbar)
-
         # Only one edit button exists
         self.assertEqual(len(found_button_list), 1)
         # The only edit button that exists is the versioning button

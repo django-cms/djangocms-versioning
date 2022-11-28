@@ -80,7 +80,11 @@ def create_title(func):
     return inner
 
 
-api.create_title = create_title(api.create_title)  # noqa: E305
+if hasattr(api, "create_page_content"):
+    # as of django CMS 4.1
+    api.create_page_content = create_title(api.create_page_content)  # noqa: E305
+else:
+    api.create_title = create_title(api.create_title)  # noqa: E305
 
 # Compat for change in django-cms
 try:

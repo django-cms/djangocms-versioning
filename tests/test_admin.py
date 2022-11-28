@@ -378,13 +378,13 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_content_link_non_editable_object_with_preview_url(self):
         """
-        The link returned is the preview url for a non editable object with preview url config in versionable
+        The link returned is the preview url for a non-editable object with preview url config in versionable
         """
         version = factories.PollVersionFactory(content__text="test4")
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url="/en/admin/polls/pollcontent/1/preview/", label="test4"
+                url=f"/en/admin/polls/pollcontent/{version.content.pk}/preview/", label="test4"
             ),
         )
 
@@ -397,7 +397,7 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url="/en/admin/blogpost/blogcontent/1/change/", label="test4"
+                url=f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/", label="test4"
             ),
         )
 
@@ -2488,21 +2488,20 @@ class VersionChangeViewTestCase(CMSTestCase):
         The user is redirectd to the compare view with two versions selected
         """
         poll = factories.PollFactory()
-        factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
         querystring = "?poll={grouper}".format(grouper=poll.pk)
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
         )
         success_redirect = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", 1
+            self.versionable.version_model_proxy, "compare", versions[0].pk
         )
-        success_redirect += "?compare_to=2"
-
+        success_redirect += f"?compare_to={versions[1].pk}"
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                ACTION_CHECKBOX_NAME: ["1", "2"],
+                ACTION_CHECKBOX_NAME: [versions[0].pk, versions[1].pk],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)

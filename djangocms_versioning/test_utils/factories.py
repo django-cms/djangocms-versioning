@@ -13,8 +13,8 @@ from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
-from .extended_polls.models import PollTitleExtension
-from .extensions.models import TestTitleExtension
+from .extended_polls.models import PollPageContentExtension
+from .extensions.models import TestPageContentExtension
 from .incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
     IncorrectBlogPost,
@@ -283,11 +283,11 @@ class PollTitleExtensionFactory(factory.django.DjangoModelFactory):
     votes = FuzzyInteger(0, 100)
 
     class Meta:
-        model = PollTitleExtension
+        model = PollPageContentExtension
 
 
 class TestTitleExtensionFactory(factory.django.DjangoModelFactory):
     extended_object = factory.SubFactory(PageContentFactory)
 
     class Meta:
-        model = TestTitleExtension
+        model = TestPageContentExtension

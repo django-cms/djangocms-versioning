@@ -13,6 +13,9 @@ Unreleased
 * fix: Added setting to make the field to identify a user configurable in ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models with no ``username``
 * ci: Run tests on sqlite, mysql and postgres db
 
+* feat: Compatibility with page content extension changes to django-cms
+* ci: Added basic linting pre-commit hooks
+
 1.2.2 (2022-07-20)
 ==================
 * fix: Admin burger menu excluding Preview and Edit buttons in all languages

@@ -3,7 +3,12 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from cms.extensions.admin import TitleExtensionAdmin
+
+try:
+    from cms.extensions.admin import TitleExtensionAdmin
+except ImportError:
+    from cms.extensions.admin import PageContentExtensionAdmin
+
 from cms.extensions.extension_pool import ExtensionPool
 from cms.models import PageContent
 from cms.utils.page_permissions import user_can_change_page
@@ -11,7 +16,7 @@ from cms.utils.page_permissions import user_can_change_page
 from djangocms_versioning.handlers import _update_modified
 
 
-def _copy_title_extensions(self, source_page, target_page, language, clone=False):
+def _copy_content_extensions(self, source_page, target_page, language, clone=False):
     """
     djangocms-cms/extensions/admin.py, last changed in: divio/django-cms@2894ae8
 
@@ -24,13 +29,22 @@ def _copy_title_extensions(self, source_page, target_page, language, clone=False
         page=source_page, language=language
     ).first()
     if target_page:
-        # the line below has been modified to accomodate versioning.
+        # the line below has been modified to accommodate versioning.
         target_title = PageContent._original_manager.filter(
             page=target_page, language=language
         ).first()
     else:
         target_title = source_title.publisher_public
-    for extension in self.title_extensions:
+
+    # Compat for change in django-cms
+    try:
+        # Original v4 attribute
+        extensions = self.title_extensions
+    except AttributeError:
+        # Updated v4 attribute based on `PageContent` extension name change
+        extensions = self.page_content_extensions
+
+    for extension in extensions:
         for instance in extension.objects.filter(extended_object=source_title):
             if clone:
                 instance.copy(target_title, language)
@@ -38,7 +52,13 @@ def _copy_title_extensions(self, source_page, target_page, language, clone=False
                 instance.copy_to_public(target_title, language)
 
 
-ExtensionPool._copy_title_extensions = _copy_title_extensions
+# Compat for change in django-cms
+try:
+    # Original v4 attribute
+    ExtensionPool._copy_title_extensions = _copy_content_extensions
+except AttributeError:
+    # Updated v4 attribute based on `PageContent` extension name change
+    ExtensionPool._copy_content_extensions = _copy_content_extensions
 
 
 def _save_model(self, request, obj, form, change):
@@ -62,14 +82,20 @@ def _save_model(self, request, obj, form, change):
     if not user_can_change_page(request.user, page=title.page):
         raise PermissionDenied()
 
-    super(TitleExtensionAdmin, self).save_model(request, obj, form, change)
+    try:
+        super(TitleExtensionAdmin, self).save_model(request, obj, form, change)
+    except NameError:
+        super(PageContentExtensionAdmin, self).save_model(request, obj, form, change)
 
     # Ensure that we update the version modified date of the attached version
     if title:
         _update_modified(title)
 
 
-TitleExtensionAdmin.save_model = _save_model
+try:
+    TitleExtensionAdmin.save_model = _save_model
+except NameError:
+    PageContentExtensionAdmin.save_model = _save_model
 
 
 @csrf_protect_m
@@ -95,7 +121,13 @@ def _add_view(self, request, form_url='', extra_context=None):
             return HttpResponseRedirect(change_url)
         except self.model.DoesNotExist:
             pass
-    return super(TitleExtensionAdmin, self).add_view(request, form_url, extra_context)
+    try:
+        return super(TitleExtensionAdmin, self).add_view(request, form_url, extra_context)
+    except NameError:
+        return super(PageContentExtensionAdmin, self).add_view(request, form_url, extra_context)
 
 
-TitleExtensionAdmin.add_view = _add_view
+try:
+    TitleExtensionAdmin.add_view = _add_view
+except NameError:
+    PageContentExtensionAdmin.add_view = _add_view

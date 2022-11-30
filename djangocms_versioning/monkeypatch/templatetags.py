@@ -8,7 +8,7 @@ def get_admin_url_for_language(page, language):
     # to do so in places like this.
     existing_language = language in page.get_languages()
     if existing_language:
-        page_content = page.get_title_obj(language, fallback=False)
+        page_content = page.get_content_obj(language, fallback=False)
         existing_language = bool(page_content)
     if not existing_language:
         admin_url = admin_reverse("cms_pagecontent_add")

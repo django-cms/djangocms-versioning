@@ -42,8 +42,15 @@ class IndicatorStatusMixin:
                     reverse("admin:djangocms_versioning_pagecontentversion_publish", args=(versions[0].pk,)),
                     "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
                 ))
-            if versions[0].check_revert.as_bool(user):
-                label = _("Revert from Unpublish") if versions[0].state == UNPUBLISHED else _("Revert from Archive")
+            if versions[0].check_edit_redirect.as_bool(user) and versions[0].state == PUBLISHED:
+                menu.append((
+                    _("Create new draft"), "cms-icon-pencil",
+                    reverse("admin:djangocms_versioning_pagecontentversion_edit_redirect", args=(versions[0].pk,)),
+                    "js-cms-tree-lang-trigger js-cms-pagetree-page-view",  # Triggers POST from the frontend
+                ))
+            if versions[0].check_revert.as_bool(user) and versions[0].state == UNPUBLISHED:
+                # Do not offer revert from unpublish -> archived versions to be managed in version admin
+                label = _("Revert from Unpublish")
                 menu.append((
                     label, "cms-icon-undo cms-icon-check-o",
                     # check-o: fallback for cms versions without undo icon
@@ -67,6 +74,13 @@ class IndicatorStatusMixin:
                     _("Delete Draft") if status == DRAFT else _("Delete Changes"), "cms-icon-bin",
                     reverse("admin:djangocms_versioning_pagecontentversion_discard", args=(versions[0].pk,)),
                     "",  # Let view ask for confirmation
+                ))
+            if len(versions) >= 2 and versions[0].state == DRAFT and versions[1].state == PUBLISHED:
+                menu.append((
+                    _("Compare Draft to Published..."), "cms-icon-layers",
+                    reverse("admin:djangocms_versioning_pagecontentversion_compare", args=(versions[1].pk,)) +
+                    f"?compare_to={versions[0].pk}",
+                    "",
                 ))
         menu.append(
             (

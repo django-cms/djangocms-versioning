@@ -1972,12 +1972,13 @@ class CompareViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "compare", versions[0].pk
         )
         user = self.get_staff_user_with_no_permissions()
-
         with self.login_user_context(user):
             response = self.client.get(url)
-
-        self.assertContains(response, "Version #{number} ({date})".format(
-            number=versions[0].number, date=localize(versions[0].created)))
+        # the version created last will be in its created state (others might have transitioned to archived)
+        self.assertContains(response, versions[1].verbose_name())
+        # Get versions[0] from db with the correct state
+        version0 = Version.objects.get(pk=versions[0].pk)
+        self.assertContains(response, version0.verbose_name())
 
         context = response.context
         self.assertIn("v1", context)

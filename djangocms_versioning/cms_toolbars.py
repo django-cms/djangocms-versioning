@@ -5,6 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 from cms.cms_toolbars import (
@@ -165,6 +166,18 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            if version.source:
+                name = _("Compare to {state} source").format(state=_(version.source.state))
+                proxy_model = self._get_proxy_model()
+                url = reverse("admin:{app}_{model}_compare".format(
+                     app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ), args=(version.pk,))
+
+                url += "?" + urlencode(dict(
+                    compare_to=version.source.pk,
+                    back=self.request.get_full_path(),
+                ))
+                versioning_menu.add_link_item(name, url=url)
 
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object

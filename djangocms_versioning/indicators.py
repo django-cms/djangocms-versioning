@@ -1,5 +1,6 @@
 from django.contrib.auth import get_permission_codename
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 from djangocms_versioning.constants import (
@@ -79,7 +80,10 @@ class IndicatorStatusMixin:
                 menu.append((
                     _("Compare Draft to Published..."), "cms-icon-layers",
                     reverse("admin:djangocms_versioning_pagecontentversion_compare", args=(versions[1].pk,)) +
-                    f"?compare_to={versions[0].pk}",
+                    "?" + urlencode(dict(
+                        compare_to=versions[0].pk,
+                        back=reverse("admin:cms_page_changelist"),
+                    )),
                     "",
                 ))
         menu.append(

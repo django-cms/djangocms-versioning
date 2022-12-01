@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from urllib.parse import urlparse
 
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
@@ -11,9 +12,8 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import re_path, reverse
+from django.urls import re_path, reverse, Resolver404, resolve
 from django.utils.encoding import force_str
-from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
@@ -970,6 +970,14 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             **persist_params
         )
+        return_url = request.GET.get("back", version_list_url(v1.content))
+        try:
+            # Is return url a valid url?
+            resolve(urlparse(return_url)[2])
+        except Resolver404:
+            # If not ignore
+            return_url = None
+
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
         version_list = Version.objects.filter_by_content_grouping_values(
@@ -980,13 +988,7 @@ class VersionAdmin(admin.ModelAdmin):
             "version_list": version_list,
             "v1": v1,
             "v1_preview_url": v1_preview_url,
-            "v1_description": format_html(
-                'Version #{number} ({date})',
-                obj=v1,
-                number=v1.number,
-                date=localize(v1.created),
-            ),
-            "return_url": version_list_url(v1.content),
+            "return_url": return_url,
         }
 
         # Now check if version 2 has been specified and add to context
@@ -1007,12 +1009,6 @@ class VersionAdmin(admin.ModelAdmin):
                                 args=(v2.content_type_id, v2.object_id),
                             ),
                             **persist_params
-                        ),
-                        "v2_description": format_html(
-                            'Version #{number} ({date})',
-                            obj=v2,
-                            number=v2.number,
-                            date=localize(v2.created),
                         ),
                     }
                 )

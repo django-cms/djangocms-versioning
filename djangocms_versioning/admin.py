@@ -536,19 +536,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
-        if obj.state == PUBLISHED:
-            pks_for_grouper = obj.versionable.for_content_grouping_values(
-                obj.content
-            ).values_list("pk", flat=True)
-            drafts = Version.objects.filter(
-                object_id__in=pks_for_grouper,
-                content_type=obj.content_type,
-                state=DRAFT,
-            )
-            if drafts.exists():
-                return ""
-        elif obj.state != DRAFT:
-            # Don't display the link if it's not a draft
+        if not obj.check_modify.as_bool(request.user):
             return ""
 
         if not obj.check_edit_redirect.as_bool(request.user):
@@ -577,7 +565,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_revert_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the revert action
         """
-        if obj.state not in (UNPUBLISHED, ARCHIVED):
+        if not obj.check_revert.as_bool(request.user):
             # Don't display the link if it's a draft or published
             return ""
 
@@ -588,9 +576,6 @@ class VersionAdmin(admin.ModelAdmin):
             args=(obj.pk,),
         )
 
-        if not obj.check_revert.as_bool(request.user):
-            disabled = True
-
         return render_to_string(
             "djangocms_versioning/admin/revert_icon.html",
             {"revert_url": revert_url, "disabled": disabled},
@@ -599,7 +584,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_discard_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the discard action
         """
-        if obj.state not in (DRAFT,):
+        if not obj.check_discard.as_bool(request.user):
             # Don't display the link if it's not a draft
             return ""
 
@@ -609,9 +594,6 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        if not obj.check_discard.as_bool(request.user):
-            disabled = True
 
         return render_to_string(
             "djangocms_versioning/admin/discard_icon.html",

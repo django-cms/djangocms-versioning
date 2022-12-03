@@ -39,13 +39,13 @@ class IndicatorStatusMixin:
         if user.has_perm(f"cms.{get_permission_codename('change', versions[0]._meta)}"):
             if versions[0].check_publish.as_bool(user):
                 menu.append((
-                    _("Publish"), "cms-icon-check-o",
+                    _("Publish"), "cms-icon-publish",
                     reverse("admin:djangocms_versioning_pagecontentversion_publish", args=(versions[0].pk,)),
                     "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
                 ))
             if versions[0].check_edit_redirect.as_bool(user) and versions[0].state == PUBLISHED:
                 menu.append((
-                    _("Create new draft"), "cms-icon-pencil",
+                    _("Create new draft"), "cms-icon-edit-new",
                     reverse("admin:djangocms_versioning_pagecontentversion_edit_redirect", args=(versions[0].pk,)),
                     "js-cms-tree-lang-trigger js-cms-pagetree-page-view",  # Triggers POST from the frontend
                 ))
@@ -53,20 +53,19 @@ class IndicatorStatusMixin:
                 # Do not offer revert from unpublish -> archived versions to be managed in version admin
                 label = _("Revert from Unpublish")
                 menu.append((
-                    label, "cms-icon-undo cms-icon-check-o",
-                    # check-o: fallback for cms versions without undo icon
+                    label, "cms-icon-undo",
                     reverse("admin:djangocms_versioning_pagecontentversion_revert", args=(versions[0].pk,)),
                     "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
                 ))
             if versions[0].check_unpublish.as_bool(user):
                 menu.append((
-                    _("Unpublish"), "cms-icon-forbidden",
+                    _("Unpublish"), "cms-icon-unpublish",
                     reverse("admin:djangocms_versioning_pagecontentversion_unpublish", args=(versions[0].pk,)),
                     "js-cms-tree-lang-trigger",
                 ))
             if len(versions) > 1 and versions[1].check_unpublish.as_bool(user):
                 menu.append((
-                    _("Unpublish"), "cms-icon-forbidden",
+                    _("Unpublish"), "cms-icon-unpublish",
                     reverse("admin:djangocms_versioning_pagecontentversion_unpublish", args=(versions[1].pk,)),
                     "js-cms-tree-lang-trigger",
                 ))

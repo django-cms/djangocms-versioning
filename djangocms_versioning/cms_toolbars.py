@@ -171,10 +171,10 @@ class VersioningToolbar(PlaceholderToolbar):
                 proxy_model = self._get_proxy_model()
                 url = reverse("admin:{app}_{model}_compare".format(
                      app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ), args=(version.pk,))
+                ), args=(version.source.pk,))
 
                 url += "?" + urlencode(dict(
-                    compare_to=version.source.pk,
+                    compare_to=version.pk,
                     back=self.request.get_full_path(),
                 ))
                 versioning_menu.add_link_item(name, url=url)

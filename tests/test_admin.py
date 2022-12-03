@@ -17,7 +17,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
-from django.utils.formats import localize
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase

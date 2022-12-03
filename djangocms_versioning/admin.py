@@ -12,7 +12,7 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import re_path, reverse, Resolver404, resolve
+from django.urls import Resolver404, re_path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _

@@ -23,7 +23,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters
 
 from . import versionables
-from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from .constants import DRAFT, PUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import (

@@ -129,6 +129,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
             "all": (
+                static_with_version("cms/css/cms.base.css"),
                 "djangocms_versioning/css/actions.css",
             )
         }
@@ -227,7 +228,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def _get_edit_link(self, obj, request, disabled=False):
         """
-        Return a user friendly button for editing the content model
+        Return a user-friendly button for editing the content model
         - mark disabled if user doesn't have permission
         - hide completely if instance cannot be edited
         :param obj: Instance of Versioned model

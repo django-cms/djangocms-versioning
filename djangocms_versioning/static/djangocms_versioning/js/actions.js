@@ -157,7 +157,7 @@
             });
           };
 
-          let toggleBurgerMenu = function toggleBurgerMenu(burgerMenuAnchor, optionsContainer) {
+        let toggleBurgerMenu = function toggleBurgerMenu(burgerMenuAnchor, optionsContainer) {
             let bm = $(burgerMenuAnchor);
             let op = $(optionsContainer);
             let closed = bm.hasClass('closed');
@@ -176,16 +176,16 @@
             op.css('top', pos.top);
           };
 
-          let closeBurgerMenu = function closeBurgerMenu() {
+        let closeBurgerMenu = function closeBurgerMenu() {
             $('.cms-actions-dropdown-menu').removeClass('open');
             $('.cms-actions-dropdown-menu').addClass('closed');
             $('.cms-versioning-action-btn').removeClass('open');
             $('.cms-versioning-action-btn').addClass('closed');
-          };
+        };
 
-          $('#result_list').find('tr').each(function (index, item) {
+        $('#result_list').find('tr').each(function (index, item) {
             createBurgerMenu(item);
-          });
+        });
 
     });
 

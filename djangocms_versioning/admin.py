@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy as _
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
-from cms.utils.urlutils import add_url_parameters
+from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
 from .constants import DRAFT, PUBLISHED
@@ -210,7 +210,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def _get_preview_link(self, obj, request, disabled=False):
         """
-        Return a user friendly button for previewing the content model
+        Return a user-friendly button for previewing the content model
         :param obj: Instance of versioned content model
         :param request: The request to admin menu
         :param disabled: Should the link be marked disabled?
@@ -398,7 +398,10 @@ class VersionAdmin(admin.ModelAdmin):
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
-        css = {"all": ("djangocms_versioning/css/actions.css",)}
+        css = {"all": (
+            static_with_version("cms/css/cms.base.css"),
+            "djangocms_versioning/css/actions.css",
+        )}
 
     # register custom actions
     actions = ["compare_versions"]
@@ -480,7 +483,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
-        if not obj.can_be_archived():
+        if not obj.check_archive.as_bool(request.user):
             # Don't display the link if it can't be archived
             return ""
         archive_url = reverse(
@@ -489,17 +492,17 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.check_archive.as_bool(request.user)
+        disabled = not obj.can_be_archived()
 
         return render_to_string(
-            "djangocms_versioning/admin/archive_icon.html",
-            {"archive_url": archive_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/archive_icon.html",
+            {"url": archive_url, "disabled": disabled},
         )
 
     def _get_publish_link(self, obj, request):
         """Helper function to get the html link to the publish action
         """
-        if not obj.can_be_published():
+        if not obj.check_publish.as_bool(request.user):
             # Don't display the link if it can't be published
             return ""
         publish_url = reverse(
@@ -508,16 +511,17 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.check_publish.as_bool(request.user)
+        disabled = not obj.can_be_published()
 
         return render_to_string(
-            "djangocms_versioning/admin/publish_icon.html", {"publish_url": publish_url, "disabled": disabled}
+            "djangocms_versioning/admin/icons/publish_icon.html",
+            {"url": publish_url, "disabled": disabled}
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the unpublish action
         """
-        if not obj.can_be_unpublished():
+        if not obj.check_unpublish.as_bool(request.user):
             # Don't display the link if it can't be unpublished
             return ""
         unpublish_url = reverse(
@@ -526,11 +530,11 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.check_unpublish.as_bool(request.user)
+        disabled = not obj.can_be_unpublished()
 
         return render_to_string(
-            "djangocms_versioning/admin/unpublish_icon.html",
-            {"unpublish_url": unpublish_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/unpublish_icon.html",
+            {"url": unpublish_url, "disabled": disabled},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -587,8 +591,8 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
         return render_to_string(
-            "djangocms_versioning/admin/revert_icon.html",
-            {"revert_url": revert_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/revert_icon.html",
+            {"url": revert_url, "disabled": disabled},
         )
 
     def _get_discard_link(self, obj, request, disabled=False):
@@ -606,8 +610,8 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
         return render_to_string(
-            "djangocms_versioning/admin/discard_icon.html",
-            {"discard_url": discard_url, "disabled": disabled},
+            "djangocms_versioning/admin/icons/discard_icon.html",
+            {"url": discard_url, "disabled": disabled},
         )
 
     def get_state_actions(self):

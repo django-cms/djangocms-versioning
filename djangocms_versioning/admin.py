@@ -536,11 +536,21 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
-        if not obj.check_modify.as_bool(request.user):
+        if not obj.check_edit_redirect.as_bool(request.user):
             return ""
 
-        if not obj.check_edit_redirect.as_bool(request.user):
-            disabled = True
+        # Only show if no draft exists
+        if obj.state == PUBLISHED:
+            pks_for_grouper = obj.versionable.for_content_grouping_values(
+                obj.content
+            ).values_list("pk", flat=True)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper,
+                content_type=obj.content_type,
+                state=DRAFT,
+            )
+            if drafts.exists():
+                return ""
 
         # Don't open in the sideframe if the item is not sideframe compatible
         keep_sideframe = obj.versionable.content_model_is_sideframe_editable

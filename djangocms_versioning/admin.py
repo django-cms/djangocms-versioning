@@ -497,7 +497,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return render_to_string(
             "djangocms_versioning/admin/icons/archive_icon.html",
-            {"url": archive_url, "disabled": disabled, "get": False},
+            {"url": archive_url, "disabled": disabled},
         )
 
     def _get_publish_link(self, obj, request):
@@ -535,7 +535,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return render_to_string(
             "djangocms_versioning/admin/icons/unpublish_icon.html",
-            {"url": unpublish_url, "disabled": disabled, "get": False},
+            {"url": unpublish_url, "disabled": disabled},
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -593,7 +593,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return render_to_string(
             "djangocms_versioning/admin/icons/revert_icon.html",
-            {"url": revert_url, "disabled": disabled, "get": False},
+            {"url": revert_url, "disabled": disabled},
         )
 
     def _get_discard_link(self, obj, request, disabled=False):
@@ -612,7 +612,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return render_to_string(
             "djangocms_versioning/admin/icons/discard_icon.html",
-            {"url": discard_url, "disabled": disabled, "get": False},
+            {"url": discard_url, "disabled": disabled},
         )
 
     def get_state_actions(self):

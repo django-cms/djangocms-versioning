@@ -490,6 +490,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -502,6 +503,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -957,7 +959,7 @@ class StateActionsTestCase(CMSTestCase):
         state_actions = admin.site._registry[version_model_proxy]._state_actions(
             request
         )(version)
-
+        self.assertEqual(constants.PUBLISHED, version.state)
         self.assertIn(edit_url, state_actions)
 
     def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):

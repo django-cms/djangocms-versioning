@@ -8,7 +8,7 @@ class VersioningConfig(AppConfig):
     verbose_name = _("django CMS Versioning")
 
     def ready(self):
-        from cms.models import fields, contentmodels
+        from cms.models import contentmodels, fields
         from cms.signals import post_obj_operation, post_placeholder_operation
 
         from .handlers import (

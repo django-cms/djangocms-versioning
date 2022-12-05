@@ -28,7 +28,7 @@ from .helpers import (
     replace_admin_for_models,
     replace_manager,
 )
-from .managers import PublishedContentManagerMixin, AdminManagerMixin
+from .managers import AdminManagerMixin, PublishedContentManagerMixin
 from .models import Version
 from .plugin_rendering import CMSToolbarVersioningMixin
 

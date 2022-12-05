@@ -59,8 +59,8 @@ class PageContentAdminTestCase(CMSTestCase):
         page = version.content.page
         page._prefetched_objects_cache = {"pagecontent_set": [version.content]}
 
-        page._get_title_cache(language="en", fallback=False, force_reload=False)
-        self.assertEqual({"en": version.content}, page.title_cache)
+        page._get_page_content_cache(language="en", fallback=False, force_reload=False)
+        self.assertEqual({"en": version.content}, page.page_content_cache)
 
 
 class PageAdminCopyLanguageTestCase(CMSTestCase):

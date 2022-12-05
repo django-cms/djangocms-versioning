@@ -1,9 +1,9 @@
-from cms.extensions.models import PageExtension, TitleExtension
+from cms.extensions.models import PageExtension, PageContentExtension
 
 
 class TestPageExtension(PageExtension):
     pass
 
 
-class TestTitleExtension(TitleExtension):
+class TestPageContentExtension(PageContentExtension):
     pass

@@ -12,6 +12,9 @@ Unreleased
 * ci: Added concurrency option to cancel in progress runs when new changes occur
 * ci: Run tests on sqlite, mysql and postgres db
 
+* feat: Compatibility with page content extension changes to django-cms
+* ci: Added basic linting pre-commit hooks
+
 1.2.2 (2022-07-20)
 ==================
 * fix: Admin burger menu excluding Preview and Edit buttons in all languages

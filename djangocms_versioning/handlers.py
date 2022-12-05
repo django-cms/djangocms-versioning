@@ -36,7 +36,7 @@ def update_modified_date(sender, **kwargs):
 
 
 def update_modified_date_for_pagecontent(sender, **kwargs):
-    instance = kwargs["obj"].get_title_obj()
+    instance = kwargs["obj"].get_content_obj()
     _update_modified(instance)
 
 

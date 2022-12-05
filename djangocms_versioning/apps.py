@@ -8,7 +8,7 @@ class VersioningConfig(AppConfig):
     verbose_name = _("django CMS Versioning")
 
     def ready(self):
-        from cms.models import fields, titlemodels
+        from cms.models import fields, contentmodels
         from cms.signals import post_obj_operation, post_placeholder_operation
 
         from .handlers import (
@@ -23,9 +23,9 @@ class VersioningConfig(AppConfig):
 
         # Remove uniqueness constraint from PageContent model to allow for different versions
         pagecontent_unique_together = tuple(
-            set(titlemodels.PageContent._meta.unique_together) - set((("language", "page"),))
+            set(contentmodels.PageContent._meta.unique_together) - set((("language", "page"),))
         )
-        titlemodels.PageContent._meta.unique_together = pagecontent_unique_together
+        contentmodels.PageContent._meta.unique_together = pagecontent_unique_together
 
         # Connect signals
         post_save.connect(update_modified_date, dispatch_uid="versioning")

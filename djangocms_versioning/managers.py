@@ -1,8 +1,11 @@
 import warnings
 from copy import copy
+from itertools import groupby
 
 from django.contrib.auth import get_user_model
+from django.db import models
 
+from . import constants
 from .constants import PUBLISHED
 from .models import Version
 
@@ -37,7 +40,42 @@ class PublishedContentManagerMixin:
 
     def with_user(self, user):
         if not isinstance(user, get_user_model()) and user is not None:
-            raise TypeError(f"User for with_user must be of type {get_user_model().__name__}")
+            import inspect
+
+            curframe = inspect.currentframe()
+            callframe = inspect.getouterframes(curframe, 2)
+            calling_function = callframe[1][3]
+            raise ValueError(
+                    f"With versioning enabled, {calling_function} requires a {get_user_model().__name__} instance "
+                    f"to be passed as created_by argument"
+                )
         new_manager = copy(self)
         new_manager._user = user
         return new_manager
+
+
+class AdminQuerySet(models.QuerySet):
+    def __init__(self, *args, **kwargs):
+        self._group_by_key = kwargs.pop("group_by_key", [])
+        super().__init__(*args, **kwargs)
+
+    def current_content_iterator(self, **kwargs):
+        """Returns generator (not a queryset) over current content versions. Current versions are either draft
+        versions or published versions (in that order)"""
+        qs = self.filter(versions__state__in=("draft", "published"))\
+            .order_by(*self._group_by_key)\
+            .prefetch_related("versions")
+        for grp, version_content in groupby(
+            qs,
+            lambda x: tuple(map(lambda key: getattr(x, key), self._group_by_key))  # get group key fields
+        ):
+            first, second = next(version_content), next(version_content, None)  # Max 2 results per group possible
+            yield first if second is None or first.versions.first().state == constants.DRAFT else second
+
+
+class AdminManagerMixin:
+    versioning_enabled = True
+    _group_by_key = []
+
+    def get_queryset(self):
+        return AdminQuerySet(self.model, using=self._db, group_by_key=self._group_by_key)

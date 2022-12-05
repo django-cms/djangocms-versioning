@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.db.models.sql.where import WhereNode
 from django.urls import reverse
 
@@ -15,7 +16,6 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from . import versionables
 from .constants import DRAFT, PUBLISHED
-from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
 
@@ -105,30 +105,32 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     admin_site.register(versionable.version_model_proxy, ProxiedAdmin)
 
 
-def published_content_manager_factory(manager):
-    """A class factory returning manager class with overriden
+def manager_factory(manager, prefix, mixin):
+    """A class factory returning a manager class with an added mixin to override for
     versioning functionality.
 
     :param manager: Existing manager class
     :return: A subclass of `PublishedContentManagerMixin` and `manager`
     """
     return type(
-        "Published" + manager.__name__,
-        (PublishedContentManagerMixin, manager),
+        prefix + manager.__name__,
+        (mixin, manager),
         {"use_in_migrations": False},
     )
 
 
-def replace_default_manager(model):
-    if isinstance(model.objects, PublishedContentManagerMixin):
+def replace_manager(model, manager, mixin, **kwargs):
+    if hasattr(model, manager) and isinstance(getattr(model, manager), mixin):
         return
-    original_manager = model.objects.__class__
-    manager = published_content_manager_factory(original_manager)()
+    original_manager = getattr(model, manager).__class__ if hasattr(model, manager) else models.Manager
+    manager_object = manager_factory(original_manager, "Versioned", mixin)()
+    for key, value in kwargs.items():
+        setattr(manager_object, key, value)
     model._meta.local_managers = [
-        manager for manager in model._meta.local_managers if manager.name != "objects"
+        mngr for mngr in model._meta.local_managers if mngr.name != manager
     ]
-    model.add_to_class("objects", manager)
-    model.add_to_class("_original_manager", original_manager())
+    model.add_to_class(manager, manager_object)
+    model.add_to_class(f'_original_{"manager" if manager == "objects" else manager}', original_manager())
 
 
 def inject_generic_relation_to_version(model):

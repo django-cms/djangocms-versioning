@@ -26,8 +26,9 @@ from .helpers import (
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
     replace_admin_for_models,
-    replace_default_manager,
+    replace_manager,
 )
+from .managers import PublishedContentManagerMixin, AdminManagerMixin
 from .models import Version
 from .plugin_rendering import CMSToolbarVersioningMixin
 
@@ -139,7 +140,9 @@ class VersioningCMSExtension(CMSAppExtension):
         one inheriting from PublishedContentManagerMixin.
         """
         for versionable in cms_config.versioning:
-            replace_default_manager(versionable.content_model)
+            replace_manager(versionable.content_model, "objects", PublishedContentManagerMixin)
+            replace_manager(versionable.content_model, "admin_manager", AdminManagerMixin,
+                            _group_by_key=[versionable.grouper_field_name] + list(versionable.extra_grouping_fields))
 
     def handle_admin_field_modifiers(self, cms_config):
         """Allows for the transformation of a given field in the ExtendedVersionAdminMixin

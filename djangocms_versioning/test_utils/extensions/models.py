@@ -1,4 +1,4 @@
-from cms.extensions.models import PageExtension, PageContentExtension
+from cms.extensions.models import PageContentExtension, PageExtension
 
 
 class TestPageExtension(PageExtension):

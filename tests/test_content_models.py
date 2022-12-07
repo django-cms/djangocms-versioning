@@ -5,9 +5,12 @@ from django.db import models
 from cms.models.contentmodels import PageContent
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning import helpers, constants
+from djangocms_versioning import constants, helpers
 from djangocms_versioning.helpers import replace_manager
-from djangocms_versioning.managers import AdminManagerMixin, PublishedContentManagerMixin
+from djangocms_versioning.managers import (
+    AdminManagerMixin,
+    PublishedContentManagerMixin,
+)
 from djangocms_versioning.test_utils.factories import PageFactory, PageVersionFactory
 from djangocms_versioning.test_utils.people.models import Person
 
@@ -86,7 +89,6 @@ class AdminManagerTestCase(CMSTestCase):
         for page in self.pages2:
             for content in page.pagecontent_set.all():
                 content.versions.first().unpublish(self.get_superuser())
-
 
         # 2 current PageContent versions for self.pages2
         self.assertEqual(len(list(

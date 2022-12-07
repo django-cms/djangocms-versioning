@@ -45,9 +45,9 @@ jobs:
       matrix:
         python-version: [ 3.8, 3.9, "3.10", "3.11" ]  # latest release minus two
         requirements-file: [
-            dj32_cms40.txt,
-            dj40_cms40.txt,
-            dj41_cms40.txt,
+            dj32_cms41.txt,
+            dj40_cms41.txt,
+            dj41_cms41.txt,
         ]
 
     services:
@@ -90,9 +90,9 @@ jobs:
       matrix:
         python-version: [ 3.8, 3.9, "3.10", "3.11" ]  # latest release minus two
         requirements-file: [
-            dj32_cms40.txt,
-            dj40_cms40.txt,
-            dj41_cms40.txt,
+            dj32_cms41.txt,
+            dj40_cms41.txt,
+            dj41_cms41.txt,
         ]
 
     services:

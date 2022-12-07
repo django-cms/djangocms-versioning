@@ -58,7 +58,7 @@ class AdminQuerySet(models.QuerySet):
     def _chain(self):
         # Also clone group by key when chaining querysets!
         clone = super()._chain()
-        clone._group_by_key=self._group_by_key
+        clone._group_by_key = self._group_by_key
         return clone
 
     def current_content_iterator(self, **kwargs):

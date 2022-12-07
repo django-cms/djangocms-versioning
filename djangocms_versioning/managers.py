@@ -55,9 +55,9 @@ class PublishedContentManagerMixin:
 
 
 class AdminQuerySet(models.QuerySet):
-    def __init__(self, *args, **kwargs):
-        self._group_by_key = kwargs.pop("group_by_key", [])
-        super().__init__(*args, **kwargs)
+    def _chain(self, **kwargs):
+        # Also clone group by key when chaining querysets!
+        return super()._chain(_group_by_key=self._group_by_key, **kwargs)
 
     def current_content_iterator(self, **kwargs):
         """Returns generator (not a queryset) over current content versions. Current versions are either draft
@@ -78,4 +78,6 @@ class AdminManagerMixin:
     _group_by_key = []
 
     def get_queryset(self):
-        return AdminQuerySet(self.model, using=self._db, group_by_key=self._group_by_key)
+        qs = AdminQuerySet(self.model, using=self._db)
+        qs._group_by_key = self._group_by_key
+        return qs

@@ -130,7 +130,9 @@ def replace_manager(model, manager, mixin, **kwargs):
         mngr for mngr in model._meta.local_managers if mngr.name != manager
     ]
     model.add_to_class(manager, manager_object)
-    model.add_to_class(f'_original_{"manager" if manager == "objects" else manager}', original_manager())
+    if manager == "objects":
+        # only safe the original default manager
+        model.add_to_class(f'_original_{"manager" if manager == "objects" else manager}', original_manager())
 
 
 def inject_generic_relation_to_version(model):

@@ -59,6 +59,14 @@ ins.cms-diff img {
     height: 46px !important;
 }
 
+.cms-versioning-controls .cms-btn,
+.cms-versioning-controls .cms-btn:hover {
+    height: 30px;
+    line-height: 30px;
+    font-size: 12px;
+    padding: 0 12px;
+}
+
 .cms-versioning-control-close {
     height: 46px !important;
     width: 46px !important;
@@ -148,6 +156,7 @@ ins.cms-diff img {
 
 .cms-versioning-title {
     margin-right: 10px;
+    margin-left: 10px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;

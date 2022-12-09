@@ -1,8 +1,11 @@
 import collections
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponseForbidden
+from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -10,8 +13,10 @@ from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent, Placeholder
 from cms.utils.i18n import get_language_tuple
 
+from . import indicators
 from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
+from .exceptions import ConditionFailed
 from .helpers import (
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
@@ -254,7 +259,7 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
-class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdminMixin):
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -276,6 +281,16 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                 for f_name in ["slug", "overwrite_url"]:
                     form.declared_fields[f_name].widget.attrs["readonly"] = True
         return form
+
+    def change_innavigation(self, request, object_id):
+        page_content = self.get_object(request, object_id=object_id)
+        version = Version.objects.get_for_content(page_content)
+        try:
+            version.check_modify(request.user)
+        except ConditionFailed as e:
+            self.message_user(request, force_str(e), messages.ERROR)
+            return HttpResponseForbidden(force_str(e))
+        return super().change_innavigation(request, object_id)
 
 
 class VersioningCMSConfig(CMSAppConfig):
@@ -299,3 +314,6 @@ class VersioningCMSConfig(CMSAppConfig):
             content_admin_mixin=VersioningCMSPageAdminMixin,
         )
     ]
+    PageContent.add_to_class("is_editable", indicators.is_editable)
+    PageContent.add_to_class("content_indicator", indicators.content_indicator)
+    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

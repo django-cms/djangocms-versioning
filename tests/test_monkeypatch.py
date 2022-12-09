@@ -12,10 +12,12 @@ from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.models import Version
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
-from djangocms_versioning.test_utils.extended_polls.models import PollTitleExtension
+from djangocms_versioning.test_utils.extended_polls.models import (
+    PollPageContentExtension,
+)
 from djangocms_versioning.test_utils.extensions.models import (
+    TestPageContentExtension,
     TestPageExtension,
-    TestTitleExtension,
 )
 from djangocms_versioning.test_utils.factories import (
     PageContentFactory,
@@ -45,13 +47,13 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
             extensions=False,
         )
         new_page_content = PageContentFactory(page=self.new_page, language='de')
-        self.new_page.title_cache[de_pagecontent.language] = new_page_content
+        self.new_page.page_content_cache[de_pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):
         """Try to copy the extension, without the monkeypatch this tests fails"""
         extension_pool = ExtensionPool()
         extension_pool.page_extensions = set([TestPageExtension])
-        extension_pool.title_extensions = set([TestTitleExtension])
+        extension_pool.title_extensions = set([TestPageContentExtension])
         extension_pool.copy_extensions(
             self.page, self.new_page, languages=['de']
         )
@@ -69,11 +71,11 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
 
         new_pagecontent = copy_page_content(page_content)
 
-        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
-        self.assertEqual(page_content.polltitleextension.pk, poll_extension.pk)
-        self.assertNotEqual(page_content.polltitleextension.pk, new_pagecontent.polltitleextension.pk)
-        self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
-        self.assertEqual(PollTitleExtension._base_manager.count(), 2)
+        self.assertNotEqual(new_pagecontent.pollpagecontentextension, poll_extension)
+        self.assertEqual(page_content.pollpagecontentextension.pk, poll_extension.pk)
+        self.assertNotEqual(page_content.pollpagecontentextension.pk, new_pagecontent.pollpagecontentextension.pk)
+        self.assertEqual(new_pagecontent.pollpagecontentextension.votes, 5)
+        self.assertEqual(PollPageContentExtension._base_manager.count(), 2)
 
     def test_pagecontent_copy_method_not_created_extension_title_extension_attached(self):
         """
@@ -83,7 +85,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         new_pagecontent = copy_page_content(self.version.content)
 
         self.assertFalse(hasattr(new_pagecontent, "polltitleextension"))
-        self.assertEqual(PollTitleExtension._base_manager.count(), 0)
+        self.assertEqual(PollPageContentExtension._base_manager.count(), 0)
 
     def test_pagecontent_copy_method_creates_extension_multiple_title_extension_attached(self):
         """
@@ -96,15 +98,15 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
 
         new_pagecontent = copy_page_content(page_content)
 
-        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
-        self.assertEqual(page_content.polltitleextension.pk, poll_extension.pk)
-        self.assertNotEqual(new_pagecontent.testtitleextension, poll_extension)
-        self.assertEqual(page_content.testtitleextension.pk, poll_extension.pk)
-        self.assertNotEqual(new_pagecontent.polltitleextension, poll_extension)
-        self.assertNotEqual(new_pagecontent.testtitleextension, title_extension)
-        self.assertEqual(new_pagecontent.polltitleextension.votes, 5)
-        self.assertEqual(PollTitleExtension._base_manager.count(), 2)
-        self.assertEqual(TestTitleExtension._base_manager.count(), 2)
+        self.assertNotEqual(new_pagecontent.pollpagecontentextension, poll_extension)
+        self.assertEqual(page_content.pollpagecontentextension.pk, poll_extension.pk)
+        self.assertNotEqual(new_pagecontent.testpagecontentextension, poll_extension)
+        self.assertEqual(page_content.testpagecontentextension.pk, poll_extension.pk)
+        self.assertNotEqual(new_pagecontent.pollpagecontentextension, poll_extension)
+        self.assertNotEqual(new_pagecontent.testpagecontentextension, title_extension)
+        self.assertEqual(new_pagecontent.pollpagecontentextension.votes, 5)
+        self.assertEqual(PollPageContentExtension._base_manager.count(), 2)
+        self.assertEqual(TestPageContentExtension._base_manager.count(), 2)
 
     def test_title_extension_admin_monkey_patch_save(self):
         """
@@ -112,8 +114,8 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         due to versioning overriding monkeypatches
         """
         poll_extension = PollTitleExtensionFactory(extended_object=self.version.content)
-        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
-        test_url = admin_reverse("extended_polls_polltitleextension_change", args=(poll_extension.pk,))
+        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollPageContentExtension)
+        test_url = admin_reverse("extended_polls_pollpagecontentextension_change", args=(poll_extension.pk,))
         test_url += "?extended_object=%s" % self.version.content.pk
         request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
@@ -121,8 +123,8 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         poll_extension.votes = 1
         model_site.save_model(request, poll_extension, form=None, change=False)
 
-        self.assertEqual(PollTitleExtension.objects.first().votes, 1)
-        self.assertEqual(PollTitleExtension.objects.count(), 1)
+        self.assertEqual(PollPageContentExtension.objects.first().votes, 1)
+        self.assertEqual(PollPageContentExtension.objects.count(), 1)
 
     def test_title_extension_admin_monkey_patch_save_date_modified_updated(self):
         """
@@ -131,9 +133,9 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         the correct date timestamp.
         """
         poll_extension = PollTitleExtensionFactory(extended_object=self.version.content)
-        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollTitleExtension)
+        model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollPageContentExtension)
         pre_changes_date_modified = Version.objects.get(id=self.version.pk).modified
-        test_url = admin_reverse("extended_polls_polltitleextension_change", args=(poll_extension.pk,))
+        test_url = admin_reverse("extended_polls_pollpagecontentextension_change", args=(poll_extension.pk,))
         test_url += "?extended_object=%s" % self.version.content.pk
 
         request = RequestFactory().post(path=test_url)
@@ -151,7 +153,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         """
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(
-                admin_reverse("extended_polls_polltitleextension_add") +
+                admin_reverse("extended_polls_pollpagecontentextension_add") +
                 "?extended_object=%s" % self.version.content.pk,
                 follow=True
             )
@@ -222,8 +224,8 @@ class MonkeypatchTestCase(CMSTestCase):
         page = version.content.page
         page._prefetched_objects_cache = {"pagecontent_set": [version.content]}
 
-        page._get_title_cache(language="en", fallback=False, force_reload=False)
-        self.assertEqual({"en": version.content}, page.title_cache)
+        page._get_page_content_cache(language="en", fallback=False, force_reload=False)
+        self.assertEqual({"en": version.content}, page.page_content_cache)
 
 
 class MonkeypatchAdminTestCase(CMSTestCase):

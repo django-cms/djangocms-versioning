@@ -43,19 +43,50 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         return admin_url
 
+    def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected publish url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, "revert", version.pk
+        )
+        return admin_url
+
     def test_publish_in_toolbar_in_edit_mode(self):
+        """Test for Edit button in edit mode"""
         version = PollVersionFactory()
         toolbar = get_toolbar(version.content, edit_mode=True)
 
         toolbar.post_template_populate()
-        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
+        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)
+        self.assertListEqual(revert_button, [])  # No revert button
 
+        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
         self.assertEqual(publish_button.name, "Publish")
         self.assertEqual(publish_button.url, self._get_publish_url(version))
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
             ["cms-btn-action", "cms-versioning-js-publish-btn"],
+        )
+
+    def test_revert_in_toolbar_in_preview_mode(self):
+        """Test for Revert button outside mode"""
+
+        version = PollVersionFactory()
+        version.archive(self.get_superuser())
+        toolbar = get_toolbar(version.content, edit_mode=False)
+
+        toolbar.post_template_populate()
+        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)
+        self.assertListEqual(publish_button, [])  # No publish button
+
+        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)[0]
+        self.assertEqual(revert_button.name, "Revert")
+        self.assertEqual(revert_button.url, self._get_revert_url(version))
+        self.assertFalse(revert_button.disabled)
+        self.assertListEqual(
+            revert_button.extra_classes,
+            ["cms-btn-action", ],
         )
 
     def test_publish_not_in_toolbar_in_preview_mode(self):

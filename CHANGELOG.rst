@@ -14,6 +14,7 @@ Unreleased
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused
 * ci: Added concurrency option to cancel in progress runs when new changes occur
+* fix: Added setting to make the field to identify a user configurable in ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models with no ``username``
 * ci: Run tests on sqlite, mysql and postgres db
 
 * feat: Compatibility with page content extension changes to django-cms

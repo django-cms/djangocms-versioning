@@ -73,9 +73,8 @@ class AdminManagerTestCase(CMSTestCase):
         )), 12)
 
         # 4 total PageContent versions for self.pages1 (2 pages x 2 languages)
-        self.assertEqual(len(
-            qs := PageContent.admin_manager.filter(page__in=self.pages1)
-        ), 4)
+        qs = PageContent.admin_manager.filter(page__in=self.pages1)
+        self.assertEqual(len(qs), 4)
         self.assertEqual(qs._group_by_key, ["page", "language"])
         self.assertEqual(len(list(
             PageContent.admin_manager.filter(page__in=self.pages1).current_content_iterator()

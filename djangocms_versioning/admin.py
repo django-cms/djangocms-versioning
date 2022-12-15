@@ -255,7 +255,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         )
         return render_to_string(
             "djangocms_versioning/admin/icons/edit_icon.html",
-            {"url": url, "disabled": disabled, "get": False},
+            {"url": url, "disabled": disabled, "get": False, "keepsideframe": False},
         )
 
     def _get_manage_versions_link(self, obj, request, disabled=False):
@@ -518,7 +518,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         return render_to_string(
             "djangocms_versioning/admin/icons/publish_icon.html",
-            {"url": publish_url, "disabled": disabled, "get": False}
+            {"url": publish_url, "disabled": disabled, "get": False, "keepsideframe": False}
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):

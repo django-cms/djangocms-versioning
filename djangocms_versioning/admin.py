@@ -130,7 +130,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
             "all": (
-                static_with_version("cms/css/cms.base.css"),
+                static_with_version("cms/css/cms.pagetree.css"),
                 "djangocms_versioning/css/actions.css",
             )
         }
@@ -402,7 +402,7 @@ class VersionAdmin(admin.ModelAdmin):
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
         css = {"all": (
-            static_with_version("cms/css/cms.base.css"),
+            static_with_version("cms/css/cms.pagetree.css"),
             "djangocms_versioning/css/actions.css",
         )}
 

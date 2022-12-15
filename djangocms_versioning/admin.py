@@ -23,6 +23,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
+from .conf import USERNAME_FIELD
 from .constants import DRAFT, PUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
@@ -138,7 +139,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         queryset = super().get_queryset(request)
         # Due to django admin ordering using unicode, to alphabetically order regardless of case, we must
         # annotate the queryset, with the usernames all lower case, and then order based on that!
-        queryset = queryset.annotate(created_by_username_ordering=Lower("versions__created_by__username"))
+
+        queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{USERNAME_FIELD}"))
         return queryset
 
     def get_version(self, obj):
@@ -484,7 +486,7 @@ class VersionAdmin(admin.ModelAdmin):
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
         """
-        if not obj.check_archive.as_bool(request.user):
+        if not obj.can_be_archived():
             # Don't display the link if it can't be archived
             return ""
         archive_url = reverse(

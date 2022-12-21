@@ -477,7 +477,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", version.pk
         )
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'
@@ -545,7 +548,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         actual_enabled_control = self.version_admin._get_discard_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-discard '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Discard">'
@@ -608,7 +614,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", archive_version.pk
         )
         expected_disabled_control = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'

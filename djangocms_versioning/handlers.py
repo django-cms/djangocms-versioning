@@ -1,5 +1,6 @@
 from django.utils import timezone
 
+from cms.extensions.models import BaseExtension
 from cms.operations import (
     ADD_PLUGIN,
     ADD_PLUGINS_FROM_PLACEHOLDER,
@@ -17,6 +18,8 @@ from .versionables import _cms_extension
 
 
 def _update_modified(instance):
+    if isinstance(instance, BaseExtension):
+        instance = instance.extended_object
     if instance and _cms_extension().is_content_model_versioned(instance.__class__):
         try:
             version = Version.objects.get_for_content(instance)

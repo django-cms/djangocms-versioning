@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from cms.plugin_rendering import ContentRenderer, StructureRenderer
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
@@ -68,3 +70,15 @@ class VersionStructureRenderer(StructureRenderer):
     def render_plugin(self, instance, page=None):
         prefetch_versioned_related_objects(instance, self.toolbar)
         return super().render_plugin(instance, page)
+
+
+class CMSToolbarVersioningMixin:
+    @property
+    @lru_cache(16)
+    def content_renderer(self):
+        return VersionContentRenderer(request=self.request)
+
+    @property
+    @lru_cache(16)
+    def structure_renderer(self):
+        return VersionStructureRenderer(request=self.request)

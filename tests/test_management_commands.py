@@ -1,10 +1,11 @@
-from cms.test_utils.testcases import CMSTestCase
 from django.core.management import call_command
 from django.db import transaction
 
+from cms.test_utils.testcases import CMSTestCase
+
 from djangocms_versioning import constants
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.blogpost.models import BlogPost, BlogContent
+from djangocms_versioning.test_utils.blogpost.models import BlogContent, BlogPost
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 

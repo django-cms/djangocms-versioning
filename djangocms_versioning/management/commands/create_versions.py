@@ -14,14 +14,16 @@ User = get_user_model()
 class Command(BaseCommand):
     help = 'Creates Version objects for versioned models lacking one. If the DJANGOCMS_VERSIONING_DEFAULT_USER ' \
            'setting is not populated you will have to provide either the --userid or --username option for ' \
-           'each Version object needs to be assigned to a user.'
+           'each Version object needs to be assigned to a user. ' \
+           'If multiple content objects for a grouper model are found only the newest (by primary key) is ' \
+           'assigned the state, older versions are marked as "archived".'
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--state",
             type=str,
             default=constants.DRAFT,
-            choices=[key for key, value in constants.VERSION_STATES],
+            choices=[key for key, value in constants.VERSION_STATES if key != constants.UNPUBLISHED],
             help=f"state of newly created version object (defaults to {constants.DRAFT})"
         )
         parser.add_argument(
@@ -41,7 +43,8 @@ class Command(BaseCommand):
             help="Do not change the database",
         )
 
-    def get_user(self, options):
+    @staticmethod
+    def get_user(options):
         if DEFAULT_USER is not None:
             try:
                 return User.objects.get(pk=DEFAULT_USER)
@@ -75,16 +78,38 @@ class Command(BaseCommand):
                 f"{len(version_ids) + len(unversioned)} objects of type {Model.__name__}, thereof "
                 f"{len(unversioned)} missing Version object"
             ))
-            if not options["dry_run"]:
-                if user is None:
-                    raise CommandError("Please specify a user which missing Version objects shall belong to "
-                                       "either with the DJANGOCMS_VERSIONING_DEFAULT_USER setting or using "
-                                       "command line arguments")
-                for orphan in unversioned:
+            if user is None and not options["dry_run"] and unversioned:
+                raise CommandError("Please specify a user which missing Version objects shall belong to "
+                                   "either with the DJANGOCMS_VERSIONING_DEFAULT_USER setting or using "
+                                   "command line arguments")
+
+            for orphan in unversioned:
+                # find all model instances that belong to the same grouper
+                selectors = {versionable.grouper_field_name: getattr(orphan, versionable.grouper_field_name)}
+                for extra_selector in versionable.extra_grouping_fields:
+                    selectors[extra_selector] = getattr(orphan, extra_selector)
+                same_grouper_ids = Model.admin_manager.filter(**selectors).values_list("pk", flat=True)
+                # get all existing version objects
+                existing_versions = Version.objects.filter(content_type=content_type, object_id__in=same_grouper_ids)
+                # target state
+                state = options["state"]
+                # change to "archived" if state already exists
+                if state != constants.ARCHIVED:
+                    for version in existing_versions:
+                        if version.state == state:
+                            state = constants.ARCHIVED
+                            break
+
+                if options["dry_run"]:
+                    # Only write out change
+                    self.stdout.write((self.style.NOTICE(
+                        f"{str(orphan)} (pk={orphan.pk}) would be assigned a Version object with state {state}"
+                    )))
+                else:
                     try:
                         Version.objects.create(
                             content=orphan,
-                            state=options["state"],
+                            state=state,
                             created_by=user,
                         )
                         self.stdout.write(self.style.SUCCESS(

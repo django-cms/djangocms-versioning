@@ -12,7 +12,9 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Creates Version objects for versioned models lacking one'
+    help = 'Creates Version objects for versioned models lacking one. If the DJANGOCMS_VERSIONING_DEFAULT_USER ' \
+           'setting is not populated you will have to provide either the --userid or --username option for ' \
+           'each Version object needs to be assigned to a user.'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -20,18 +22,16 @@ class Command(BaseCommand):
             type=str,
             default=constants.DRAFT,
             choices=[key for key, value in constants.VERSION_STATES],
-            help="state of newly created version object"
+            help=f"state of newly created version object (defaults to {constants.DRAFT})"
         )
         parser.add_argument(
             "--username",
             type=str,
-            nargs="?",
             help="Username of user to create the missing Version objects"
         )
         parser.add_argument(
             "--userid",
             type=int,
-            nargs="?",
             help="User id of user to create the missing Version objects"
         )
 
@@ -42,26 +42,26 @@ class Command(BaseCommand):
         )
 
     def get_user(self, options):
-        user = None
+        if DEFAULT_USER is not None:
+            try:
+                return User.objects.get(pk=DEFAULT_USER)
+            except User.DoesNotExist:
+                raise CommandError(f"No user with id {DEFAULT_USER} found "
+                                   f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py")
+
         if options["userid"] and options["username"]:
             raise CommandError("Only either one of the options '--userid' or '--username' may be given")
         if options["userid"]:
             try:
-                user = User.objects.get(pk=options["userid"])
+                return User.objects.get(pk=options["userid"])
             except User.DoesNotExist:
                 raise CommandError(f"No user with id {options['userid']} found")
         if options["username"]:
             try:
-                user = User.objects.get(**{USERNAME_FIELD: options["username"]})
+                return User.objects.get(**{USERNAME_FIELD: options["username"]})
             except User.DoesNotExist:
                 raise CommandError(f"No user with name {options['username']} found")
-        if user is None and DEFAULT_USER is not None:
-            try:
-                user = User.objects.get(pk=DEFAULT_USER)
-            except User.DoesNotExist:
-                raise CommandError(f"No user with id {DEFAULT_USER} found "
-                                   f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py")
-        return user
+        return None
 
     def handle(self, *args, **options):
         user = self.get_user(options)

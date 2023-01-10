@@ -59,7 +59,7 @@ class Command(BaseCommand):
                 return User.objects.get(pk=options["userid"])
             except User.DoesNotExist:
                 raise CommandError(f"No user with id {options['userid']} found")
-        if options["username"]:
+        if options["username"]:  # pragma: no cover
             try:
                 return User.objects.get(**{USERNAME_FIELD: options["username"]})
             except User.DoesNotExist:

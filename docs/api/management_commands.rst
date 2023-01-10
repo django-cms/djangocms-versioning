@@ -6,9 +6,12 @@ create_versions
 
 ``create_versions`` creates ``Version`` objects for versioned content that does
 not have a version assigned. This happens if djangocms-versioning is added to
-content models after content already has been created.
+content models after content already has been created. It can also be used as a
+recovery tool if - for whatever reason - some or all ``Version`` objects have
+not been created for a grouper.
 
-By default, the existing content is assigned the draft status.
+By default, the existing content is assigned the draft status. If a draft
+version already exists the content will be given the archived state.
 
 Each version is assigned a user who created the version. When this command is
 run, either

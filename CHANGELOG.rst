@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* add: transifex support, German translations
 * add: Revert button as replacement for dysfunctional Edit button for unpublished
   versions
 * add: status indicators and drop down menus for django cms page tree

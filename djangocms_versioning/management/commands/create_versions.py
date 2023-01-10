@@ -45,14 +45,14 @@ class Command(BaseCommand):
 
     @staticmethod
     def get_user(options):
-        if DEFAULT_USER is not None:
+        if DEFAULT_USER is not None:  # pragma: no cover
             try:
                 return User.objects.get(pk=DEFAULT_USER)
             except User.DoesNotExist:
                 raise CommandError(f"No user with id {DEFAULT_USER} found "
                                    f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py")
 
-        if options["userid"] and options["username"]:
+        if options["userid"] and options["username"]:  # pragma: no cover
             raise CommandError("Only either one of the options '--userid' or '--username' may be given")
         if options["userid"]:
             try:
@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 return User.objects.get(**{USERNAME_FIELD: options["username"]})
             except User.DoesNotExist:
                 raise CommandError(f"No user with name {options['username']} found")
-        return None
+        return None  # pragma: no cover
 
     def handle(self, *args, **options):
         user = self.get_user(options)
@@ -78,7 +78,7 @@ class Command(BaseCommand):
                 f"{len(version_ids) + len(unversioned)} objects of type {Model.__name__}, thereof "
                 f"{len(unversioned)} missing Version object"
             ))
-            if user is None and not options["dry_run"] and unversioned:
+            if user is None and not options["dry_run"] and unversioned:  # pragma: no cover
                 raise CommandError("Please specify a user which missing Version objects shall belong to "
                                    "either with the DJANGOCMS_VERSIONING_DEFAULT_USER setting or using "
                                    "command line arguments")
@@ -100,7 +100,7 @@ class Command(BaseCommand):
                             state = constants.ARCHIVED
                             break
 
-                if options["dry_run"]:
+                if options["dry_run"]:  # pragma: no cover
                     # Only write out change
                     self.stdout.write((self.style.NOTICE(
                         f"{str(orphan)} (pk={orphan.pk}) would be assigned a Version object with state {state}"
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.SUCCESS(
                             f"Successfully created version object for {Model.__name__} with pk={orphan.pk}"
                         ))
-                    except Exception as e:
+                    except Exception as e:  # pragma: no cover
                         self.stdout.write(self.style.ERROR(
                             f"Failed creating version object for {Model.__name__} with pk={orphan.pk}: {e}"
                         ))

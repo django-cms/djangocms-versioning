@@ -7,6 +7,7 @@ Unreleased
 * add: Revert button as replacement for dysfunctional Edit button for unpublished
   versions
 * add: status indicators and drop down menus for django cms page tree
+* add BREAKING: use icons provided by cms core version 4.1+
 * fix: only offer languages for plugin copy with available content
 * feat: Add support for Django 4.0, 4.1 and Python 3.10 and 3.11
 * fix: migrations for MySql

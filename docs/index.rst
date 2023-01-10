@@ -22,6 +22,12 @@ Welcome to "djangocms-versioning"'s documentation!
 
    admin_architecture
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Release notes:
+
+   upgrade/2.0.0
+
 
 Glossary
 --------

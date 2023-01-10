@@ -1,0 +1,44 @@
+.. _upgrade-to-2-0-0:
+
+********************************
+2.0.0 release notes (unreleased)
+********************************
+
+*Date in 2023*
+
+Welcome to django CMS versioning 2.0.0!
+
+These release notes cover the new features, as well as some backwards
+incompatible changes you’ll want to be aware of when upgrading from
+django CMS versioning 1.x.
+
+
+Django and Python compatibility
+===============================
+
+django CMS supports **Django 3.2, 4.0, and 4.1**. We highly recommend and only
+support the latest release of each series.
+
+It supports **Python 3.8, 3.9, 3.10, and 3.11**. As for Django we highly recommend and only
+support the latest release of each series.
+
+Backwards incompatible changes in 2.0.0
+=======================================
+
+Monkey patching
+---------------
+
+* Version 2.0.0 uses new configuration possibilities of django CMS 4.1+ and
+  therefor is incompatible with versions 4.0.x
+* As a result monkey patching has been removed from djangocms-versioning and
+  is discouraged
+
+Status indicators in page tree
+------------------------------
+
+* Status indicators are shown in the page tree as of django CMS 4.1+
+* For a more consistent user experience djangocms-versioning uses icons
+  provided by django CMS 4.1+ and does not provide its own icons any more.
+* If ``djangocms_admin_style`` is listed in the ``INSTALLED_APPS`` setting
+  make sure that at least version 3.2.1 is installed. Older versions contain
+  a bug that interferes with djangocms-versioning's icons.

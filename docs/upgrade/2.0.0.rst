@@ -22,6 +22,20 @@ support the latest release of each series.
 It supports **Python 3.8, 3.9, 3.10, and 3.11**. As for Django we highly recommend and only
 support the latest release of each series.
 
+Features
+========
+
+Status indicators in page tree
+------------------------------
+
+* Status indicators are shown in the page tree as of django CMS 4.1+
+* For a more consistent user experience djangocms-versioning uses icons
+  provided by django CMS 4.1+ and does not provide its own icons any more.
+* If ``djangocms_admin_style`` is listed in the ``INSTALLED_APPS`` setting
+  make sure that at least version 3.2.1 is installed. Older versions contain
+  a bug that interferes with djangocms-versioning's icons.
+
+
 Backwards incompatible changes in 2.0.0
 =======================================
 
@@ -33,12 +47,32 @@ Monkey patching
 * As a result monkey patching has been removed from djangocms-versioning and
   is discouraged
 
-Status indicators in page tree
-------------------------------
+Title Extension
+---------------
 
-* Status indicators are shown in the page tree as of django CMS 4.1+
-* For a more consistent user experience djangocms-versioning uses icons
-  provided by django CMS 4.1+ and does not provide its own icons any more.
-* If ``djangocms_admin_style`` is listed in the ``INSTALLED_APPS`` setting
-  make sure that at least version 3.2.1 is installed. Older versions contain
-  a bug that interferes with djangocms-versioning's icons.
+As of django CMS 4.1 ``TitleExtension`` in ``cms.extensions.models`` has been
+renamed to ``PageContentExtension`` to keep a consistent language in the page
+models. This change is reflected in djangocms-versioning 2.0.0.
+
+See this `PR <https://github.com/django-cms/djangocms-versioning/pull/291>`_.
+
+Icon use
+--------
+
+Djangocms-versioning now uses icons from the core which are only available as
+of django CMS v4.1+.
+
+
+Miscellaneous
+=============
+
+* Adds compatibility for User models with no username field (see this
+  `PR <https://github.com/django-cms/djangocms-versioning/pull/293>`_):
+  Adds the possibility to configure which field of the User model uniquely
+  identifies the User. Default is username.
+
+Bug fixes
+=========
+
+* Adjust migrations to ensure MySql compatibility (see this
+  `PR <https://github.com/django-cms/djangocms-versioning/pull/287>`_)

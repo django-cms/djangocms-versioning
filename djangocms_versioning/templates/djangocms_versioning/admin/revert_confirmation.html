@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls static %}
-{% block title %}{% trans "Revert Confirmation" %}{% endblock %}
+{% block title %}{% translate "Revert Confirmation" %}{% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -15,9 +15,9 @@
 {% block content %}
 <p>
     {% if draft_version %}
-    {% trans "Reverting to this version may cause loss of an existing draft version. Please select an option to continue" %}
+    {% translate "Reverting to this version may cause loss of an existing draft version. Please select an option to continue" %}
     {% else %}
-    {% trans "Are you sure you want to revert to the following version?" %}
+    {% translate "Are you sure you want to revert to the following version?" %}
     {% endif %}
 </p>
 <h3>{{ object_name }}</h3>
@@ -28,21 +28,21 @@
     <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             type="submit"
             name="discard"
-            value="{% trans 'Discard existing draft and Revert' %}">
+            value="{% translate 'Discard existing draft and Revert' %}">
     <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             name="archive"
             type="submit"
-            value="{% trans 'Archive existing draft and Revert' %}">
+            value="{% translate 'Archive existing draft and Revert' %}">
     {% else %}
     <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
             type="submit"
             name="revert"
-            value="{% trans 'Yes, I\'m sure' %}">
+            value="{% translate "Yes, I'm sure" %}">
     {% endif %}
     <a href="{{ back_url }}">
         <input type="button"
                class="button js-versioning-keep-sideframe"
-               value="{% trans 'No, take me back' %}">
+               value="{% translate 'No, take me back' %}">
     </a>
 </form>
 {% endblock %}

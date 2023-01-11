@@ -1,0 +1,413 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-11 05:51+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:161
+msgid "State"
+msgstr ""
+
+#: admin.py:173
+msgid "Author"
+msgstr ""
+
+#: admin.py:184
+msgid "Modified"
+msgstr ""
+
+#: admin.py:211 admin.py:441
+msgid "actions"
+msgstr ""
+
+#: admin.py:284 admin.py:287
+#: templates/djangocms_versioning/admin/icons/preview.html:3
+#: templates/djangocms_versioning/admin/preview.html:3
+msgid "Preview"
+msgstr ""
+
+#: admin.py:470
+msgid "version number"
+msgstr ""
+
+#: admin.py:483
+msgid "Content"
+msgstr ""
+
+#: admin.py:639
+msgid "Exactly two versions need to be selected."
+msgstr ""
+
+#: admin.py:653
+msgid "Compare versions"
+msgstr ""
+
+#: admin.py:680
+msgid "Version cannot be archived"
+msgstr ""
+
+#: admin.py:709
+msgid "Version archived"
+msgstr ""
+
+#: admin.py:720 admin.py:838
+msgid "This view only supports POST method."
+msgstr ""
+
+#: admin.py:731
+msgid "Version cannot be published"
+msgstr ""
+
+#: admin.py:742
+msgid "Version published"
+msgstr ""
+
+#: admin.py:759
+msgid "Version cannot be unpublished"
+msgstr ""
+
+#: admin.py:800
+msgid "Version unpublished"
+msgstr ""
+
+#: admin.py:948
+msgid "The last version has been deleted"
+msgstr ""
+
+#: admin.py:1046
+#, python-brace-format
+msgid "Displaying versions of \"{grouper}\""
+msgstr ""
+
+#: apps.py:8
+msgid "django CMS Versioning"
+msgstr ""
+
+#: cms_config.py:237
+msgid "No available title"
+msgstr ""
+
+#: cms_config.py:239 indicators.py:25
+msgid "Unpublished"
+msgstr ""
+
+#: cms_config.py:333
+msgid "Language must be set to a supported language!"
+msgstr ""
+
+#: cms_config.py:351
+msgid "You do not have permission to copy these plugins."
+msgstr ""
+
+#: cms_toolbars.py:81 indicators.py:42
+#: templates/djangocms_versioning/admin/icons/publish_icon.html:3
+msgid "Publish"
+msgstr ""
+
+#: cms_toolbars.py:111
+#: templates/djangocms_versioning/admin/icons/edit_icon.html:3
+msgid "Edit"
+msgstr ""
+
+#: cms_toolbars.py:136
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr ""
+
+#: cms_toolbars.py:154
+#, python-brace-format
+msgid "Version #{number} ({state})"
+msgstr ""
+
+#: cms_toolbars.py:168
+msgid "Manage Versions"
+msgstr ""
+
+#: cms_toolbars.py:170
+#, python-brace-format
+msgid "Compare to {state} source"
+msgstr ""
+
+#: cms_toolbars.py:211
+msgid "View Published"
+msgstr ""
+
+#: cms_toolbars.py:254
+msgid "Language"
+msgstr ""
+
+#: cms_toolbars.py:301
+msgid "Add Translation"
+msgstr ""
+
+#: cms_toolbars.py:314
+msgid "Copy all plugins"
+msgstr ""
+
+#: cms_toolbars.py:316
+#, python-format
+msgid "from %s"
+msgstr ""
+
+#: cms_toolbars.py:317
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr ""
+
+#: cms_toolbars.py:332
+msgid "No other language available"
+msgstr ""
+
+#: indicators.py:22
+msgid "Published"
+msgstr ""
+
+#: indicators.py:23
+msgid "Changed"
+msgstr ""
+
+#: indicators.py:24
+msgid "Draft"
+msgstr ""
+
+#: indicators.py:26
+msgid "Archived"
+msgstr ""
+
+#: indicators.py:27
+msgid "Empty"
+msgstr ""
+
+#: indicators.py:48
+msgid "Create new draft"
+msgstr ""
+
+#: indicators.py:54
+msgid "Revert from Unpublish"
+msgstr ""
+
+#: indicators.py:62 indicators.py:68
+#: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
+msgid "Unpublish"
+msgstr ""
+
+#: indicators.py:74
+msgid "Delete Draft"
+msgstr ""
+
+#: indicators.py:74
+msgid "Delete Changes"
+msgstr ""
+
+#: indicators.py:80
+msgid "Compare Draft to Published..."
+msgstr ""
+
+#: indicators.py:90
+msgid "Manage Versions..."
+msgstr ""
+
+#: models.py:72
+msgid "author"
+msgstr ""
+
+#: models.py:81
+msgid "status"
+msgstr ""
+
+#: models.py:89
+msgid "source"
+msgstr ""
+
+#: models.py:100
+#, python-brace-format
+msgid "Version #{number} ({state} {date})"
+msgstr ""
+
+#: models.py:224 models.py:271
+msgid "Version is not in draft state"
+msgstr ""
+
+#: models.py:331
+msgid "Version is not in published state"
+msgstr ""
+
+#: models.py:378 models.py:389
+msgid "Version is not a draft"
+msgstr ""
+
+#: models.py:384
+msgid "Version is not in archived or unpublished state"
+msgstr ""
+
+#: models.py:395
+msgid "Version is not in draft or published state"
+msgstr ""
+
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
+#: templates/djangocms_versioning/admin/grouper_form.html:9
+msgid "Home"
+msgstr ""
+
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:7
+#: templates/djangocms_versioning/admin/mixin/change_form.html:7
+msgid "Versions"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:3
+msgid "Archive Confirmation"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:15
+msgid "Are you sure you want to archive the following version?"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:17
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:17
+#, python-format
+msgid " Version number: %(version_number)s"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:22
+#: templates/djangocms_versioning/admin/discard_confirmation.html:23
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:27
+msgid "Yes, I'm sure"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:26
+#: templates/djangocms_versioning/admin/discard_confirmation.html:27
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:31
+msgid "No, take me back"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:8
+#, python-format
+msgid ""
+"\n"
+"        Compare %(left)s to %(right)s\n"
+"        "
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:12
+#, python-format
+msgid ""
+"\n"
+"        Compare %(left)s\n"
+"        "
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:16
+#, python-format
+msgid ""
+"\n"
+"        Compare %(right)s\n"
+"        "
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:37
+msgid "Back"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:40
+#, python-format
+msgid ""
+"\n"
+"                    Comparing %(left)s with\n"
+"                "
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:45
+msgid "Pick a version to compare to"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:56
+msgid "Visual"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/compare.html:59
+msgid "Source"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:3
+msgid "Discard Confirmation"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:15
+msgid "Are you sure you want to discard following version?"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:17
+#: templates/djangocms_versioning/admin/revert_confirmation.html:24
+#, python-format
+msgid "Version number: %(version_number)s"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/grouper_form.html:27
+#, python-format
+msgid "Add %(name)s"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/grouper_form.html:37
+msgid "Submit"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/icons/archive_icon.html:3
+msgid "Archive"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/icons/discard_icon.html:3
+msgid "Discard"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/icons/manage_versions.html:3
+msgid "Manage versions"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/icons/view.html:3
+msgid "View on site"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:3
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:3
+msgid "Revert Confirmation"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:18
+msgid ""
+"Reverting to this version may cause loss of an existing draft version. "
+"Please select an option to continue"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:20
+msgid "Are you sure you want to revert to the following version?"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:31
+msgid "Discard existing draft and Revert"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:35
+msgid "Archive existing draft and Revert"
+msgstr ""
+
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+msgid ""
+"Unpublishing will remove this version from live. Are you sure you want to "
+"unpublish?"
+msgstr ""

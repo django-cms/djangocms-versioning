@@ -34,7 +34,7 @@
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
                 {% if return_url %}
-                    <a class="cms-btn" href="{{ return_url }}">{% trans "Back" %}</a> &nbsp;
+                    <a class="cms-btn" href="{{ return_url }}">{% translate "Back" %}</a> &nbsp;
                 {% endif %}
                 <span class="cms-versioning-title">
                 {% blocktrans with left=v1_description|default:v1.verbose_name %}
@@ -42,7 +42,7 @@
                 {% endblocktrans %}
                 </span>
                 <select class="js-cms-versioning-version cms-select">
-                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
+                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% translate "Pick a version to compare to" %}</option>
                     {% for version in version_list %}
                         {% if version.pk != v1.pk %}
                             <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version.verbose_name }}</option>
@@ -53,10 +53,10 @@
                     <div class="cms-btn-group" style="display: none;">
                         <a href="#"
                             class="cms-btn cms-btn-active js-cms-versioning-control js-cms-versioning-control-visual">
-                            {% trans "Visual" %}
+                            {% translate "Visual" %}
                         </a>
                         <a href="#" class="cms-btn js-cms-versioning-control js-cms-versioning-control-source">
-                            {% trans "Source" %}
+                            {% translate "Source" %}
                         </a>
                     </div>
                 </div>

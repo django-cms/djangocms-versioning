@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-10 17:26+0100\n"
+"POT-Creation-Date: 2023-01-11 05:51+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2023\n"
 "Language-Team: German (https://www.transifex.com/divio/teams/58664/de/)\n"
@@ -289,7 +289,7 @@ msgstr "Version: %(version_number)s"
 #: templates/djangocms_versioning/admin/discard_confirmation.html:23
 #: templates/djangocms_versioning/admin/revert_confirmation.html:40
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:27
-msgid "Yes, I\\'m sure"
+msgid "Yes, I'm sure"
 msgstr "Ja, ich bin sicher!"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:26

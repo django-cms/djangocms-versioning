@@ -120,6 +120,28 @@ and a :term:`copy function <copy function>`. For simple model structures, the `d
 which we have used is sufficient, but in many cases you might need to write your own custom :term:`copy function <copy function>`
 (more on that below).
 
+Once a model is registered for versioning its behaviour changes:
+
+1. It's default manager (``Model.objects``) only sees published versions of the model. See :term:``content model``.
+2. It's ``Model.objects.create`` method now will not only create the :term:`content model` but also a corresponding ``Version`` model. Since the ``Version`` model requires a ``User`` object to track who created which version the correct way of creating a versioned :term:`content model` is::
+
+    Model.objects.with_user(request.user).create(...)
+
+  In certain situations, e.g., when implementing a :term:`copy function`, this is not desirable. Use ``Model._original_manager.create(...)`` in such situations.
+
+.. note::
+
+    If you want to allow using your models with and without versioning enabled we suggest to add dummy manager to your model that will swallow the ``with_user()`` syntax. This way you can always create objects with::
+
+        class ModelManager(models.Manager):
+            def with_user(self, user):
+                return self
+
+        class MyModel(models.Model):
+            objects = ModelManager()
+
+            ...
+
 For more details on how `cms_config.py` integration works please check the documentation
 for django-cms>=4.0.
 
@@ -205,7 +227,7 @@ This is probably not how one would want things to work in this scenario, so to f
             # don't copy pk because we're creating a new obj
             if PostContent._meta.pk.name != field.name
         }
-        new_content = PostContent.objects.create(**content_fields)
+        new_content = PostContent._original_manager.create(**content_fields)
         original_polls = Poll.objects.filter(post_content=original_content)
         for poll in original_polls:
             poll_fields = {
@@ -243,6 +265,10 @@ This is probably not how one would want things to work in this scenario, so to f
 As you can see from the example above the :term:`copy function <copy function>` takes one param (the content object of the version we're copying)
 and returns the copied content object. We have customized it to create not just a new PostContent object (which `default_copy` would have done),
 but also new Poll and Answer objects.
+
+.. note::
+
+    A custom copy method will need to use the content model's ``PostContent._original_manager`` to create only a content model object and not also a Version object which the ``PostContent.objects`` manager would have done!
 
 Notice that we have not created new Category objects in this example. This is because the default behaviour actually suits Category objects fine.
 If the name of a category changed, we would not want to revert the whole site to use the old name of the category when reverting a PostContent object.

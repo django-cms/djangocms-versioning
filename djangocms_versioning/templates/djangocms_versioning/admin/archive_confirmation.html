@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls static %}
-{% block title %}{% trans "Archive Confirmation" %}{% endblock %}
+{% block title %}{% translate "Archive Confirmation" %}{% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -12,18 +12,18 @@
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
 
 {% block content %}
-<p>{% trans "Are you sure you want to archive the following version?" %}</p>
+<p>{% translate "Are you sure you want to archive the following version?" %}</p>
 <h3>{{ object_name }}</h3>
 <h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
 <form action="" method="POST">
     {% csrf_token %}
     <input  class="button confirm-link js-versioning-keep-sideframe"
             type="submit"
-            value="{% trans 'Yes, I\'m sure' %}">
+            value="{% translate "Yes, I'm sure" %}">
     <a href="{{ back_url }}">
         <input type="button"
                class="button js-versioning-keep-sideframe"
-               value="{% trans 'No, take me back' %}">
+               value="{% translate 'No, take me back' %}">
     </a>
 </form>
 {% endblock %}

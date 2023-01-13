@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.formats import localize
 from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
@@ -98,6 +99,13 @@ class Version(models.Model):
 
     def __str__(self):
         return "Version #{}".format(self.pk)
+
+    def verbose_name(self):
+        return _("Version #{number} ({state} {date})").format(
+            number=self.number,
+            state=_(dict(constants.VERSION_STATES)[self.state]),
+            date=localize(self.created, settings.DATETIME_FORMAT),
+        )
 
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper
@@ -216,7 +224,9 @@ class Version(models.Model):
         )
         return new_version
 
-    check_archive = Conditions()
+    check_archive = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_archived(self):
         return can_proceed(self._set_archive)
@@ -261,7 +271,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_publish = Conditions()
+    check_publish = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -319,7 +331,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_unpublish = Conditions()
+    check_unpublish = Conditions([
+        in_state([constants.PUBLISHED], _("Version is not in published state"))
+    ])
 
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)

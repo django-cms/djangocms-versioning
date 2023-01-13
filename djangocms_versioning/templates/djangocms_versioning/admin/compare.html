@@ -26,33 +26,37 @@
             "v2_url": "{{ v2_preview_url }}",
         {% endif %}
         {% if v2 %}
-            "v2_description": "{{ v2_description }}",
+            "v2_description": "{{ v2_description|default:v2.verbose_name }}",
         {% endif %}
         "v1_url": "{{ v1_preview_url }}",
-        "v1_description": "{{ v1_description }}"
+        "v1_description": "{{ v1_description|default:v1.verbose_name }}"
     }'>
         <div class="cms-toolbar">
             <div class="cms-versioning-controls">
-                <a class="cms-btn" href="{{ return_url }}" style="display: none">{% trans "Back" %}</a> &nbsp;
+                {% if return_url %}
+                    <a class="cms-btn" href="{{ return_url }}">{% translate "Back" %}</a> &nbsp;
+                {% endif %}
                 <span class="cms-versioning-title">
-                {% blocktrans with left=v1_description %}
+                {% blocktrans with left=v1_description|default:v1.verbose_name %}
                     Comparing {{ left }} with
                 {% endblocktrans %}
                 </span>
                 <select class="js-cms-versioning-version cms-select">
-                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% trans "Pick a version to compare to" %}</option>
+                    <option disabled {% if not request.GET.compare_to %} selected{% endif %}>{% translate "Pick a version to compare to" %}</option>
                     {% for version in version_list %}
-                        <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{% trans  'Version'%} #{{ version.number }}({{ version.created|date }})</option>
+                        {% if version.pk != v1.pk %}
+                            <option value="{{ version.pk }}" {% if v2 and v2.pk == version.pk %} selected{% endif %}>{{ version.verbose_name }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
                 <div class="cms-tooblar-item cms-toolbar-item-buttons">
                     <div class="cms-btn-group" style="display: none;">
                         <a href="#"
                             class="cms-btn cms-btn-active js-cms-versioning-control js-cms-versioning-control-visual">
-                            {% trans "Visual" %}
+                            {% translate "Visual" %}
                         </a>
                         <a href="#" class="cms-btn js-cms-versioning-control js-cms-versioning-control-source">
-                            {% trans "Source" %}
+                            {% translate "Source" %}
                         </a>
                     </div>
                 </div>

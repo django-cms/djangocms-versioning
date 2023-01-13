@@ -11,24 +11,28 @@ from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 class CreateVersionsTestCase(CMSTestCase):
     def test_create_versions(self):
-        # blog has no additional grouping field
-        structure = dict(en=5, de=2, nl=7)
+        content_models_by_language = dict(en=5, de=2, nl=7)
 
-        # Create BlogPosts w/o version objects
+        # Arrange:
+        # Create BlogPosts and Poll w/o versioned content objects
         with transaction.atomic():
             post = BlogPost(name="my multi-lingual blog post")
             post.save()
-            for language, cnt in structure.items():
+            for language, cnt in content_models_by_language.items():
                 for i in range(cnt):
+                    # Use save NOT objects.create to avoid creating Version object
                     BlogContent(blogpost=post, language=language).save()
             poll = Poll()
             poll.save()
-            for language, cnt in structure.items():
+            for language, cnt in content_models_by_language.items():
                 for i in range(cnt):
+                    # Use save NOT objects.create to avoid creating Version object
                     PollContent(poll=poll, language=language).save()
-
+        # Verify that no Version objects have been created
         self.assertEqual(Version.objects.count(), 0)
 
+        # Act:
+        # Call create_versions command
         try:
             call_command('create_versions', userid=self.get_superuser().pk, state=constants.DRAFT)
         except SystemExit as e:
@@ -38,6 +42,7 @@ class CreateVersionsTestCase(CMSTestCase):
             status_code = '0'
         self.assertEqual(status_code, '0')
 
+        # Assert:
         # Blog has no additional grouping field, i.e. all except the last blog content must be archived
         blog_contents = BlogContent.admin_manager.filter(blogpost=post, language=language).order_by("-pk")
         self.assertEqual(blog_contents[0].versions.first().state, constants.DRAFT)
@@ -45,7 +50,7 @@ class CreateVersionsTestCase(CMSTestCase):
             self.assertEqual(cont.versions.first().state, constants.ARCHIVED)
 
         # Poll has additional grouping field, i.e. for each language there must be one draft (rest archived)
-        for language, cnt in structure.items():
+        for language, cnt in content_models_by_language.items():
             poll_contents = PollContent.admin_manager.filter(poll=poll, language=language).order_by("-pk")
             self.assertEqual(poll_contents[0].versions.first().state, constants.DRAFT)
             for cont in poll_contents[1:]:

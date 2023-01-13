@@ -4,7 +4,6 @@ from copy import copy
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
-from django.db.models import F
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -23,11 +22,9 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning import conf
-from djangocms_versioning.constants import DRAFT, PUBLISHED
+from djangocms_versioning.constants import PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
-    get_preview_url,
     version_list_url,
 )
 from djangocms_versioning.models import Version

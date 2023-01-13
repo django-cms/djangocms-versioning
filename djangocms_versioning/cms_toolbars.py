@@ -179,7 +179,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 ))
                 versioning_menu.add_link_item(name, url=url)
 
-    def _get_published_page_version(self):
+    def _get_published_version(self):
         """Returns a published content (e.g. PageContent) if one exists for the toolbar object
         """
         public_version = self._get_all_versions().filter(state=PUBLISHED).first()
@@ -196,7 +196,7 @@ class VersioningToolbar(PlaceholderToolbar):
             return
 
         # Add the View published button if in edit or preview mode
-        published_version = self._get_published_page_version()
+        published_version = self._get_published_version()
         if not published_version:
             return
 

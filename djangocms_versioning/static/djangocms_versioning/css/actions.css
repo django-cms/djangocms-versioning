@@ -1,5 +1,5 @@
 /*-------------------------------------
-Classes for Action btn & Burger menu 
+Classes for Action btn & Burger menu
 ---------------------------------------*/
 
 a.btn.cms-versioning-action-btn {
@@ -23,21 +23,27 @@ a.btn.cms-versioning-action-btn {
             box-sizing: border-box;
     cursor: pointer;
 }
+
+a.btn.cms-versioning-action-btn span
+{
+    font-family: django-cms-iconfont;
+    font-size: 120%;
+}
+
 a.btn.cms-versioning-action-btn img {
     width: 20px;
     height: 20px;
 }
 
-a.btn.cms-versioning-action-btn.inactive {
-    opacity: 0.3;
-    filter: alpha(opacity=30);
+a.btn.cms-versioning-action-btn.inactive:link,
+a.btn.cms-versioning-action-btn.inactive:visited {
+    color: var(--dca-gray-lighter, var(--border-color, #ccc))  !important;
 }
 
 
 /* disable clicking for inactive buttons */
 .btn.cms-versioning-action-btn.inactive {
     pointer-events: none;
-    background-color: #e1e1e1 !important;
 }
 
 .btn.cms-versioning-action-btn.inactive img {
@@ -53,7 +59,7 @@ a.btn.cms-versioning-action-btn img {
 
 
 /*-------------------------------------
-This governs the drop-down behaviour 
+This governs the drop-down behaviour
 extending the pagetree classes provided by CMS
 ---------------------------------------*/
 

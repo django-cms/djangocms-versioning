@@ -17,7 +17,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
-from django.utils.formats import localize
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
@@ -478,7 +477,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", version.pk
         )
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'
@@ -491,6 +493,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -503,6 +506,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -544,7 +548,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         actual_enabled_control = self.version_admin._get_discard_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-discard '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Discard">'
@@ -607,7 +614,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", archive_version.pk
         )
         expected_disabled_control = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'
@@ -958,7 +967,7 @@ class StateActionsTestCase(CMSTestCase):
         state_actions = admin.site._registry[version_model_proxy]._state_actions(
             request
         )(version)
-
+        self.assertEqual(constants.PUBLISHED, version.state)
         self.assertIn(edit_url, state_actions)
 
     def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):
@@ -1972,12 +1981,13 @@ class CompareViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "compare", versions[0].pk
         )
         user = self.get_staff_user_with_no_permissions()
-
         with self.login_user_context(user):
             response = self.client.get(url)
-
-        self.assertContains(response, "Version #{number} ({date})".format(
-            number=versions[0].number, date=localize(versions[0].created)))
+        # the version created last will be in its created state (others might have transitioned to archived)
+        self.assertContains(response, versions[1].verbose_name())
+        # Get versions[0] from db with the correct state
+        version0 = Version.objects.get(pk=versions[0].pk)
+        self.assertContains(response, version0.verbose_name())
 
         context = response.context
         self.assertIn("v1", context)

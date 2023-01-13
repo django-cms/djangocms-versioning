@@ -1,19 +1,5 @@
 {% spaceless %}
-<a
-    title="{% block title %}{% endblock %}"
-    class="btn
-{% if disabled %}
-    inactive
-{% endif %}
-    cms-versioning-action-btn
-    cms-versioning-action-{% block name %}{% endblock %}
-    {% if get|default_if_none:True %} cms-form-get-method {% endif %}
-    {% if action|default_if_none:True %} js-versioning-action{% endif %}
-    {% if keepsideframe|default_if_none:True %}js-versioning-keep-sideframe {% else %}js-versioning-close-sideframe {% endif %}"
-{% if not disabled %}
-    href="{{ url }}"
-{% endif %}
->
-    <img src="{% block icon %}{% endblock %}">
+<a class="btn{% if disabled %} inactive{% endif %}{% if get|default_if_none:True %} cms-form-get-method{% endif %} cms-versioning-action-btn cms-versioning-action-{% block name %}{% endblock %}{% if action|default_if_none:True %} js-versioning-action{% endif %}{% if keepsideframe|default_if_none:True %} js-versioning-keep-sideframe{% else %} js-versioning-close-sideframe{% endif %}"{% if not disabled %} href="{{ url }}"{% endif %} title="{% block title %}{% endblock %}">
+    <span class="cms-icon cms-icon-{% block icon %}{% endblock %}"></span>
 </a>
 {% endspaceless %}

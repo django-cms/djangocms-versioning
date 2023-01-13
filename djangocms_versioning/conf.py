@@ -9,6 +9,10 @@ STRICT_VERSIONING = getattr(
     settings, "DJANGOCMS_VERSIONING_STRICT", True
 )
 
-EXTENDED_MENU = getattr(
-    settings, "DJANGOCMS_VERSIONING_EXTENDED_MENU", 7
+USERNAME_FIELD = getattr(
+    settings, "DJANGOCMS_VERSIONING_USERNAME_FIELD", 'username'
+)
+
+DEFAULT_USER = getattr(
+    settings, "DJANGOCMS_VERSIONING_DEFAULT_USER", None
 )

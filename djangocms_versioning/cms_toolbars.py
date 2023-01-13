@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.db.models import F
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 from cms.cms_toolbars import (
@@ -64,7 +65,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
         # Add the publish button if in edit mode
@@ -101,19 +102,45 @@ class VersioningToolbar(PlaceholderToolbar):
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)
-        edit_url = reverse(
-            "admin:{app}_{model}_edit_redirect".format(
-                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-            ),
-            args=(version.pk,),
-        )
-        item.add_button(
-            _("Edit"),
-            url=edit_url,
-            disabled=disabled,
-            extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
-        )
-        self.toolbar.add_item(item)
+        if version.check_edit_redirect.as_bool(self.request.user):
+            edit_url = reverse(
+                "admin:{app}_{model}_edit_redirect".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ),
+                args=(version.pk,),
+            )
+            item.add_button(
+                _("Edit"),
+                url=edit_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
+            )
+            self.toolbar.add_item(item)
+
+    def _add_revert_button(self, disabled=False):
+        """Helper method to add a revert button to the toolbar
+         """
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+        item = ButtonList(side=self.toolbar.RIGHT)
+        proxy_model = self._get_proxy_model()
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        if version.check_revert.as_bool(self.request.user):
+            revert_url = reverse(
+                "admin:{app}_{model}_revert".format(
+                    app=proxy_model._meta.app_label,
+                    model=proxy_model._meta.model_name,
+                ),
+                args=(version.pk,),
+            )
+            item.add_button(
+                _("Revert"),
+                url=revert_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action"],
+            )
+            self.toolbar.add_item(item)
 
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
@@ -142,27 +169,18 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
-        if conf.EXTENDED_MENU and version.state == DRAFT:
-            published = versions.filter(state=PUBLISHED).first()
-            if published:
+            if version.source:
+                name = _("Compare to {state} source").format(state=_(version.source.state))
                 proxy_model = self._get_proxy_model()
                 url = reverse("admin:{app}_{model}_compare".format(
-                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ), args=(version.pk,))
+                     app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ), args=(version.source.pk,))
 
-                url += "?compare_to=%d" % published.pk
-                versioning_menu.add_sideframe_item(_("Compare to published version"), url=url)
-        if conf.EXTENDED_MENU and isinstance(conf.EXTENDED_MENU, int):
-            # Show up to conf.EXTENDED_MENU previous versions of the object
-            nearby_versions = versions \
-                                  .annotate(vicinity=(F("pk")-version.pk)*(F("pk")-version.pk)) \
-                                  .order_by("vicinity")[:conf.EXTENDED_MENU]
-            if len(nearby_versions) > 1:
-                submenu = versioning_menu.get_or_create_menu(f"{VERSIONING_MENU_IDENTIFIER}-list", _("View version"))
-                for v in sorted(nearby_versions, key=lambda x: -x.pk):
-                    submenu.add_link_item(_("Version #{number} ({state})").format(
-                        number=v.number, state=v.state
-                    ), url=get_preview_url(v.content), active=(v == version))
+                url += "?" + urlencode(dict(
+                    compare_to=version.pk,
+                    back=self.request.get_full_path(),
+                ))
+                versioning_menu.add_link_item(name, url=url)
 
     def _get_published_page_version(self):
         """Returns a published content (e.g. PageContent) if one exists for the toolbar object
@@ -185,11 +203,12 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        if self.toolbar.edit_mode_active or self.toolbar.preview_mode_active:
+        url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
+        if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
                 _("View Published"),
-                url=published_version.get_absolute_url(),
+                url=url,
                 disabled=False,
                 extra_classes=['cms-btn', 'cms-btn-switch-save'],
             )
@@ -198,6 +217,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
         self._add_view_published_button()
+        self._add_revert_button()
         self._add_publish_button()
         self._add_versioning_menu()
 
@@ -294,16 +314,23 @@ class VersioningPageToolbar(PageToolbar):
                 )
                 title = _('from %s')
                 question = _('Are you sure you want to copy all plugins from %s?')
-
+                item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
-                    if page_content:
+                    if page_content:  # Only offer to copy if content for source language exists
                         page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
                         copy_plugins_menu.add_ajax_item(
                             title % name, action=page_copy_url,
                             data={'source_language': code, 'target_language': self.current_lang},
                             question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                        )
+                        item_added = True
+                    if not item_added:  # pragma: no cover
+                        copy_plugins_menu.add_link_item(
+                            _("No other language available"),
+                            url="#",
+                            disabled=True,
                         )
 
 
@@ -314,10 +341,8 @@ def replace_toolbar(old, new):
     new_name = ".".join((new.__module__, new.__name__))
     old_name = ".".join((old.__module__, old.__name__))
     toolbar_pool.toolbars = OrderedDict(
-        [
-            (new_name, new) if name == old_name else (name, toolbar)
-            for name, toolbar in toolbar_pool.toolbars.items()
-        ]
+        (new_name, new) if name == old_name else (name, toolbar)
+        for name, toolbar in toolbar_pool.toolbars.items()
     )
 
 

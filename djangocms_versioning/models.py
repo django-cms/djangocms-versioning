@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.formats import localize
 from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
@@ -94,6 +95,13 @@ class Version(models.Model):
 
     def __str__(self):
         return "Version #{}".format(self.pk)
+
+    def verbose_name(self):
+        return _("Version #{number} ({state} {date})").format(
+            number=self.number,
+            state=_(dict(constants.VERSION_STATES)[self.state]),
+            date=localize(self.created, settings.DATETIME_FORMAT),
+        )
 
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper

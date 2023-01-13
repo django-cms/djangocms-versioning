@@ -226,6 +226,9 @@ def default_copy(original_content):
     would expect a version to copy some of its related objects as well).
     In such cases a custom copy method must be defined and specified in
     cms_config.py
+
+    NOTE: A custom copy method will need to use the content model's
+    _original_manage to create only a content model object and not also a Version object.
     """
     content_model = original_content.__class__
     content_fields = {
@@ -234,4 +237,5 @@ def default_copy(original_content):
         # don't copy primary key because we're creating a new obj
         if content_model._meta.pk.name != field.name
     }
-    return content_model.objects.create(**content_fields)
+    # Use original manager to avoid creating a new draft version here!
+    return content_model._original_manager.create(**content_fields)

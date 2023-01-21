@@ -1,11 +1,11 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# Stefan van den Eertwegh <stefan@corebyte.nl>, 2023.
-#
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
 # Translators:
 # Stefan van den Eertwegh <stefan@corebyte.nl>, 2023
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -408,10 +408,12 @@ msgid ""
 "Reverting to this version may cause loss of an existing draft version. "
 "Please select an option to continue"
 msgstr ""
+"Als u terugkeert naar deze versie, kan een bestaande conceptversie verloren "
+"gaan. Selecteer een optie om door te gaan"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:20
 msgid "Are you sure you want to revert to the following version?"
-msgstr ""
+msgstr "Ben je er zeker van om deze versie terug te draaien?"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:31
 msgid "Discard existing draft and Revert"

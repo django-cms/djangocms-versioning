@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* add: Dutch translations thanks to Stefan van den Eertwegh
 * add: transifex support, German translations
 * add: Revert button as replacement for dysfunctional Edit button for unpublished
   versions

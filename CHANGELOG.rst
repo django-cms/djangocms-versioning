@@ -9,6 +9,9 @@ Unreleased
 * add: Revert button as replacement for dysfunctional Edit button for unpublished
   versions
 * add: status indicators and drop down menus for django cms page tree
+* BREAKING: use icons provided by cms core version 4.1+
+* BREAKING: remove monkey patching of cms core version 4.1+
+* BREAKING: renamed TitleExtension to PageContentExtension as of cms core version 4.1+
 * fix: only offer languages for plugin copy with available content
 * feat: Add support for Django 4.0, 4.1 and Python 3.10 and 3.11
 * fix: migrations for MySql
@@ -16,9 +19,10 @@ Unreleased
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused
 * ci: Added concurrency option to cancel in progress runs when new changes occur
-* fix: Added setting to make the field to identify a user configurable in ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models with no ``username``
+* fix: Added setting to make the field to identify a user configurable in
+  ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models
+  with no ``username``
 * ci: Run tests on sqlite, mysql and postgres db
-
 * feat: Compatibility with page content extension changes to django-cms
 * ci: Added basic linting pre-commit hooks
 

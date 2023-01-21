@@ -8,3 +8,7 @@ ENABLE_MENU_REGISTRATION = getattr(
 USERNAME_FIELD = getattr(
     settings, "DJANGOCMS_VERSIONING_USERNAME_FIELD", 'username'
 )
+
+DEFAULT_USER = getattr(
+    settings, "DJANGOCMS_VERSIONING_DEFAULT_USER", None
+)

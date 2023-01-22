@@ -66,8 +66,8 @@ class VersionQuerySet(models.QuerySet):
 
 class Version(models.Model):
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True, verbose_name=_("Created"))
+    modified = models.DateTimeField(default=timezone.now, verbose_name=_("Modified"))
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )

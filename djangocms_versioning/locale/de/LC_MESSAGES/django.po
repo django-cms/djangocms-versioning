@@ -2,23 +2,23 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 # Translators:
 # Fabian Braun <fsbraun@gmx.de>, 2023
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-11 05:51+0100\n"
+"POT-Creation-Date: 2023-01-22 19:30+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2023\n"
 "Language-Team: German (https://www.transifex.com/divio/teams/58664/de/)\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: admin.py:161
@@ -29,7 +29,7 @@ msgstr "Status"
 msgid "Author"
 msgstr "Autor"
 
-#: admin.py:184
+#: admin.py:184 models.py:70
 msgid "Modified"
 msgstr "Geändert"
 
@@ -104,7 +104,7 @@ msgstr "django CMS Versioning"
 msgid "No available title"
 msgstr "Kein Titel verfügbar"
 
-#: cms_config.py:239 indicators.py:25
+#: cms_config.py:239 constants.py:13 indicators.py:25
 msgid "Unpublished"
 msgstr "Veröffentlichung aufgehoben"
 
@@ -175,21 +175,21 @@ msgstr "Sind Sie sicher, dass sie alle Plugins von %s kopieren wollen?"
 msgid "No other language available"
 msgstr "Keine andere Sprache verfügbar"
 
-#: indicators.py:22
+#: constants.py:11 indicators.py:24
+msgid "Draft"
+msgstr "Entwurf"
+
+#: constants.py:12 indicators.py:22
 msgid "Published"
 msgstr "Veröffentlicht"
+
+#: constants.py:14 indicators.py:26
+msgid "Archived"
+msgstr "Archiviert"
 
 #: indicators.py:23
 msgid "Changed"
 msgstr "Verändert"
-
-#: indicators.py:24
-msgid "Draft"
-msgstr "Entwurf"
-
-#: indicators.py:26
-msgid "Archived"
-msgstr "Archiviert"
 
 #: indicators.py:27
 msgid "Empty"
@@ -223,6 +223,12 @@ msgstr "Entwurf mit Veröffentlichung vergleichen..."
 #: indicators.py:90
 msgid "Manage Versions..."
 msgstr "Versionen verwalten..."
+
+#: models.py:69
+#, fuzzy
+#| msgid "Create new draft"
+msgid "Created"
+msgstr "Neuen Entwurf erstellen"
 
 #: models.py:72
 msgid "author"

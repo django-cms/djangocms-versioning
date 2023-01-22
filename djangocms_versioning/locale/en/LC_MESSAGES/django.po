@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-11 05:51+0100\n"
+"POT-Creation-Date: 2023-01-22 19:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
-#: admin.py:184
+#: admin.py:184 models.py:70
 msgid "Modified"
 msgstr ""
 
@@ -101,7 +101,7 @@ msgstr ""
 msgid "No available title"
 msgstr ""
 
-#: cms_config.py:239 indicators.py:25
+#: cms_config.py:239 constants.py:13 indicators.py:25
 msgid "Unpublished"
 msgstr ""
 
@@ -172,20 +172,20 @@ msgstr ""
 msgid "No other language available"
 msgstr ""
 
-#: indicators.py:22
+#: constants.py:11 indicators.py:24
+msgid "Draft"
+msgstr ""
+
+#: constants.py:12 indicators.py:22
 msgid "Published"
+msgstr ""
+
+#: constants.py:14 indicators.py:26
+msgid "Archived"
 msgstr ""
 
 #: indicators.py:23
 msgid "Changed"
-msgstr ""
-
-#: indicators.py:24
-msgid "Draft"
-msgstr ""
-
-#: indicators.py:26
-msgid "Archived"
 msgstr ""
 
 #: indicators.py:27
@@ -219,6 +219,10 @@ msgstr ""
 
 #: indicators.py:90
 msgid "Manage Versions..."
+msgstr ""
+
+#: models.py:69
+msgid "Created"
 msgstr ""
 
 #: models.py:72

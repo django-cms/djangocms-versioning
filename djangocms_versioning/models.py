@@ -99,8 +99,13 @@ class Version(models.Model):
     def verbose_name(self):
         return _("Version #{number} ({state} {date})").format(
             number=self.number,
-            state=_(dict(constants.VERSION_STATES)[self.state]),
+            state=dict(constants.VERSION_STATES)[self.state],
             date=localize(self.created, settings.DATETIME_FORMAT),
+        )
+
+    def short_name(self):
+        return _("Version #{number} ({state})").format(
+            number=self.number, state=dict(constants.VERSION_STATES)[self.state]
         )
 
     def delete(self, using=None, keep_parents=False):

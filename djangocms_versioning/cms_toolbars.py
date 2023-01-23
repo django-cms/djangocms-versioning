@@ -143,7 +143,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
 
@@ -151,9 +151,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
-        version_menu_label = _("Version #{number} ({state})").format(
-            number=version.number, state=version.state
-        )
+        version_menu_label = version.short_name()
         versioning_menu = self.toolbar.get_or_create_menu(
             VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
         )
@@ -167,7 +165,7 @@ class VersioningToolbar(PlaceholderToolbar):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
             if version.source:
-                name = _("Compare to {state} source").format(state=_(version.source.state))
+                name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
                 url = reverse("admin:{app}_{model}_compare".format(
                      app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()

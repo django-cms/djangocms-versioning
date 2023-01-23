@@ -2,23 +2,23 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 # Translators:
 # Stefan van den Eertwegh <stefan@corebyte.nl>, 2023
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-22 19:30+0100\n"
+"POT-Creation-Date: 2023-01-23 10:56+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Stefan van den Eertwegh <stefan@corebyte.nl>, 2023\n"
 "Language-Team: Dutch (https://www.transifex.com/divio/teams/58664/nl/)\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: admin.py:161
@@ -131,47 +131,41 @@ msgstr "Bewerk"
 msgid "Revert"
 msgstr "Terugdraaien"
 
-#: cms_toolbars.py:154
-#, python-brace-format
-msgid "Version #{number} ({state})"
-msgstr "Versie #{number} ({state})"
-
-#: cms_toolbars.py:168
+#: cms_toolbars.py:166
 msgid "Manage Versions"
 msgstr "Beheer versies"
 
-#: cms_toolbars.py:170
-#, python-brace-format
-msgid "Compare to {state} source"
-msgstr "Vergelijk met {state} als bron"
+#: cms_toolbars.py:168
+msgid "Compare to {source}"
+msgstr "Vergelijk met {source}"
 
-#: cms_toolbars.py:211
+#: cms_toolbars.py:209
 msgid "View Published"
 msgstr "Bekijk gepubliceerden "
 
-#: cms_toolbars.py:254
+#: cms_toolbars.py:252
 msgid "Language"
 msgstr "Taal"
 
-#: cms_toolbars.py:301
+#: cms_toolbars.py:299
 msgid "Add Translation"
 msgstr "Voeg vertaling toe"
 
-#: cms_toolbars.py:314
+#: cms_toolbars.py:312
 msgid "Copy all plugins"
 msgstr "Kopieer alle plugins"
 
-#: cms_toolbars.py:316
+#: cms_toolbars.py:314
 #, python-format
 msgid "from %s"
 msgstr "van %s"
 
-#: cms_toolbars.py:317
+#: cms_toolbars.py:315
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Ben je er zeker van om alle plugins te kopiëren van %s?"
 
-#: cms_toolbars.py:332
+#: cms_toolbars.py:330
 msgid "No other language available"
 msgstr "Geen andere taal beschikbaar"
 
@@ -245,23 +239,28 @@ msgstr "bron"
 msgid "Version #{number} ({state} {date})"
 msgstr "Versie #{number} ({state} {date})"
 
-#: models.py:224 models.py:271
+#: models.py:107
+#, python-brace-format
+msgid "Version #{number} ({state})"
+msgstr "Versie #{number} ({state})"
+
+#: models.py:229 models.py:276
 msgid "Version is not in draft state"
 msgstr "Versie is niet in concept staat"
 
-#: models.py:331
+#: models.py:336
 msgid "Version is not in published state"
 msgstr "Versie is niet in gepubliceerde staat"
 
-#: models.py:378 models.py:389
+#: models.py:383 models.py:394
 msgid "Version is not a draft"
 msgstr "Versie is niet een concept"
 
-#: models.py:384
+#: models.py:389
 msgid "Version is not in archived or unpublished state"
 msgstr "Versie is niet gearchiveerd en niet gepubliceerd"
 
-#: models.py:395
+#: models.py:400
 msgid "Version is not in draft or published state"
 msgstr "Versie is niet een concept of gepubliceerde staat"
 

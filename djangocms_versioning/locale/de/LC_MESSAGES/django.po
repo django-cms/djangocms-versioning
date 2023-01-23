@@ -136,10 +136,8 @@ msgid "Manage Versions"
 msgstr "Versionen verwalten"
 
 #: cms_toolbars.py:168
-#, fuzzy, python-brace-format
-#| msgid "Compare to {state} source"
 msgid "Compare to {source}"
-msgstr "Mit Ursprungsversion ({state}) vergleichen"
+msgstr "Mit {source} vergleichen"
 
 #: cms_toolbars.py:209
 msgid "View Published"

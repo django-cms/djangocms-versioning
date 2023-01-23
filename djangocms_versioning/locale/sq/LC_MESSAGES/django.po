@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-22 19:30+0100\n"
+"POT-Creation-Date: 2023-01-23 10:56+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2023\n"
 "Language-Team: Albanian (https://www.transifex.com/divio/teams/58664/sq/)\n"
@@ -131,47 +131,43 @@ msgstr "Përpunojeni"
 msgid "Revert"
 msgstr "Riktheje"
 
-#: cms_toolbars.py:154
-#, python-brace-format
-msgid "Version #{number} ({state})"
-msgstr "Version #{number} ({state})"
-
-#: cms_toolbars.py:168
+#: cms_toolbars.py:166
 msgid "Manage Versions"
 msgstr "Administroni Versione"
 
-#: cms_toolbars.py:170
-#, python-brace-format
-msgid "Compare to {state} source"
+#: cms_toolbars.py:168
+#, fuzzy, python-brace-format
+#| msgid "Compare to {state} source"
+msgid "Compare to {source}"
 msgstr "Krahasoje me burimin {state}"
 
-#: cms_toolbars.py:211
+#: cms_toolbars.py:209
 msgid "View Published"
 msgstr "Shihni të Botuarin"
 
-#: cms_toolbars.py:254
+#: cms_toolbars.py:252
 msgid "Language"
 msgstr "Gjuhë"
 
-#: cms_toolbars.py:301
+#: cms_toolbars.py:299
 msgid "Add Translation"
 msgstr "Shtoni Përkthim"
 
-#: cms_toolbars.py:314
+#: cms_toolbars.py:312
 msgid "Copy all plugins"
 msgstr "Kopjo krejt shtojcat"
 
-#: cms_toolbars.py:316
+#: cms_toolbars.py:314
 #, python-format
 msgid "from %s"
 msgstr "prej %s"
 
-#: cms_toolbars.py:317
+#: cms_toolbars.py:315
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Jeni i sigurt se doni të kopjohen krejt shtojcat prej %s?"
 
-#: cms_toolbars.py:332
+#: cms_toolbars.py:330
 msgid "No other language available"
 msgstr "S’ka gjuhë të tjera"
 
@@ -247,23 +243,28 @@ msgstr "burim"
 msgid "Version #{number} ({state} {date})"
 msgstr "Version #{number} ({state} {date})"
 
-#: models.py:224 models.py:271
+#: models.py:107
+#, python-brace-format
+msgid "Version #{number} ({state})"
+msgstr "Version #{number} ({state})"
+
+#: models.py:229 models.py:276
 msgid "Version is not in draft state"
 msgstr "Versioni s’është nën gjendjen “skicë”"
 
-#: models.py:331
+#: models.py:336
 msgid "Version is not in published state"
 msgstr "Versioni s’është nën gjendjen “i botuar”"
 
-#: models.py:378 models.py:389
+#: models.py:383 models.py:394
 msgid "Version is not a draft"
 msgstr "Versioni s’është skicë"
 
-#: models.py:384
+#: models.py:389
 msgid "Version is not in archived or unpublished state"
 msgstr "Versioni s’është nën gjendjen “i arkivuar” ose “i pabotuar”"
 
-#: models.py:395
+#: models.py:400
 msgid "Version is not in draft or published state"
 msgstr "Versioni s’është nën gjendjen “skicë” ose “i botuar”"
 

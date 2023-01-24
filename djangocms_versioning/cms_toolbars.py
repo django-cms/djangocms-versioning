@@ -224,7 +224,6 @@ class VersioningToolbar(PlaceholderToolbar):
             # Exclude edit mode, however, since the django CMS core already ads the preview button for edit mode
             self.add_preview_button()
 
-
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
         self._add_preview_button()

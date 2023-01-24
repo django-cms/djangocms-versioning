@@ -193,7 +193,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
 
@@ -213,8 +213,20 @@ class VersioningToolbar(PlaceholderToolbar):
             )
             self.toolbar.add_item(item)
 
+    def _add_preview_button(self):
+        """Helper method to add a preview button to the toolbar when not in preview mode"""
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+
+        if not self.toolbar.preview_mode_active and not self.toolbar.edit_mode_active:
+            # Any mode not preview mode can have a preview button
+            # Exclude edit mode, however, since the django CMS core already ads the preview button for edit mode
+            self.add_preview_button()
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
+        self._add_preview_button()
         self._add_view_published_button()
         self._add_revert_button()
         self._add_publish_button()
@@ -256,7 +268,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
-                # Get the pagw content, it could be draft too!
+                # Get the page content, it could be draft too!
                 page_content = self.get_page_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)

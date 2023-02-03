@@ -358,7 +358,7 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
         try:
             version.check_modify(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_str(e), messages.ERROR)
+            # Send error message
             return HttpResponseForbidden(force_str(e))
         return super().change_innavigation(request, object_id)
 

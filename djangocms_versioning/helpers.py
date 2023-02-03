@@ -279,7 +279,7 @@ def get_admin_url(model, action, *args):
 
 def remove_published_where(queryset):
     """
-    By default the versioned queryset filters out so that only versions
+    By default, the versioned queryset filters out so that only versions
     that are published are returned. If you need to return the full queryset
     this method can be used.
 

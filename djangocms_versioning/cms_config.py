@@ -1,7 +1,6 @@
 import collections
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import (
     ImproperlyConfigured,

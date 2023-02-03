@@ -195,7 +195,6 @@ class VersioningToolbar(PlaceholderToolbar):
                         ), args=(version.pk,))
                     )
 
-
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object
         """

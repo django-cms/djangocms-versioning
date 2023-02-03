@@ -172,6 +172,7 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            # Compare to source menu entry
             if version.source:
                 name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
@@ -184,14 +185,15 @@ class VersioningToolbar(PlaceholderToolbar):
                     back=self.request.get_full_path(),
                 ))
                 versioning_menu.add_link_item(name, url=url)
-            if version.check_discard.as_bool(self.request.user):
-                versioning_menu.add_item(Break())
-                versioning_menu.add_link_item(
-                    _("Discard changes"),
-                    url=reverse("admin:{app}_{model}_discard".format(
-                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                    ), args=(version.pk,))
-                )
+                # Discard changes menu entry (wrt to source)
+                if version.check_discard.as_bool(self.request.user):
+                    versioning_menu.add_item(Break())
+                    versioning_menu.add_link_item(
+                        _("Discard changes"),
+                        url=reverse("admin:{app}_{model}_discard".format(
+                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                        ), args=(version.pk,))
+                    )
 
 
     def _get_published_page_version(self):

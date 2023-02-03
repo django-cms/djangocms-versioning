@@ -16,7 +16,7 @@ from cms.cms_toolbars import (
     PlaceholderToolbar,
 )
 from cms.models import PageContent
-from cms.toolbar.items import ButtonList
+from cms.toolbar.items import Break, ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions
@@ -184,6 +184,15 @@ class VersioningToolbar(PlaceholderToolbar):
                     back=self.request.get_full_path(),
                 ))
                 versioning_menu.add_link_item(name, url=url)
+            if version.check_discard.as_bool(self.request.user):
+                versioning_menu.add_item(Break())
+                versioning_menu.add_link_item(
+                    _("Discard changes"),
+                    url=reverse("admin:{app}_{model}_discard".format(
+                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                    ), args=(version.pk,))
+                )
+
 
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object

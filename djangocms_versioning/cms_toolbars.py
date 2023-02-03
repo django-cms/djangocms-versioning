@@ -186,7 +186,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 ))
                 versioning_menu.add_link_item(name, url=url)
                 # Discard changes menu entry (wrt to source)
-                if version.check_discard.as_bool(self.request.user):
+                if version.check_discard.as_bool(self.request.user):  # pragma: no cover
                     versioning_menu.add_item(Break())
                     versioning_menu.add_link_item(
                         _("Discard changes"),

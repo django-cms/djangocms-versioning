@@ -4,6 +4,7 @@ from copy import copy
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -23,7 +24,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -107,8 +108,15 @@ class VersioningToolbar(PlaceholderToolbar):
                 ),
                 args=(version.pk,),
             )
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                version.content
+            ).values_list("pk", flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            draft_exists = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type, state=DRAFT
+            ).exists()
             item.add_button(
-                _("Edit"),
+                _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
                 extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],

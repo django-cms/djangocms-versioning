@@ -130,7 +130,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
             "all": (
-                static_with_version("cms/css/cms.pagetree.css"),
+                static_with_version("cms/css/cms.icons.css"),
                 "djangocms_versioning/css/actions.css",
             )
         }

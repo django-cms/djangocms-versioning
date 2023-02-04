@@ -64,15 +64,20 @@ class AdminQuerySet(models.QuerySet):
     def current_content_iterator(self, **kwargs):
         """Returns generator (not a queryset) over current content versions. Current versions are either draft
         versions or published versions (in that order)"""
-        qs = self.filter(versions__state__in=("draft", "published"))\
-            .order_by(*self._group_by_key)\
-            .prefetch_related("versions")
-        for grp, version_content in groupby(
-            qs,
-            lambda x: tuple(map(lambda key: getattr(x, key), self._group_by_key))  # get group key fields
-        ):
-            first, second = next(version_content), next(version_content, None)  # Max 2 results per group possible
-            yield first if second is None or first.versions.first().state == constants.DRAFT else second
+        warnings.warn("current_content_iterator is deprecated in favour of current_conent",
+                      DeprecationWarning, stacklevel=2)
+        return iter(self.current_content(**kwargs))
+
+    def current_content(self, **kwargs):
+        """Returns a queryset current content versions. Current versions are either draft
+        versions or published versions (in that order). This optimized query assumes that
+        draft versions always have a higher pk than any other version type. This is true as long as
+        no other version type can be converted to draft without creating a new version."""
+        qs = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED), **kwargs)
+        pk_filter = qs.values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))\
+            .values_list("vers_pk", flat=True)
+        return qs.filter(versions__pk__in=pk_filter)
 
 
 class AdminManagerMixin:

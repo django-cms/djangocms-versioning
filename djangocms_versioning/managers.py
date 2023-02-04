@@ -1,6 +1,5 @@
 import warnings
 from copy import copy
-from itertools import groupby
 
 from django.contrib.auth import get_user_model
 from django.db import models

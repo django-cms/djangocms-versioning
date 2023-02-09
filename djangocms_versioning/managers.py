@@ -79,6 +79,7 @@ class AdminQuerySetMixin:
         return qs.filter(versions__pk__in=pk_filter)
 
     def latest(self):
+        """While this is probably to most general approach it does not work for MySql
         inner = (
                     self.annotate(
                         order=models.Case(
@@ -95,6 +96,16 @@ class AdminQuerySetMixin:
                     .order_by("-order", "-modified")
         )
         return self.filter(pk__in=models.Subquery(inner[:1].values("pk")))
+        """
+        current = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
+            .values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))
+        pk_current = current.values("vers_pk")
+        pk_other = self.exclude(**{key + "__in": current.values(key) for key in self._group_by_key})\
+            .values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))\
+            .values("vers_pk")
+        return self.filter(versions__pk__in=pk_current | pk_other)
 
 
 class AdminManagerMixin:

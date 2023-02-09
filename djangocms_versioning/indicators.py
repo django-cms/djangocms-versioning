@@ -13,6 +13,7 @@ from djangocms_versioning.constants import (
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.models import Version
 
+
 indicator_description = {
     "published": _("Published"),
     "dirty": _("Changed"),
@@ -46,6 +47,7 @@ def _reverse_action(version, action, back=None):
         f"admin:{version._meta.app_label}_{version.versionable.version_model_proxy._meta.model_name}_{action}",
         args=(version.pk,)
     ) + get_params
+
 
 def content_indicator_menu(request, status, versions):
     menu = []

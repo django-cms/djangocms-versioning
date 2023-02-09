@@ -114,9 +114,15 @@ class AdminManagerMixin:
 
     def get_queryset(self):
         qs_class = super().get_queryset().__class__
+        if not self._group_by_key:
+            # Not initialized (e.g. by using content_set(manager="admin_manager"))?
+            # Get grouping fields form versionable
+            from . import versionables
+            versionable = versionables.for_content(self.model)
+            self._group_by_key = [versionable.grouper_field_name] + list(versionable.extra_grouping_fields)
         qs = type(
             f"Admin{qs_class.__name__}",
             (AdminQuerySetMixin, qs_class),
-            {"_group_by_key": self._group_by_key}
+            {"_group_by_key": self._group_by_key}  # Pass grouping fields to queryset
         )(self.model, using=self._db)
         return qs

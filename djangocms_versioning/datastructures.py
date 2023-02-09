@@ -1,12 +1,10 @@
 from itertools import chain
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
-from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
+from django.db.models import Max,  Prefetch
 from django.utils.functional import cached_property
 
 from .admin import VersioningAdminMixin
-from .constants import DRAFT, PUBLISHED
 from .helpers import get_content_types_with_subclasses
 from .models import Version
 

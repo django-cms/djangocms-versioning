@@ -1,7 +1,7 @@
 from itertools import chain
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Max,  Prefetch
+from django.db.models import Max, Prefetch
 from django.utils.functional import cached_property
 
 from .admin import VersioningAdminMixin

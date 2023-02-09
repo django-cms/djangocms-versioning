@@ -176,3 +176,24 @@ a.cms-actions-dropdown-menu-item-anchor.inactive {
     opacity: 0.3;
     filter: alpha(opacity=30);
 }
+
+/* Finally center indicators in django changelist view */
+
+.change-list table tbody td .cms-pagetree-node-state,
+.change-list table tbody td .cms-pagetree-dropdown-trigger {
+    vertical-align: middle;
+}
+
+.change-list table tbody .field-indicator,
+.change-list table thead .column-indicator
+ {
+    text-align: center;
+}
+
+/* Bugfix for indicator menus when using djangocms-admin-style */
+body.djangocms-admin-style .cms-pagetree-dropdown-menu a:link,
+body.djangocms-admin-style .cms-pagetree-dropdown-menu a:visited,
+body.djangocms-admin-style .cms-pagetree-dropdown-menu a:link:visited,
+body.djangocms-admin-style .cms-pagetree-dropdown-menu a:link:hover {
+    color: unset !important;
+}

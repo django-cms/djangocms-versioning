@@ -292,6 +292,7 @@ to add the fields:
 
 
 .. code-block:: python
+
     class PostAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
         list_display = "title"
 
@@ -299,6 +300,7 @@ The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields fro
 in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
 
 .. code-block:: python
+
     # cms_config.py
     def post_modifier(obj, field):
         return obj.get(field) + " extra field text!"

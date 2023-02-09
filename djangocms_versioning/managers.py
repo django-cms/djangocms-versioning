@@ -53,7 +53,7 @@ class PublishedContentManagerMixin:
         return new_manager
 
 
-class AdminQuerySet(models.QuerySet):
+class AdminQuerySetMixin:
     def _chain(self):
         # Also clone group by key when chaining querysets!
         clone = super()._chain()
@@ -78,12 +78,34 @@ class AdminQuerySet(models.QuerySet):
             .values_list("vers_pk", flat=True)
         return qs.filter(versions__pk__in=pk_filter)
 
+    def latest(self):
+        inner = (
+                    self.annotate(
+                        order=models.Case(
+                            models.When(versions__state=constants.PUBLISHED, then=2),
+                            models.When(versions__state=constants.DRAFT, then=1),
+                            default = 0,
+                            output_field = models.IntegerField(),
+                        ),
+                        modified =  models.Max("versions__modified"),
+                    )
+                    .filter(**{
+                        self._group_by_key[0]: models.OuterRef(self._group_by_key[0])
+                    })
+                    .order_by("-order", "-modified")
+        )
+        return self.filter(pk__in=models.Subquery(inner[:1].values("pk")))
+
 
 class AdminManagerMixin:
     versioning_enabled = True
     _group_by_key = []
 
     def get_queryset(self):
-        qs = AdminQuerySet(self.model, using=self._db)
-        qs._group_by_key = self._group_by_key
+        qs_class = super().get_queryset().__class__
+        qs = type(
+            f"Admin{qs_class.__name__}",
+            (AdminQuerySetMixin, qs_class),
+            {"_group_by_key": self._group_by_key}
+        )(self.model, using=self._db)
         return qs

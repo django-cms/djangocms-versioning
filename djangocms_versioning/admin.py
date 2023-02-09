@@ -42,16 +42,23 @@ class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
     def get_queryset(self, request):
-        """Limit the content model queryset to latest versions only."""
+        """Limit the content model queryset to the latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
 
-        # TODO: Improve the grouping filters to use anything defined in the
-        #       apps versioning config extra_grouping_fields
-        grouping_filters = {}
-        if 'language' in versionable.extra_grouping_fields:
-            grouping_filters['language'] = get_language_from_request(request)
+        """Check if there is a method "self.get_<field>_from_request" for each extra grouping field.
+         If so call it to retrieve the appropriate filter. If no method is found (except for "language")
+         no filter is applied. For "language" the fallback is versioning's "get_language_frmo_request".
 
+         Admins requiring extra grouping field beside "language" need to implement the "get_<field>_from_request"
+         method themselves. A common way to select the field might be GET or POST parameters or user-related settings.
+         """
+        grouping_filters = {}
+        for field in versionable.extra_grouping_fields:
+            if hasattr(self, f"get_{field}_from_request"):
+                grouping_filters[field] = getattr(self, f"get_{field}_from_request")(request)
+            elif field == "language":
+                grouping_filters[field] = get_language_from_request(request)
         return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
 
 
@@ -697,7 +704,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request) or version_list_url(version.content),
             )
             return render(
                 request, "djangocms_versioning/admin/archive_confirmation.html", context
@@ -777,7 +784,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request) or version_list_url(version.content),
             )
             extra_context = OrderedDict(
                 [
@@ -891,7 +898,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request) or version_list_url(version.content),
             )
             return render(
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
@@ -933,7 +940,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request) or version_list_url(version.content),
             )
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
@@ -969,14 +976,6 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             **persist_params
         )
-        return_url = request.GET.get("back", version_list_url(v1.content))
-        try:
-            # Is return url a valid url?
-            resolve(urlparse(return_url)[2])
-        except Resolver404:
-            # If not ignore
-            return_url = None
-
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
         version_list = Version.objects.filter_by_content_grouping_values(
@@ -987,7 +986,7 @@ class VersionAdmin(admin.ModelAdmin):
             "version_list": version_list,
             "v1": v1,
             "v1_preview_url": v1_preview_url,
-            "return_url": return_url,
+            "return_url": self.back_link(request) or version_list_url(v1.content),
         }
 
         # Now check if version 2 has been specified and add to context
@@ -1014,6 +1013,18 @@ class VersionAdmin(admin.ModelAdmin):
         return TemplateResponse(
             request, "djangocms_versioning/admin/compare.html", context
         )
+
+    @staticmethod
+    def back_link(request):
+        back_url = request.GET.get("back", None)
+        if back_url:
+            try:
+                # Is return url a valid url?
+                resolve(urlparse(back_url)[2])
+            except Resolver404:
+                # If not ignore
+                back_url = None
+        return back_url
 
     def changelist_view(self, request, extra_context=None):
         """Handle grouper filtering on the changelist"""

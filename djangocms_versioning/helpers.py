@@ -305,17 +305,22 @@ def get_latest_admin_viewable_content(grouper, **extra_grouping_fields):
     Return the latest Draft or Published PageContent using the draft where possible
     """
     versionable = versionables.for_grouper(grouper)
-    grouper_model = grouper.__class__ if isinstance(grouper, models.Model) else grouper
-    for reverse_relation in grouper_model._meta.related_objects:
-        if reverse_relation.model == grouper_model:
-            content_set = reverse_relation.get_accessor_name()
-            break
+    for field in versionable.extra_grouping_fields:
+        if field not in extra_grouping_fields:
+            raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")
+    if isinstance(grouper, models.Model):
+        # We have an instance? Find reverse relation and utilize the prefetch cache
+        grouper_model = grouper.__class__
+        for reverse_relation in grouper_model._meta.related_objects:
+            if reverse_relation.model == grouper_model:
+                content_set = reverse_relation.get_accessor_name()
+                qs = getattr(grouper, content_set)(manager="admin_manager")
+                break
+        else:
+            qs = versionable.content_model.admin_manager
     else:
-        raise ImproperlyConfigured(
-            f"No inverse relation from {versionable.content_model} to {grouper_model} found")
-
-    return getattr(grouper, content_set)(manager="admin_manager")\
-        .filter(**extra_grouping_fields).current_content().first()
+        qs = versionable.content_model.admin_manager
+    return qs.filter(**extra_grouping_fields).current_content().first()
 
 
 def get_latest_admin_viewable_page_content(page, language):

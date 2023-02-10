@@ -2,15 +2,14 @@ import copy
 import warnings
 from contextlib import contextmanager
 
-from django.core.exceptions import ImproperlyConfigured
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.db.models.sql.where import WhereNode
 from django.urls import reverse
 
-from cms.models import PageContent
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
@@ -307,9 +306,9 @@ def get_latest_admin_viewable_content(grouper, **extra_grouping_fields):
     """
     versionable = versionables.for_grouper(grouper)
     grouper_model = grouper.__class__ if isinstance(grouper, models.Model) else grouper
-    for reverse in grouper_model._meta.related_objects:
-        if reverse.model == grouper_model:
-            content_set = reverse.get_accessor_name()
+    for reverse_relation in grouper_model._meta.related_objects:
+        if reverse_relation.model == grouper_model:
+            content_set = reverse_relation.get_accessor_name()
             break
     else:
         raise ImproperlyConfigured(

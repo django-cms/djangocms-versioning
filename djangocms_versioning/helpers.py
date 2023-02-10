@@ -2,6 +2,7 @@ import copy
 import warnings
 from contextlib import contextmanager
 
+from django.core.exceptions import ImproperlyConfigured
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -300,16 +301,29 @@ def remove_published_where(queryset):
     return queryset
 
 
-# FIXME: This should reuse a generic method that uses the groupers defined filters
-def get_latest_admin_viewable_page_content(page, language):
+def get_latest_admin_viewable_content(grouper, **extra_grouping_fields):
     """
     Return the latest Draft or Published PageContent using the draft where possible
     """
-    return PageContent._original_manager.filter(
-        page=page, language=language, versions__state__in=[DRAFT, PUBLISHED]
-    ).order_by(
-        "versions__state"
-    ).first()
+    versionable = versionables.for_grouper(grouper)
+    grouper_model = grouper.__class__ if isinstance(grouper, models.Model) else grouper
+    for reverse in grouper_model._meta.related_objects:
+        if reverse.model == grouper_model:
+            content_set = reverse.get_accessor_name()
+            break
+    else:
+        raise ImproperlyConfigured(
+            f"No inverse relation from {versionable.content_model} to {grouper_model} found")
+
+    return getattr(grouper, content_set)(manager="admin_manager")\
+        .filter(**extra_grouping_fields).current_content().first()
+
+
+def get_latest_admin_viewable_page_content(page, language):
+    warnings.warn("get_latst_admin_viewable_page_content has ben deprecated. "
+                  "Use get_latest_admin_viewable_content(page, language=language) instead.",
+                  DeprecationWarning, stacklevel=2)
+    return get_latest_admin_viewable_content(page, language=language)
 
 
 def proxy_model(obj, content_model):

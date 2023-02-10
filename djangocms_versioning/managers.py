@@ -78,8 +78,17 @@ class AdminQuerySetMixin:
             .values_list("vers_pk", flat=True)
         return qs.filter(versions__pk__in=pk_filter)
 
-    def latest(self):
-        """While this is probably to most general approach it does not work for MySql
+    def latest_content(self):
+        """Returns the "latest" content object which is in this order
+           1. a draft version (should it exist)
+           2. a published version (should it exist)
+           3. any other version with the highest pk
+
+        This filter assumes that there can only be one draft created and that the draft as
+        the highest pk of all versions (should it exist).
+        """
+        """
+        While this is probably to most general approach it does not work for MySql :-(
         inner = (
                     self.annotate(
                         order=models.Case(
@@ -116,10 +125,10 @@ class AdminManagerMixin:
         qs_class = super().get_queryset().__class__
         if not self._group_by_key:
             # Not initialized (e.g. by using content_set(manager="admin_manager"))?
-            # Get grouping fields form versionable
+            # Get grouping fields from versionable
             from . import versionables
             versionable = versionables.for_content(self.model)
-            self._group_by_key = [versionable.grouper_field_name] + list(versionable.extra_grouping_fields)
+            self._group_by_key = list(versionable.grouping_fields)
         qs = type(
             f"Admin{qs_class.__name__}",
             (AdminQuerySetMixin, qs_class),

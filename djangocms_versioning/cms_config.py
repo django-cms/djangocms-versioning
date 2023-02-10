@@ -24,7 +24,7 @@ from .admin import VersioningAdminMixin
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
 from .helpers import (
-    get_latest_admin_viewable_page_content,
+    get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -144,7 +144,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             replace_manager(versionable.content_model, "objects", PublishedContentManagerMixin)
             replace_manager(versionable.content_model, "admin_manager", AdminManagerMixin,
-                            _group_by_key=[versionable.grouper_field_name] + list(versionable.extra_grouping_fields))
+                            _group_by_key=list(versionable.grouping_fields))
 
     def handle_admin_field_modifiers(self, cms_config):
         """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
@@ -332,7 +332,7 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
         if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
             return HttpResponseBadRequest(force_str(_("Language must be set to a supported language!")))
 
-        target_page_content = get_latest_admin_viewable_page_content(page, target_language)
+        target_page_content = get_latest_admin_viewable_content(page, language=target_language)
 
         # First check that we are able to edit the target
         if not self.has_change_permission(request, obj=target_page_content):

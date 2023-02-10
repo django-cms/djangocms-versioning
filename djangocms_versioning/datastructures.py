@@ -168,7 +168,7 @@ class VersionableItem(BaseVersionableItem):
         #         content=Subquery(inner.values_list("pk")[:1])
         #     ).values_list("content")
         # )
-        content_objects = self.content_model.admin_manager.all().latest()
+        content_objects = self.content_model.admin_manager.all().latest_content()
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(
             Prefetch(cache_name, queryset=content_objects)

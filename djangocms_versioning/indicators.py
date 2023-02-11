@@ -24,23 +24,6 @@ indicator_description = {
 }
 
 
-class IndicatorStatusMixin:
-    # Step 1:  The legend
-    @property
-    def indicator_descriptions(self):
-        return indicator_description
-
-    @classmethod
-    def get_indicator_menu(cls, request, page_content):
-        menu_template = "admin/cms/page/tree/indicator_menu.html"
-        status = page_content.content_indicator()
-        if not status or status == "empty":
-            return super().get_indicator_menu(request, page_content)
-        versions = page_content._version  # Cache from .content_indicator() (see mixin above)
-        menu = content_indicator_menu(request, status, versions)
-        return menu_template if menu else "", menu
-
-
 def _reverse_action(version, action, back=None):
     get_params = f"?{urlencode(dict(back=back))}" if back else ""
     return reverse(
@@ -145,8 +128,8 @@ def content_indicator(content_obj):
     return content_obj._indicator_status
 
 
-# Step 4: Check if current version is editable
 def is_editable(content_obj, request):
+    """Check of content_obj is editable"""
     if not content_obj.content_indicator():
         # Something's wrong: content indicator not identified. Maybe no version?
         return False

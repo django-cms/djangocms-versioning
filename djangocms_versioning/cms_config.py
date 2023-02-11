@@ -271,7 +271,7 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
-class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdminMixin):
+class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -361,6 +361,23 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
             self.message_user(request, force_str(e), messages.ERROR)
             return HttpResponseForbidden(force_str(e))
         return super().change_innavigation(request, object_id)
+
+    @property
+    def indicator_descriptions(self):
+        """Publish indicator description to CMSPageAdmin"""
+        return indicators.indicator_description
+
+    @classmethod
+    def get_indicator_menu(cls, request, page_content):
+        """Get the indicator menu for PageContent object taking into account the
+        currently available versions"""
+        menu_template = "admin/cms/page/tree/indicator_menu.html"
+        status = page_content.content_indicator()
+        if not status or status == "empty":
+            return super().get_indicator_menu(request, page_content)
+        versions = page_content._version  # Cache from .content_indicator() (see mixin above)
+        menu = indicators.content_indicator_menu(request, status, versions)
+        return menu_template if menu else "", menu
 
 
 class VersioningCMSConfig(CMSAppConfig):

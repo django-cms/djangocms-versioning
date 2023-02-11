@@ -299,27 +299,22 @@ def remove_published_where(queryset):
     return queryset
 
 
-def get_latest_admin_viewable_content(grouper, **extra_grouping_fields):
+def get_latest_admin_viewable_content(grouper, include_unpublished_archived=False, **extra_grouping_fields):
     """
     Return the latest Draft or Published PageContent using the draft where possible
     """
     versionable = versionables.for_grouper(grouper)
-    print(f"{grouper=} {versionable.grouper_model=} {versionable.content_model=}")
     for field in versionable.extra_grouping_fields:
         if field not in extra_grouping_fields:
             raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")
     if isinstance(grouper, models.Model):
         # We have an instance? Find reverse relation and utilize the prefetch cache
-        grouper_model = grouper.__class__
-        for reverse_relation in grouper_model._meta.related_objects:
-            if reverse_relation.related_model == versionable.content_model:
-                content_set = reverse_relation.get_accessor_name()
-                qs = getattr(grouper, content_set)(manager="admin_manager")
-                break
-        else:
-            qs = versionable.content_model.admin_manager
+        content_set = versionable.grouper_field.remote_field.get_accessor_name()
+        qs = getattr(grouper, content_set)(manager="admin_manager")
     else:
         qs = versionable.content_model.admin_manager
+    if include_unpublished_archived:
+        return qs.filter(**extra_grouping_fields).latest_content().first()
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 

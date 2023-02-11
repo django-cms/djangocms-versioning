@@ -314,6 +314,104 @@ in the form of a dictionary of {model_name: {field: method}}, the admin for the 
 Given the code sample above, "This is how we add" would be displayed as
 "this is how we add extra field text!" in the changelist of PostAdmin.
 
+Using status indicators for your versioned content models
+---------------------------------------------------------
+
+djangocms-versioning provides status indicators for django CMS' page content models as you know them from the page tree:
+
+.. image:: static/Status-indicators.png
+    :width: 50%
+
+You can use these on your content model's change view admin by adding the following code to the model's Admin class:
+
+.. code-block:: python
+
+    import json
+    from cms.utils.urlutils import static_with_version
+    from djangocms_versioning import indicators
+
+
+    class MyContentModelAdmin(admin.Admin):
+        class Media:
+            # js for the context menu
+            js = ("djangocms_versioning/js/indicators.js",)
+            # css for indicators and context menu
+            css = {
+                "all": (static_with_version("cms/css/cms.pagetree.css"),),
+            }
+
+        # Indicator column adds "indicator" at the end of list
+         list_items = [...]
+
+        def get_indicator_column(self, request):
+            # Name and render column
+            @admin.display(description=_("State"))
+            def indicator(self, content_obj):
+                status = indicators.content_indicator(content_obj)
+                menu = indicators.content_indicator_menu(request, status, content_obj._version) if status else None
+                return render_to_string(
+                    "admin/djangocms_versioning/indicator.html",
+                    {
+                        "state": status or "empty",
+                        "description": indicators.indicator_description.get(status, _("Empty")),
+                        "menu_template": "admin/cms/page/tree/indicator_menu.html",
+                        "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
+                                                          dict(indicator_menu_items=menu))) if menu else None,
+                    }
+                )
+            return indicator
+
+        def get_list_display(self, request):
+            return [
+                self.get_indicator_column(request) if item == "indicator" else item
+                for item in super().get_list_display(request)
+            ]
+
+If you do not want to tweak details you might also use the ``indicator_mixin_factory``. It will create indicators for both grouper and content models.
+
+.. code-block:: python
+
+    import json
+    from cms.utils.urlutils import static_with_version
+    from djangocms_versioning import indicators
+
+
+    class MyContentModelAdmin(
+        indicators.indicator_mixin_factory(),
+        admin.Admin,
+    ):
+        model = MyContentModel
+        # Indicator column adds "indicator" at the end of list
+         list_items = [...]
+
+.. note::
+
+    The mixin for grouper models expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
+
+    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree keeps its extra grouping field (language) as a get parameter.
+
+    .. code-block:: python
+
+        def get_changelist_instance(self, request):
+            """Set language property and remove language from changelist_filter_params"""
+            if request.method == "GET":
+                request.GET = request.GET.copy()
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    value = request.GET.pop(field, [None])[0]
+                    # Validation is recommended: Add clean_language etc. to your Admin class!
+                    if hasattr(self, f"clean_{field}"):
+                        value = getattr(self, f"clean_{field}")(value):
+                    setattr(self, field) = value
+                # Grouping field-specific cache needs to be cleared when they are changed
+                self._content_cache = {}
+            instance = super().get_changelist_instance(request)
+            # Remove grouping fields from filters
+            if request.method == "GET":
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    if field in instance.params:
+                        del instance.params[field]
+            return instance
+
 Additional/advanced configuration
 ----------------------------------
 

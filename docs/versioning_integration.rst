@@ -367,7 +367,7 @@ You can use these on your content model's change view admin by adding the follow
                 for item in super().get_list_display(request)
             ]
 
-If you do not want to tweak details you might also use the ``indicator_mixin_factory``. It will create indicators for both grouper and content models.
+If you do not want to tweak details you might also use the ``IndicatorMixin``. It will create indicators for both grouper and content models.
 
 .. code-block:: python
 
@@ -376,17 +376,14 @@ If you do not want to tweak details you might also use the ``indicator_mixin_fac
     from djangocms_versioning import indicators
 
 
-    class MyContentModelAdmin(
-        indicators.indicator_mixin_factory(),
-        admin.Admin,
-    ):
+    class MyContentModelAdmin(IndicatorMixin, admin.Admin):
         model = MyContentModel
         # Indicator column adds "indicator" at the end of list
          list_items = [...]
 
 .. note::
 
-    The mixin for grouper models expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
+    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
 
     This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree keeps its extra grouping field (language) as a get parameter.
 

@@ -1,11 +1,12 @@
 import json
 
-from cms.utils.urlutils import static_with_version
 from django.contrib.auth import get_permission_codename
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
+
+from cms.utils.urlutils import static_with_version
 
 from djangocms_versioning import versionables
 from djangocms_versioning.constants import (
@@ -15,7 +16,10 @@ from djangocms_versioning.constants import (
     UNPUBLISHED,
     VERSION_STATES,
 )
-from djangocms_versioning.helpers import version_list_url, get_latest_admin_viewable_content
+from djangocms_versioning.helpers import (
+    get_latest_admin_viewable_content,
+    version_list_url,
+)
 from djangocms_versioning.models import Version
 
 
@@ -142,7 +146,7 @@ def is_editable(content_obj, request):
     return versions[0].check_modify.as_bool(request.user)
 
 
-class _IndicatorMixin:
+class IndicatorMixin:
     """Mixin to provide indicator column to the changelist view of a content model admin. Usage::
 
         class MyContentModelAdmin(ContenModelAdminMixin, admin.ModelAdmin):
@@ -160,6 +164,8 @@ class _IndicatorMixin:
         css = {
             "all": (static_with_version("cms/css/cms.pagetree.css"),),
         }
+
+    indicator_column_label = _("State")
 
     @property
     def _extra_grouping_fields(self):
@@ -188,17 +194,9 @@ class _IndicatorMixin:
                                                         dict(indicator_menu_items=menu))) if menu else None,
                 }
             )
-        indicator.description = self._indicator_label
+        indicator.description = self.indicator_column_label
         return indicator
 
     def get_list_display(self, request):
         """Default behavior: replaces the text "indicator" by the indicator column"""
         return list(super().get_list_display(request)) + [self.get_indicator_column(request)]
-
-
-def indicator_mixin_factory(label=_("State")):
-    return type(
-        "IndicatorModelAdminMixin",
-        (_IndicatorMixin, ),
-        dict(_indicator_label=label,),
-    )

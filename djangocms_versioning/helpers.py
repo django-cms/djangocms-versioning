@@ -305,8 +305,8 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
     """
     versionable = versionables.for_grouper(grouper)
     for field in versionable.extra_grouping_fields:
-        if field not in extra_grouping_fields:
-            raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")  # pragma no cover
+        if field not in extra_grouping_fields:  # pragma: no cover
+            raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
     qs = getattr(grouper, content_set)(manager="admin_manager")
     if include_unpublished_archived:
@@ -314,10 +314,10 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 
-def get_latest_admin_viewable_page_content(page, language):
+def get_latest_admin_viewable_page_content(page, language):  # pragma: no cover
     warnings.warn("get_latst_admin_viewable_page_content has ben deprecated. "
                   "Use get_latest_admin_viewable_content(page, language=language) instead.",
-                  DeprecationWarning, stacklevel=2)  # pragma: no cover
+                  DeprecationWarning, stacklevel=2)
     return get_latest_admin_viewable_content(page, language=language)
 
 

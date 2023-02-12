@@ -317,7 +317,7 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def get_list_display(self, request):
         # get configured list_display
-        list_display = self.list_display
+        list_display = super().get_list_display(request)
         # Add versioning information and action fields
         list_display += (
             "get_author",

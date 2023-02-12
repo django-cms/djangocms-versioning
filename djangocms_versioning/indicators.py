@@ -212,8 +212,8 @@ class IndicatorMixin:
     def get_list_display(self, request):
         """Default behavior: replaces the text "indicator" by the indicator column"""
         if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
-            return [self.get_indicator_column(request) if item == "indicator" else item
-                    for item in super().get_list_display(request)]
+            return tuple(self.get_indicator_column(request) if item == "indicator" else item
+                    for item in super().get_list_display(request))
         else:
             # remove "indicator" entry
-            return [item for item in super().get_list_display(request) if item != "indicator"]
+            return tuple(item for item in super().get_list_display(request) if item != "indicator")

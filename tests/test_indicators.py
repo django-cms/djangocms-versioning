@@ -15,6 +15,7 @@ from djangocms_versioning.test_utils.factories import (
 
 class TestVersionState(CMSTestCase):
     def test_page_indicators(self):
+        """Tests if the page content indicators render correctly"""
         page = PageFactory(node__depth=1)
         version1 = PageVersionFactory(
             content__page=page,
@@ -100,6 +101,7 @@ class TestVersionState(CMSTestCase):
             self.assertNotContains(response, "cms-pagetree-node-state-published")
 
     def test_mixin_facory_media(self):
+        """Test if the IndicatorMixin imports required js and css"""
         from django.contrib import admin
 
         admin = BlogContentAdmin(BlogContent, admin.site)
@@ -107,6 +109,7 @@ class TestVersionState(CMSTestCase):
         self.assertIn("indicators.js", str(admin.media))
 
     def test_mixin_factory(self):
+        """Test if IndicatorMixin causes the indicators to be rendered"""
         blogpost = BlogPostFactory()
         content = BlogContentFactory(
             blogpost=blogpost

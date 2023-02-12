@@ -372,13 +372,11 @@ If you do not want to tweak details you might also use the ``IndicatorMixin``. I
 .. code-block:: python
 
     import json
-    from cms.utils.urlutils import static_with_version
     from djangocms_versioning import indicators
 
 
-    class MyContentModelAdmin(IndicatorMixin, admin.Admin):
-        model = MyContentModel
-        # Indicator column adds "indicator" at the end of list
+    class MyContentModelAdmin(indicators.IndicatorMixin, admin.Admin):
+        # Adds "indicator" to the list_items
          list_items = [..., "indicator", ...]
 
 .. note::

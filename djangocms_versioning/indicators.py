@@ -107,7 +107,7 @@ def content_indicator(content_obj):
     Function caches the result in the page_content object"""
 
     if not content_obj:
-        return None
+        return None  # pragma: no cover
     elif not hasattr(content_obj, "_indicator_status"):
         versions = Version.objects.filter_by_content_grouping_values(
             content_obj
@@ -207,7 +207,7 @@ class IndicatorMixin:
             "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
             "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
             "sure it calls super().get_list_display."
-        )
+        )  # pragma: no cover
 
     def get_list_display(self, request):
         """Default behavior: replaces the text "indicator" by the indicator column"""

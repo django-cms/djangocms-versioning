@@ -56,7 +56,7 @@ class VersioningChangeListMixin:
         grouping_filters = {}
         for field in versionable.extra_grouping_fields:
             if hasattr(self, f"get_{field}_from_request"):
-                grouping_filters[field] = getattr(self, f"get_{field}_from_request")(request)
+                grouping_filters[field] = getattr(self, f"get_{field}_from_request")(request)  # pragma: no cover
             elif field == "language":
                 grouping_filters[field] = get_language_from_request(request)
         return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))

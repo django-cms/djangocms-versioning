@@ -17,6 +17,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
@@ -40,12 +41,18 @@ from djangocms_versioning.compat import DJANGO_GTE_30
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
+    version_list_url,
     versioning_admin_factory,
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.factories import (
+    BlogContentFactory,
+    BlogPostFactory,
+    BlogPostVersionFactory,
+)
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
 )
@@ -2828,3 +2835,41 @@ class ListActionsTestCase(CMSTestCase):
         self.assertIn("inactive", response)
         self.assertIn('title="Edit"', response)
         self.assertNotIn(edit_endpoint, response)
+
+    def test_valid_back_link(self):
+        """Test if the discard view upon get request replaces the link for the back button with
+        a valid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk,))
+        valid_url = admin_reverse(
+            "cms_placeholder_render_object_preview",
+            args=(version.content_type_id, version.object_id),
+        )
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?" + urlencode(dict(back=valid_url)))
+            self.assertContains(response, valid_url)
+            self.assertNotContains(response, version_list_url(version.content))
+
+    def test_fake_back_link(self):
+        """Test if the discard view upon get request denies replacing the link for the back button with
+        an invalid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk, ))
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?back=/hijack_url")
+            self.assertNotContains(response, "hijack_url")
+            self.assertContains(response, version_list_url(version.content))

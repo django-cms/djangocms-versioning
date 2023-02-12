@@ -41,7 +41,7 @@ def _reverse_action(version, action, back=None):
     ) + get_params
 
 
-def content_indicator_menu(request, status, versions):
+def content_indicator_menu(request, status, versions, back=""):
     menu = []
     if request.user.has_perm(f"cms.{get_permission_codename('change', versions[0]._meta)}"):
         if versions[0].check_publish.as_bool(request.user):
@@ -79,7 +79,7 @@ def content_indicator_menu(request, status, versions):
         if versions[0].check_discard.as_bool(request.user):
             menu.append((
                 _("Delete Draft") if status == DRAFT else _("Delete Changes"), "cms-icon-bin",
-                _reverse_action(versions[0], "discard", back=request.path_info),
+                _reverse_action(versions[0], "discard", back=back),
                 "",  # Let view ask for confirmation
             ))
         if len(versions) >= 2 and versions[0].state == DRAFT and versions[1].state == PUBLISHED:
@@ -88,7 +88,7 @@ def content_indicator_menu(request, status, versions):
                 _reverse_action(versions[1], "compare") +
                 "?" + urlencode(dict(
                     compare_to=versions[0].pk,
-                    back=request.path_info,
+                    back=back,
                 )),
                 "",
             ))
@@ -183,7 +183,12 @@ class IndicatorMixin:
             else:  # Content Model
                 content_obj = obj
             status = content_indicator(content_obj)
-            menu = content_indicator_menu(request, status, content_obj._version) if status else None
+            menu = content_indicator_menu(
+                request,
+                status,
+                content_obj._version,
+                back=request.path_info + "?" + request.GET.urlencode(),
+            ) if status else None
             return render_to_string(
                 "admin/djangocms_versioning/indicator.html",
                 {
@@ -194,15 +199,21 @@ class IndicatorMixin:
                                                         dict(indicator_menu_items=menu))) if menu else None,
                 }
             )
-        indicator.description = self.indicator_column_label
+        indicator.short_description = self.indicator_column_label
         return indicator
 
     def indicator(self, obj):
-        assert False, "The indicator display list item is a placeholder for version indicators. self.indicator " \
-                      "should not be called."
+        raise ValueError(
+            "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
+            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
+            "sure it calls super().get_list_display."
+        )
 
     def get_list_display(self, request):
         """Default behavior: replaces the text "indicator" by the indicator column"""
-
-        return [self.get_indicator_column(request) if item == "indicator" else item
-                for item in super().get_list_display(request)]
+        if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
+            return [self.get_indicator_column(request) if item == "indicator" else item
+                    for item in super().get_list_display(request)]
+        else:
+            # remove "indicator" entry
+            return [item for item in super().get_list_display(request) if item != "indicator"]

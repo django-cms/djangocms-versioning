@@ -1,5 +1,6 @@
 import collections
 
+from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
@@ -375,8 +376,9 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         status = page_content.content_indicator()
         if not status or status == "empty":
             return super().get_indicator_menu(request, page_content)
-        versions = page_content._version  # Cache from .content_indicator() (see mixin above)
-        menu = indicators.content_indicator_menu(request, status, versions)
+        versions = page_content._version  # Cache from .content_indicator()
+        back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
+        menu = indicators.content_indicator_menu(request, status, versions, back=back)
         return menu_template if menu else "", menu
 
 

@@ -1,6 +1,5 @@
 import collections
 
-from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
@@ -19,6 +18,7 @@ from cms.models import PageContent, Placeholder
 from cms.utils import get_language_from_request
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
+from cms.utils.urlutils import admin_reverse
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin

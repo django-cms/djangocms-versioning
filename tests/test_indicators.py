@@ -42,7 +42,6 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms-pagetree-node-state-archived")
             self.assertNotContains(response, "cms-pagetree-node-state-draft")
 
-
             # Now revert
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
                                         args=(pk,)))

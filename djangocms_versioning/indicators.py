@@ -197,6 +197,12 @@ class IndicatorMixin:
         indicator.description = self.indicator_column_label
         return indicator
 
+    def indicator(self, obj):
+        assert False, "The indicator display list item is a placeholder for version indicators. self.indicator " \
+                      "should not be called."
+
     def get_list_display(self, request):
         """Default behavior: replaces the text "indicator" by the indicator column"""
-        return list(super().get_list_display(request)) + [self.get_indicator_column(request)]
+
+        return [self.get_indicator_column(request) if item == "indicator" else item
+                for item in super().get_list_display(request)]

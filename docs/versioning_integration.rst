@@ -341,7 +341,7 @@ You can use these on your content model's change view admin by adding the follow
             }
 
         # Indicator column adds "indicator" at the end of list
-         list_items = [...]
+         list_items = [..., "indicator", ...]
 
         def get_indicator_column(self, request):
             # Name and render column
@@ -362,10 +362,10 @@ You can use these on your content model's change view admin by adding the follow
             return indicator
 
         def get_list_display(self, request):
-            return [
-                self.get_indicator_column(request) if item == "indicator" else item
-                for item in super().get_list_display(request)
-            ]
+            """Default behavior: replaces the text "indicator" by the indicator column"""
+
+            return [self.get_indicator_column(request) if item == "indicator" else item
+                    for item in super().get_list_display(request)]
 
 If you do not want to tweak details you might also use the ``IndicatorMixin``. It will create indicators for both grouper and content models.
 
@@ -379,7 +379,7 @@ If you do not want to tweak details you might also use the ``IndicatorMixin``. I
     class MyContentModelAdmin(IndicatorMixin, admin.Admin):
         model = MyContentModel
         # Indicator column adds "indicator" at the end of list
-         list_items = [...]
+         list_items = [..., "indicator", ...]
 
 .. note::
 

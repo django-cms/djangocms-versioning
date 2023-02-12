@@ -6,11 +6,11 @@ from djangocms_versioning.test_utils.blogpost import models
 
 
 class BlogContentAdmin(IndicatorMixin, ExtendedVersionAdminMixin, admin.ModelAdmin):
-    pass
+    list_display = ("__str__", "indicator")
 
 
 class BlogPostAdmin(IndicatorMixin, ExtendedVersionAdminMixin, admin.ModelAdmin):
-    pass
+    list_display = ("__str__", "indicator")
 
 
 admin.site.register(models.BlogPost, BlogPostAdmin)

@@ -131,7 +131,7 @@ def content_indicator(content_obj):
         elif signature[ARCHIVED]:
             content_obj._indicator_status = "archived"
             content_obj._version = signature[ARCHIVED]
-        else:
+        else:  # pragma: no cover
             content_obj._indicator_status = None
             content_obj._version = [None]
     return content_obj._indicator_status

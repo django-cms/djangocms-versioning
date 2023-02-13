@@ -5,7 +5,7 @@ from djangocms_versioning.test_utils.blogpost import models
 
 
 class BlogContentAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.ModelAdmin):
-    list_display = ("__str__", "indicator")
+    list_display = ("__str__", "state_indicator")
 
 
 class BlogPostAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.ModelAdmin):

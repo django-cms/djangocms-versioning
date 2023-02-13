@@ -177,7 +177,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
         indicator.short_description = self.indicator_column_label
         return indicator
 
-    def indicator(self, obj):
+    def state_indicator(self, obj):
         raise ValueError(
             "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
             "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "

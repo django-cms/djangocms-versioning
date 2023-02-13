@@ -1,5 +1,5 @@
+from cms.utils.urlutils import admin_reverse
 from django.contrib.auth import get_permission_codename
-from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
@@ -10,7 +10,6 @@ from djangocms_versioning.constants import (
     UNPUBLISHED,
     VERSION_STATES,
 )
-from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.models import Version
 
 
@@ -26,13 +25,15 @@ indicator_description = {
 
 def _reverse_action(version, action, back=None):
     get_params = f"?{urlencode(dict(back=back))}" if back else ""
-    return reverse(
-        f"admin:{version._meta.app_label}_{version.versionable.version_model_proxy._meta.model_name}_{action}",
+    return admin_reverse(
+        f"{version._meta.app_label}_{version.versionable.version_model_proxy._meta.model_name}_{action}",
         args=(version.pk,)
     ) + get_params
 
 
 def content_indicator_menu(request, status, versions, back=""):
+    from djangocms_versioning.helpers import version_list_url
+
     menu = []
     if request.user.has_perm(f"cms.{get_permission_codename('change', versions[0]._meta)}"):
         if versions[0].check_publish.as_bool(request.user):

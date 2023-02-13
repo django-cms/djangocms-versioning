@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth import get_permission_codename
+from django.forms import MediaDefiningClass
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -146,7 +147,7 @@ def is_editable(content_obj, request):
     return versions[0].check_modify.as_bool(request.user)
 
 
-class IndicatorMixin:
+class IndicatorMixin(metaclass=MediaDefiningClass):
     """Mixin to provide indicator column to the changelist view of a content model admin. Usage::
 
         class MyContentModelAdmin(ContenModelAdminMixin, admin.ModelAdmin):
@@ -159,7 +160,7 @@ class IndicatorMixin:
     """
     class Media:
         # js for the context menu
-        js = ("djangocms_versioning/js/indicators.js",)
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/indicators.js",)
         # css for indicators and context menu
         css = {
             "all": (static_with_version("cms/css/cms.pagetree.css"),),
@@ -177,7 +178,7 @@ class IndicatorMixin:
     def get_indicator_column(self, request):
         def indicator(obj):
             if self._extra_grouping_fields is not None:  # Grouper Model
-                content_obj = get_latest_admin_viewable_content(obj, include_unpublished_archived=False, **{
+                content_obj = get_latest_admin_viewable_content(obj, include_unpublished_archived=True, **{
                     field: getattr(self, field) for field in self._extra_grouping_fields
                 })
             else:  # Content Model

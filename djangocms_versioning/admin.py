@@ -8,6 +8,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db.models.functions import Lower
+from django.forms import MediaDefiningClass
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -123,7 +124,7 @@ class VersioningAdminMixin:
         return super().has_change_permission(request, obj)
 
 
-class ExtendedVersionAdminMixin(VersioningAdminMixin):
+class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningClass):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 

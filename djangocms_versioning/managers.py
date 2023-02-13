@@ -78,7 +78,7 @@ class AdminQuerySetMixin:
             .values_list("vers_pk", flat=True)
         return qs.filter(versions__pk__in=pk_filter)
 
-    def latest_content(self):
+    def latest_content(self, **kwargs):
         """Returns the "latest" content object which is in this order
            1. a draft version (should it exist)
            2. a published version (should it exist)
@@ -114,7 +114,7 @@ class AdminQuerySetMixin:
             .values(*self._group_by_key)\
             .annotate(vers_pk=models.Max("versions__pk"))\
             .values("vers_pk")
-        return self.filter(versions__pk__in=pk_current | pk_other)
+        return self.filter(versions__pk__in=pk_current | pk_other, **kwargs)
 
 
 class AdminManagerMixin:
@@ -135,3 +135,11 @@ class AdminManagerMixin:
             {"_group_by_key": self._group_by_key}  # Pass grouping fields to queryset
         )(self.model, using=self._db)
         return qs
+
+    def current_content(self, **kwargs):  # pragma: no cover
+        """Syntactic sugar: admin_manager.current_content()"""
+        return self.get_queryset().current_content(**kwargs)
+
+    def latest_content(self, **kwargs):  # pragma: no cover
+        """Syntactic sugar: admin_manager.latest_content()"""
+        return self.get_queryset().latest_content(**kwargs)

@@ -38,8 +38,8 @@
 
                 if (window.self === window.top) {
                     // simply reload the page
-                    _reloadHelper();
-                } else {
+                    window.location.reload();
+                 } else {
                     window.top.CMS.API.Helpers.reloadBrowser('REFRESH_PAGE');
                 }
             })
@@ -82,21 +82,6 @@
             e.preventDefault();
             _reloadHelper();
         });
-    }
-
-    /**
-     * Checks if we should reload the iframe or entire window. For this we
-     * need to skip `CMS.API.Helpers.reloadBrowser();`.
-     *
-     * @method _reloadHelper
-     * @private
-     */
-    function _reloadHelper() {
-        if (window.self === window.top) {
-            CMS.API.Helpers.reloadBrowser();
-        } else {
-            window.location.reload();
-        }
     }
 
     function close_menu() {

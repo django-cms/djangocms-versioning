@@ -9,7 +9,7 @@ class BlogContentAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.Mod
 
 
 class BlogPostAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.ModelAdmin):
-    list_display = ("__str__", "indicator")
+    list_display = ("__str__", "state_indicator")
 
 
 admin.site.register(models.BlogPost, BlogPostAdmin)

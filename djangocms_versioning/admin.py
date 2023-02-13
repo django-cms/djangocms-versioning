@@ -1,3 +1,4 @@
+import json
 from collections import OrderedDict
 from urllib.parse import urlparse
 
@@ -23,7 +24,7 @@ from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
-from . import versionables
+from . import indicators, versionables
 from .conf import USERNAME_FIELD
 from .constants import DRAFT, PUBLISHED
 from .exceptions import ConditionFailed
@@ -31,6 +32,7 @@ from .forms import grouper_form_factory
 from .helpers import (
     get_admin_url,
     get_editable_url,
+    get_latest_admin_viewable_content,
     get_preview_url,
     proxy_model,
     version_list_url,
@@ -124,6 +126,74 @@ class VersioningAdminMixin:
         return super().has_change_permission(request, obj)
 
 
+class StateIndicatorMixin(metaclass=MediaDefiningClass):
+    """Mixin to provide indicator column to the changelist view of a content model admin. Usage::
+
+        class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
+            list_display = [..., "state_indicator", ...]
+    """
+    class Media:
+        # js for the context menu
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/indicators.js",)
+        # css for indicators and context menu
+        css = {
+            "all": (static_with_version("cms/css/cms.pagetree.css"),),
+        }
+
+    indicator_column_label = _("State")
+
+    @property
+    def _extra_grouping_fields(self):
+        try:
+            return versionables.for_grouper(self.model).extra_grouping_fields
+        except KeyError:
+            return None
+
+    def get_indicator_column(self, request):
+        def indicator(obj):
+            if self._extra_grouping_fields is not None:  # Grouper Model
+                content_obj = get_latest_admin_viewable_content(obj, include_unpublished_archived=True, **{
+                    field: getattr(self, field) for field in self._extra_grouping_fields
+                })
+            else:  # Content Model
+                content_obj = obj
+            status = indicators.content_indicator(content_obj)
+            menu = indicators.content_indicator_menu(
+                request,
+                status,
+                content_obj._version,
+                back=request.path_info + "?" + request.GET.urlencode(),
+            ) if status else None
+            return render_to_string(
+                "admin/djangocms_versioning/indicator.html",
+                {
+                    "state": status or "empty",
+                    "description": indicators.indicator_description.get(status, _("Empty")),
+                    "menu_template": "admin/cms/page/tree/indicator_menu.html",
+                    "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
+                                                        dict(indicator_menu_items=menu))) if menu else None,
+                }
+            )
+        indicator.short_description = self.indicator_column_label
+        return indicator
+
+    def indicator(self, obj):
+        raise ValueError(
+            "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
+            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
+            "sure it calls super().get_list_display."
+        )  # pragma: no cover
+
+    def get_list_display(self, request):
+        """Default behavior: replaces the text "indicator" by the indicator column"""
+        if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
+            return tuple(self.get_indicator_column(request) if item == "state_indicator" else item
+                         for item in super().get_list_display(request))
+        else:
+            # remove "indicator" entry
+            return tuple(item for item in super().get_list_display(request) if item != "state_indicator")
+
+
 class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningClass):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
@@ -133,6 +203,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
     """
 
     change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
+    versioning_list_display = (
+            "get_author",
+            "get_modified_date",
+            "get_versioning_state",
+        )
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
@@ -277,11 +352,14 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
         """
         Collect rendered actions from implemented methods and return as list
         """
-        return [
+        actions = [
             self._get_preview_link,
             self._get_edit_link,
-            self._get_manage_versions_link,
-        ]
+         ]
+        if "state_indicator" not in self.versioning_list_display:
+            # State indicator mixin loaded?
+            actions.append(self._get_manage_versions_link)
+        return actions
 
     def get_preview_link(self, obj):
         return format_html(
@@ -320,18 +398,21 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
         # get configured list_display
         list_display = super().get_list_display(request)
         # Add versioning information and action fields
-        list_display += (
-            "get_author",
-            "get_modified_date",
-            "get_versioning_state",
-            self._list_actions(request)
-        )
+        list_display += self.versioning_list_display + (self._list_actions(request),)
         # Get the versioning extension
         extension = _cms_extension()
         modifier_dict = extension.add_to_field_extension.get(self.model, None)
         if modifier_dict:
             list_display = self.extend_list_display(request, modifier_dict, list_display)
         return list_display
+
+
+class ExtendedIndicatorVersionAdminMixin(StateIndicatorMixin, ExtendedVersionAdminMixin):
+    versioning_list_display = (
+        "get_author",
+        "get_modified_date",
+        "state_indicator",
+    )
 
 
 class VersionChangeList(ChangeList):

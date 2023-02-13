@@ -1,15 +1,8 @@
-import json
-
 from django.contrib.auth import get_permission_codename
-from django.forms import MediaDefiningClass
-from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
-from cms.utils.urlutils import static_with_version
-
-from djangocms_versioning import versionables
 from djangocms_versioning.constants import (
     ARCHIVED,
     DRAFT,
@@ -17,10 +10,7 @@ from djangocms_versioning.constants import (
     UNPUBLISHED,
     VERSION_STATES,
 )
-from djangocms_versioning.helpers import (
-    get_latest_admin_viewable_content,
-    version_list_url,
-)
+from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.models import Version
 
 
@@ -145,76 +135,3 @@ def is_editable(content_obj, request):
         return False
     versions = content_obj._version
     return versions[0].check_modify.as_bool(request.user)
-
-
-class IndicatorMixin(metaclass=MediaDefiningClass):
-    """Mixin to provide indicator column to the changelist view of a content model admin. Usage::
-
-        class MyContentModelAdmin(ContenModelAdminMixin, admin.ModelAdmin):
-            list_display = [...]
-
-            def get_list_display(self, request):
-                return self.list_display + [
-                    self.get_indicator_column(request)
-                ]
-    """
-    class Media:
-        # js for the context menu
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/indicators.js",)
-        # css for indicators and context menu
-        css = {
-            "all": (static_with_version("cms/css/cms.pagetree.css"),),
-        }
-
-    indicator_column_label = _("State")
-
-    @property
-    def _extra_grouping_fields(self):
-        try:
-            return versionables.for_grouper(self.model).extra_grouping_fields
-        except KeyError:
-            return None
-
-    def get_indicator_column(self, request):
-        def indicator(obj):
-            if self._extra_grouping_fields is not None:  # Grouper Model
-                content_obj = get_latest_admin_viewable_content(obj, include_unpublished_archived=True, **{
-                    field: getattr(self, field) for field in self._extra_grouping_fields
-                })
-            else:  # Content Model
-                content_obj = obj
-            status = content_indicator(content_obj)
-            menu = content_indicator_menu(
-                request,
-                status,
-                content_obj._version,
-                back=request.path_info + "?" + request.GET.urlencode(),
-            ) if status else None
-            return render_to_string(
-                "admin/djangocms_versioning/indicator.html",
-                {
-                    "state": status or "empty",
-                    "description": indicator_description.get(status, _("Empty")),
-                    "menu_template": "admin/cms/page/tree/indicator_menu.html",
-                    "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
-                                                        dict(indicator_menu_items=menu))) if menu else None,
-                }
-            )
-        indicator.short_description = self.indicator_column_label
-        return indicator
-
-    def indicator(self, obj):
-        raise ValueError(
-            "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
-            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
-            "sure it calls super().get_list_display."
-        )  # pragma: no cover
-
-    def get_list_display(self, request):
-        """Default behavior: replaces the text "indicator" by the indicator column"""
-        if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
-            return tuple(self.get_indicator_column(request) if item == "indicator" else item
-                         for item in super().get_list_display(request))
-        else:
-            # remove "indicator" entry
-            return tuple(item for item in super().get_list_display(request) if item != "indicator")

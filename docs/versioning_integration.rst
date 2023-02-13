@@ -314,70 +314,25 @@ in the form of a dictionary of {model_name: {field: method}}, the admin for the 
 Given the code sample above, "This is how we add" would be displayed as
 "this is how we add extra field text!" in the changelist of PostAdmin.
 
-Using status indicators for your versioned content models
----------------------------------------------------------
+Adding status indicators to a versioned content model
+-----------------------------------------------------
 
 djangocms-versioning provides status indicators for django CMS' page content models as you know them from the page tree:
 
 .. image:: static/Status-indicators.png
     :width: 50%
 
-You can use these on your content model's change view admin by adding the following code to the model's Admin class:
+You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:
 
 .. code-block:: python
 
     import json
-    from cms.utils.urlutils import static_with_version
-    from djangocms_versioning import indicators
+    from djangocms_versioning.admin import StateIndicatorAdminMixin
 
 
-    class MyContentModelAdmin(admin.Admin):
-        class Media:
-            # js for the context menu
-            js = ("djangocms_versioning/js/indicators.js",)
-            # css for indicators and context menu
-            css = {
-                "all": (static_with_version("cms/css/cms.pagetree.css"),),
-            }
-
-        # Indicator column adds "indicator" at the end of list
-         list_items = [..., "indicator", ...]
-
-        def get_indicator_column(self, request):
-            # Name and render column
-            @admin.display(description=_("State"))
-            def indicator(self, content_obj):
-                status = indicators.content_indicator(content_obj)
-                menu = indicators.content_indicator_menu(request, status, content_obj._version) if status else None
-                return render_to_string(
-                    "admin/djangocms_versioning/indicator.html",
-                    {
-                        "state": status or "empty",
-                        "description": indicators.indicator_description.get(status, _("Empty")),
-                        "menu_template": "admin/cms/page/tree/indicator_menu.html",
-                        "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
-                                                          dict(indicator_menu_items=menu))) if menu else None,
-                    }
-                )
-            return indicator
-
-        def get_list_display(self, request):
-            """Default behavior: replaces the text "indicator" by the indicator column"""
-
-            return [self.get_indicator_column(request) if item == "indicator" else item
-                    for item in super().get_list_display(request)]
-
-If you do not want to tweak details you might also use the ``IndicatorMixin``. It will create indicators for both grouper and content models.
-
-.. code-block:: python
-
-    import json
-    from djangocms_versioning import indicators
-
-
-    class MyContentModelAdmin(indicators.IndicatorMixin, admin.Admin):
+    class MyContentModelAdmin(StateIndicatorAdminMixin, admin.Admin):
         # Adds "indicator" to the list_items
-         list_items = [..., "indicator", ...]
+         list_items = [..., "state_indicator", ...]
 
 .. note::
 
@@ -406,6 +361,21 @@ If you do not want to tweak details you might also use the ``IndicatorMixin``. I
                     if field in instance.params:
                         del instance.params[field]
             return instance
+
+Adding Status Indicators *and* Versioning Entries to a versioned content model
+------------------------------------------------------------------------
+
+Both mixins can be easily combined. If you want both, state indicators and the additional author, modified date, preview action, and edit action, you can simpliy use the ``ExtendedIndicatorVersionAdminMixin``:
+
+.. code-block:: python
+
+    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.Admin):
+        ...
+
+The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
+
+Add additional actions by overwriting the ``self.get_list_actions()`` method and calling ``super()``.
+
 
 Additional/advanced configuration
 ----------------------------------

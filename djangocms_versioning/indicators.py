@@ -1,7 +1,8 @@
-from cms.utils.urlutils import admin_reverse
 from django.contrib.auth import get_permission_codename
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
+
+from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.constants import (
     ARCHIVED,

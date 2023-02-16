@@ -317,7 +317,7 @@ Given the code sample above, "This is how we add" would be displayed as
 Adding status indicators to a versioned content model
 -----------------------------------------------------
 
-djangocms-versioning provides status indicators for django CMS' page content models as you know them from the page tree:
+djangocms-versioning provides status indicators for django CMS' content models, you may know them from the page tree in django-cms:
 
 .. image:: static/Status-indicators.png
     :width: 50%

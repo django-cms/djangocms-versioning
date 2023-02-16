@@ -85,7 +85,7 @@ class Version(models.Model):
         "self",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         verbose_name=_("source"),
     )
     objects = VersionQuerySet.as_manager()

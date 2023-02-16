@@ -310,6 +310,7 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
             
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
     qs = getattr(grouper, content_set)(manager="admin_manager")
+    
     if include_unpublished_archived:
         return qs.filter(**extra_grouping_fields).latest_content().first()
     return qs.filter(**extra_grouping_fields).current_content().first()

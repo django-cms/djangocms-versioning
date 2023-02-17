@@ -71,7 +71,7 @@ def content_indicator_menu(request, status, versions, back=""):
             ))
         if versions[0].check_discard.as_bool(request.user):
             menu.append((
-                _("Delete Draft") if status == DRAFT else _("Delete Changes"), "cms-icon-bin",
+                _("Delete Draft") if status == DRAFT else _("Discard Changes"), "cms-icon-bin",
                 _reverse_action(versions[0], "discard", back=back),
                 "",  # Let view ask for confirmation
             ))

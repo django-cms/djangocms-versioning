@@ -189,7 +189,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 if version.check_discard.as_bool(self.request.user):  # pragma: no cover
                     versioning_menu.add_item(Break())
                     versioning_menu.add_link_item(
-                        _("Discard changes"),
+                        _("Discard Changes"),
                         url=reverse("admin:{app}_{model}_discard".format(
                             app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
                         ), args=(version.pk,))

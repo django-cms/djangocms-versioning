@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="version",
             name="modified",
-            field=models.DateTimeField(default=django.utils.timezone.now),
+            field=models.DateTimeField(default=django.utils.timezone.now, verbose_name="Modified"),
         )
     ]

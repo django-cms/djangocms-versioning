@@ -21,6 +21,9 @@ except ImportError:
     emit_content_change = None
 
 
+allow_deleting_versions = getattr(settings, "DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS", False)
+
+
 class VersionQuerySet(models.QuerySet):
     def get_for_content(self, content_object):
         """Returns Version object corresponding to provided content object
@@ -85,7 +88,7 @@ class Version(models.Model):
         "self",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.SET_NULL if allow_deleting_versions else models.PROTECT,
         verbose_name=_("source"),
     )
     objects = VersionQuerySet.as_manager()

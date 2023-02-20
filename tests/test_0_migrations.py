@@ -1,10 +1,12 @@
 # original from
 # http://tech.octopus.energy/news/2016/01/21/testing-for-missing-migrations-in-django.html
+
+# Needs to run as first test to avoid generating migrations for proxy version models.
+
 from io import StringIO
 
-from django.conf import settings
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 
 class MigrationTestCase(TestCase):
@@ -17,9 +19,6 @@ class MigrationTestCase(TestCase):
             "check_changes": True,
         }
 
-
-
-        print(settings.INSTALLED_APPS)
         try:
             call_command("makemigrations", "djangocms_versioning", **options)
         except SystemExit as e:

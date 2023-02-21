@@ -21,10 +21,11 @@ except ImportError:
     emit_content_change = None
 
 
-def allow_deleting_versions(*args, **kwargs):
+def allow_deleting_versions(collector, field, sub_objs, using):
     if getattr(settings, "DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS", False):
-        return models.SET_NULL(*args, **kwargs)
-    return models.PROTECT(*args, **kwargs)
+        models.SET_NULL(collector, field, sub_objs, using)
+    else:
+        models.PROTECT(collector, field, sub_objs, using)
 
 
 class VersionQuerySet(models.QuerySet):

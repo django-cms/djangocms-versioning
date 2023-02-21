@@ -1,7 +1,6 @@
 import collections
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import (
     ImproperlyConfigured,
@@ -358,7 +357,7 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
         try:
             version.check_modify(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_str(e), messages.ERROR)
+            # Send error message
             return HttpResponseForbidden(force_str(e))
         return super().change_innavigation(request, object_id)
 

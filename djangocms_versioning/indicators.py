@@ -77,7 +77,7 @@ class IndicatorStatusMixin:
                 ))
             if len(versions) >= 2 and versions[0].state == DRAFT and versions[1].state == PUBLISHED:
                 menu.append((
-                    _("Compare Draft to Published..."), "cms-icon-layers",
+                    _("Compare Draft to Published..."), "cms-icon-compare",
                     reverse("admin:djangocms_versioning_pagecontentversion_compare", args=(versions[1].pk,)) +
                     "?" + urlencode(dict(
                         compare_to=versions[0].pk,
@@ -87,7 +87,7 @@ class IndicatorStatusMixin:
                 ))
         menu.append(
             (
-                _("Manage Versions..."), "cms-icon-copy",
+                _("Manage Versions..."), "cms-icon-manage-versions",
                 version_list_url(versions[0].content),
                 "",
             )

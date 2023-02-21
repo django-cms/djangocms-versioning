@@ -87,25 +87,6 @@ class AdminQuerySetMixin:
         This filter assumes that there can only be one draft created and that the draft as
         the highest pk of all versions (should it exist).
         """
-        """
-        While this is probably to most general approach it does not work for MySql :-(
-        inner = (
-                    self.annotate(
-                        order=models.Case(
-                            models.When(versions__state=constants.PUBLISHED, then=2),
-                            models.When(versions__state=constants.DRAFT, then=1),
-                            default = 0,
-                            output_field = models.IntegerField(),
-                        ),
-                        modified =  models.Max("versions__modified"),
-                    )
-                    .filter(**{
-                        self._group_by_key[0]: models.OuterRef(self._group_by_key[0])
-                    })
-                    .order_by("-order", "-modified")
-        )
-        return self.filter(pk__in=models.Subquery(inner[:1].values("pk")))
-        """
         current = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
             .values(*self._group_by_key)\
             .annotate(vers_pk=models.Max("versions__pk"))

@@ -35,6 +35,17 @@ Status indicators in page tree
   make sure that at least version 3.2.1 is installed. Older versions contain
   a bug that interferes with djangocms-versioning's icons.
 
+Status indicators for custom versioned models
+---------------------------------------------
+
+* The new ``StateIndicatorMixin`` allows to add state indicators to a grouper or
+  content model's admin changelist view.
+
+* The new ``ExtendedIndicatorVersionAdminMixin`` combines the
+  ``ExtendedVersionAdminMixin`` and the ``StateIndicatorMixin``, where the
+  version state is replaced by the indicator and the versioning actions are
+  part of the indicator drop down menu.
+
 
 Backwards incompatible changes in 2.0.0
 =======================================

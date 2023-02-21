@@ -7,7 +7,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.sql.where import WhereNode
-from django.urls import reverse
 
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
@@ -225,8 +224,8 @@ def get_editable_url(content_obj):
         url = get_object_edit_url(content_obj, language)
     # Or else, the standard edit view should be used
     else:
-        url = reverse(
-            "admin:{app}_{model}_change".format(
+        url = admin_reverse(
+            "{app}_{model}_change".format(
                 app=content_obj._meta.app_label, model=content_obj._meta.model_name
             ),
             args=(content_obj.pk,),
@@ -261,8 +260,8 @@ def get_preview_url(content_obj):
         url = get_object_preview_url(content_obj)
         # Or else, the standard change view should be used
     else:
-        url = reverse(
-            "admin:{app}_{model}_change".format(
+        url = admin_reverse(
+            "{app}_{model}_change".format(
                 app=content_obj._meta.app_label, model=content_obj._meta.model_name
             ),
             args=[content_obj.pk],
@@ -304,15 +303,22 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
     Return the latest Draft or Published PageContent using the draft where possible
     """
     versionable = versionables.for_grouper(grouper)
+
+    # Check if all required grouping fields are given to be able to select the latest admin viewable content
+    # It is essential to
     for field in versionable.extra_grouping_fields:
         if field not in extra_grouping_fields:  # pragma: no cover
             raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")
-            
+
+    # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
+    # Accessing the content set through the grouper preserves prefetches
     qs = getattr(grouper, content_set)(manager="admin_manager")
-    
+
     if include_unpublished_archived:
+        # Relevant for admin to see e.g., the latest unpublished or archived versions
         return qs.filter(**extra_grouping_fields).latest_content().first()
+    # Return only active versions, e.g., for copying
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 

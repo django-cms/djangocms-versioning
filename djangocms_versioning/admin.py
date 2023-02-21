@@ -786,7 +786,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request) or version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/archive_confirmation.html", context
@@ -866,7 +866,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request) or version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             extra_context = OrderedDict(
                 [
@@ -980,7 +980,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request) or version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
@@ -1022,7 +1022,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request) or version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
@@ -1068,7 +1068,7 @@ class VersionAdmin(admin.ModelAdmin):
             "version_list": version_list,
             "v1": v1,
             "v1_preview_url": v1_preview_url,
-            "return_url": self.back_link(request) or version_list_url(v1.content),
+            "return_url": self.back_link(request, v1),
         }
 
         # Now check if version 2 has been specified and add to context
@@ -1097,7 +1097,7 @@ class VersionAdmin(admin.ModelAdmin):
         )
 
     @staticmethod
-    def back_link(request):
+    def back_link(request, version=None):
         back_url = request.GET.get("back", None)
         if back_url:
             try:
@@ -1106,7 +1106,7 @@ class VersionAdmin(admin.ModelAdmin):
             except Resolver404:
                 # If not ignore
                 back_url = None
-        return back_url
+        return back_url or (version_list_url(version.content) if version else None)
 
     def changelist_view(self, request, extra_context=None):
         """Handle grouper filtering on the changelist"""

@@ -151,23 +151,6 @@ class VersionableItem(BaseVersionableItem):
 
     def grouper_choices_queryset(self):
         """Returns a queryset of all the available groupers instances of the registered type"""
-        # inner = (
-        #     self.content_model._base_manager.annotate(
-        #         order=Case(
-        #             When(versions__state=PUBLISHED, then=2),
-        #             When(versions__state=DRAFT, then=1),
-        #             default=0,
-        #             output_field=models.IntegerField(),
-        #         )
-        #     )
-        #     .filter(**{self.grouper_field_name: OuterRef("pk")})
-        #     .order_by("-order")
-        # )
-        # content_objects = self.content_model._base_manager.filter(
-        #     pk__in=self.grouper_model._base_manager.annotate(
-        #         content=Subquery(inner.values_list("pk")[:1])
-        #     ).values_list("content")
-        # )
         content_objects = self.content_model.admin_manager.all().latest_content()
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(

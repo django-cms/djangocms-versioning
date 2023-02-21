@@ -338,7 +338,7 @@ You can use these on your content model's changelist view admin by adding the fo
 
     For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
 
-    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter.
+    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
 
     .. code-block:: python
 

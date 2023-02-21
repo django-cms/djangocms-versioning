@@ -1,7 +1,7 @@
-from cms.test_utils.testcases import CMSTestCase
-
 from django.db import models
 from django.test import override_settings
+
+from cms.test_utils.testcases import CMSTestCase
 
 from djangocms_versioning import constants
 from djangocms_versioning.models import Version

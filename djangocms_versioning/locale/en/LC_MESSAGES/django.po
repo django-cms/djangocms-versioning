@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-11 05:51+0100\n"
+"POT-Creation-Date: 2023-01-23 10:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
-#: admin.py:184
+#: admin.py:184 models.py:70
 msgid "Modified"
 msgstr ""
 
@@ -101,7 +101,7 @@ msgstr ""
 msgid "No available title"
 msgstr ""
 
-#: cms_config.py:239 indicators.py:25
+#: cms_config.py:239 constants.py:13 indicators.py:25
 msgid "Unpublished"
 msgstr ""
 
@@ -128,64 +128,59 @@ msgstr ""
 msgid "Revert"
 msgstr ""
 
-#: cms_toolbars.py:154
-#, python-brace-format
-msgid "Version #{number} ({state})"
-msgstr ""
-
-#: cms_toolbars.py:168
+#: cms_toolbars.py:166
 msgid "Manage Versions"
 msgstr ""
 
-#: cms_toolbars.py:170
+#: cms_toolbars.py:168
 #, python-brace-format
-msgid "Compare to {state} source"
+msgid "Compare to {source}"
 msgstr ""
 
-#: cms_toolbars.py:211
+#: cms_toolbars.py:209
 msgid "View Published"
 msgstr ""
 
-#: cms_toolbars.py:254
+#: cms_toolbars.py:252
 msgid "Language"
 msgstr ""
 
-#: cms_toolbars.py:301
+#: cms_toolbars.py:299
 msgid "Add Translation"
 msgstr ""
 
-#: cms_toolbars.py:314
+#: cms_toolbars.py:312
 msgid "Copy all plugins"
 msgstr ""
 
-#: cms_toolbars.py:316
+#: cms_toolbars.py:314
 #, python-format
 msgid "from %s"
 msgstr ""
 
-#: cms_toolbars.py:317
+#: cms_toolbars.py:315
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr ""
 
-#: cms_toolbars.py:332
+#: cms_toolbars.py:330
 msgid "No other language available"
 msgstr ""
 
-#: indicators.py:22
+#: constants.py:11 indicators.py:24
+msgid "Draft"
+msgstr ""
+
+#: constants.py:12 indicators.py:22
 msgid "Published"
+msgstr ""
+
+#: constants.py:14 indicators.py:26
+msgid "Archived"
 msgstr ""
 
 #: indicators.py:23
 msgid "Changed"
-msgstr ""
-
-#: indicators.py:24
-msgid "Draft"
-msgstr ""
-
-#: indicators.py:26
-msgid "Archived"
 msgstr ""
 
 #: indicators.py:27
@@ -221,6 +216,10 @@ msgstr ""
 msgid "Manage Versions..."
 msgstr ""
 
+#: models.py:69
+msgid "Created"
+msgstr ""
+
 #: models.py:72
 msgid "author"
 msgstr ""
@@ -238,23 +237,28 @@ msgstr ""
 msgid "Version #{number} ({state} {date})"
 msgstr ""
 
-#: models.py:224 models.py:271
+#: models.py:107
+#, python-brace-format
+msgid "Version #{number} ({state})"
+msgstr ""
+
+#: models.py:229 models.py:276
 msgid "Version is not in draft state"
 msgstr ""
 
-#: models.py:331
+#: models.py:336
 msgid "Version is not in published state"
 msgstr ""
 
-#: models.py:378 models.py:389
+#: models.py:383 models.py:394
 msgid "Version is not a draft"
 msgstr ""
 
-#: models.py:384
+#: models.py:389
 msgid "Version is not in archived or unpublished state"
 msgstr ""
 
-#: models.py:395
+#: models.py:400
 msgid "Version is not in draft or published state"
 msgstr ""
 

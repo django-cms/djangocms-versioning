@@ -38,6 +38,7 @@ class ExtensionTestCase(CMSTestCase):
             translations=False,
             permissions=False,
             extensions=False,
+            user=self.get_superuser(),
         )
         new_page_content = PageContentFactory(page=self.new_page, language='de')
         self.new_page.page_content_cache[de_pagecontent.language] = new_page_content

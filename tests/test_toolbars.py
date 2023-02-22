@@ -333,6 +333,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_version_menu_label(self):
         # Versioned item should have correct version menu label
+        from djangocms_versioning.constants import VERSION_STATES
         version = PollVersionFactory()
         toolbar = get_toolbar(
             version.content, user=self.get_superuser(), preview_mode=True
@@ -341,7 +342,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         version_menu = toolbar.toolbar.get_menu("version")
 
         expected_label = "Version #{number} ({state})".format(
-            number=version.number, state=version.state
+            number=version.number, state=dict(VERSION_STATES)[version.state]
         )
         self.assertEqual(expected_label, version_menu.name)
 

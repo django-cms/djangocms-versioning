@@ -4,6 +4,7 @@ from copy import copy
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -22,7 +23,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_page_content,
     version_list_url,
@@ -106,8 +107,15 @@ class VersioningToolbar(PlaceholderToolbar):
                 ),
                 args=(version.pk,),
             )
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                version.content
+            ).values_list("pk", flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            draft_exists = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type, state=DRAFT
+            ).exists()
             item.add_button(
-                _("Edit"),
+                _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
                 extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
@@ -142,7 +150,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
 
@@ -151,9 +159,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
-        version_menu_label = _("Version #{number} ({state})").format(
-            number=version.number, state=version.state
-        )
+        version_menu_label = version.short_name()
         versioning_menu = self.toolbar.get_or_create_menu(
             VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
         )
@@ -166,8 +172,9 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            # Compare to source menu entry
             if version.source:
-                name = _("Compare to {state} source").format(state=_(version.source.state))
+                name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
                 url = reverse("admin:{app}_{model}_compare".format(
                      app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
@@ -178,6 +185,15 @@ class VersioningToolbar(PlaceholderToolbar):
                     back=self.request.get_full_path(),
                 ))
                 versioning_menu.add_link_item(name, url=url)
+                # Discard changes menu entry (wrt to source)
+                if version.check_discard.as_bool(self.request.user):  # pragma: no cover
+                    versioning_menu.add_item(Break())
+                    versioning_menu.add_link_item(
+                        _("Discard Changes"),
+                        url=reverse("admin:{app}_{model}_discard".format(
+                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                        ), args=(version.pk,))
+                    )
 
     def _get_published_version(self):
         """Returns a published content (e.g. PageContent) if one exists for the toolbar object
@@ -191,7 +207,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Check if object is registered with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
 
@@ -211,8 +227,20 @@ class VersioningToolbar(PlaceholderToolbar):
             )
             self.toolbar.add_item(item)
 
+    def _add_preview_button(self):
+        """Helper method to add a preview button to the toolbar when not in preview mode"""
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+
+        if not self.toolbar.preview_mode_active and not self.toolbar.edit_mode_active:
+            # Any mode not preview mode can have a preview button
+            # Exclude edit mode, however, since the django CMS core already ads the preview button for edit mode
+            self.add_preview_button()
+
     def post_template_populate(self):
         super(VersioningToolbar, self).post_template_populate()
+        self._add_preview_button()
         self._add_view_published_button()
         self._add_revert_button()
         self._add_publish_button()
@@ -254,7 +282,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
-                # Get the pagw content, it could be draft too!
+                # Get the page content, it could be draft too!
                 page_content = self.get_page_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)

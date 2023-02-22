@@ -1,13 +1,17 @@
+from django.utils.translation import gettext_lazy as _
+
+
 """Version states"""
 ARCHIVED = "archived"
 DRAFT = "draft"
 PUBLISHED = "published"
 UNPUBLISHED = "unpublished"
+
 VERSION_STATES = (
-    (DRAFT, "Draft"),
-    (PUBLISHED, "Published"),
-    (UNPUBLISHED, "Unpublished"),
-    (ARCHIVED, "Archived"),
+    (DRAFT, _("Draft")),
+    (PUBLISHED, _("Published")),
+    (UNPUBLISHED, _("Unpublished")),
+    (ARCHIVED, _("Archived")),
 )
 """Version operation states"""
 OPERATION_ARCHIVE = "operation_archive"

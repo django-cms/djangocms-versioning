@@ -4,6 +4,7 @@ from copy import copy
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +16,7 @@ from cms.cms_toolbars import (
     PlaceholderToolbar,
 )
 from cms.models import PageContent
-from cms.toolbar.items import ButtonList
+from cms.toolbar.items import Break, ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions
@@ -23,7 +24,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
 
-from djangocms_versioning.constants import PUBLISHED
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
     version_list_url,
@@ -107,8 +108,15 @@ class VersioningToolbar(PlaceholderToolbar):
                 ),
                 args=(version.pk,),
             )
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                version.content
+            ).values_list("pk", flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            draft_exists = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type, state=DRAFT
+            ).exists()
             item.add_button(
-                _("Edit"),
+                _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
                 extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
@@ -164,6 +172,7 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            # Compare to source menu entry
             if version.source:
                 name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
@@ -176,6 +185,15 @@ class VersioningToolbar(PlaceholderToolbar):
                     back=self.request.get_full_path(),
                 ))
                 versioning_menu.add_link_item(name, url=url)
+                # Discard changes menu entry (wrt to source)
+                if version.check_discard.as_bool(self.request.user):  # pragma: no cover
+                    versioning_menu.add_item(Break())
+                    versioning_menu.add_link_item(
+                        _("Discard Changes"),
+                        url=reverse("admin:{app}_{model}_discard".format(
+                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                        ), args=(version.pk,))
+                    )
 
     def _get_published_page_version(self):
         """Returns a published page if one exists for the toolbar object

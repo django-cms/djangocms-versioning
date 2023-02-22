@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-23 10:56+0100\n"
+"POT-Creation-Date: 2023-02-22 12:20+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2023\n"
 "Language-Team: Albanian (https://www.transifex.com/divio/teams/58664/sq/)\n"
@@ -100,74 +100,86 @@ msgstr "Po shfaqen versione të “{grouper}”"
 msgid "django CMS Versioning"
 msgstr "Versione në django CMS"
 
-#: cms_config.py:237
+#: cms_config.py:236
 msgid "No available title"
 msgstr "S’ka titull"
 
-#: cms_config.py:239 constants.py:13 indicators.py:25
+#: cms_config.py:238 constants.py:13 indicators.py:25
 msgid "Unpublished"
 msgstr "I pabotuar"
 
-#: cms_config.py:333
+#: cms_config.py:332
 msgid "Language must be set to a supported language!"
 msgstr "Si gjuhë duhet të caktoni një gjuhë të mbuluar!"
 
-#: cms_config.py:351
+#: cms_config.py:350
 msgid "You do not have permission to copy these plugins."
 msgstr "S’keni leje të kopjoni këto shtojca."
 
-#: cms_toolbars.py:81 indicators.py:42
+#: cms_toolbars.py:82 indicators.py:42
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Botoje"
 
-#: cms_toolbars.py:111
+#: cms_toolbars.py:119
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Përpunojeni"
 
-#: cms_toolbars.py:136
+#: cms_toolbars.py:119
+#, fuzzy
+#| msgid "Draft"
+msgid "New Draft"
+msgstr "Skicë"
+
+#: cms_toolbars.py:144
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Riktheje"
 
-#: cms_toolbars.py:166
+#: cms_toolbars.py:174
 msgid "Manage Versions"
 msgstr "Administroni Versione"
 
-#: cms_toolbars.py:168
+#: cms_toolbars.py:177
 #, fuzzy, python-brace-format
 #| msgid "Compare to {state} source"
 msgid "Compare to {source}"
 msgstr "Krahasoje me burimin {state}"
 
-#: cms_toolbars.py:209
+#: cms_toolbars.py:192
+#, fuzzy
+#| msgid "Discard"
+msgid "Discard Changes"
+msgstr "Hidhe tej"
+
+#: cms_toolbars.py:227
 msgid "View Published"
 msgstr "Shihni të Botuarin"
 
-#: cms_toolbars.py:252
+#: cms_toolbars.py:282
 msgid "Language"
 msgstr "Gjuhë"
 
-#: cms_toolbars.py:299
+#: cms_toolbars.py:329
 msgid "Add Translation"
 msgstr "Shtoni Përkthim"
 
-#: cms_toolbars.py:312
+#: cms_toolbars.py:342
 msgid "Copy all plugins"
 msgstr "Kopjo krejt shtojcat"
 
-#: cms_toolbars.py:314
+#: cms_toolbars.py:344
 #, python-format
 msgid "from %s"
 msgstr "prej %s"
 
-#: cms_toolbars.py:315
+#: cms_toolbars.py:345
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Jeni i sigurt se doni të kopjohen krejt shtojcat prej %s?"
 
-#: cms_toolbars.py:330
+#: cms_toolbars.py:360
 msgid "No other language available"
 msgstr "S’ka gjuhë të tjera"
 

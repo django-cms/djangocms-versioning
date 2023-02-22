@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-23 10:56+0100\n"
+"POT-Creation-Date: 2023-02-22 12:20+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Stefan van den Eertwegh <stefan@corebyte.nl>, 2023\n"
 "Language-Team: Dutch (https://www.transifex.com/divio/teams/58664/nl/)\n"
@@ -100,72 +100,85 @@ msgstr "Weergave versies van \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "django CMS Versionering"
 
-#: cms_config.py:237
+#: cms_config.py:236
 msgid "No available title"
 msgstr "Geen beschikbare titel"
 
-#: cms_config.py:239 constants.py:13 indicators.py:25
+#: cms_config.py:238 constants.py:13 indicators.py:25
 msgid "Unpublished"
 msgstr "Gedepubliseerd"
 
-#: cms_config.py:333
+#: cms_config.py:332
 msgid "Language must be set to a supported language!"
 msgstr "Taal moet gespecificeerd worden binnen de ondersteunde talen!"
 
-#: cms_config.py:351
+#: cms_config.py:350
 msgid "You do not have permission to copy these plugins."
 msgstr "Je hebt geen rechten om deze plugin te kopieëren."
 
-#: cms_toolbars.py:81 indicators.py:42
+#: cms_toolbars.py:82 indicators.py:42
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Publiseer"
 
-#: cms_toolbars.py:111
+#: cms_toolbars.py:119
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Bewerk"
 
-#: cms_toolbars.py:136
+#: cms_toolbars.py:119
+#, fuzzy
+#| msgid "Draft"
+msgid "New Draft"
+msgstr "Concept"
+
+#: cms_toolbars.py:144
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Terugdraaien"
 
-#: cms_toolbars.py:166
+#: cms_toolbars.py:174
 msgid "Manage Versions"
 msgstr "Beheer versies"
 
-#: cms_toolbars.py:168
+#: cms_toolbars.py:177
+#, python-brace-format
 msgid "Compare to {source}"
 msgstr "Vergelijk met {source}"
 
-#: cms_toolbars.py:209
+#: cms_toolbars.py:192
+#, fuzzy
+#| msgid "Discard"
+msgid "Discard Changes"
+msgstr "Annuleer"
+
+#: cms_toolbars.py:227
 msgid "View Published"
 msgstr "Bekijk gepubliceerden "
 
-#: cms_toolbars.py:252
+#: cms_toolbars.py:282
 msgid "Language"
 msgstr "Taal"
 
-#: cms_toolbars.py:299
+#: cms_toolbars.py:329
 msgid "Add Translation"
 msgstr "Voeg vertaling toe"
 
-#: cms_toolbars.py:312
+#: cms_toolbars.py:342
 msgid "Copy all plugins"
 msgstr "Kopieer alle plugins"
 
-#: cms_toolbars.py:314
+#: cms_toolbars.py:344
 #, python-format
 msgid "from %s"
 msgstr "van %s"
 
-#: cms_toolbars.py:315
+#: cms_toolbars.py:345
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Ben je er zeker van om alle plugins te kopiëren van %s?"
 
-#: cms_toolbars.py:330
+#: cms_toolbars.py:360
 msgid "No other language available"
 msgstr "Geen andere taal beschikbaar"
 

@@ -8,7 +8,7 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
 
 
-class DeletionTestCase1(CMSTestCase):
+class DeletionTestCase(CMSTestCase):
     @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=False)
     def test_deletion_not_possible(self):
         poll = factories.PollFactory()
@@ -31,10 +31,7 @@ class DeletionTestCase1(CMSTestCase):
         self.assertRaises(models.deletion.ProtectedError,
                           Version.objects.get(pk=pk1).content.delete)
 
-
-@override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=True)
-class DeletionTestCase2(CMSTestCase):
-
+    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=True)
     def test_deletion_possible(self):
         poll = factories.PollFactory()
         version1 = factories.PollVersionFactory(

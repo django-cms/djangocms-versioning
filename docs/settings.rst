@@ -6,7 +6,7 @@ Settings for djangocms Versioning
 
     Defaults to ``False``
 
-    This setting controlls if the ``source`` field of a ``Version`` object is
+    This setting controls if the ``source`` field of a ``Version`` object is
     protected. It is by default which implies that Django will not allow a user
     to delete a version object which itself is a source for another version object.
     This implies that the corresponding content and grouper objects cannot be

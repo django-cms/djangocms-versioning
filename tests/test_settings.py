@@ -4,8 +4,7 @@ from django.test import override_settings
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning import constants
-from djangocms_versioning import models as versioning_models
+from djangocms_versioning import constants, models as versioning_models
 from djangocms_versioning.test_utils import factories
 
 

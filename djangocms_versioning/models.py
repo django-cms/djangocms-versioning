@@ -10,6 +10,8 @@ from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
+from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS
+
 from . import constants, versionables
 from .conditions import Conditions, in_state
 from .operations import send_post_version_operation, send_pre_version_operation
@@ -22,7 +24,7 @@ except ImportError:
 
 
 def allow_deleting_versions(collector, field, sub_objs, using):
-    if getattr(settings, "DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS", False):
+    if ALLOW_DELETING_VERSIONS:
         models.SET_NULL(collector, field, sub_objs, using)
     else:
         models.PROTECT(collector, field, sub_objs, using)

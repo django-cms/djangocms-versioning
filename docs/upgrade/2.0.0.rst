@@ -35,6 +35,15 @@ Status indicators in page tree
   make sure that at least version 3.2.1 is installed. Older versions contain
   a bug that interferes with djangocms-versioning's icons.
 
+Deletion protection
+-------------------
+
+By default ``Version`` objects which are sources for later versions are
+protected from deletion. This implies that neither the corresponding content
+object nor the grouper object can be deleted. To allow deletion of ``Version``
+objects set ``DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS`` to ``True`` in
+the project's ``settings.py``.
+
 
 Backwards incompatible changes in 2.0.0
 =======================================

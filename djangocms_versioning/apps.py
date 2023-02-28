@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 class VersioningConfig(AppConfig):
     name = "djangocms_versioning"
     verbose_name = _("django CMS Versioning")
+    default_auto_field = 'django.db.models.AutoField'
 
     def ready(self):
         from cms.models import contentmodels, fields

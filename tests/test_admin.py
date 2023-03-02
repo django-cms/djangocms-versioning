@@ -2858,7 +2858,7 @@ class ListActionsTestCase(CMSTestCase):
             self.assertNotContains(response, version_list_url(version.content))
 
     def test_fake_back_link(self):
-        """Test if the discard view upon get request denies replacing the link for the back button with
+        """The discard view upon get request denies replacing the link for the back button with
         an invalid link given by back query parameter"""
         blogpost = BlogPostFactory()
         content = BlogContentFactory(

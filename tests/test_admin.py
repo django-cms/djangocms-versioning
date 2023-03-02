@@ -2837,7 +2837,7 @@ class ListActionsTestCase(CMSTestCase):
         self.assertNotIn(edit_endpoint, response)
 
     def test_valid_back_link(self):
-        """Test if the discard view upon get request replaces the link for the back button with
+        """The discard view upon get request replaces the link for the back button with
         a valid link given by back query parameter"""
         blogpost = BlogPostFactory()
         content = BlogContentFactory(

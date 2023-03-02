@@ -306,7 +306,9 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
 
     # Check if all required grouping fields are given to be able to select the latest admin viewable content
     # It is essential to
-    for field in versionable.extra_grouping_fields:
+    missing_fields = [field for field in versionable.extra_grouping_fields if field not in extra_grouping_fields]
+    if missing_fields:
+        raise ValueError(f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}.")
         if field not in extra_grouping_fields:  # pragma: no cover
             raise ValueError(f"Grouping field {field} required for {versionable.grouper_model}.")
 

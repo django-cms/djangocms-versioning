@@ -14,16 +14,6 @@ from djangocms_versioning.constants import (
 from djangocms_versioning.models import Version
 
 
-indicator_description = {
-    "published": _("Published"),
-    "dirty": _("Changed"),
-    "draft": _("Draft"),
-    "unpublished": _("Unpublished"),
-    "archived": _("Archived"),
-    "empty": _("Empty"),
-}
-
-
 def _reverse_action(version, action, back=None):
     get_params = f"?{urlencode(dict(back=back))}" if back else ""
     return admin_reverse(

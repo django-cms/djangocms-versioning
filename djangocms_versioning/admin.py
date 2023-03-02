@@ -26,7 +26,7 @@ from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import indicators, versionables
 from .conf import USERNAME_FIELD
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import (
@@ -168,7 +168,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                 "admin/djangocms_versioning/indicator.html",
                 {
                     "state": status or "empty",
-                    "description": indicators.indicator_description.get(status, _("Empty")),
+                    "description": INDICATOR_DESCRIPTIONS.get(status, _("Empty")),
                     "menu_template": "admin/cms/page/tree/indicator_menu.html",
                     "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
                                                         dict(indicator_menu_items=menu))) if menu else None,
@@ -185,12 +185,12 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
         )  # pragma: no cover
 
     def get_list_display(self, request):
-        """Default behavior: replaces the text "indicator" by the indicator column"""
+        """Default behavior: replaces the text "state_indicator" by the indicator column"""
         if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
             return tuple(self.get_indicator_column(request) if item == "state_indicator" else item
                          for item in super().get_list_display(request))
         else:
-            # remove "indicator" entry
+            # remove "state_indicator" entry
             return tuple(item for item in super().get_list_display(request) if item != "state_indicator")
 
 

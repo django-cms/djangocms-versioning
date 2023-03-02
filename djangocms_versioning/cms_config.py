@@ -21,6 +21,7 @@ from cms.utils.urlutils import admin_reverse
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
+from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
 from .helpers import (
@@ -365,7 +366,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     @property
     def indicator_descriptions(self):
         """Publish indicator description to CMSPageAdmin"""
-        return indicators.indicator_description
+        return INDICATOR_DESCRIPTIONS
 
     @classmethod
     def get_indicator_menu(cls, request, page_content):

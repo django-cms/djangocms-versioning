@@ -24,7 +24,7 @@ from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
-from . import indicators, versionables
+from . import versionables
 from .conf import USERNAME_FIELD
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED
 from .exceptions import ConditionFailed
@@ -37,6 +37,7 @@ from .helpers import (
     proxy_model,
     version_list_url,
 )
+from .indicators import content_indicator, content_indicator_menu
 from .models import Version
 from .versionables import _cms_extension
 
@@ -157,8 +158,8 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                 })
             else:  # Content Model
                 content_obj = obj
-            status = indicators.content_indicator(content_obj)
-            menu = indicators.content_indicator_menu(
+            status = content_indicator(content_obj)
+            menu = content_indicator_menu(
                 request,
                 status,
                 content_obj._version,

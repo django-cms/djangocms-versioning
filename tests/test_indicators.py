@@ -205,7 +205,7 @@ class TestVersionState(CMSTestCase):
 
         changelist = admin_reverse("blogpost_blogcontent_changelist")
         with self.login_user_context(self.get_superuser()):
-            # New page ahs draft version, nothing else
+            # New page has draft version, nothing else
             response = self.client.get(changelist)
             # Status indicator available?
             self.assertContains(response, "cms-pagetree-node-state-draft")

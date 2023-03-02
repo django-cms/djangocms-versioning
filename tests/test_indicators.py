@@ -194,7 +194,7 @@ class TestVersionState(CMSTestCase):
         self.assertIn("indicators.js", str(admin.media))
 
     def test_mixin_factory(self):
-        """Test if IndicatorMixin causes the indicators to be rendered"""
+        """The IndicatorMixin causes the indicators to be rendered"""
         blogpost = BlogPostFactory()
         content = BlogContentFactory(
             blogpost=blogpost

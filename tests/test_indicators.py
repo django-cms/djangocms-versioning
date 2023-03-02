@@ -30,7 +30,7 @@ class TestLatestAdminViewable(CMSTestCase):
         self.assertEqual(content.versions.first(), version)
 
     def test_latest_admin_viewable_content(self):
-        """Tests if the page content indicators render correctly"""
+        """The page content indicators render correctly"""
         page = PageFactory(node__depth=1)
         version1 = PageVersionFactory(
             content__page=page,

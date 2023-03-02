@@ -204,10 +204,10 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
 
     change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
     versioning_list_display = (
-            "get_author",
-            "get_modified_date",
-            "get_versioning_state",
-        )
+        "get_author",
+        "get_modified_date",
+        "get_versioning_state",
+    )
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")

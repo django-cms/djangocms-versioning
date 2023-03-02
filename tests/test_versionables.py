@@ -52,4 +52,3 @@ class VersionableTestCase(CMSTestCase):
         # Trying to get them raises error
         self.assertRaises(KeyError, lambda: versionables.for_grouper(Text))
         self.assertRaises(KeyError, lambda: versionables.for_content(Text))
-

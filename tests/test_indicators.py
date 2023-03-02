@@ -81,7 +81,7 @@ class TestLatestAdminViewable(CMSTestCase):
 
 class TestVersionState(CMSTestCase):
     def test_page_indicators(self):
-        """Tests if the page content indicators render correctly"""
+        """The page content indicators render correctly"""
         page = PageFactory(node__depth=1)
         version1 = PageVersionFactory(
             content__page=page,

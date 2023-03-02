@@ -18,7 +18,10 @@ class VersionableTestCase(CMSTestCase):
 
     def test_exists_functions_for_objects(self):
         """With the example of the poll app test if versionables exists for objects"""
-        from djangocms_versioning.test_utils.factories import PollFactory, PollContentFactory
+        from djangocms_versioning.test_utils.factories import (
+            PollContentFactory,
+            PollFactory,
+        )
 
         poll = PollFactory()
         poll_content = PollContentFactory(poll=poll)

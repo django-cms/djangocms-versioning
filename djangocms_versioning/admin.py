@@ -57,10 +57,11 @@ class VersioningChangeListMixin:
          Admins requiring extra grouping field beside "language" need to implement the "get_<field>_from_request"
          method themselves. A common way to select the field might be GET or POST parameters or user-related settings.
          """
+
         grouping_filters = {}
         for field in versionable.extra_grouping_fields:
-            if hasattr(self, f"get_{field}_from_request"):
-                grouping_filters[field] = getattr(self, f"get_{field}_from_request")(request)  # pragma: no cover
+            if hasattr(self.model_admin, f"get_{field}_from_request"):
+                grouping_filters[field] = getattr(self.model_admin, f"get_{field}_from_request")(request)
             elif field == "language":
                 grouping_filters[field] = get_language_from_request(request)
         return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))

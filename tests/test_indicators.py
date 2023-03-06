@@ -15,68 +15,72 @@ from djangocms_versioning.test_utils.factories import (
 
 
 class TestLatestAdminViewable(CMSTestCase):
-    def test_extra_grouping_fields(self):
-        page = PageFactory(node__depth=1)
-        version = PageVersionFactory(
-            content__page=page,
+
+    def setUp(self) -> None:
+        """Creates a page, page content and a version object for the following tests"""
+        self.page = PageFactory()
+        self.version = PageVersionFactory(
+            content__page=self.page,
             content__language="en",
         )
 
+    def test_extra_grouping_fields(self):
         # Test 1: Try getting content w/o language grouping field => needs to fail
-        self.assertRaises(ValueError, lambda: get_latest_admin_viewable_content(page))  # no language grouper
+        self.assertRaises(ValueError, lambda: get_latest_admin_viewable_content(self.page))  # no language grouper
 
         # Test 2: Try getting content w/ langauge grouping field => needs to succeed
-        content = get_latest_admin_viewable_content(page, language="en")  # OK
-        self.assertEqual(content.versions.first(), version)
+        content = get_latest_admin_viewable_content(self.page, language="en")  # OK
+        self.assertEqual(content.versions.first(), self.version)
 
-    def test_latest_admin_viewable_content(self):
-        """The page content indicators render correctly"""
-        page = PageFactory(node__depth=1)
-        version1 = PageVersionFactory(
-            content__page=page,
-            content__language="en",
-        )
-
+    def test_latest_admin_viewable_draft(self):
         # New page has draft version, nothing else: latest_admin_viewable_content is draft
-        content = get_latest_admin_viewable_content(page, language="en")
-        self.assertEqual(content.versions.first(), version1)
+        content = get_latest_admin_viewable_content(self.page, language="en")
+        self.assertEqual(content.versions.first(), self.version)
 
-        # Now archive
-        version1.archive(user=self.get_superuser())
+    def test_latest_admin_viewable_archive(self):
+        # First archive draft
+        self.version.archive(user=self.get_superuser())
         # Archived version, nothing else: latest_admin_viewable_content is empty
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=False, language="en")
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=False, language="en")
         self.assertIsNone(content)
         # Archived version, nothing else: latest_admin_viewable_content is empty
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=True, language="en")
-        self.assertEqual(content.versions.first(), version1)
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=True, language="en")
+        self.assertEqual(content.versions.first(), self.version)
 
+    def test_latest_admin_viewable_published(self):
         # Now revert and publish => latest content is published
-        version2 = version1.copy(created_by=self.get_superuser())
+        self.version.archive(user=self.get_superuser())
+        version2 = self.version.copy(created_by=self.get_superuser())
         version2.publish(user=self.get_superuser())
         # Published version is always viewable
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=False, language="en")
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=False, language="en")
         self.assertEqual(content.versions.first(), version2)
         # Published version is always viewable
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=True, language="en")
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=True, language="en")
         self.assertEqual(content.versions.first(), version2)
 
+    def test_latest_admin_viewable_draft_on_top_of_published(self):
         # Now create a draft on top of published -> latest_admin_viewable content will be draft
-        version3 = version2.copy(created_by=self.get_superuser())
+        self.version.publish(user=self.get_superuser())
+        version2 = self.version.copy(created_by=self.get_superuser())
         # Draft version is shadows published version
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=False, language="en")
-        self.assertEqual(content.versions.first(), version3)
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=False, language="en")
+        self.assertEqual(content.versions.first(), version2)
         # Draft version is shadows published version
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=True, language="en")
-        self.assertEqual(content.versions.first(), version3)
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=True, language="en")
+        self.assertEqual(content.versions.first(), version2)
 
+    def test_latest_admin_viewable_archive_on_top_of_published(self):
         # Archive draft, with published version available
-        version3.archive(user=self.get_superuser())
+        self.version.publish(user=self.get_superuser())
+        version2 = self.version.copy(created_by=self.get_superuser())
+        version2.archive(user=self.get_superuser())
         # Published version now is the latest version
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=False, language="en")
-        self.assertEqual(content.versions.first(), version2)
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=False, language="en")
+        self.assertEqual(content.versions.first(), self.version)
         # Published version now is the latest version even when including archived
-        content = get_latest_admin_viewable_content(page, include_unpublished_archived=True, language="en")
-        self.assertEqual(content.versions.first(), version2)
+        content = get_latest_admin_viewable_content(self.page, include_unpublished_archived=True, language="en")
+        self.assertEqual(content.versions.first(), self.version)
 
 
 class TestVersionState(CMSTestCase):

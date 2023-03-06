@@ -22,6 +22,7 @@ from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
@@ -280,7 +281,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         )
 
     def test_default_changelist_view_language_on_polls_with_language_content(self):
-        """A multi lingual model shows the correct values when
+        """A multilingual model shows the correct values when
         language filters / additional grouping values are set
         using the default content changelist overriden by VersioningChangeListMixin
         """
@@ -301,6 +302,25 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         self.assertEqual(200, fr_response.status_code)
         self.assertEqual(1, fr_response.context["cl"].queryset.count())
         self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first())
+
+    def test_additional_grouping_fields_got_from_admin_method(self):
+        """If the admin has a method called ``get_{field}_from_request`` this method
+        is called to get the additional grouping field ``field``"""
+
+        from djangocms_versioning.test_utils.polls.admin import PollContentAdmin
+
+        PollContentAdmin.get_language_from_request = lambda self, request: get_language_from_request(request)
+
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        patch_string = "djangocms_versioning.test_utils.polls.admin.PollContentAdmin.get_language_from_request"
+        with patch(patch_string) as mock:
+            with self.login_user_context(self.get_superuser()):
+                self.client.get(changelist_url, {"language": "en"})
+
+        mock.assert_called()
 
 
 class AdminRegisterVersionTestCase(CMSTestCase):

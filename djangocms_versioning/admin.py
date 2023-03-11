@@ -129,7 +129,7 @@ class VersioningAdminMixin:
 
 
 class StateIndicatorMixin(metaclass=MediaDefiningClass):
-    """Mixin to provide indicator column to the changelist view of a content model admin. Usage::
+    """Mixin to provide state_indicator column to the changelist view of a content model admin. Usage::
 
         class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
             list_display = [..., "state_indicator", ...]
@@ -181,7 +181,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     def state_indicator(self, obj):
         raise ValueError(
-            "ModelAdmin.display_list contains \"indicator\" as a placeholder for status indicators. "
+            "ModelAdmin.display_list contains \"state_indicator\" as a placeholder for status indicators. "
             "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
             "sure it calls super().get_list_display."
         )  # pragma: no cover

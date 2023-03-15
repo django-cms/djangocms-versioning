@@ -107,6 +107,7 @@
     $(function() {
         $('.js-cms-pagetree-dropdown-trigger').click(function(event) {
             event.stopPropagation();
+            event.preventDefault();
             var menu = JSON.parse(this.dataset.menu);
             menu = open_menu(menu);
             var offset = $(this).offset();

@@ -159,9 +159,9 @@ class TestVersionState(CMSTestCase):
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
 
-            # Is unpublished indicator? No draft indicator
+            # Is archived indicator? No draft indicator
             response = self.client.get(page_tree, {"language": "en"})
-            self.assertContains(response, "cms-pagetree-node-state-unpublished")
+            self.assertContains(response, "cms-pagetree-node-state-archived")
             self.assertNotContains(response, "cms-pagetree-node-state-draft")
 
             # Now revert

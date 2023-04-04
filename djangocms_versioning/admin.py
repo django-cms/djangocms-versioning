@@ -17,7 +17,7 @@ from django.template.response import TemplateResponse
 from django.urls import Resolver404, re_path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html, format_html_join
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, override, get_language
 
 from cms.models import PageContent
 from cms.utils import get_language_from_request
@@ -563,13 +563,15 @@ class VersionAdmin(admin.ModelAdmin):
     def content_link(self, obj):
         """Display html for the content preview url"""
         content = obj.content
-        url = get_preview_url(content)
+        language = content.language if hasattr(content, 'language') else get_language()
+        with override(language):
+            url = get_preview_url(content)
 
-        return format_html(
-            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
-            url=url,
-            label=content,
-        )
+            return format_html(
+                '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
+                url=url,
+                label=content,
+            )
 
     content_link.short_description = _("Content")
     content_link.admin_order_field = "content"

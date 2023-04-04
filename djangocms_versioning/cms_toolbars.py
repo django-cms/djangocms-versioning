@@ -7,7 +7,7 @@ from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.http import urlencode
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, override
 
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
@@ -220,16 +220,17 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
-        if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
-            item = ButtonList(side=self.toolbar.RIGHT)
-            item.add_button(
-                _("View Published"),
-                url=url,
-                disabled=False,
-                extra_classes=['cms-btn', 'cms-btn-switch-save'],
-            )
-            self.toolbar.add_item(item)
+        with override(self.current_lang):
+            url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
+            if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
+                item = ButtonList(side=self.toolbar.RIGHT)
+                item.add_button(
+                    _("View Published"),
+                    url=url,
+                    disabled=False,
+                    extra_classes=['cms-btn', 'cms-btn-switch-save'],
+                )
+                self.toolbar.add_item(item)
 
     def _add_preview_button(self):
         """Helper method to add a preview button to the toolbar when not in preview mode"""

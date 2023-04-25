@@ -493,7 +493,7 @@ class VersionAdmin(admin.ModelAdmin):
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
         css = {"all": (
-            static_with_version("cms/css/cms.icons.css"),
+            static_with_version("cms/css/cms.admin.css"),
             "djangocms_versioning/css/actions.css",
         )}
 

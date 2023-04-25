@@ -4,6 +4,8 @@ Changelog
 
 Unreleased
 ==========
+* fix: burger menu adjusts to the design of django cms core dropdown
+* fix: bug that showed an archived version as unpublished in some cases in the state indicator
 * add: Dutch and French translations thanks to Stefan van den Eertwegh and François Palmierso
 * add: transifex support, German translations
 * add: Revert button as replacement for dysfunctional Edit button for unpublished

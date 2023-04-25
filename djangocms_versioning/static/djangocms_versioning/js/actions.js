@@ -68,16 +68,7 @@
     // Create burger menu:
     $(function() {
 
-        let burger_menu_icon;
-        if(typeof(versioning_static_url_prefix) != 'undefined'){
-          burger_menu_icon = `${versioning_static_url_prefix}svg/menu.svg`;
-        } else {
-          burger_menu_icon = '/static/djangocms_versioning/svg/menu.svg';
-          console.warn('"versioning_static_url_prefix" not defined! No value has been provided for static_url, '
-                      + 'defaulting to "/static/djangocms_versioning/svg/" for icon location.');
-        }
-
-        let createBurgerMenu = function createBurgerMenu(row) {
+         let createBurgerMenu = function createBurgerMenu(row) {
 
             let actions = $(row).children('.field-list_actions');
             if (!actions.length) {
@@ -87,9 +78,9 @@
 
             /* create burger menu anchor icon */
             let anchor = document.createElement('a');
-            let icon = document.createElement('img');
+            let icon = document.createElement('span');
 
-            icon.setAttribute('src', burger_menu_icon);
+            icon.setAttribute('class', 'cms-icon cms-icon-menu');
             anchor.setAttribute('class', 'btn cms-versioning-action-btn closed');
             anchor.setAttribute('title', 'Actions');
             anchor.appendChild(icon);
@@ -107,7 +98,6 @@
 
             /* get the existing actions and move them into the options container */
             $(actions[0]).children('.cms-versioning-action-btn').each(function (index, item) {
-
               /* exclude preview and edit buttons */
               if (item.classList.contains('cms-versioning-action-preview') ||
                   item.classList.contains('cms-versioning-action-edit')) {
@@ -123,11 +113,12 @@
               if ($(item).hasClass('cms-form-get-method')) {
                 li_anchor.classList.add('cms-form-get-method'); // Ensure the fake-form selector is propagated to the new anchor
               }
-              /* move the icon image */
-              li_anchor.appendChild($(item).children('img')[0]);
+              /* move the icon */
+              li_anchor.appendChild($(item).children()[0]);
 
               /* create the button text and construct the button */
               let span = document.createElement('span');
+              span.setAttribute('class', 'label');
               span.appendChild(
                 document.createTextNode(item.title)
               );
@@ -140,21 +131,23 @@
               actions[0].removeChild(item);
             });
 
-            /* add the options to the drop-down */
-            optionsContainer.appendChild(ul);
-            actions[0].appendChild(anchor);
-            document.body.appendChild(optionsContainer);
+            if ($(ul).children().length > 0) {
+              /* add the options to the drop-down */
+              optionsContainer.appendChild(ul);
+              actions[0].appendChild(anchor);
+              document.body.appendChild(optionsContainer);
 
-            /* listen for burger menu clicks */
-            anchor.addEventListener('click', function (ev) {
-              ev.stopPropagation();
-              toggleBurgerMenu(anchor, optionsContainer);
-            });
+              /* listen for burger menu clicks */
+              anchor.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                toggleBurgerMenu(anchor, optionsContainer);
+              });
 
-            /* close burger menu if clicking outside */
-            $(window).click(function () {
-              closeBurgerMenu();
-            });
+              /* close burger menu if clicking outside */
+              $(window).click(function () {
+                closeBurgerMenu();
+              });
+            }
           };
 
         let toggleBurgerMenu = function toggleBurgerMenu(burgerMenuAnchor, optionsContainer) {
@@ -172,8 +165,8 @@
             }
 
             let pos = bm.offset();
-            op.css('left', pos.left - 200);
-            op.css('top', pos.top);
+            op.css('left', pos.left - op.width() - 5);
+            op.css('top', pos.top - 2);
           };
 
         let closeBurgerMenu = function closeBurgerMenu() {

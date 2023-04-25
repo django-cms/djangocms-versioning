@@ -108,10 +108,10 @@ def content_indicator(content_obj):
         elif signature[PUBLISHED]:
             content_obj._indicator_status = "published"
             content_obj._version = signature[PUBLISHED]
-        elif signature[UNPUBLISHED]:
+        elif versions[0].state == UNPUBLISHED:
             content_obj._indicator_status = "unpublished"
             content_obj._version = signature[UNPUBLISHED]
-        elif signature[ARCHIVED]:
+        elif versions[0].state == ARCHIVED:
             content_obj._indicator_status = "archived"
             content_obj._version = signature[ARCHIVED]
         else:  # pragma: no cover

@@ -21,6 +21,13 @@ except ImportError:
     emit_content_change = None
 
 
+def allow_deleting_versions(collector, field, sub_objs, using):
+    if conf.ALLOW_DELETING_VERSIONS:
+        models.SET_NULL(collector, field, sub_objs, using)
+    else:
+        models.PROTECT(collector, field, sub_objs, using)
+
+
 class VersionQuerySet(models.QuerySet):
     def get_for_content(self, content_object):
         """Returns Version object corresponding to provided content object
@@ -85,7 +92,7 @@ class Version(models.Model):
         "self",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=allow_deleting_versions,
         verbose_name=_("source"),
     )
     objects = VersionQuerySet.as_manager()

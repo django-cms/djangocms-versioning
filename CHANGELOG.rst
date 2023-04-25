@@ -8,6 +8,8 @@ Unreleased
   versions (activate by setting DJANGOCMS_VERSIONING_STRICT = False)
 * add: Offer "View published" on all models that provide a get_absolute_path
   method (and not only PageContent)
+* fix: burger menu adjusts to the design of django cms core dropdown
+* fix: bug that showed an archived version as unpublished in some cases in the state indicator
 * add: Dutch and French translations thanks to Stefan van den Eertwegh and François Palmierso
 * add: transifex support, German translations
 * add: Revert button as replacement for dysfunctional Edit button for unpublished

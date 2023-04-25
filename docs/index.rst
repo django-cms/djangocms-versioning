@@ -15,6 +15,7 @@ Welcome to "djangocms-versioning"'s documentation!
    api/signals
    api/customizing_version_list
    api/management_commands
+   settings
 
 .. toctree::
    :maxdepth: 2

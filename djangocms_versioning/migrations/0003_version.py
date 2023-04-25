@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("label", models.TextField()),
-                ("created", models.DateTimeField(auto_now_add=True)),
+                ("created", models.DateTimeField(auto_now_add=True, verbose_name="Created")),
                 ("object_id", models.PositiveIntegerField()),
                 (
                     "content_type",

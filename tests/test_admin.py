@@ -17,10 +17,12 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.timezone import now
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
@@ -40,12 +42,18 @@ from djangocms_versioning.compat import DJANGO_GTE_30
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
+    version_list_url,
     versioning_admin_factory,
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.factories import (
+    BlogContentFactory,
+    BlogPostFactory,
+    BlogPostVersionFactory,
+)
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
 )
@@ -273,7 +281,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         )
 
     def test_default_changelist_view_language_on_polls_with_language_content(self):
-        """A multi lingual model shows the correct values when
+        """A multilingual model shows the correct values when
         language filters / additional grouping values are set
         using the default content changelist overriden by VersioningChangeListMixin
         """
@@ -294,6 +302,25 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         self.assertEqual(200, fr_response.status_code)
         self.assertEqual(1, fr_response.context["cl"].queryset.count())
         self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first())
+
+    def test_additional_grouping_fields_got_from_admin_method(self):
+        """If the admin has a method called ``get_{field}_from_request`` this method
+        is called to get the additional grouping field ``field``"""
+
+        from djangocms_versioning.test_utils.polls.admin import PollContentAdmin
+
+        PollContentAdmin.get_language_from_request = lambda self, request: get_language_from_request(request)
+
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        patch_string = "djangocms_versioning.test_utils.polls.admin.PollContentAdmin.get_language_from_request"
+        with patch(patch_string) as mock:
+            with self.login_user_context(self.get_superuser()):
+                self.client.get(changelist_url, {"language": "en"})
+
+        mock.assert_called()
 
 
 class AdminRegisterVersionTestCase(CMSTestCase):
@@ -2828,3 +2855,41 @@ class ListActionsTestCase(CMSTestCase):
         self.assertIn("inactive", response)
         self.assertIn('title="Edit"', response)
         self.assertNotIn(edit_endpoint, response)
+
+    def test_valid_back_link(self):
+        """The discard view upon get request replaces the link for the back button with
+        a valid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk,))
+        valid_url = admin_reverse(
+            "cms_placeholder_render_object_preview",
+            args=(version.content_type_id, version.object_id),
+        )
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?" + urlencode(dict(back=valid_url)))
+            self.assertContains(response, valid_url)
+            self.assertNotContains(response, version_list_url(version.content))
+
+    def test_fake_back_link(self):
+        """The discard view upon get request denies replacing the link for the back button with
+        an invalid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk, ))
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?back=/hijack_url")
+            self.assertNotContains(response, "hijack_url")
+            self.assertContains(response, version_list_url(version.content))

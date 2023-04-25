@@ -18,3 +18,12 @@ OPERATION_ARCHIVE = "operation_archive"
 OPERATION_DRAFT = "operation_draft"
 OPERATION_PUBLISH = "operation_publish"
 OPERATION_UNPUBLISH = "operation_unpublish"
+
+INDICATOR_DESCRIPTIONS = {
+    "published": _("Published"),
+    "dirty": _("Changed"),
+    "draft": _("Draft"),
+    "unpublished": _("Unpublished"),
+    "archived": _("Archived"),
+    "empty": _("Empty"),
+}

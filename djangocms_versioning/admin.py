@@ -1,3 +1,4 @@
+import json
 from collections import OrderedDict
 from urllib.parse import urlparse
 
@@ -8,6 +9,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db.models.functions import Lower
+from django.forms import MediaDefiningClass
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
@@ -24,16 +26,18 @@ from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
 from .conf import USERNAME_FIELD
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import (
     get_admin_url,
     get_editable_url,
+    get_latest_admin_viewable_content,
     get_preview_url,
     proxy_model,
     version_list_url,
 )
+from .indicators import content_indicator, content_indicator_menu
 from .models import Version
 from .versionables import _cms_extension
 
@@ -42,16 +46,24 @@ class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
     def get_queryset(self, request):
-        """Limit the content model queryset to latest versions only."""
+        """Limit the content model queryset to the latest versions only."""
         queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
 
-        # TODO: Improve the grouping filters to use anything defined in the
-        #       apps versioning config extra_grouping_fields
-        grouping_filters = {}
-        if 'language' in versionable.extra_grouping_fields:
-            grouping_filters['language'] = get_language_from_request(request)
+        """Check if there is a method "self.get_<field>_from_request" for each extra grouping field.
+         If so call it to retrieve the appropriate filter. If no method is found (except for "language")
+         no filter is applied. For "language" the fallback is versioning's "get_language_frmo_request".
 
+         Admins requiring extra grouping field beside "language" need to implement the "get_<field>_from_request"
+         method themselves. A common way to select the field might be GET or POST parameters or user-related settings.
+         """
+
+        grouping_filters = {}
+        for field in versionable.extra_grouping_fields:
+            if hasattr(self.model_admin, f"get_{field}_from_request"):
+                grouping_filters[field] = getattr(self.model_admin, f"get_{field}_from_request")(request)
+            elif field == "language":
+                grouping_filters[field] = get_language_from_request(request)
         return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
 
 
@@ -116,7 +128,75 @@ class VersioningAdminMixin:
         return super().has_change_permission(request, obj)
 
 
-class ExtendedVersionAdminMixin(VersioningAdminMixin):
+class StateIndicatorMixin(metaclass=MediaDefiningClass):
+    """Mixin to provide state_indicator column to the changelist view of a content model admin. Usage::
+
+        class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
+            list_display = [..., "state_indicator", ...]
+    """
+    class Media:
+        # js for the context menu
+        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/indicators.js",)
+        # css for indicators and context menu
+        css = {
+            "all": (static_with_version("cms/css/cms.pagetree.css"),),
+        }
+
+    indicator_column_label = _("State")
+
+    @property
+    def _extra_grouping_fields(self):
+        try:
+            return versionables.for_grouper(self.model).extra_grouping_fields
+        except KeyError:
+            return None
+
+    def get_indicator_column(self, request):
+        def indicator(obj):
+            if self._extra_grouping_fields is not None:  # Grouper Model
+                content_obj = get_latest_admin_viewable_content(obj, include_unpublished_archived=True, **{
+                    field: getattr(self, field) for field in self._extra_grouping_fields
+                })
+            else:  # Content Model
+                content_obj = obj
+            status = content_indicator(content_obj)
+            menu = content_indicator_menu(
+                request,
+                status,
+                content_obj._version,
+                back=request.path_info + "?" + request.GET.urlencode(),
+            ) if status else None
+            return render_to_string(
+                "admin/djangocms_versioning/indicator.html",
+                {
+                    "state": status or "empty",
+                    "description": INDICATOR_DESCRIPTIONS.get(status, _("Empty")),
+                    "menu_template": "admin/cms/page/tree/indicator_menu.html",
+                    "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
+                                                        dict(indicator_menu_items=menu))) if menu else None,
+                }
+            )
+        indicator.short_description = self.indicator_column_label
+        return indicator
+
+    def state_indicator(self, obj):
+        raise ValueError(
+            "ModelAdmin.display_list contains \"state_indicator\" as a placeholder for status indicators. "
+            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
+            "sure it calls super().get_list_display."
+        )  # pragma: no cover
+
+    def get_list_display(self, request):
+        """Default behavior: replaces the text "state_indicator" by the indicator column"""
+        if versionables.exists_for_content(self.model) or versionables.exists_for_grouper(self.model):
+            return tuple(self.get_indicator_column(request) if item == "state_indicator" else item
+                         for item in super().get_list_display(request))
+        else:
+            # remove "state_indicator" entry
+            return tuple(item for item in super().get_list_display(request) if item != "state_indicator")
+
+
+class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningClass):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 
@@ -125,12 +205,17 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
     """
 
     change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
+    versioning_list_display = (
+        "get_author",
+        "get_modified_date",
+        "get_versioning_state",
+    )
 
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
         css = {
             "all": (
-                static_with_version("cms/css/cms.icons.css"),
+                static_with_version("cms/css/cms.admin.css"),
                 "djangocms_versioning/css/actions.css",
             )
         }
@@ -269,11 +354,14 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         Collect rendered actions from implemented methods and return as list
         """
-        return [
+        actions = [
             self._get_preview_link,
             self._get_edit_link,
-            self._get_manage_versions_link,
-        ]
+         ]
+        if "state_indicator" not in self.versioning_list_display:
+            # State indicator mixin loaded?
+            actions.append(self._get_manage_versions_link)
+        return actions
 
     def get_preview_link(self, obj):
         return format_html(
@@ -310,20 +398,23 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
 
     def get_list_display(self, request):
         # get configured list_display
-        list_display = self.list_display
+        list_display = super().get_list_display(request)
         # Add versioning information and action fields
-        list_display += (
-            "get_author",
-            "get_modified_date",
-            "get_versioning_state",
-            self._list_actions(request)
-        )
+        list_display += self.versioning_list_display + (self._list_actions(request),)
         # Get the versioning extension
         extension = _cms_extension()
         modifier_dict = extension.add_to_field_extension.get(self.model, None)
         if modifier_dict:
             list_display = self.extend_list_display(request, modifier_dict, list_display)
         return list_display
+
+
+class ExtendedIndicatorVersionAdminMixin(StateIndicatorMixin, ExtendedVersionAdminMixin):
+    versioning_list_display = (
+        "get_author",
+        "get_modified_date",
+        "state_indicator",
+    )
 
 
 class VersionChangeList(ChangeList):
@@ -402,7 +493,7 @@ class VersionAdmin(admin.ModelAdmin):
     class Media:
         js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
         css = {"all": (
-            static_with_version("cms/css/cms.icons.css"),
+            static_with_version("cms/css/cms.admin.css"),
             "djangocms_versioning/css/actions.css",
         )}
 
@@ -697,7 +788,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/archive_confirmation.html", context
@@ -777,7 +868,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             extra_context = OrderedDict(
                 [
@@ -891,7 +982,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
@@ -933,7 +1024,7 @@ class VersionAdmin(admin.ModelAdmin):
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=version_list_url(version.content),
+                back_url=self.back_link(request, version),
             )
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
@@ -969,14 +1060,6 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             **persist_params
         )
-        return_url = request.GET.get("back", version_list_url(v1.content))
-        try:
-            # Is return url a valid url?
-            resolve(urlparse(return_url)[2])
-        except Resolver404:
-            # If not ignore
-            return_url = None
-
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
         version_list = Version.objects.filter_by_content_grouping_values(
@@ -987,7 +1070,7 @@ class VersionAdmin(admin.ModelAdmin):
             "version_list": version_list,
             "v1": v1,
             "v1_preview_url": v1_preview_url,
-            "return_url": return_url,
+            "return_url": self.back_link(request, v1),
         }
 
         # Now check if version 2 has been specified and add to context
@@ -1014,6 +1097,18 @@ class VersionAdmin(admin.ModelAdmin):
         return TemplateResponse(
             request, "djangocms_versioning/admin/compare.html", context
         )
+
+    @staticmethod
+    def back_link(request, version=None):
+        back_url = request.GET.get("back", None)
+        if back_url:
+            try:
+                # Is return url a valid url?
+                resolve(urlparse(back_url)[2])
+            except Resolver404:
+                # If not ignore
+                back_url = None
+        return back_url or (version_list_url(version.content) if version else None)
 
     def changelist_view(self, request, extra_context=None):
         """Handle grouper filtering on the changelist"""

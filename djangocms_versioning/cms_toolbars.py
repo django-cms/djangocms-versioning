@@ -25,7 +25,7 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
-    get_latest_admin_viewable_page_content,
+    get_latest_admin_viewable_content,
     version_list_url,
 )
 from djangocms_versioning.models import Version
@@ -256,7 +256,7 @@ class VersioningPageToolbar(PageToolbar):
         if not language:
             language = self.current_lang
 
-        return get_latest_admin_viewable_page_content(self.page, language)
+        return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
         self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)

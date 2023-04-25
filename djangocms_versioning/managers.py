@@ -1,6 +1,5 @@
 import warnings
 from copy import copy
-from itertools import groupby
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -54,7 +53,7 @@ class PublishedContentManagerMixin:
         return new_manager
 
 
-class AdminQuerySet(models.QuerySet):
+class AdminQuerySetMixin:
     def _chain(self):
         # Also clone group by key when chaining querysets!
         clone = super()._chain()
@@ -64,15 +63,39 @@ class AdminQuerySet(models.QuerySet):
     def current_content_iterator(self, **kwargs):
         """Returns generator (not a queryset) over current content versions. Current versions are either draft
         versions or published versions (in that order)"""
-        qs = self.filter(versions__state__in=("draft", "published"))\
-            .order_by(*self._group_by_key)\
-            .prefetch_related("versions")
-        for grp, version_content in groupby(
-            qs,
-            lambda x: tuple(map(lambda key: getattr(x, key), self._group_by_key))  # get group key fields
-        ):
-            first, second = next(version_content), next(version_content, None)  # Max 2 results per group possible
-            yield first if second is None or first.versions.first().state == constants.DRAFT else second
+        warnings.warn("current_content_iterator is deprecated in favour of current_conent",
+                      DeprecationWarning, stacklevel=2)
+        return iter(self.current_content(**kwargs))
+
+    def current_content(self, **kwargs):
+        """Returns a queryset current content versions. Current versions are either draft
+        versions or published versions (in that order). This optimized query assumes that
+        draft versions always have a higher pk than any other version type. This is true as long as
+        no other version type can be converted to draft without creating a new version."""
+        qs = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED), **kwargs)
+        pk_filter = qs.values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))\
+            .values_list("vers_pk", flat=True)
+        return qs.filter(versions__pk__in=pk_filter)
+
+    def latest_content(self, **kwargs):
+        """Returns the "latest" content object which is in this order
+           1. a draft version (should it exist)
+           2. a published version (should it exist)
+           3. any other version with the highest pk
+
+        This filter assumes that there can only be one draft created and that the draft as
+        the highest pk of all versions (should it exist).
+        """
+        current = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
+            .values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))
+        pk_current = current.values("vers_pk")
+        pk_other = self.exclude(**{key + "__in": current.values(key) for key in self._group_by_key})\
+            .values(*self._group_by_key)\
+            .annotate(vers_pk=models.Max("versions__pk"))\
+            .values("vers_pk")
+        return self.filter(versions__pk__in=pk_current | pk_other, **kwargs)
 
 
 class AdminManagerMixin:
@@ -80,6 +103,24 @@ class AdminManagerMixin:
     _group_by_key = []
 
     def get_queryset(self):
-        qs = AdminQuerySet(self.model, using=self._db)
-        qs._group_by_key = self._group_by_key
+        qs_class = super().get_queryset().__class__
+        if not self._group_by_key:
+            # Not initialized (e.g. by using content_set(manager="admin_manager"))?
+            # Get grouping fields from versionable
+            from . import versionables
+            versionable = versionables.for_content(self.model)
+            self._group_by_key = list(versionable.grouping_fields)
+        qs = type(
+            f"Admin{qs_class.__name__}",
+            (AdminQuerySetMixin, qs_class),
+            {"_group_by_key": self._group_by_key}  # Pass grouping fields to queryset
+        )(self.model, using=self._db)
         return qs
+
+    def current_content(self, **kwargs):  # pragma: no cover
+        """Syntactic sugar: admin_manager.current_content()"""
+        return self.get_queryset().current_content(**kwargs)
+
+    def latest_content(self, **kwargs):  # pragma: no cover
+        """Syntactic sugar: admin_manager.latest_content()"""
+        return self.get_queryset().latest_content(**kwargs)

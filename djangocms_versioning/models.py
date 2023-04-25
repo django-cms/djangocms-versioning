@@ -10,6 +10,8 @@ from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
+from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS
+
 from . import constants, versionables
 from .conditions import Conditions, in_state
 from .operations import send_post_version_operation, send_pre_version_operation
@@ -19,6 +21,13 @@ try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+
+def allow_deleting_versions(collector, field, sub_objs, using):
+    if ALLOW_DELETING_VERSIONS:
+        models.SET_NULL(collector, field, sub_objs, using)
+    else:
+        models.PROTECT(collector, field, sub_objs, using)
 
 
 class VersionQuerySet(models.QuerySet):
@@ -66,8 +75,8 @@ class VersionQuerySet(models.QuerySet):
 
 class Version(models.Model):
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True, verbose_name=_("Created"))
+    modified = models.DateTimeField(default=timezone.now, verbose_name=_("Modified"))
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )
@@ -89,7 +98,7 @@ class Version(models.Model):
         "self",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=allow_deleting_versions,
         verbose_name=_("source"),
     )
     objects = VersionQuerySet.as_manager()
@@ -103,8 +112,13 @@ class Version(models.Model):
     def verbose_name(self):
         return _("Version #{number} ({state} {date})").format(
             number=self.number,
-            state=_(dict(constants.VERSION_STATES)[self.state]),
+            state=dict(constants.VERSION_STATES)[self.state],
             date=localize(self.created, settings.DATETIME_FORMAT),
+        )
+
+    def short_name(self):
+        return _("Version #{number} ({state})").format(
+            number=self.number, state=dict(constants.VERSION_STATES)[self.state]
         )
 
     def delete(self, using=None, keep_parents=False):

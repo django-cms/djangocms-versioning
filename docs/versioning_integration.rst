@@ -292,6 +292,7 @@ to add the fields:
 
 
 .. code-block:: python
+
     class PostAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
         list_display = "title"
 
@@ -299,6 +300,7 @@ The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields fro
 in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
 
 .. code-block:: python
+
     # cms_config.py
     def post_modifier(obj, field):
         return obj.get(field) + " extra field text!"
@@ -311,6 +313,69 @@ in the form of a dictionary of {model_name: {field: method}}, the admin for the 
 
 Given the code sample above, "This is how we add" would be displayed as
 "this is how we add extra field text!" in the changelist of PostAdmin.
+
+Adding status indicators to a versioned content model
+-----------------------------------------------------
+
+djangocms-versioning provides status indicators for django CMS' content models, you may know them from the page tree in django-cms:
+
+.. image:: static/Status-indicators.png
+    :width: 50%
+
+You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:
+
+.. code-block:: python
+
+    import json
+    from djangocms_versioning.admin import StateIndicatorAdminMixin
+
+
+    class MyContentModelAdmin(StateIndicatorAdminMixin, admin.Admin):
+        # Adds "indicator" to the list_items
+         list_items = [..., "state_indicator", ...]
+
+.. note::
+
+    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
+
+    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
+
+    .. code-block:: python
+
+        def get_changelist_instance(self, request):
+            """Set language property and remove language from changelist_filter_params"""
+            if request.method == "GET":
+                request.GET = request.GET.copy()
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    value = request.GET.pop(field, [None])[0]
+                    # Validation is recommended: Add clean_language etc. to your Admin class!
+                    if hasattr(self, f"clean_{field}"):
+                        value = getattr(self, f"clean_{field}")(value):
+                    setattr(self, field) = value
+                # Grouping field-specific cache needs to be cleared when they are changed
+                self._content_cache = {}
+            instance = super().get_changelist_instance(request)
+            # Remove grouping fields from filters
+            if request.method == "GET":
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    if field in instance.params:
+                        del instance.params[field]
+            return instance
+
+Adding Status Indicators *and* Versioning Entries to a versioned content model
+------------------------------------------------------------------------
+
+Both mixins can be easily combined. If you want both, state indicators and the additional author, modified date, preview action, and edit action, you can simpliy use the ``ExtendedIndicatorVersionAdminMixin``:
+
+.. code-block:: python
+
+    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.Admin):
+        ...
+
+The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
+
+Add additional actions by overwriting the ``self.get_list_actions()`` method and calling ``super()``.
+
 
 Additional/advanced configuration
 ----------------------------------

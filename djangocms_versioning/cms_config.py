@@ -1,7 +1,6 @@
 import collections
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import (
     ImproperlyConfigured,
@@ -18,13 +17,15 @@ from cms.models import PageContent, Placeholder
 from cms.utils import get_language_from_request
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
+from cms.utils.urlutils import admin_reverse
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
+from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
 from .helpers import (
-    get_latest_admin_viewable_page_content,
+    get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -144,7 +145,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             replace_manager(versionable.content_model, "objects", PublishedContentManagerMixin)
             replace_manager(versionable.content_model, "admin_manager", AdminManagerMixin,
-                            _group_by_key=[versionable.grouper_field_name] + list(versionable.extra_grouping_fields))
+                            _group_by_key=list(versionable.grouping_fields))
 
     def handle_admin_field_modifiers(self, cms_config):
         """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
@@ -271,7 +272,7 @@ def on_page_content_archive(version):
     page.clear_cache(menu=True)
 
 
-class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdminMixin):
+class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -332,7 +333,7 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
         if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
             return HttpResponseBadRequest(force_str(_("Language must be set to a supported language!")))
 
-        target_page_content = get_latest_admin_viewable_page_content(page, target_language)
+        target_page_content = get_latest_admin_viewable_content(page, language=target_language)
 
         # First check that we are able to edit the target
         if not self.has_change_permission(request, obj=target_page_content):
@@ -358,9 +359,27 @@ class VersioningCMSPageAdminMixin(indicators.IndicatorStatusMixin, VersioningAdm
         try:
             version.check_modify(request.user)
         except ConditionFailed as e:
-            self.message_user(request, force_str(e), messages.ERROR)
+            # Send error message
             return HttpResponseForbidden(force_str(e))
         return super().change_innavigation(request, object_id)
+
+    @property
+    def indicator_descriptions(self):
+        """Publish indicator description to CMSPageAdmin"""
+        return INDICATOR_DESCRIPTIONS
+
+    @classmethod
+    def get_indicator_menu(cls, request, page_content):
+        """Get the indicator menu for PageContent object taking into account the
+        currently available versions"""
+        menu_template = "admin/cms/page/tree/indicator_menu.html"
+        status = page_content.content_indicator()
+        if not status or status == "empty":  # pragma: no cover
+            return super().get_indicator_menu(request, page_content)
+        versions = page_content._version  # Cache from .content_indicator()
+        back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
+        menu = indicators.content_indicator_menu(request, status, versions, back=back)
+        return menu_template if menu else "", menu
 
 
 class VersioningCMSConfig(CMSAppConfig):

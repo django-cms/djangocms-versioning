@@ -1,12 +1,10 @@
 from itertools import chain
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
-from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
+from django.db.models import Max, Prefetch
 from django.utils.functional import cached_property
 
 from .admin import VersioningAdminMixin
-from .constants import DRAFT, PUBLISHED
 from .helpers import get_content_types_with_subclasses
 from .models import Version
 
@@ -153,23 +151,7 @@ class VersionableItem(BaseVersionableItem):
 
     def grouper_choices_queryset(self):
         """Returns a queryset of all the available groupers instances of the registered type"""
-        inner = (
-            self.content_model._base_manager.annotate(
-                order=Case(
-                    When(versions__state=PUBLISHED, then=2),
-                    When(versions__state=DRAFT, then=1),
-                    default=0,
-                    output_field=models.IntegerField(),
-                )
-            )
-            .filter(**{self.grouper_field_name: OuterRef("pk")})
-            .order_by("-order")
-        )
-        content_objects = self.content_model._base_manager.filter(
-            pk__in=self.grouper_model._base_manager.annotate(
-                content=Subquery(inner.values_list("pk")[:1])
-            ).values_list("content")
-        )
+        content_objects = self.content_model.admin_manager.all().latest_content()
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(
             Prefetch(cache_name, queryset=content_objects)

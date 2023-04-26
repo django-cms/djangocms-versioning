@@ -229,8 +229,6 @@ class ExtendedListDisplayMixin:
                 prefix = CONTENT_PREFIX if self._is_grouper_admin else ""
                 field_modifier = self._get_field_modifier(request, modifier_dict, field)
                 list_display[list_display.index(prefix + field)] = field_modifier
-                list_display = tuple(list_display)
-                return list_display
             except ValueError:
                 raise ImproperlyConfigured("The target field does not exist in this context")
         return tuple(list_display)

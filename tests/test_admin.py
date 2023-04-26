@@ -2832,7 +2832,6 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
         # Check response is valid
         self.assertEqual(200, response.status_code)
-        print(response.content.decode("utf-8"))
         # Check list_display item is rendered
         self.assertContains(response, '<a href="/en/admin/polls/poll/{}/change/">[TEST]{}</a>'.format(
             content.poll.id,

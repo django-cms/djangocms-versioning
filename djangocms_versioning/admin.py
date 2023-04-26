@@ -3,7 +3,6 @@ import typing
 from collections import OrderedDict
 from urllib.parse import urlparse
 
-from cms.admin.utils import GrouperModelAdmin, CONTENT_PREFIX
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
@@ -12,9 +11,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.db import models
 from django.db.models import OuterRef, Subquery
-from django.db.models.functions import Lower, Cast
+from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
-from django.http import Http404, HttpResponseNotAllowed, HttpRequest
+from django.http import Http404, HttpRequest, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
@@ -23,6 +22,7 @@ from django.utils.encoding import force_str
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
+from cms.admin.utils import CONTENT_PREFIX, GrouperModelAdmin
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
@@ -207,6 +207,7 @@ class ExtendedListDisplayMixin:
     @property
     def _is_grouper_admin(self):
         return isinstance(self, GrouperModelAdmin)
+
     def _get_field_modifier(self, request, modifier_dict, field):
         method = modifier_dict[field]
 
@@ -226,7 +227,8 @@ class ExtendedListDisplayMixin:
                 raise ImproperlyConfigured("Field provided must be callable")
             try:
                 prefix = CONTENT_PREFIX if self._is_grouper_admin else ""
-                list_display[list_display.index(prefix + field)] = self._get_field_modifier(request, modifier_dict, field)
+                field_modifier = self._get_field_modifier(request, modifier_dict, field)
+                list_display[list_display.index(prefix + field)] = field_modifier
                 list_display = tuple(list_display)
                 return list_display
             except ValueError:

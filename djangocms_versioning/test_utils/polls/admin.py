@@ -1,8 +1,12 @@
-from cms.admin.utils import GrouperModelAdmin
 from django.contrib import admin
 from django.urls import re_path
 
-from djangocms_versioning.admin import ExtendedVersionAdminMixin, ExtendedVersionGrouperAdminMixin
+from cms.admin.utils import GrouperModelAdmin
+
+from djangocms_versioning.admin import (
+    ExtendedVersionAdminMixin,
+    ExtendedVersionGrouperAdminMixin,
+)
 
 from .models import Answer, Poll, PollContent
 from .views import PreviewView

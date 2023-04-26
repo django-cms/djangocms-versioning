@@ -12,11 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.8, 3.9, "3.10", "3.11" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
             dj41_cms41.txt,
+            dj41_cms42.txt,
         ]
 
     steps:
@@ -43,11 +44,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.8, 3.9, "3.10", "3.11" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
             dj41_cms41.txt,
+            dj42_cms41.txt,
         ]
 
     services:
@@ -88,16 +90,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.8, 3.9, "3.10", "3.11" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
             dj41_cms41.txt,
+            dj42_cms41.txt,
         ]
 
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_DATABASE: djangocms_test

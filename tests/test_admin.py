@@ -2832,7 +2832,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
         # Check response is valid
         self.assertEqual(200, response.status_code)
-        print(f"===> {response.content.decode('utf-8')=}")
+        print(response.content.decode("utf-8"))
         # Check list_display item is rendered
         self.assertContains(response, '<a href="/en/admin/polls/poll/{}/change/">[TEST]{}</a>'.format(
             content.poll.id,
@@ -2864,7 +2864,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-action-settings")
         self.assertContains(response, "js-action")
 
-    def test_extended_version_get_list_display_with_field_modifier_cms_config(self):
+    def test_extended_grouper_get_list_display_with_field_modifier_cms_config(self):
         """
         With extended_admin_field_modifiers configured, the list_display swaps the field provided, with the method
         provided
@@ -2878,7 +2878,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         list_display = modeladmin.get_list_display(request)
         self.assertTrue(callable(list_display[0]))
 
-    def test_extended_version_get_list_display_without_field_modifier_cms_config(self):
+    def test_extended_grouper_get_list_display_without_field_modifier_cms_config(self):
         """
         Without extended_admin_field_modifiers, no change to the list_display is required
         """
@@ -2891,7 +2891,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
         self.assertEqual("__str__", list_display[0])
 
-    def test_extended_version_extend_list_display(self):
+    def test_extended_grouper_extend_list_display(self):
         """
         With a valid config the target field should be replaced with the field modifier method
         """
@@ -2909,7 +2909,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
         self.assertTrue(callable(list_display[0]))
 
-    def test_extended_version_extend_list_display_handles_non_callable(self):
+    def test_extended_grouper_extend_list_display_handles_non_callable(self):
         """
         When a non-callable is provided as the field modifier method, ImproperlyConfigured is raised
         """
@@ -2924,7 +2924,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             modeladmin.extend_list_display(request, modifier_dict, list_display)
 
-    def test_get_field_modifier(self):
+    def test_grouper_get_field_modifier(self):
         """
         Get field modifier returns modified field from returned inner method
         """
@@ -2941,7 +2941,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
         self.assertEqual("{} {}".format(content.text, "Test!"), modified_field(content))
 
-    def test_extended_version_extend_list_display_handles_non_existent_field(self):
+    def test_extended_grouper_extend_list_display_handles_non_existent_field(self):
         """
         When a non-existent field is provided as the target, ImproperlyConfigured is raised
         """

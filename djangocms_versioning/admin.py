@@ -29,7 +29,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
-from .conf import USERNAME_FIELD
+from .conf import ALLOW_DELETING_VERSIONS, USERNAME_FIELD
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
@@ -649,7 +649,7 @@ class VersionAdmin(admin.ModelAdmin):
         """Removes the standard django admin delete action."""
         actions = super().get_actions(request)
         # disable delete action
-        if "delete_selected" in actions:
+        if "delete_selected" in actions and not ALLOW_DELETING_VERSIONS:
             del actions["delete_selected"]
         return actions
 

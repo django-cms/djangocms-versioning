@@ -17,7 +17,7 @@ jobs:
             dj32_cms41.txt,
             dj40_cms41.txt,
             dj41_cms41.txt,
-            dj41_cms42.txt,
+            dj42_cms41.txt,
         ]
 
     steps:

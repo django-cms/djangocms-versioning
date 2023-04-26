@@ -249,11 +249,11 @@ class ExtendedListDisplayMixin:
         return list_display
 
 
-class ExtendedVersionGrouperAdminMixin(ExtendedListDisplayMixin):
+class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
     """Mixin to provide state_indicator, author and changed date column to the changelist view of a
     grouper model admin. Usage::
 
-        class MyContentModelAdmin(ExtendedVersionGrouperAdminMixin, cms.admin.utils.GrouperModelAdmin):
+        class MyContentModelAdmin(ExtendedGrouperVersionAdminMixin, cms.admin.utils.GrouperModelAdmin):
             list_display = [
                 ...,
                 "get_author",   # Adds the author column

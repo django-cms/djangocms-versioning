@@ -2821,7 +2821,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
     def test_extended_grouper_change_list_display_renders_from_provided_list_display(self):
         """
         All fields are present for a grouper object if the class inheriting the mixin:
-        ExtendedVersionGrouperAdminMixin has set any fields to display.
+        ExtendedGrouperVersionAdminMixin has set any fields to display.
         This will be the list of fields the user has added and the fields & actions set by the mixin.
         """
         content = factories.PollContentFactory(language="en")

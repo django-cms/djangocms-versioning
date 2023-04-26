@@ -4,7 +4,7 @@ from cms.admin.utils import GrouperModelAdmin
 
 from djangocms_versioning.admin import (
     ExtendedVersionAdminMixin,
-    ExtendedVersionGrouperAdminMixin,
+    ExtendedGrouperVersionAdminMixin,
     StateIndicatorMixin,
 )
 from djangocms_versioning.test_utils.blogpost import models
@@ -14,7 +14,7 @@ class BlogContentAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.Mod
     list_display = ("__str__", "state_indicator")
 
 
-class BlogPostAdmin(StateIndicatorMixin, ExtendedVersionGrouperAdminMixin, GrouperModelAdmin):
+class BlogPostAdmin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
     content_model = models.BlogContent  # Non-standard naming
     list_display = ("__str__", "state_indicator")
 

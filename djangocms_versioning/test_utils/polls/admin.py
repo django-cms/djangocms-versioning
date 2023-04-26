@@ -4,8 +4,8 @@ from django.urls import re_path
 from cms.admin.utils import GrouperModelAdmin
 
 from djangocms_versioning.admin import (
-    ExtendedVersionAdminMixin,
     ExtendedGrouperVersionAdminMixin,
+    ExtendedVersionAdminMixin,
 )
 
 from .models import Answer, Poll, PollContent

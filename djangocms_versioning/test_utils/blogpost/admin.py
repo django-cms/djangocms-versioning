@@ -3,8 +3,8 @@ from django.contrib import admin
 from cms.admin.utils import GrouperModelAdmin
 
 from djangocms_versioning.admin import (
-    ExtendedVersionAdminMixin,
     ExtendedGrouperVersionAdminMixin,
+    ExtendedVersionAdminMixin,
     StateIndicatorMixin,
 )
 from djangocms_versioning.test_utils.blogpost import models

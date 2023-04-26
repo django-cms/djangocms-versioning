@@ -327,10 +327,10 @@ You can use these on your content model's changelist view admin by adding the fo
 .. code-block:: python
 
     import json
-    from djangocms_versioning.admin import StateIndicatorAdminMixin
+    from djangocms_versioning.admin import StateIndicatorMixin
 
 
-    class MyContentModelAdmin(StateIndicatorAdminMixin, admin.ModelAdmin):
+    class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
         # Adds "indicator" to the list_items
          list_items = [..., "state_indicator", ...]
 
@@ -369,7 +369,7 @@ Both mixins can be easily combined. If you want both, state indicators and the a
 
 .. code-block:: python
 
-    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.Admin):
+    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.ModelAdmin):
         ...
 
 The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
@@ -400,6 +400,56 @@ To also add state indicators, just add the :class:`~djangocms_versioning.admin.S
 
     class PostAdmin(ExtendedGrouperVersionAdminMixin, StateIndicatorMixin, GrouperModelAdmin):
         list_display = ["title", "get_author", "get_modified_date", "state_indicator"]
+
+Summary admin options
+---------------------
+
+.. list-table:: Overview on versioning admin options: Grouper models
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Versioning state
+     - Grouper Model Admin
+   * - Text, no interaction
+     - .. code-block::
+
+            class GrouperAdmin(
+                ExtendedGrouperVersionAdminMixin,
+                GrouperModelAdmin
+            )
+                list_display = ...
+
+   * - Indicators, drop down menu
+     - .. code-block::
+
+            class GrouperAdmin(
+                ExtendedGrouperVersionAdminMixin,
+                StateIndicatorMixin,
+                GrouperModelAdmin
+            )
+                list_display = ...
+
+.. list-table:: Overview on versioning admin options: Content models
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Versioning state
+     - **Content Model Admin**
+   * - Text, no interaction
+     - .. code-block::
+
+            class ContentAdmin(
+                ExtendedVersionAdminMixin,
+                admin.ModelAdmin
+            )
+
+   * - Indicators, drop down menu
+     - .. code-block::
+
+            class ContentAdmin(
+                ExtendedIndicatorVersionAdminMixin,
+                admin.ModelAdmin,
+            )
 
 
 Additional/advanced configuration

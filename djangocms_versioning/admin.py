@@ -1,16 +1,20 @@
 import json
+import typing
 from collections import OrderedDict
 from urllib.parse import urlparse
 
+from cms.admin.utils import GrouperModelAdmin, CONTENT_PREFIX
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-from django.db.models.functions import Lower
+from django.db import models
+from django.db.models import OuterRef, Subquery
+from django.db.models.functions import Lower, Cast
 from django.forms import MediaDefiningClass
-from django.http import Http404, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed, HttpRequest
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
@@ -26,7 +30,7 @@ from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
 from .conf import USERNAME_FIELD
-from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED
+from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import (
@@ -196,7 +200,130 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
             return tuple(item for item in super().get_list_display(request) if item != "state_indicator")
 
 
-class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningClass):
+class ExtendedListDisplayMixin:
+    """Implements the extend_list_display method at allows other packages to add fields to the list display
+    of a verisoned object"""
+
+    @property
+    def _is_grouper_admin(self):
+        return isinstance(self, GrouperModelAdmin)
+    def _get_field_modifier(self, request, modifier_dict, field):
+        method = modifier_dict[field]
+
+        def get_field_modifier(obj):
+            if self._is_grouper_admin:  # In a grouper admin?
+                return method(self.get_content_obj(obj), field)
+            else:
+                return method(obj, field)
+
+        get_field_modifier.short_description = field
+        return get_field_modifier
+
+    def extend_list_display(self, request, modifier_dict, list_display):
+        list_display = [*list_display]
+        for field in modifier_dict:
+            if not callable(modifier_dict[field]):
+                raise ImproperlyConfigured("Field provided must be callable")
+            try:
+                prefix = CONTENT_PREFIX if self._is_grouper_admin else ""
+                list_display[list_display.index(prefix + field)] = self._get_field_modifier(request, modifier_dict, field)
+                list_display = tuple(list_display)
+                return list_display
+            except ValueError:
+                raise ImproperlyConfigured("The target field does not exist in this context")
+        return tuple(list_display)
+
+    def get_list_display(self, request):
+        # get configured list_display
+        list_display = super().get_list_display(request)
+        # Get the versioning extension
+        extension = _cms_extension()
+        if isinstance(self, GrouperModelAdmin):
+            modifier_dict = extension.add_to_field_extension.get(self.content_model, None)
+        else:
+            modifier_dict = extension.add_to_field_extension.get(self.model, None)
+        if modifier_dict:
+            list_display = self.extend_list_display(request, modifier_dict, list_display)
+        return list_display
+
+
+class ExtendedVersionGrouperAdminMixin(ExtendedListDisplayMixin):
+    """Mixin to provide state_indicator, author and changed date column to the changelist view of a
+    grouper model admin. Usage::
+
+        class MyContentModelAdmin(ExtendedVersionGrouperAdminMixin, cms.admin.utils.GrouperModelAdmin):
+            list_display = [
+                ...,
+                "get_author",   # Adds the author column
+                "get_modified_date",  # Adds the modified column
+                "get_versioning_state",  # Adds the state (w/o interaction)
+                ...]
+
+        """
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
+        """Annotates the username of the ``created_by`` field, the ``modified`` field (date time),
+        and the ``state`` field of the version object to the grouper queryset."""
+        grouper_content_type = versionables.for_grouper(self.model).content_types
+        qs = super().get_queryset(request)
+        versions = Version.objects.filter(object_id=OuterRef("pk"), content_type__in=grouper_content_type)
+        contents = self.content_model.admin_manager.latest_content(
+            **{self.grouper_field_name: OuterRef("pk"), **self.current_content_filters}
+        ).annotate(
+            content_created_by=Subquery(versions.values(f"created_by__{USERNAME_FIELD}")[:1]),
+            content_state=Subquery(versions.values("state")),
+            content_modified=Subquery(versions.values("modified")[:1]),
+        )
+        qs = qs.annotate(
+            content_created_by=Subquery(contents.values("content_created_by")[:1]),
+            content_created_by_sort=Lower(Subquery(contents.values("content_created_by")[:1])),
+            content_state=Subquery(contents.values("content_state")),
+            # cast is necessary for mysql
+            content_modified=Cast(Subquery(contents.values("content_modified")[:1]), models.DateTimeField()),
+        )
+        return qs
+
+    @admin.display(
+        description=_("State"),
+        ordering="content_state",
+    )
+    def get_versioning_state(self, obj: models.Model) -> typing.Union[str, None]:
+        """Returns verbose text of objects versioning state. This is a text column without user interaction.
+        Typically, either ``get_versioning_state`` or ``state_indicator`` (provided by the
+        :class:`~djangocms_versioning.admin.StateIndicatorMixin`) is used. The state indicator
+        allows for user interaction.
+        :param obj: Versioned grouper model instance annotated with its content state
+        :return: description of state
+        """
+        return dict(VERSION_STATES).get(obj.content_state)
+
+    @admin.display(
+        description=_("Author"),
+        ordering="content_created_by_sort",
+    )
+    def get_author(self, obj: models.Model) -> typing.Union[str, None]:
+        """
+        Return the author who created a version
+        :param obj: Versioned grouper model instance annotated with its author username
+        :return: Author username
+        """
+        return getattr(obj, "content_created_by", None)
+
+    # This needs to target the annotation, or ordering will be alphabetically, with uppercase then lowercase
+
+    @admin.display(
+        description=_("Modified"),
+        ordering="content_modified",
+    )
+    def get_modified_date(self, obj: models.Model) -> typing.Union[str, None]:
+        """
+        Get the last modified date of a version
+        :param obj: Versioned grouper model instance annotated with its modified datetime
+        :return: Modified Date
+        """
+        return getattr(obj, "content_modified", None)
+
+
+class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, metaclass=MediaDefiningClass):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 
@@ -374,38 +501,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
 
     get_preview_link.short_description = _("Preview")
 
-    def _get_field_modifier(self, request, modifier_dict, field):
-        method = modifier_dict[field]
-
-        def get_field_modifier(obj):
-            return method(obj, field)
-
-        get_field_modifier.short_description = field
-        return get_field_modifier
-
-    def extend_list_display(self, request, modifier_dict, list_display):
-        list_display = [*list_display]
-        for field in modifier_dict:
-            if not callable(modifier_dict[field]):
-                raise ImproperlyConfigured("Field provided must be callable")
-            try:
-                list_display[list_display.index(field)] = self._get_field_modifier(request, modifier_dict, field)
-                list_display = tuple(list_display)
-                return list_display
-            except ValueError:
-                raise ImproperlyConfigured("The target field does not exist in this context")
-        return tuple(list_display)
-
     def get_list_display(self, request):
         # get configured list_display
         list_display = super().get_list_display(request)
         # Add versioning information and action fields
         list_display += self.versioning_list_display + (self._list_actions(request),)
-        # Get the versioning extension
-        extension = _cms_extension()
-        modifier_dict = extension.add_to_field_extension.get(self.model, None)
-        if modifier_dict:
-            list_display = self.extend_list_display(request, modifier_dict, list_display)
         return list_display
 
 

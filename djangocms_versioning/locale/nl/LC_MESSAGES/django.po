@@ -2,10 +2,11 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # Translators:
+# Fabian Braun <fsbraun@gmx.de>, 2023
 # Stefan van den Eertwegh <stefan@corebyte.nl>, 2023
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -14,11 +15,11 @@ msgstr ""
 "POT-Creation-Date: 2023-02-22 12:20+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Stefan van den Eertwegh <stefan@corebyte.nl>, 2023\n"
-"Language-Team: Dutch (https://www.transifex.com/divio/teams/58664/nl/)\n"
-"Language: nl\n"
+"Language-Team: Dutch (https://app.transifex.com/divio/teams/58664/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: admin.py:161
@@ -73,19 +74,19 @@ msgstr "Deze weergave ondersteunt alleen de POST methode"
 
 #: admin.py:731
 msgid "Version cannot be published"
-msgstr "Versie kan niet worden gepubliseerd"
+msgstr "Versie kan niet worden gepubliceerd"
 
 #: admin.py:742
 msgid "Version published"
-msgstr "Versie gepubliseerd"
+msgstr "Versie gepubliceerd"
 
 #: admin.py:759
 msgid "Version cannot be unpublished"
-msgstr "Versie kan niet worden gedepubliseerd"
+msgstr "Versie kan niet worden gedepubliceerd"
 
 #: admin.py:800
 msgid "Version unpublished"
-msgstr "Versie gedepuliseerd"
+msgstr "Versie ongepuliceerd"
 
 #: admin.py:948
 msgid "The last version has been deleted"
@@ -106,7 +107,7 @@ msgstr "Geen beschikbare titel"
 
 #: cms_config.py:238 constants.py:13 indicators.py:25
 msgid "Unpublished"
-msgstr "Gedepubliseerd"
+msgstr "Ongepubliceerd"
 
 #: cms_config.py:332
 msgid "Language must be set to a supported language!"
@@ -119,7 +120,7 @@ msgstr "Je hebt geen rechten om deze plugin te kopieëren."
 #: cms_toolbars.py:82 indicators.py:42
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
-msgstr "Publiseer"
+msgstr "Publiceer"
 
 #: cms_toolbars.py:119
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
@@ -127,10 +128,8 @@ msgid "Edit"
 msgstr "Bewerk"
 
 #: cms_toolbars.py:119
-#, fuzzy
-#| msgid "Draft"
 msgid "New Draft"
-msgstr "Concept"
+msgstr "Nieuw concept"
 
 #: cms_toolbars.py:144
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
@@ -147,14 +146,12 @@ msgid "Compare to {source}"
 msgstr "Vergelijk met {source}"
 
 #: cms_toolbars.py:192
-#, fuzzy
-#| msgid "Discard"
 msgid "Discard Changes"
-msgstr "Annuleer"
+msgstr "Annuleer wijzigingen"
 
 #: cms_toolbars.py:227
 msgid "View Published"
-msgstr "Bekijk gepubliceerden "
+msgstr "Bekijk live versie"
 
 #: cms_toolbars.py:282
 msgid "Language"
@@ -188,7 +185,7 @@ msgstr "Concept"
 
 #: constants.py:12 indicators.py:22
 msgid "Published"
-msgstr "Gepubliseerd"
+msgstr "Gepubliceerd"
 
 #: constants.py:14 indicators.py:26
 msgid "Archived"
@@ -213,7 +210,7 @@ msgstr "Gedepubliceerde terugdraaien"
 #: indicators.py:62 indicators.py:68
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
-msgstr "Gedepubliseerd"
+msgstr "Gedepubliceerd"
 
 #: indicators.py:74
 msgid "Delete Draft"

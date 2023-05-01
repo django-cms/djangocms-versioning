@@ -248,16 +248,17 @@ def get_content_types_with_subclasses(models, using=None):
     return content_types
 
 
-def get_preview_url(content_obj):
+def get_preview_url(content_obj, language=None):
     """If the object is editable the cms preview view should be used, with the toolbar.
-       This method provides the URL for it.
+       This method provides the URL for it. It falls back the standard change view
+       should the object not be frontend editable.
     """
     versionable = versionables.for_content(content_obj)
     if versionable.preview_url:
         return versionable.preview_url(content_obj)
 
     if is_editable_model(content_obj.__class__):
-        url = get_object_preview_url(content_obj)
+        url = get_object_preview_url(content_obj, language)
         # Or else, the standard change view should be used
     else:
         url = admin_reverse(
@@ -266,6 +267,8 @@ def get_preview_url(content_obj):
             ),
             args=[content_obj.pk],
         )
+        if language:
+            url += f"&language={language}"
     return url
 
 

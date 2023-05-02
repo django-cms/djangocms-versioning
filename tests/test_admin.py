@@ -18,6 +18,7 @@ from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.timezone import now
+from django.utils.translation import override
 
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -27,7 +28,6 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
 from bs4 import BeautifulSoup
-from django.utils.translation import override
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers

@@ -171,7 +171,6 @@ class VersioningCMSExtension(CMSAppExtension):
             setattr(Version, f"check_{key}",
                     getattr(Version, f"check_{key}", Conditions())) + value
 
-
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)

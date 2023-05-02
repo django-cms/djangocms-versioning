@@ -20,7 +20,7 @@ from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import Resolver404, re_path, resolve, reverse
 from django.utils.encoding import force_str
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from cms.admin.utils import CONTENT_PREFIX, GrouperModelAdmin, ChangeListActionsMixin

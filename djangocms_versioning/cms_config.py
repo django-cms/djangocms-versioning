@@ -21,7 +21,6 @@ from cms.utils.urlutils import admin_reverse
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
-from .conditions import Conditions
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
@@ -161,8 +160,6 @@ class VersioningCMSExtension(CMSAppExtension):
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)
-        if hasattr(cms_config, "extended_conditions"):
-            self.handle_conditions(cms_config)
         # Validation to ensure either the versioning or the
         # versioning_add_to_confirmation_context config has been defined
         has_extra_context = hasattr(

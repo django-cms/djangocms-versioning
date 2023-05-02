@@ -409,7 +409,8 @@ class ExtendedVersionAdminMixin(
         :param disabled: Should the link be marked disabled?
         :return: Preview icon template
         """
-        preview_url = self._get_preview_url(obj) or get_preview_url(obj)
+        language = getattr(obj, "language", None)
+        preview_url = self._get_preview_url(obj) or get_preview_url(obj, language=language)
         if not preview_url:
             disabled = True
 

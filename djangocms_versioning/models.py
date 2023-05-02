@@ -80,7 +80,7 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )
-    number = models.CharField(max_length=11)
+    number = models.CharField(max_length=11, verbose_name="#")
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey("content_type", "object_id")

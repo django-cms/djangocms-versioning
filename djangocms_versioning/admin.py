@@ -1,5 +1,6 @@
 import json
 import typing
+import warnings
 from collections import OrderedDict
 from urllib.parse import urlparse
 
@@ -22,7 +23,7 @@ from django.utils.encoding import force_str
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
-from cms.admin.utils import CONTENT_PREFIX, GrouperModelAdmin
+from cms.admin.utils import CONTENT_PREFIX, GrouperModelAdmin, ChangeListActionsMixin
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
@@ -323,7 +324,12 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         return getattr(obj, "content_modified", None)
 
 
-class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, metaclass=MediaDefiningClass):
+class ExtendedVersionAdminMixin(
+    ExtendedListDisplayMixin,
+    ChangeListActionsMixin,
+    VersioningAdminMixin,
+    metaclass=MediaDefiningClass,
+):
     """
     Extended VersionAdminMixin for common/generic versioning admin items
 
@@ -331,21 +337,11 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
     inherits this Mixin it will require accommodating/reimplementing this.
     """
 
-    change_list_template = "djangocms_versioning/admin/mixin/change_list.html"
     versioning_list_display = (
         "get_author",
         "get_modified_date",
         "get_versioning_state",
     )
-
-    class Media:
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js")
-        css = {
-            "all": (
-                static_with_version("cms/css/cms.admin.css"),
-                "djangocms_versioning/css/actions.css",
-            )
-        }
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -405,24 +401,6 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
         else:
             return None
 
-    def _list_actions(self, request):
-        """
-        A closure that makes it possible to pass request object to
-        list action button functions.
-        """
-
-        def list_actions(obj):
-            """Display links to state change endpoints
-            """
-            return format_html_join(
-                "",
-                "{}",
-                ((action(obj, request),) for action in self.get_list_actions()),
-            )
-
-        list_actions.short_description = _("actions")
-        return list_actions
-
     def _get_preview_link(self, obj, request, disabled=False):
         """
         Return a user-friendly button for previewing the content model
@@ -431,13 +409,17 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
         :param disabled: Should the link be marked disabled?
         :return: Preview icon template
         """
-        preview_url = self._get_preview_url(obj)
+        preview_url = self._get_preview_url(obj) or get_preview_url(obj)
         if not preview_url:
             disabled = True
 
-        return render_to_string(
-            "djangocms_versioning/admin/icons/preview.html",
-            {"url": preview_url or get_preview_url(obj), "disabled": disabled},
+        return self.admin_action_button(
+            preview_url,
+            icon="view",
+            title=_("Preview"),
+            name="preview",
+            keepsideframe=False,
+            disabled=disabled,
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -456,7 +438,8 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
             # Don't display the link if it can't be edited
             return ""
 
-        if not version.check_edit_redirect.as_bool(request.user):
+        if not request.user.has_perm(f"{obj._meta.app_label}.{obj._meta.model_name}"):
+            # Grey out if user has not sufficient right to edit
             disabled = True
 
         url = reverse(
@@ -465,19 +448,27 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
             ),
             args=(version.pk,),
         )
-        return render_to_string(
-            "djangocms_versioning/admin/icons/edit_icon.html",
-            {"url": url, "disabled": disabled, "get": False, "keepsideframe": False},
+        return self.admin_action_button(
+            url,
+            icon="pencil",
+            title=_("Edit"),
+            name="edit",
+            disabled=disabled,
+            action="post",
+            keepsideframe=False,
         )
 
     def _get_manage_versions_link(self, obj, request, disabled=False):
         url = version_list_url(obj)
-        return render_to_string(
-            "djangocms_versioning/admin/icons/manage_versions.html",
-            {"url": url, "disabled": disabled, "action": False},
+        return self.admin_action_button(
+            url,
+            icon="copy",
+            title=_("Manage versions"),
+            name="manage-versions",
+            disabled=disabled,
         )
 
-    def get_list_actions(self):
+    def get_actions_list(self):
         """
         Collect rendered actions from implemented methods and return as list
         """
@@ -490,22 +481,11 @@ class ExtendedVersionAdminMixin(ExtendedListDisplayMixin, VersioningAdminMixin, 
             actions.append(self._get_manage_versions_link)
         return actions
 
-    def get_preview_link(self, obj):
-        return format_html(
-            '<a href="{}" class="js-moderation-close-sideframe" target="_top">'
-            '<span class="cms-icon cms-icon-eye"></span> {}'
-            "</a>",
-            obj.get_preview_url(),
-            _("Preview"),
-        )
-
-    get_preview_link.short_description = _("Preview")
-
     def get_list_display(self, request):
         # get configured list_display
         list_display = super().get_list_display(request)
         # Add versioning information and action fields
-        list_display += self.versioning_list_display + (self._list_actions(request),)
+        list_display += self.versioning_list_display + (self.get_admin_list_actions(request),)
         return list_display
 
 
@@ -586,20 +566,21 @@ def fake_filter_factory(versionable, field_name):
     return FakeFilter
 
 
-class VersionAdmin(admin.ModelAdmin):
+class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefiningClass):
     """Admin class used for version models.
     """
 
-    class Media:
-        js = ("admin/js/jquery.init.js", "djangocms_versioning/js/actions.js", "djangocms_versioning/js/compare.js",)
-        css = {"all": (
-            static_with_version("cms/css/cms.admin.css"),
-            "djangocms_versioning/css/actions.css",
-        )}
-
     # register custom actions
     actions = ["compare_versions"]
-
+    list_display = (
+            "number",
+            "created",
+            "modified",
+            "content",
+            "created_by",
+            "state",
+            "admin_list_actions",
+        )
     list_display_links = None
 
     # FIXME disabled until GenericRelation attached to content models gets
@@ -619,30 +600,6 @@ class VersionAdmin(admin.ModelAdmin):
             for field in versionable.extra_grouping_fields
         ]
 
-    def _state_actions(self, request):
-        def state_actions(obj):
-            """Display links to state change endpoints
-            """
-            return format_html_join(
-                "",
-                "{}",
-                ((action(obj, request),) for action in self.get_state_actions()),
-            )
-
-        state_actions.short_description = _("actions")
-        return state_actions
-
-    def get_list_display(self, request):
-        return (
-            "nr",
-            "created",
-            "modified",
-            "content_link",
-            "created_by",
-            "state",
-            self._state_actions(request),
-        )
-
     def get_actions(self, request):
         """Removes the standard django admin delete action."""
         actions = super().get_actions(request)
@@ -651,28 +608,32 @@ class VersionAdmin(admin.ModelAdmin):
             del actions["delete_selected"]
         return actions
 
-    def nr(self, obj):
-        """Get the identifier of the version. Might be something other
-        than the pk eventually.
-        """
-        return obj.number
-
-    nr.admin_order_field = "pk"
-    nr.short_description = _("version number")
-
     def content_link(self, obj):
-        """Display html for the content preview url"""
+        """Display html for the content preview url - replaced by Preview action"""
+        warnings.warn("VersionAdmin.content_link is deprecated.", DeprecationWarning, stacklevel=2)
         content = obj.content
         url = get_preview_url(content)
 
         return format_html(
-            '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>',
+            '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
             url=url,
             label=content,
         )
-
     content_link.short_description = _("Content")
     content_link.admin_order_field = "content"
+
+    def _get_preview_link(self, obj, request):
+        if obj.state == DRAFT:
+            # Draft versions have edit button
+            return ""
+        url = get_preview_url(obj.content)
+        return self.admin_action_button(
+            url,
+            icon="view",
+            name="preview",
+            keepsideframe=False,
+            title=_("Preview"),
+        )
 
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
@@ -686,11 +647,12 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.can_be_archived()
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/archive_icon.html",
-            {"url": archive_url, "disabled": disabled},
+        return self.admin_action_button(
+            archive_url,
+            icon="archive",
+            title=_("Archive"),
+            name="archive",
+            disabled=not obj.can_be_archived(),
         )
 
     def _get_publish_link(self, obj, request):
@@ -705,11 +667,14 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.can_be_published()
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/publish_icon.html",
-            {"url": publish_url, "disabled": disabled, "get": False, "keepsideframe": False}
+        return self.admin_action_button(
+            publish_url,
+            icon="publish",
+            title=_("Publish"),
+            name="publish",
+            action="post",
+            disabled=not obj.can_be_published(),
+            keepsideframe=False,
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):
@@ -724,11 +689,12 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-        disabled = not obj.can_be_unpublished()
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/unpublish_icon.html",
-            {"url": unpublish_url, "disabled": disabled},
+        return self.admin_action_button(
+            unpublish_url,
+            icon="unpublish",
+            title=_("Unpublish"),
+            name="unpublish",
+            disabled=not obj.can_be_unpublished(),
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
@@ -749,9 +715,12 @@ class VersionAdmin(admin.ModelAdmin):
             )
             if drafts.exists():
                 return ""
+            icon = "edit-new"
+        else:
+            icon = "pencil"
 
         # Don't open in the sideframe if the item is not sideframe compatible
-        keep_sideframe = obj.versionable.content_model_is_sideframe_editable
+        keepsideframe = obj.versionable.content_model_is_sideframe_editable
 
         edit_url = reverse(
             "admin:{app}_{model}_edit_redirect".format(
@@ -759,15 +728,14 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/edit_icon.html",
-            {
-                "url": edit_url,
-                "disabled": disabled,
-                "get": False,
-                "keepsideframe": keep_sideframe
-            },
+        return self.admin_action_button(
+            edit_url,
+            icon=icon,
+            title=_("Edit") if icon == "pencil" else _("New Draft"),
+            name="edit",
+            action="post",
+            disabled=disabled,
+            keepsideframe=keepsideframe,
         )
 
     def _get_revert_link(self, obj, request, disabled=False):
@@ -783,10 +751,12 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/revert_icon.html",
-            {"url": revert_url, "disabled": disabled},
+        return self.admin_action_button(
+            revert_url,
+            icon="undo",
+            title=_("Revert"),
+            name="revert",
+            disabled=disabled,
         )
 
     def _get_discard_link(self, obj, request, disabled=False):
@@ -802,15 +772,18 @@ class VersionAdmin(admin.ModelAdmin):
             ),
             args=(obj.pk,),
         )
-
-        return render_to_string(
-            "djangocms_versioning/admin/icons/discard_icon.html",
-            {"url": discard_url, "disabled": disabled},
+        return self.admin_action_button(
+            discard_url,
+            icon="bin",
+            title=_("Discard"),
+            name="discard",
+            disabled=disabled,
         )
 
-    def get_state_actions(self):
+    def get_actions_list(self):
         """Returns all action links as a list"""
         return [
+            self._get_preview_link,
             self._get_edit_link,
             self._get_archive_link,
             self._get_publish_link,

@@ -27,6 +27,7 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import admin_reverse
 
 from bs4 import BeautifulSoup
+from django.utils.translation import override
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -390,10 +391,11 @@ class VersionAdminTestCase(CMSTestCase):
         The link returned is the change url for an editable object
         """
         version = factories.PageVersionFactory(content__title="mypage")
-        preview_url = admin_reverse(
-            "cms_placeholder_render_object_preview",
-            args=(version.content_type_id, version.object_id),
-        )
+        with override(version.content.language):
+            preview_url = admin_reverse(
+                "cms_placeholder_render_object_preview",
+                args=(version.content_type_id, version.object_id),
+            )
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
@@ -415,14 +417,16 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_content_link_for_non_editable_object_with_no_preview_url(self):
         """
-        The link returned is the change url for a non editable object
+        The link returned is the change url for a non-editable object
         """
         version = factories.BlogPostVersionFactory(content__text="test4")
+        expected_url = f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/" \
+                       f"&language={version.content.language}"  # No adds language to set filter/language selector
         self.assertFalse(is_editable_model(version))
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                url=f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/", label="test4"
+                url=expected_url, label="test4"
             ),
         )
 

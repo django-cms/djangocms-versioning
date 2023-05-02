@@ -21,6 +21,7 @@ from django.template.response import TemplateResponse
 from django.urls import Resolver404, re_path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
@@ -613,11 +614,11 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         """Display html for the content preview url - replaced by Preview action"""
         warnings.warn("VersionAdmin.content_link is deprecated.", DeprecationWarning, stacklevel=2)
         content = obj.content
-        url = get_preview_url(content)
+        url = get_preview_url(content, language=getattr(content, "language", None))
 
         return format_html(
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
-            url=url,
+            url=mark_safe(url),
             label=content,
         )
     content_link.short_description = _("Content")
@@ -627,7 +628,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if obj.state == DRAFT:
             # Draft versions have edit button
             return ""
-        url = get_preview_url(obj.content)
+        url = get_preview_url(obj.content, language=getattr(obj.content, "language", None))
         return self.admin_action_button(
             url,
             icon="view",

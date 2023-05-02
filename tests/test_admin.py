@@ -391,11 +391,10 @@ class VersionAdminTestCase(CMSTestCase):
         The link returned is the change url for an editable object
         """
         version = factories.PageVersionFactory(content__title="mypage")
-        with override(version.content.language):
-            preview_url = admin_reverse(
-                "cms_placeholder_render_object_preview",
-                args=(version.content_type_id, version.object_id),
-            )
+        preview_url = admin_reverse(
+            "cms_placeholder_render_object_preview",
+            args=(version.content_type_id, version.object_id),
+        )
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(

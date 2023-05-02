@@ -42,7 +42,6 @@ class VersioningCMSExtension(CMSAppExtension):
         self.versionables = []
         self.add_to_context = {}
         self.add_to_field_extension = {}
-        self.add_to_conditions = {}
 
     @cached_property
     def versionables_by_content(self):
@@ -158,18 +157,6 @@ class VersioningCMSExtension(CMSAppExtension):
         for modifier in extended_admin_field_modifiers:
             for key in modifier.keys():
                 self.add_to_field_extension[key] = modifier[key]
-
-    def handle_conditions(self, cms_config):
-        """Adds additional conditions to the Version model"""
-        from .models import Version
-        if not isinstance(cms_config.extended_conditions, dict):
-            raise ImproperlyConfigured("extended_conditions must be a dictionary")
-        for key, value in cms_config.extended_conditions.values():
-            if not isinstance(key, str) or not isinstance(value, Conditions):
-                raise ImproperlyConfigured("extended_conditions dictionary keys must be strings and values must be "
-                                           "of type djangocms_versioning.conditions.Conditions")
-            setattr(Version, f"check_{key}",
-                    getattr(Version, f"check_{key}", Conditions())) + value
 
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):

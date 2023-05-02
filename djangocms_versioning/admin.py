@@ -23,7 +23,7 @@ from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from cms.admin.utils import CONTENT_PREFIX, GrouperModelAdmin, ChangeListActionsMixin
+from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting

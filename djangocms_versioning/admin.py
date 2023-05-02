@@ -614,7 +614,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         """Display html for the content preview url - replaced by Preview action"""
         warnings.warn("VersionAdmin.content_link is deprecated.", DeprecationWarning, stacklevel=2)
         content = obj.content
-        url = get_preview_url(content, language=getattr(content, "language", None))
+        url = get_preview_url(content)
 
         return format_html(
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
@@ -628,7 +628,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if obj.state == DRAFT:
             # Draft versions have edit button
             return ""
-        url = get_preview_url(obj.content, language=getattr(obj.content, "language", None))
+        url = get_preview_url(obj.content)
         return self.admin_action_button(
             url,
             icon="view",

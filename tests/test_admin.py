@@ -420,8 +420,7 @@ class VersionAdminTestCase(CMSTestCase):
         The link returned is the change url for a non-editable object
         """
         version = factories.BlogPostVersionFactory(content__text="test4")
-        expected_url = f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/" \
-                       f"&language={version.content.language}"  # No adds language to set filter/language selector
+        expected_url = f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/"
         self.assertFalse(is_editable_model(version))
         self.assertEqual(
             self.site._registry[Version].content_link(version),
@@ -439,7 +438,8 @@ class VersionAdminTestCase(CMSTestCase):
             self.assertEqual(
                 self.site._registry[Version].content_link(version),
                 '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content), label=version.content
+                    url=get_object_preview_url(version.content, language=version.content.language),
+                    label=version.content
                 ),
             )
 

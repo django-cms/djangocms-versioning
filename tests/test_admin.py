@@ -438,7 +438,7 @@ class VersionAdminTestCase(CMSTestCase):
             self.assertEqual(
                 self.site._registry[Version].content_link(version),
                 '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content, language=version.content.language),
+                    url=get_object_preview_url(version.content),
                     label=version.content
                 ),
             )

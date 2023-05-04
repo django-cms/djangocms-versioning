@@ -781,8 +781,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             disabled=disabled,
         )
 
-    def get_actions_list(self):
-        """Returns all action links as a list"""
+    def get_state_actions(self):
+        """Compatibility shim for djangocms-version-locking. Do not use. It will be removed in a future version."""
         return [
             self._get_preview_link,
             self._get_edit_link,
@@ -792,6 +792,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self._get_revert_link,
             self._get_discard_link,
         ]
+
+    def get_actions_list(self):
+        """Returns all action links as a list"""
+        return self.get_state_actions()
 
     def compare_versions(self, request, queryset):
         """

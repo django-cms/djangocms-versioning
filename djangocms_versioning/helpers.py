@@ -1,7 +1,9 @@
 import copy
+import typing
 import warnings
 from contextlib import contextmanager
 
+from cms.models import Placeholder, PageContent, Page
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
@@ -19,8 +21,6 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
-from .versionables import _cms_extension
-
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -191,7 +191,7 @@ def version_list_url(content):
     """Returns a URL to list of content model versions,
     filtered by `content`'s grouper
     """
-    versionable = _cms_extension().versionables_by_content[content.__class__]
+    versionable = versionables._cms_extension().versionables_by_content[content.__class__]
     return _version_list_url(
         versionable, **versionable.grouping_values(content, relation_suffix=False)
     )
@@ -201,7 +201,7 @@ def version_list_url_for_grouper(grouper):
     """Returns a URL to list of content model versions,
     filtered by `grouper`
     """
-    versionable = _cms_extension().versionables_by_grouper[grouper.__class__]
+    versionable = versionables._cms_extension().versionables_by_grouper[grouper.__class__]
     return _version_list_url(
         versionable, **{versionable.grouper_field_name: str(grouper.pk)}
     )
@@ -259,7 +259,7 @@ def get_content_types_with_subclasses(models, using=None):
     return content_types
 
 
-def get_preview_url(content_obj, language=None):
+def get_preview_url(content_obj: models.Model, language: typing.Union[str, None] = None) -> str:
     """If the object is editable the cms preview view should be used, with the toolbar.
        This method provides the URL for it. It falls back the standard change view
        should the object not be frontend editable.
@@ -282,7 +282,7 @@ def get_preview_url(content_obj, language=None):
     return url
 
 
-def get_admin_url(model, action, *args):
+def get_admin_url(model: type, action: str, *args) -> str:
     opts = model._meta
     url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
     return admin_reverse(url_name, args=args)
@@ -311,7 +311,11 @@ def remove_published_where(queryset):
     return queryset
 
 
-def get_latest_admin_viewable_content(grouper, include_unpublished_archived=False, **extra_grouping_fields):
+def get_latest_admin_viewable_content(
+    grouper: type,
+    include_unpublished_archived: bool = False,
+    **extra_grouping_fields,
+) -> models.Model:
     """
     Return the latest Draft or Published PageContent using the draft where possible
     """
@@ -335,14 +339,14 @@ def get_latest_admin_viewable_content(grouper, include_unpublished_archived=Fals
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 
-def get_latest_admin_viewable_page_content(page, language):  # pragma: no cover
+def get_latest_admin_viewable_page_content(page: Page, language: str) -> PageContent:  # pragma: no cover
     warnings.warn("get_latst_admin_viewable_page_content has ben deprecated. "
                   "Use get_latest_admin_viewable_content(page, language=language) instead.",
                   DeprecationWarning, stacklevel=2)
     return get_latest_admin_viewable_content(page, language=language)
 
 
-def proxy_model(obj, content_model):
+def proxy_model(obj: models.Model, content_model: type) -> models.Model:
     """
     Get the proxy model from a
 
@@ -355,7 +359,7 @@ def proxy_model(obj, content_model):
     return obj_
 
 
-def create_version_lock(version, user):
+def create_version_lock(version: 'Version', user) -> 'Version':
     """
     Create a version lock if necessary
     """
@@ -367,27 +371,27 @@ def create_version_lock(version, user):
     return version
 
 
-def remove_version_lock(version):
+def remove_version_lock(version: 'Version') -> 'Version':
     """
     Delete a version lock, handles when there are none available.
     """
     return create_version_lock(version, None)
 
 
-def version_is_locked(version):
+def version_is_locked(version: 'Version') -> settings.AUTH_USER_MODEL:
     """
     Determine if a version is locked
     """
     return version.locked_by
 
 
-def version_is_unlocked_for_user(version, user):
+def version_is_unlocked_for_user(version: 'Version', user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user.
     """
     return version.locked_by is None or version.locked_by == user
 
 
-def content_is_unlocked_for_user(content, user):
+def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist or object is locked to provided user.
     """
     try:
@@ -396,7 +400,7 @@ def content_is_unlocked_for_user(content, user):
         return True
 
 
-def placeholder_content_is_unlocked_for_user(placeholder, user):
+def placeholder_content_is_unlocked_for_user(placeholder: Placeholder, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist or placeholder source object
     is locked to provided user.
     """
@@ -405,11 +409,11 @@ def placeholder_content_is_unlocked_for_user(placeholder, user):
 
 
 def send_email(
-    recipients,
-    subject,
-    template,
-    template_context
-):
+    recipients: list,
+    subject: str,
+    template: str,
+    template_context: dict
+) -> int:
     """
     Send emails using locking templates
     """
@@ -428,7 +432,7 @@ def send_email(
     )
 
 
-def get_latest_draft_version(version):
+def get_latest_draft_version(version: 'Version') -> 'Version':
     """Get latest draft version of version object
     """
     from djangocms_versioning.constants import DRAFT

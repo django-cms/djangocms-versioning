@@ -3,7 +3,6 @@ import typing
 import warnings
 from contextlib import contextmanager
 
-from cms.models import Placeholder, PageContent, Page
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
@@ -14,6 +13,7 @@ from django.db.models.sql.where import WhereNode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 
+from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
@@ -21,6 +21,7 @@ from cms.utils.urlutils import add_url_parameters, admin_reverse
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
+
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change

@@ -1,10 +1,8 @@
 from unittest.mock import Mock, patch
 
+from cms.test_utils.testcases import CMSTestCase
 from django.apps import apps
 from django.utils.timezone import now
-
-from cms.test_utils.testcases import CMSTestCase
-
 from freezegun import freeze_time
 
 from djangocms_versioning.constants import DRAFT, PUBLISHED
@@ -406,8 +404,8 @@ class ModelsTestCase(CMSTestCase):
         second_delete = lang2_version_1.delete()
         poll_removed = not Poll.objects.filter(pk=poll_1.pk).exists()
 
-        self.assertEqual(first_delete[1]['last'], False)
-        self.assertEqual(second_delete[1]['last'], True)
+        self.assertEqual(first_delete[1]["last"], False)
+        self.assertEqual(second_delete[1]["last"], True)
         self.assertEqual(poll_exists, True)
         self.assertEqual(poll_removed, True)
 

@@ -2,15 +2,14 @@ import copy
 import warnings
 from contextlib import contextmanager
 
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils.helpers import is_editable_model
+from cms.utils.urlutils import add_url_parameters, admin_reverse
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.sql.where import WhereNode
-
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
-from cms.utils.helpers import is_editable_model
-from cms.utils.urlutils import add_url_parameters, admin_reverse
 
 from . import versionables
 from .constants import DRAFT, PUBLISHED
@@ -83,6 +82,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
                 versionable.version_model_proxy
             ),
             UserWarning,
+            stacklevel=2
         )
         return
 
@@ -271,7 +271,7 @@ def get_preview_url(content_obj):
 
 def get_admin_url(model, action, *args):
     opts = model._meta
-    url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
+    url_name = f"{opts.app_label}_{opts.model_name}_{action}"
     return admin_reverse(url_name, args=args)
 
 
@@ -287,9 +287,9 @@ def remove_published_where(queryset):
     all_except_published = [
         lookup for lookup in where_children
         if not (
-            lookup.lookup_name == 'exact' and
+            lookup.lookup_name == "exact" and
             lookup.rhs == PUBLISHED and
-            lookup.lhs.field.name == 'state'
+            lookup.lhs.field.name == "state"
         )
     ]
 

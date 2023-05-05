@@ -1,11 +1,13 @@
-from django.dispatch import receiver
-
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.test_utils.util.context_managers import signal_tester
+from django.dispatch import receiver
 
 from djangocms_versioning import constants
-from djangocms_versioning.signals import post_version_operation, pre_version_operation
+from djangocms_versioning.signals import (
+    post_version_operation,
+    pre_version_operation,
+)
 from djangocms_versioning.test_utils import factories
 
 
@@ -152,7 +154,7 @@ class TestVersioningSignals(CMSTestCase):
         """
         The example in the docs provides the following example to the page publish and unpublish signals.
         """
-        signal_hits = list()
+        signal_hits = []
 
         # Signal example
         @receiver(post_version_operation, sender=PageContent)
@@ -163,7 +165,7 @@ class TestVersioningSignals(CMSTestCase):
                 or kwargs["operation"] == constants.OPERATION_UNPUBLISH
             ):
                 # Storing the state of the operation and object at this moment to compare the state later
-                obj = dict()
+                obj = {}
                 obj["state"] = kwargs["obj"].state
                 signal_hits.append(obj)
 

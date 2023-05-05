@@ -1,14 +1,6 @@
 from collections import OrderedDict
 from copy import copy
 
-from django.apps import apps
-from django.conf import settings
-from django.contrib.auth import get_permission_codename
-from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
-from django.utils.http import urlencode
-from django.utils.translation import gettext_lazy as _
-
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
     LANGUAGE_MENU_IDENTIFIER,
@@ -23,6 +15,13 @@ from cms.utils import page_permissions
 from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
+from django.apps import apps
+from django.conf import settings
+from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.utils.translation import gettext_lazy as _
 
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
@@ -30,7 +29,6 @@ from djangocms_versioning.helpers import (
     version_list_url,
 )
 from djangocms_versioning.models import Version
-
 
 VERSIONING_MENU_IDENTIFIER = "version"
 
@@ -180,10 +178,10 @@ class VersioningToolbar(PlaceholderToolbar):
                      app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
                 ), args=(version.source.pk,))
 
-                url += "?" + urlencode(dict(
-                    compare_to=version.pk,
-                    back=self.request.get_full_path(),
-                ))
+                url += "?" + urlencode({
+                    "compare_to": version.pk,
+                    "back": self.request.get_full_path(),
+                })
                 versioning_menu.add_link_item(name, url=url)
                 # Discard changes menu entry (wrt to source)
                 if version.check_discard.as_bool(self.request.user):  # pragma: no cover
@@ -220,14 +218,14 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
+        url = published_version.get_absolute_url() if hasattr(published_version, "get_absolute_url") else None
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
                 _("View Published"),
                 url=url,
                 disabled=False,
-                extra_classes=['cms-btn', 'cms-btn-switch-save'],
+                extra_classes=["cms-btn", "cms-btn-switch-save"],
             )
             self.toolbar.add_item(item)
 
@@ -243,7 +241,7 @@ class VersioningToolbar(PlaceholderToolbar):
             self.add_preview_button()
 
     def post_template_populate(self):
-        super(VersioningToolbar, self).post_template_populate()
+        super().post_template_populate()
         self._add_preview_button()
         self._add_view_published_button()
         self._add_revert_button()
@@ -265,7 +263,7 @@ class VersioningPageToolbar(PageToolbar):
     def populate(self):
         self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
         self.title = self.get_page_content() if self.page else None
-        self.permissions_activated = get_cms_setting('PERMISSION')
+        self.permissions_activated = get_cms_setting("PERMISSION")
 
         self.override_language_menu()
         self.change_admin_menu()
@@ -279,7 +277,7 @@ class VersioningPageToolbar(PageToolbar):
         """
         # Only override the menu if a page can be found
         if settings.USE_I18N and self.page:
-            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _('Language'))
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
 
             # remove_item uses `items` attribute so we have to copy object
             for _item in copy(language_menu.items):
@@ -326,7 +324,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
                 add_plugins_menu = language_menu.get_or_create_menu(
-                    "{0}-add".format(LANGUAGE_MENU_IDENTIFIER), _("Add Translation")
+                    f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation")
                 )
 
                 page_add_url = admin_reverse("cms_pagecontent_add")
@@ -339,19 +337,19 @@ class VersioningPageToolbar(PageToolbar):
 
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
-                    '{0}-copy'.format(LANGUAGE_MENU_IDENTIFIER), _('Copy all plugins')
+                    f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
                 )
-                title = _('from %s')
-                question = _('Are you sure you want to copy all plugins from %s?')
+                title = _("from %s")
+                question = _("Are you sure you want to copy all plugins from %s?")
                 item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
                     if page_content:  # Only offer to copy if content for source language exists
-                        page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                        page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
                         copy_plugins_menu.add_ajax_item(
                             title % name, action=page_copy_url,
-                            data={'source_language': code, 'target_language': self.current_lang},
+                            data={"source_language": code, "target_language": self.current_lang},
                             question=question % name, on_success=self.toolbar.REFRESH_PAGE
                         )
                         item_added = True

@@ -1,6 +1,5 @@
 from django.utils.translation import gettext_lazy as _
 
-
 """Version states"""
 ARCHIVED = "archived"
 DRAFT = "draft"

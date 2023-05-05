@@ -35,8 +35,7 @@ from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
-from . import versionables
-from . import conf
+from . import conf, versionables
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
 from .emails import notify_version_author_version_unlocked
 from .exceptions import ConditionFailed

@@ -10,8 +10,6 @@ from django.utils.translation import gettext_lazy as _
 
 from django_fsm import FSMField, can_proceed, transition
 
-from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
-
 from . import constants, versionables
 from .conditions import (
     Conditions,
@@ -20,6 +18,7 @@ from .conditions import (
     in_state,
     is_not_locked,
 )
+from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
 
 
@@ -180,7 +179,7 @@ class Version(models.Model):
             # Set the version number
             self.number = self.make_version_number()
         if self.pk is None and self.state == constants.DRAFT:
-            # A draft version is locked by default
+            # A new draft version is locked by default
             if LOCK_VERSIONS and self.locked_by is None:
                 # create a lock
                 self.locked_by = self.created_by

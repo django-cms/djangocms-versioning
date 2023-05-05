@@ -128,28 +128,34 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_unlock_button(self):
         """Helper method to add an edit button to the toolbar
         """
-        item = ButtonList(side=self.toolbar.RIGHT)
-        proxy_model = self._get_proxy_model()
-        version = Version.objects.get_for_content(self.toolbar.obj)
-        if version.check_unlock.as_bool(self.request.user):
-            unlock_url = reverse(
-                "admin:{app}_{model}_unlock".format(
-                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ),
-                args=(version.pk,),
-            )
-            can_unlock = self.request.user.has_perm('djangocms_versioning.delete_versionlock') and False
-            if can_unlock:
-                extra_classes = ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-unlock-btn"]
-            else:
-                extra_classes = ["cms-versioning-js-unlock-btn"]
-            item.add_button(
-                _("Unlock"),
-                url=unlock_url if can_unlock else "#",
-                disabled=not can_unlock,
-                extra_classes=extra_classes,
-            )
-            self.toolbar.add_item(item)
+        if LOCK_VERSIONS and self._is_versioned():
+            item = ButtonList(side=self.toolbar.RIGHT)
+            proxy_model = self._get_proxy_model()
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            if version.check_unlock.as_bool(self.request.user):
+                unlock_url = reverse(
+                    "admin:{app}_{model}_unlock".format(
+                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                    ),
+                    args=(version.pk,),
+                )
+                can_unlock = self.request.user.has_perm('djangocms_versioning.delete_versionlock')
+                if can_unlock:
+                    extra_classes = [
+                        "cms-btn-action",
+                        "js-action",
+                        "cms-form-post-method",
+                        "cms-versioning-js-unlock-btn",
+                    ]
+                else:
+                    extra_classes = ["cms-versioning-js-unlock-btn"]
+                item.add_button(
+                    _("Unlock"),
+                    url=unlock_url if can_unlock else "#",
+                    disabled=not can_unlock,
+                    extra_classes=extra_classes,
+                )
+                self.toolbar.add_item(item)
 
     def _add_lock_message(self):
         if self._is_versioned() and LOCK_VERSIONS and not self.toolbar.edit_mode_active:

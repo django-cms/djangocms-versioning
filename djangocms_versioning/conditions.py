@@ -77,7 +77,7 @@ def draft_is_locked(message):
         if conf.LOCK_VERSIONS:
             draft_version = get_latest_draft_version(version)
             if not draft_version or version_is_unlocked_for_user(draft_version, user):
-                raise ConditionFailed(message.format(user=draft_version.locked_by))
+                raise ConditionFailed(message)
         else:
             raise ConditionFailed(message)
     return inner

@@ -14,7 +14,12 @@ from django.db import models
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
-from django.http import Http404, HttpRequest, HttpResponseNotAllowed
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
+)
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
@@ -31,16 +36,21 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
-from .conf import ALLOW_DELETING_VERSIONS, USERNAME_FIELD
+from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS, USERNAME_FIELD
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
+from .emails import notify_version_author_version_unlocked
 from .exceptions import ConditionFailed
 from .forms import grouper_form_factory
 from .helpers import (
+    content_is_unlocked_for_user,
+    create_version_lock,
     get_admin_url,
     get_editable_url,
     get_latest_admin_viewable_content,
     get_preview_url,
     proxy_model,
+    remove_version_lock,
+    version_is_locked,
     version_list_url,
 )
 from .indicators import content_indicator, content_indicator_menu
@@ -130,7 +140,11 @@ class VersioningAdminMixin:
         # Add additional version checks
         if obj:
             version = Version.objects.get_for_content(obj)
-            return version.check_modify.as_bool(request.user)
+            permission = version.check_modify.as_bool(request.user)
+            if LOCK_VERSIONS and permission:
+                permission = content_is_unlocked_for_user(obj, request.user)
+            return permission
+
         return super().has_change_permission(request, obj)
 
 
@@ -574,14 +588,17 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     # register custom actions
     actions = ["compare_versions"]
     list_display = (
-            "number",
-            "created",
-            "modified",
-            "content",
-            "created_by",
-            "state",
-            "admin_list_actions",
-        )
+        "number",
+        "created",
+        "modified",
+        "content",
+        "created_by",
+    ) + (
+        ('locked',) if LOCK_VERSIONS else ()
+    ) + (
+        "state",
+        "admin_list_actions",
+    )
     list_display_links = None
 
     # FIXME disabled until GenericRelation attached to content models gets
@@ -622,6 +639,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         )
     content_link.short_description = _("Content")
     content_link.admin_order_field = "content"
+
+    def locked(self, version):
+        """
+        Generate an locked field for Versioning Admin
+        """
+        if version.state == DRAFT and version_is_locked(version):
+            return mark_safe('<span class="cms-icon cms-icon-lock"></span>')
+        return ""
+    locked.short_description = _('locked')
 
     def _get_preview_link(self, obj, request):
         if obj.state == DRAFT:
@@ -781,8 +807,34 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             disabled=disabled,
         )
 
-    def get_state_actions(self):
-        """Compatibility shim for djangocms-version-locking. Do not use. It will be removed in a future version."""
+    def _get_unlock_link(self, obj, request):
+        """
+        Generate an unlock link for the Versioning Admin
+        """
+        # If the version is not draft no action should be present
+        if not LOCK_VERSIONS or obj.state != DRAFT or not version_is_locked(obj):
+            return ""
+
+        disabled = True
+        # Check whether the lock can be removed
+        # Check that the user has unlock permission
+        if version_is_locked(obj) and request.user.has_perm('djangocms_version_locking.delete_versionlock'):
+            disabled = False
+
+        unlock_url = reverse('admin:{app}_{model}_unlock'.format(
+            app=obj._meta.app_label, model=self.model._meta.model_name,
+        ), args=(obj.pk,))
+        return self.admin_action_button(
+            unlock_url,
+            icon="unlock",
+            title=_("Unlock"),
+            name="unlock",
+            action="post",
+            disabled=disabled,
+        )
+
+    def get_actions_list(self):
+        """Returns all action links as a list"""
         return [
             self._get_preview_link,
             self._get_edit_link,
@@ -791,11 +843,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self._get_unpublish_link,
             self._get_revert_link,
             self._get_discard_link,
+            self._get_unlock_link,
         ]
-
-    def get_actions_list(self):
-        """Returns all action links as a list"""
-        return self.get_state_actions()
 
     def compare_versions(self, request, queryset):
         """
@@ -989,11 +1038,17 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 draft = drafts.first()
                 # Run edit checks for the found draft as well
                 draft.check_edit_redirect(request.user)
+                if LOCK_VERSIONS:
+                    create_version_lock(version, request.user)
                 return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
             return version.copy(request.user)
         elif version.state == DRAFT:
+            if LOCK_VERSIONS:
+                print("!!!")
+                create_version_lock(version, request.user)
+                print(f"{version.locked_by=} {request.user=}")
             # Return current version as it is a draft
             return version
 
@@ -1176,6 +1231,40 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             request, "djangocms_versioning/admin/compare.html", context
         )
 
+    def unlock_view(self, request, object_id):
+        """
+        Unlock a locked version
+        """
+        # This view always changes data so only POST requests should work
+        if request.method != 'POST':
+            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
+
+        # Check version exists
+        version = self.get_object(request, unquote(object_id))
+        if version is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.model._meta, object_id)
+
+        # Raise 404 if not locked
+        if version.state != DRAFT:
+            raise Http404
+
+        # Check that the user has unlock permission
+        if not request.user.has_perm('djangocms_versioning.delete_versionlock'):
+            return HttpResponseForbidden(force_str(_("You do not have permission to remove the version lock")))
+
+        # Unlock the version
+        remove_version_lock(version)
+        # Display message
+        messages.success(request, _("Version unlocked"))
+
+        # Send an email notification
+        notify_version_author_version_unlocked(version, request.user)
+
+        # Redirect
+        url = version_list_url(version.content)
+        return redirect(url)
+
     @staticmethod
     def back_link(request, version=None):
         back_url = request.GET.get("back", None)
@@ -1295,7 +1384,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 self.admin_site.admin_view(self.discard_view),
                 name="{}_{}_discard".format(*info),
             ),
-        ] + super().get_urls()
+        ] + ([
+            re_path(
+                r"^(.+)/unlock/$",
+                self.admin_site.admin_view(self.unlock_view),
+                name="{}_{}_unlock".format(*info),
+            ),
+        ] if LOCK_VERSIONS else []) + super().get_urls()
 
     def has_add_permission(self, request):
         return False

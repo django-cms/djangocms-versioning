@@ -21,12 +21,14 @@ from cms.utils.urlutils import admin_reverse
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
+from .conf import LOCK_VERSIONS
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
+    placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
     replace_manager,
@@ -157,6 +159,12 @@ class VersioningCMSExtension(CMSAppExtension):
             for key in modifier.keys():
                 self.add_to_field_extension[key] = modifier[key]
 
+    def handle_locking(self):
+        if LOCK_VERSIONS:
+            from cms.models import fields
+
+            fields.PlaceholderRelationField.default_checks += [placeholder_content_is_unlocked_for_user]
+
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)
@@ -179,6 +187,7 @@ class VersioningCMSExtension(CMSAppExtension):
             self.handle_version_admin(cms_config)
             self.handle_content_model_generic_relation(cms_config)
             self.handle_content_model_manager(cms_config)
+        self.handle_locking()
 
 
 def copy_page_content(original_content):

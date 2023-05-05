@@ -29,6 +29,7 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
+from djangocms_versioning.test_utils.blogpost.models import BlogPost
 from djangocms_versioning.test_utils.factories import (
     FancyPollFactory,
     PageVersionFactory,
@@ -160,7 +161,6 @@ class VersionLockUnlockTestCase(CMSTestCase):
             is_staff=True,
             permissions=["delete_versionlock"] + self.default_permissions,
         )
-
 
     def test_unlock_view_refuses_get(self):
         poll_version = factories.PollVersionFactory(
@@ -427,6 +427,34 @@ class VersionLockEditActionSideFrameTestCase(CMSTestCase):
         # The url link should keep the sideframe open
         self.assertIn("js-keep-sideframe", actual_enabled_state)
         self.assertNotIn("js-close-sideframe", actual_enabled_state)
+
+
+@override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)
+class VersionLockIndicatorTestCase(CMSTestCase):
+
+    def setUp(self) -> None:
+        self.LOCK_VERSIONS = conf.LOCK_VERSIONS
+        conf.LOCK_VERSIONS = True
+
+        self.superuser = self.get_superuser()
+        self.user_author = self._create_user("author", is_staff=True, is_superuser=False)
+        self.version_admin = admin.site._registry[BlogPost]
+
+    def tearDown(self) -> None:
+        conf.LOCK_VERSIONS = self.LOCK_VERSIONS
+
+    def test_unlock_action_in_indicator_menu(self):
+        """The indicator drop down menu contains an entry to unlock a draft."""
+        changelist_url = reverse("admin:blogpost_blogpost_changelist")
+        version = factories.BlogPostVersionFactory(created_by=self.user_author, locked_by=self.user_author)
+        expected_unlock_url = reverse("admin:djangocms_versioning_blogcontentversion_unlock", args=(version.pk,))
+
+        with self.login_user_context(self.superuser):
+            response = self.client.get(changelist_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "cms-icon cms-icon-unlock")
+        self.assertContains(response, expected_unlock_url)
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)
@@ -863,6 +891,7 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         unlock_buttons = find_toolbar_buttons(btn_name, toolbar.toolbar)
 
         self.assertEqual(len(unlock_buttons), 1)
+
 
 class IntegrationTestCase(CMSTestCase):
 

@@ -359,7 +359,7 @@ def proxy_model(obj: models.Model, content_model: type) -> models.Model:
     return obj_
 
 
-def create_version_lock(version: 'Version', user) -> 'Version':
+def create_version_lock(version, user):
     """
     Create a version lock if necessary
     """
@@ -371,21 +371,21 @@ def create_version_lock(version: 'Version', user) -> 'Version':
     return version
 
 
-def remove_version_lock(version: 'Version') -> 'Version':
+def remove_version_lock(version):
     """
     Delete a version lock, handles when there are none available.
     """
     return create_version_lock(version, None)
 
 
-def version_is_locked(version: 'Version') -> settings.AUTH_USER_MODEL:
+def version_is_locked(version) -> settings.AUTH_USER_MODEL:
     """
     Determine if a version is locked
     """
     return version.locked_by
 
 
-def version_is_unlocked_for_user(version: 'Version', user: settings.AUTH_USER_MODEL) -> bool:
+def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user.
     """
     return version.locked_by is None or version.locked_by == user
@@ -432,7 +432,7 @@ def send_email(
     )
 
 
-def get_latest_draft_version(version: 'Version') -> 'Version':
+def get_latest_draft_version(version):
     """Get latest draft version of version object
     """
     from djangocms_versioning.constants import DRAFT

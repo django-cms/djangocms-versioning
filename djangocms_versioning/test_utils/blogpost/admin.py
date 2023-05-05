@@ -16,6 +16,7 @@ class BlogContentAdmin(StateIndicatorMixin, ExtendedVersionAdminMixin, admin.Mod
 
 class BlogPostAdmin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
     content_model = models.BlogContent  # Non-standard naming
+    grouper_field_name = "blogpost"
     list_display = ("__str__", "state_indicator")
 
 

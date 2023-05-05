@@ -391,7 +391,7 @@ def content_is_unlocked_for_user(content, user):
     """Check if lock doesn't exist or object is locked to provided user.
     """
     try:
-        return version_is_unlocked_for_user(content.version, user)
+        return version_is_unlocked_for_user(content.versions.first(), user)
     except AttributeError:
         return True
 

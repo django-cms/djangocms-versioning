@@ -30,8 +30,8 @@ except ImportError:
 
 
 not_draft_error = _("Version is not a draft")
-lock_error_message = _('Action Denied. The latest version is locked with {user}')
-lock_draft_error_message = _('Action Denied. The draft version is locked with {user}')
+lock_error_message = _('Action Denied. The latest version is locked by {user}')
+lock_draft_error_message = _('Action Denied. The draft version is locked by {user}')
 
 
 def allow_deleting_versions(collector, field, sub_objs, using):
@@ -121,6 +121,9 @@ class Version(models.Model):
 
     class Meta:
         unique_together = ("content_type", "object_id")
+        permissions = (
+            ("delete_versionlock", "Can unlock verision"),
+        )
 
     def __str__(self):
         return "Version #{}".format(self.pk)

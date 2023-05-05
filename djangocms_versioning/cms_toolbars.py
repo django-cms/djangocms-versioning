@@ -16,7 +16,7 @@ from cms.cms_toolbars import (
     PlaceholderToolbar,
 )
 from cms.models import PageContent
-from cms.toolbar.items import Break, ButtonList, RIGHT, TemplateItem
+from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions

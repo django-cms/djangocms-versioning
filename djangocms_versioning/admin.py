@@ -36,7 +36,7 @@ from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
-from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS, USERNAME_FIELD
+from . import conf
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
 from .emails import notify_version_author_version_unlocked
 from .exceptions import ConditionFailed
@@ -141,7 +141,7 @@ class VersioningAdminMixin:
         if obj:
             version = Version.objects.get_for_content(obj)
             permission = version.check_modify.as_bool(request.user)
-            if LOCK_VERSIONS and permission:
+            if conf.LOCK_VERSIONS and permission:
                 permission = content_is_unlocked_for_user(obj, request.user)
             return permission
 
@@ -285,7 +285,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         contents = self.content_model.admin_manager.latest_content(
             **{self.grouper_field_name: OuterRef("pk"), **self.current_content_filters}
         ).annotate(
-            content_created_by=Subquery(versions.values(f"created_by__{USERNAME_FIELD}")[:1]),
+            content_created_by=Subquery(versions.values(f"created_by__{conf.USERNAME_FIELD}")[:1]),
             content_state=Subquery(versions.values("state")),
             content_modified=Subquery(versions.values("modified")[:1]),
         )
@@ -363,7 +363,7 @@ class ExtendedVersionAdminMixin(
         # Due to django admin ordering using unicode, to alphabetically order regardless of case, we must
         # annotate the queryset, with the usernames all lower case, and then order based on that!
 
-        queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{USERNAME_FIELD}"))
+        queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{conf.USERNAME_FIELD}"))
         return queryset
 
     def get_version(self, obj):
@@ -594,7 +594,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         "content",
         "created_by",
     ) + (
-        ('locked',) if LOCK_VERSIONS else ()
+        ('locked',) if conf.LOCK_VERSIONS else ()
     ) + (
         "state",
         "admin_list_actions",
@@ -622,7 +622,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         """Removes the standard django admin delete action."""
         actions = super().get_actions(request)
         # disable delete action
-        if "delete_selected" in actions and not ALLOW_DELETING_VERSIONS:
+        if "delete_selected" in actions and not conf.ALLOW_DELETING_VERSIONS:
             del actions["delete_selected"]
         return actions
 
@@ -812,13 +812,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         Generate an unlock link for the Versioning Admin
         """
         # If the version is not draft no action should be present
-        if not LOCK_VERSIONS or obj.state != DRAFT or not version_is_locked(obj):
+        if not conf.LOCK_VERSIONS or obj.state != DRAFT or not version_is_locked(obj):
             return ""
 
         disabled = True
         # Check whether the lock can be removed
         # Check that the user has unlock permission
-        if version_is_locked(obj) and request.user.has_perm('djangocms_version_locking.delete_versionlock'):
+        if request.user.has_perm('djangocms_versioning.delete_versionlock'):
             disabled = False
 
         unlock_url = reverse('admin:{app}_{model}_unlock'.format(
@@ -1038,17 +1038,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 draft = drafts.first()
                 # Run edit checks for the found draft as well
                 draft.check_edit_redirect(request.user)
-                if LOCK_VERSIONS:
+                if conf.LOCK_VERSIONS:
                     create_version_lock(version, request.user)
                 return draft
             # If there is no draft record then create a new version
             # that's a draft with the content copied over
             return version.copy(request.user)
         elif version.state == DRAFT:
-            if LOCK_VERSIONS:
-                print("!!!")
+            if conf.LOCK_VERSIONS:
                 create_version_lock(version, request.user)
-                print(f"{version.locked_by=} {request.user=}")
             # Return current version as it is a draft
             return version
 
@@ -1235,6 +1233,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         """
         Unlock a locked version
         """
+        # Only active if LOCK_VERISONS is set
+        if not conf.LOCK_VERSIONS:
+            raise Http404()
+
         # This view always changes data so only POST requests should work
         if request.method != 'POST':
             return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
@@ -1384,20 +1386,18 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 self.admin_site.admin_view(self.discard_view),
                 name="{}_{}_discard".format(*info),
             ),
-        ] + ([
             re_path(
                 r"^(.+)/unlock/$",
                 self.admin_site.admin_view(self.unlock_view),
                 name="{}_{}_unlock".format(*info),
             ),
-        ] if LOCK_VERSIONS else []) + super().get_urls()
+        ] + super().get_urls()
 
     def has_add_permission(self, request):
         return False
 
     def has_change_permission(self, request, obj=None):
-        """Disable change view access
-        """
+        """Disable change view access"""
         if obj is not None:
             return False
         return super().has_change_permission(request, obj)

@@ -341,9 +341,9 @@ class VersionLockUnlockTestCase(CMSTestCase):
         )
 
         # The version is still owned by the author
-        self.assertTrue(updated_draft_version.created_by, self.user_author)
+        self.assertEqual(updated_draft_version.created_by, self.user_author)
         # The version lock does not exist
-        self.assertFalse(hasattr(updated_draft_version, 'versionlock'))
+        self.assertIsNone(updated_draft_version.locked_by)
 
         # Visit the edit page with a user without unlock permissions
         with self.login_user_context(self.user_has_no_unlock_perms):
@@ -351,8 +351,8 @@ class VersionLockUnlockTestCase(CMSTestCase):
 
         updated_draft_version = Version.objects.get(pk=draft_version.pk)
 
-        # The version is now owned by the user with no permissions
-        self.assertTrue(updated_draft_version.created_by, self.user_has_no_unlock_perms)
+        # The version is still owned by the author
+        self.assertEqual(updated_draft_version.created_by, self.user_author)
         # The version lock exists and is now owned by the user with no permissions
         self.assertEqual(updated_draft_version.locked_by, self.user_has_no_unlock_perms)
 
@@ -560,8 +560,8 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, expected_subject)
         self.assertEqual(mail.outbox[0].to[0], self.user_author.email)
-        self.assertTrue(expected_body in mail.outbox[0].body)
-        self.assertTrue(expected_version_url in mail.outbox[0].body)
+        self.assertIn(expected_body, mail.outbox[0].body)
+        self.assertIn(expected_version_url, mail.outbox[0].body)
 
     def test_notify_version_author_version_unlocked_email_not_sent_for_different_user(self):
         """
@@ -606,7 +606,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         )
 
         self.assertEqual(len(mail.outbox), 1)
-        self.assertTrue(expected_body in mail.outbox[0].body)
+        self.assertIn(expected_body, mail.outbox[0].body)
 
     def test_notify_version_author_version_unlocked_email_contents_users_username_used(self):
         """
@@ -629,7 +629,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         )
 
         self.assertEqual(len(mail.outbox), 1)
-        self.assertTrue(expected_body in mail.outbox[0].body)
+        self.assertIn(expected_body, mail.outbox[0].body)
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)

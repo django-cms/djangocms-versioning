@@ -150,7 +150,8 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
-            edit_button.extra_classes, ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
+            edit_button.extra_classes,
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):

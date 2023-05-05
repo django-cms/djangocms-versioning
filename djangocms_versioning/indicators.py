@@ -32,7 +32,7 @@ def content_indicator_menu(request, status, versions, back=""):
             # disable if permissions are insufficient
             additional_class = "" if can_unlock else " cms-pagetree-dropdown-item-disabled"
             menu.append((
-                _("Unlock (locked by %(user)s)") % dict(user=versions[0].locked_by), "cms-icon-unlock",
+                _("Unlock (%(message)s)") % dict(message=versions[0].locked_message()), "cms-icon-unlock",
                 _reverse_action(versions[0], "unlock"),
                 "js-cms-tree-lang-trigger" + additional_class,  # Triggers POST from the frontend
             ))

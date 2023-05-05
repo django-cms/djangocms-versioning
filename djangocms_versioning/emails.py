@@ -1,3 +1,4 @@
+import typing
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -7,10 +8,11 @@ from django.utils.translation import gettext_lazy as _
 from cms.toolbar.utils import get_object_preview_url
 from cms.utils import get_current_site
 
+from djangocms_versioning import models
 from djangocms_versioning.helpers import send_email
 
 
-def get_full_url(location, site=None):
+def get_full_url(location: str, site: typing.Union[Site, None] = None) -> str:
     if not site:
         site = Site.objects.get_current()
 
@@ -22,10 +24,10 @@ def get_full_url(location, site=None):
     return urljoin(domain, location)
 
 
-def notify_version_author_version_unlocked(version, unlocking_user):
+def notify_version_author_version_unlocked(version: models.Version, unlocking_user: settings.AUTH_USER_MODEL) -> int:
     # If the unlocking user is the current author, don't send a notification email
     if version.created_by == unlocking_user:
-        return
+        return 0
 
     # If the users name is available use it, otherwise use their username
     username = unlocking_user.get_full_name() or unlocking_user.username

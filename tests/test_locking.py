@@ -161,6 +161,37 @@ class VersionLockUnlockTestCase(CMSTestCase):
             permissions=["delete_versionlock"] + self.default_permissions,
         )
 
+
+    def test_unlock_view_refuses_get(self):
+        poll_version = factories.PollVersionFactory(
+            state=PUBLISHED,
+            created_by=self.superuser,
+            locked_by=self.superuser,
+        )
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+
+        # 404 when not in draft
+        with self.login_user_context(self.superuser):
+            response = self.client.get(unlock_url, follow=True)
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_unlock_view_redirects_to_admin_dashboard_for_non_existent_id(self):
+        poll_version = factories.PollVersionFactory(
+            state=PUBLISHED,
+            created_by=self.superuser,
+            locked_by=self.superuser,
+        )
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock',
+                                        poll_version.pk+314159)
+
+        # 404 when not in draft
+        with self.login_user_context(self.superuser):
+            response = self.client.post(unlock_url, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "dashboard")
+
     def test_unlock_view_redirects_404_when_not_draft(self):
         poll_version = factories.PollVersionFactory(
             state=PUBLISHED,
@@ -832,3 +863,20 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         unlock_buttons = find_toolbar_buttons(btn_name, toolbar.toolbar)
 
         self.assertEqual(len(unlock_buttons), 1)
+
+class IntegrationTestCase(CMSTestCase):
+
+    def setUp(self) -> None:
+        self.user = self.get_superuser()
+        self.version = factories.PollVersionFactory(created_by=self.user, locked_by=self.user)
+        self.versionable = PollsCMSConfig.versioning[0]
+
+    def test_unlock_view_with_locking_disabled(self):
+        """Tests that unlock view returns 404 if locking is disabled"""
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', self.version.pk)
+
+        with self.login_user_context(self.user):
+            conf.LOCK_VERSIONS = False
+            response = self.client.post(unlock_url)
+
+        self.assertEqual(response.status_code, 404)

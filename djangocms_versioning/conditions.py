@@ -54,15 +54,6 @@ def is_not_locked(message):
     return inner
 
 
-def is_locked(message):
-    """Condition that the version is locked. Is only effective if ``settings.DJANGOCMS_VERSIONING_LOCK_VERSIONS``
-    is set to ``True``"""
-    def inner(version, user):
-        if not conf.LOCK_VERSIONS or not version.locked_by:
-            raise ConditionFailed(message)
-    return inner
-
-
 def draft_is_not_locked(message):
     def inner(version, user):
         if conf.LOCK_VERSIONS:

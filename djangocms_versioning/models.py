@@ -7,7 +7,6 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.formats import localize
 from django.utils.translation import gettext_lazy as _
-
 from django_fsm import FSMField, can_proceed, transition
 
 from . import constants, versionables
@@ -21,7 +20,6 @@ from .conditions import (
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
 
-
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
@@ -29,8 +27,8 @@ except ImportError:
 
 
 not_draft_error = _("Version is not a draft")
-lock_error_message = _('Action Denied. The latest version is locked by {user}')
-lock_draft_error_message = _('Action Denied. The draft version is locked by {user}')
+lock_error_message = _("Action Denied. The latest version is locked by {user}")
+lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
 
 
 def allow_deleting_versions(collector, field, sub_objs, using):
@@ -105,7 +103,7 @@ class Version(models.Model):
         on_delete=models.SET_NULL,  # Deleting a user removes the lock
         null=True,
         default=None,
-        verbose_name=_('locked by'),
+        verbose_name=_("locked by"),
         related_name="locking_users",
     )
 
@@ -125,7 +123,7 @@ class Version(models.Model):
         )
 
     def __str__(self):
-        return "Version #{}".format(self.pk)
+        return f"Version #{self.pk}"
 
     def verbose_name(self):
         return _("Version #{number} ({state} {date})").format(
@@ -141,7 +139,7 @@ class Version(models.Model):
 
     def locked_message(self):
         if self.locked_by:
-            return _("Locked by %(user)s") % dict(user=self.locked_by)
+            return _("Locked by %(user)s") % {"user": self.locked_by}
         return ""
 
     def delete(self, using=None, keep_parents=False):
@@ -150,22 +148,22 @@ class Version(models.Model):
 
         def get_grouper_name(ContentModel, GrouperModel):
             for field in ContentModel._meta.fields:
-                if getattr(field, 'related_model', None) == GrouperModel:
+                if getattr(field, "related_model", None) == GrouperModel:
                     return field.name
 
         grouper = self.grouper
         ContentModel = self.content._meta.model
 
         grouper_name = get_grouper_name(ContentModel, grouper._meta.model)
-        querydict = {'{}__pk'.format(grouper_name): grouper.pk}
+        querydict = {f"{grouper_name}__pk": grouper.pk}
         count = ContentModel._original_manager.filter(**querydict).count()
 
         self.content.delete()
         deleted = super().delete(using=using, keep_parents=keep_parents)
-        deleted[1]['last'] = False
+        deleted[1]["last"] = False
         if count == 1:
             grouper.delete()
-            deleted[1]['last'] = True
+            deleted[1]["last"] = True
         return deleted
 
     def save(self, **kwargs):

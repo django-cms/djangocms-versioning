@@ -4,6 +4,11 @@ import warnings
 from collections import OrderedDict
 from urllib.parse import urlparse
 
+from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
+from cms.models import PageContent
+from cms.utils import get_language_from_request
+from cms.utils.conf import get_cms_setting
+from cms.utils.urlutils import add_url_parameters, static_with_version
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
@@ -28,12 +33,6 @@ from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-
-from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
-from cms.models import PageContent
-from cms.utils import get_language_from_request
-from cms.utils.conf import get_cms_setting
-from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import conf, versionables
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
@@ -192,7 +191,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     "description": INDICATOR_DESCRIPTIONS.get(status, _("Empty")),
                     "menu_template": "admin/cms/page/tree/indicator_menu.html",
                     "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
-                                                        dict(indicator_menu_items=menu))) if menu else None,
+                                                        {"indicator_menu_items": menu})) if menu else None,
                 }
             )
         indicator.short_description = self.indicator_column_label
@@ -200,8 +199,8 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     def state_indicator(self, obj):
         raise ValueError(
-            "ModelAdmin.display_list contains \"state_indicator\" as a placeholder for status indicators. "
-            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
+            'ModelAdmin.display_list contains "state_indicator" as a placeholder for status indicators. '
+            'Status indicators, however, are not loaded. If you implement "get_list_display" make '
             "sure it calls super().get_list_display."
         )  # pragma: no cover
 
@@ -245,7 +244,7 @@ class ExtendedListDisplayMixin:
                 field_modifier = self._get_field_modifier(request, modifier_dict, field)
                 list_display[list_display.index(prefix + field)] = field_modifier
             except ValueError:
-                raise ImproperlyConfigured("The target field does not exist in this context")
+                raise ImproperlyConfigured("The target field does not exist in this context") from None
         return tuple(list_display)
 
     def get_list_display(self, request):
@@ -593,7 +592,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         "content",
         "created_by",
     ) + (
-        ('locked',) if conf.LOCK_VERSIONS else ()
+        ("locked",) if conf.LOCK_VERSIONS else ()
     ) + (
         "state",
         "admin_list_actions",
@@ -646,7 +645,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if version.state == DRAFT and version_is_locked(version):
             return mark_safe('<span class="cms-icon cms-icon-lock"></span>')
         return ""
-    locked.short_description = _('locked')
+    locked.short_description = _("locked")
 
     def _get_preview_link(self, obj, request):
         if obj.state == DRAFT:
@@ -817,10 +816,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         disabled = True
         # Check whether the lock can be removed
         # Check that the user has unlock permission
-        if request.user.has_perm('djangocms_versioning.delete_versionlock'):
+        if request.user.has_perm("djangocms_versioning.delete_versionlock"):
             disabled = False
 
-        unlock_url = reverse('admin:{app}_{model}_unlock'.format(
+        unlock_url = reverse("admin:{app}_{model}_unlock".format(
             app=obj._meta.app_label, model=self.model._meta.model_name,
         ), args=(obj.pk,))
         return self.admin_action_button(
@@ -903,19 +902,19 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                object_id=object_id,
-                archive_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "object_id": object_id,
+                "archive_url": reverse(
                     "admin:{app}_{model}_archive".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/archive_confirmation.html", context
             )
@@ -983,19 +982,19 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                object_id=object_id,
-                unpublish_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "object_id": object_id,
+                "unpublish_url": reverse(
                     "admin:{app}_{model}_unpublish".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             extra_context = OrderedDict(
                 [
                     (key, func(request, version))
@@ -1100,20 +1099,20 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             draft_version = drafts.first()
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                draft_version=draft_version,
-                object_id=object_id,
-                revert_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "draft_version": draft_version,
+                "object_id": object_id,
+                "revert_url": reverse(
                     "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
             )
@@ -1142,20 +1141,20 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                draft_version=version,
-                object_id=object_id,
-                revert_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "draft_version": version,
+                "object_id": object_id,
+                "revert_url": reverse(
                     "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
             )
@@ -1164,9 +1163,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if request.POST.get("discard"):
             ModelClass = version.content.__class__
             deleted = version.delete()
-            if deleted[1]['last']:
-                version_url = get_admin_url(ModelClass, 'changelist')
-                self.message_user(request, _('The last version has been deleted'))
+            if deleted[1]["last"]:
+                version_url = get_admin_url(ModelClass, "changelist")
+                self.message_user(request, _("The last version has been deleted"))
 
         return redirect(version_url)
 
@@ -1237,8 +1236,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             raise Http404()
 
         # This view always changes data so only POST requests should work
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'], _('This view only supports POST method.'))
+        if request.method != "POST":
+            return HttpResponseNotAllowed(["POST"], _("This view only supports POST method."))
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -1251,7 +1250,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             raise Http404
 
         # Check that the user has unlock permission
-        if not request.user.has_perm('djangocms_versioning.delete_versionlock'):
+        if not request.user.has_perm("djangocms_versioning.delete_versionlock"):
             return HttpResponseForbidden(force_str(_("You do not have permission to remove the version lock")))
 
         # Unlock the version
@@ -1284,7 +1283,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # redirect to grouper form when there's no GET parameters
             opts = self.model._meta
             return redirect(
-                reverse("admin:{}_{}_grouper".format(opts.app_label, opts.model_name))
+                reverse(f"admin:{opts.app_label}_{opts.model_name}_grouper")
             )
         extra_context = extra_context or {}
         versionable = versionables.for_content(self.model._source_model)
@@ -1302,7 +1301,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         if grouper:
             # CAVEAT: as the breadcrumb trails expect a value for latest content in the template
-            extra_context["latest_content"] = ({'pk': None})
+            extra_context["latest_content"] = ({"pk": None})
 
             extra_context.update(
                 grouper=grouper,

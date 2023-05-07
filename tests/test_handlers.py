@@ -3,7 +3,6 @@ from datetime import datetime
 from cms.api import add_plugin
 from cms.models import Placeholder, UserSettings
 from cms.test_utils.testcases import CMSTestCase
-
 from freezegun import freeze_time
 
 from djangocms_versioning.models import Version

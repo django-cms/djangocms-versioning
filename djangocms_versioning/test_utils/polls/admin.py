@@ -1,7 +1,6 @@
+from cms.admin.utils import GrouperModelAdmin
 from django.contrib import admin
 from django.urls import re_path
-
-from cms.admin.utils import GrouperModelAdmin
 
 from djangocms_versioning.admin import (
     ExtendedGrouperVersionAdminMixin,

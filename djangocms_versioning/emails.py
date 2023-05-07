@@ -1,12 +1,11 @@
 import typing
 from urllib.parse import urljoin
 
+from cms.toolbar.utils import get_object_preview_url
+from cms.utils import get_current_site
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.utils.translation import gettext_lazy as _
-
-from cms.toolbar.utils import get_object_preview_url
-from cms.utils import get_current_site
 
 from djangocms_versioning import models
 from djangocms_versioning.helpers import send_email
@@ -16,11 +15,11 @@ def get_full_url(location: str, site: typing.Union[Site, None] = None) -> str:
     if not site:
         site = Site.objects.get_current()
 
-    if getattr(settings, 'USE_HTTPS', False):
-        scheme = 'https'
+    if getattr(settings, "USE_HTTPS", False):
+        scheme = "https"
     else:
-        scheme = 'http'
-    domain = '{}://{}'.format(scheme, site.domain)
+        scheme = "http"
+    domain = f"{scheme}://{site.domain}"
     return urljoin(domain, location)
 
 
@@ -45,13 +44,13 @@ def notify_version_author_version_unlocked(version: models.Version, unlocking_us
 
     # Prepare and send the email
     template_context = {
-        'version_link': version_url,
-        'by_user': username,
+        "version_link": version_url,
+        "by_user": username,
     }
     status = send_email(
         recipients=recipients,
         subject=subject,
-        template='unlock-notification.txt',
+        template="unlock-notification.txt",
         template_context=template_context,
     )
     return status

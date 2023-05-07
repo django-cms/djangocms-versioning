@@ -1,5 +1,10 @@
 from unittest import skip
 
+from cms.models import PlaceholderRelationField
+from cms.test_utils.testcases import CMSTestCase
+from cms.toolbar.items import TemplateItem
+from cms.toolbar.utils import get_object_preview_url
+from cms.utils import get_current_site
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.core import mail
@@ -7,12 +12,6 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-
-from cms.models import PlaceholderRelationField
-from cms.test_utils.testcases import CMSTestCase
-from cms.toolbar.items import TemplateItem
-from cms.toolbar.utils import get_object_preview_url
-from cms.utils import get_current_site
 
 from djangocms_versioning import (
     admin as versioning_admin,
@@ -59,7 +58,7 @@ class AdminLockedFieldTestCase(CMSTestCase):
         """
         The locked column exists in the admin field list
         """
-        request = RequestFactory().get('/admin/djangocms_versioning/pollcontentversion/')
+        request = RequestFactory().get("/admin/djangocms_versioning/pollcontentversion/")
         self.assertIn(_("locked"), self.hijacked_admin.get_list_display(request))
 
     def test_version_lock_state_locked(self):
@@ -109,7 +108,7 @@ class AdminPermissionTestCase(CMSTestCase):
             created_by=self.user_has_change_perms,
             locked_by=self.user_has_change_perms,
         )
-        url = self.get_admin_url(self.versionable.content_model, 'change', version.content.pk)
+        url = self.get_admin_url(self.versionable.content_model, "change", version.content.pk)
 
         with self.login_user_context(self.user_has_change_perms):
             response = self.client.get(url)
@@ -124,7 +123,7 @@ class AdminPermissionTestCase(CMSTestCase):
         author = factories.UserFactory(is_staff=True)
         version = factories.PollVersionFactory(state=DRAFT, created_by=author, locked_by=author)
 
-        url = self.get_admin_url(self.versionable.content_model, 'change', version.content.pk)
+        url = self.get_admin_url(self.versionable.content_model, "change", version.content.pk)
         with self.login_user_context(self.user_has_change_perms):
             response = self.client.get(url)
 
@@ -168,7 +167,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.superuser,
             locked_by=self.superuser,
         )
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
 
         # 404 when not in draft
         with self.login_user_context(self.superuser):
@@ -182,7 +181,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.superuser,
             locked_by=self.superuser,
         )
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock',
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock",
                                         poll_version.pk+314159)
 
         # 404 when not in draft
@@ -198,7 +197,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.superuser,
             locked_by=self.superuser,
         )
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
 
         # 404 when not in draft
         with self.login_user_context(self.superuser):
@@ -212,7 +211,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.user_author,
             locked_by=self.user_author,
         )
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
 
         with self.login_user_context(self.user_has_no_unlock_perms):
             response = self.client.post(unlock_url, follow=True)
@@ -233,7 +232,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.user_author,
             locked_by=self.user_author
         )
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
 
         with self.login_user_context(self.user_has_unlock_perms):
             response = self.client.post(unlock_url, follow=True)
@@ -244,7 +243,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
         updated_poll_version = Version.objects.get(pk=poll_version.pk)
 
         # The version is not locked
-        self.assertFalse(hasattr(updated_poll_version, 'versionlock'))
+        self.assertFalse(hasattr(updated_poll_version, "versionlock"))
 
     @skip("Requires clarification if this is still a valid requirement!")
     def test_unlock_link_not_present_for_author(self):
@@ -253,10 +252,10 @@ class VersionLockUnlockTestCase(CMSTestCase):
         author = self.get_superuser()
         poll_version = factories.PollVersionFactory(state=DRAFT, created_by=author, locked_by=author)
         changelist_url = version_list_url(poll_version.content)
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
         unlock_control = render_to_string(
-            'djangocms_version_locking/admin/unlock_icon.html',
-            {'unlock_url': unlock_url}
+            "djangocms_version_locking/admin/unlock_icon.html",
+            {"unlock_url": unlock_url}
         )
 
         with self.login_user_context(author):
@@ -270,7 +269,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=self.user_author,
             locked_by=self.user_author)
         changelist_url = version_list_url(poll_version.content)
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
 
         with self.login_user_context(self.user_has_no_unlock_perms):
             response = self.client.post(changelist_url)
@@ -284,7 +283,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
             locked_by=self.user_author,
         )
         changelist_url = version_list_url(poll_version.content)
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', poll_version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
         unlock_control = "cms-action-unlock"
 
         with self.login_user_context(self.user_has_unlock_perms):
@@ -300,9 +299,9 @@ class VersionLockUnlockTestCase(CMSTestCase):
             created_by=factories.UserFactory(),
             state=PUBLISHED
         )
-        draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', draft_version.pk)
+        draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", draft_version.pk)
         draft_unlock_control = "cms-action-unlock"
-        published_unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', published_version.pk)
+        published_unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", published_version.pk)
         published_unlock_control = "cms-action-unlock"
         changelist_url = version_list_url(draft_version.content)
 
@@ -323,7 +322,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
         """
         draft_version = factories.PollVersionFactory(created_by=self.user_author, locked_by=self.user_author)
         draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy,
-                                              'unlock', draft_version.pk)
+                                              "unlock", draft_version.pk)
 
         # The version is owned by the author
         self.assertEqual(draft_version.created_by, self.user_author)
@@ -337,7 +336,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
         updated_draft_version = Version.objects.get(pk=draft_version.pk)
         updated_draft_edit_url = self.get_admin_url(
             self.versionable.version_model_proxy,
-            'edit_redirect', updated_draft_version.pk
+            "edit_redirect", updated_draft_version.pk
         )
 
         # The version is still owned by the author
@@ -525,7 +524,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         self.versionable = VersioningCMSConfig.versioning[0]
 
         # Set permissions
-        delete_permission = Permission.objects.get(codename='delete_versionlock')
+        delete_permission = Permission.objects.get(codename="delete_versionlock")
         self.user_has_unlock_perms.user_permissions.add(delete_permission)
 
     def test_notify_version_author_version_unlocked_email_sent_for_different_user(self):
@@ -535,7 +534,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         """
         draft_version = factories.PageVersionFactory(content__template="", created_by=self.user_author)
         draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy,
-                                              'unlock', draft_version.pk)
+                                              "unlock", draft_version.pk)
 
         # Check that no emails exist
         self.assertEqual(len(mail.outbox), 0)
@@ -570,7 +569,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         """
         draft_version = factories.PageVersionFactory(content__template="", created_by=self.user_author)
         draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy,
-                                              'unlock', draft_version.pk)
+                                              "unlock", draft_version.pk)
 
         # Check that no emails exist
         self.assertEqual(len(mail.outbox), 0)
@@ -592,7 +591,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         user.save()
         draft_version = factories.PageVersionFactory(content__template="", created_by=self.user_author)
         draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy,
-                                              'unlock', draft_version.pk)
+                                              "unlock", draft_version.pk)
 
         # Check that no emails exist
         self.assertEqual(len(mail.outbox), 0)
@@ -615,7 +614,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         user = self.user_has_unlock_perms
         draft_version = factories.PageVersionFactory(content__template="", created_by=self.user_author)
         draft_unlock_url = self.get_admin_url(self.versionable.version_model_proxy,
-                                              'unlock', draft_version.pk)
+                                              "unlock", draft_version.pk)
 
         # Check that no emails exist
         self.assertEqual(len(mail.outbox), 0)
@@ -656,8 +655,8 @@ class TestVersionsLockTestCase(CMSTestCase):
         """
         user = self.get_staff_user_with_no_permissions()
         poll_version = factories.PollVersionFactory(state=DRAFT, created_by=user, locked_by=user)
-        publish_url = self.get_admin_url(self.versionable.version_model_proxy, 'publish', poll_version.pk)
-        unpublish_url = self.get_admin_url(self.versionable.version_model_proxy, 'unpublish', poll_version.pk)
+        publish_url = self.get_admin_url(self.versionable.version_model_proxy, "publish", poll_version.pk)
+        unpublish_url = self.get_admin_url(self.versionable.version_model_proxy, "unpublish", poll_version.pk)
 
         with self.login_user_context(user):
             self.client.post(publish_url)
@@ -677,7 +676,7 @@ class TestVersionsLockTestCase(CMSTestCase):
         # The state is now UNPUBLISHED
         self.assertEqual(updated_poll_version.state, UNPUBLISHED)
         # Version lock does not exist
-        self.assertFalse(hasattr(updated_poll_version, 'versionlock'))
+        self.assertFalse(hasattr(updated_poll_version, "versionlock"))
 
     def test_version_is_unlocked_for_archived(self):
         """
@@ -685,7 +684,7 @@ class TestVersionsLockTestCase(CMSTestCase):
         """
         user = self.get_superuser()
         poll_version = factories.PollVersionFactory(state=DRAFT, created_by=user, locked_by=user)
-        archive_url = self.get_admin_url(self.versionable.version_model_proxy, 'archive', poll_version.pk)
+        archive_url = self.get_admin_url(self.versionable.version_model_proxy, "archive", poll_version.pk)
 
         with self.login_user_context(user):
             self.client.post(archive_url)
@@ -695,7 +694,7 @@ class TestVersionsLockTestCase(CMSTestCase):
         # The state is now ARCHIVED
         self.assertEqual(updated_poll_version.state, ARCHIVED)
         # Version lock does not exist
-        self.assertFalse(hasattr(updated_poll_version, 'versionlock'))
+        self.assertFalse(hasattr(updated_poll_version, "versionlock"))
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)
@@ -774,15 +773,15 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         toolbar = get_toolbar(version.content, user, edit_mode=True)
         toolbar.post_template_populate()
 
-        self.assertFalse(toolbar_button_exists('Edit', toolbar.toolbar))
+        self.assertFalse(toolbar_button_exists("Edit", toolbar.toolbar))
 
     def test_no_edit_button_when_content_is_locked(self):
         user = self.get_superuser()
         user_2 = UserFactory(
             is_staff=True,
             is_superuser=True,
-            username='admin2',
-            email='admin2@123.com',
+            username="admin2",
+            email="admin2@123.com",
         )
         version = PageVersionFactory(created_by=user, locked_by=user)
 
@@ -807,8 +806,8 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         user = UserFactory(
             is_staff=True,
             is_superuser=True,
-            username='admin2',
-            email='admin2@123.com',
+            username="admin2",
+            email="admin2@123.com",
         )
         version = PageVersionFactory(created_by=user, locked_by=user)
         toolbar = get_toolbar(version.content, user=self.get_superuser(), content_mode=True)
@@ -824,29 +823,28 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         self.assertEqual(unlock_buttons[0].url, expected_unlock_url)  # enabled
 
     def test_enable_edit_button_when_content_is_locked(self):
-        from django.apps import apps
-
         from cms.models import Page
+        from django.apps import apps
 
         user = self.get_superuser()
         version = PageVersionFactory(created_by=user)
 
         toolbar = get_toolbar(version.content, user, content_mode=True)
         toolbar.post_template_populate()
-        edit_button = find_toolbar_buttons('Edit', toolbar.toolbar)[0]
+        edit_button = find_toolbar_buttons("Edit", toolbar.toolbar)[0]
 
-        self.assertEqual(edit_button.name, 'Edit')
+        self.assertEqual(edit_button.name, "Edit")
 
-        cms_extension = apps.get_app_config('djangocms_versioning').cms_extension
+        cms_extension = apps.get_app_config("djangocms_versioning").cms_extension
         versionable = cms_extension.versionables_by_grouper[Page]
         admin_url = self.get_admin_url(
-            versionable.version_model_proxy, 'edit_redirect', version.pk
+            versionable.version_model_proxy, "edit_redirect", version.pk
         )
         self.assertEqual(edit_button.url, admin_url)
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
             edit_button.extra_classes,
-            ['cms-btn-action', 'js-action', 'cms-form-post-method', 'cms-versioning-js-edit-btn']
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_lock_message_when_content_is_locked(self):
@@ -857,8 +855,8 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         user_2 = UserFactory(
             is_staff=True,
             is_superuser=True,
-            username='admin2',
-            email='admin2@123.com',
+            username="admin2",
+            email="admin2@123.com",
         )
         version = PageVersionFactory(created_by=user, locked_by=user)
 
@@ -880,8 +878,8 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         user_2 = UserFactory(
             is_staff=True,
             is_superuser=True,
-            username='admin2',
-            email='admin2@123.com',
+            username="admin2",
+            email="admin2@123.com",
         )
         version = PageVersionFactory(created_by=user, locked_by=user)
 
@@ -902,7 +900,7 @@ class IntegrationTestCase(CMSTestCase):
 
     def test_unlock_view_with_locking_disabled(self):
         """Tests that unlock view returns 404 if locking is disabled"""
-        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, 'unlock', self.version.pk)
+        unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", self.version.pk)
 
         with self.login_user_context(self.user):
             conf.LOCK_VERSIONS = False

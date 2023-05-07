@@ -7,7 +7,6 @@ from djangocms_versioning.conf import DEFAULT_USER, USERNAME_FIELD
 from djangocms_versioning.models import Version
 from djangocms_versioning.versionables import _cms_extension
 
-
 User = get_user_model()
 
 
@@ -50,7 +49,7 @@ class Command(BaseCommand):
                 return User.objects.get(pk=DEFAULT_USER)
             except User.DoesNotExist:
                 raise CommandError(f"No user with id {DEFAULT_USER} found "
-                                   f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py")
+                                   f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py") from None
 
         if options["userid"] and options["username"]:  # pragma: no cover
             raise CommandError("Only either one of the options '--userid' or '--username' may be given")
@@ -58,12 +57,12 @@ class Command(BaseCommand):
             try:
                 return User.objects.get(pk=options["userid"])
             except User.DoesNotExist:
-                raise CommandError(f"No user with id {options['userid']} found")
+                raise CommandError(f"No user with id {options['userid']} found") from None
         if options["username"]:  # pragma: no cover
             try:
                 return User.objects.get(**{USERNAME_FIELD: options["username"]})
             except User.DoesNotExist:
-                raise CommandError(f"No user with name {options['username']} found")
+                raise CommandError(f"No user with name {options['username']} found") from None
         return None  # pragma: no cover
 
     def handle(self, *args, **options):
@@ -102,9 +101,9 @@ class Command(BaseCommand):
 
                 if options["dry_run"]:  # pragma: no cover
                     # Only write out change
-                    self.stdout.write((self.style.NOTICE(
+                    self.stdout.write(self.style.NOTICE(
                         f"{str(orphan)} (pk={orphan.pk}) would be assigned a Version object with state {state}"
-                    )))
+                    ))
                 else:
                     try:
                         Version.objects.create(

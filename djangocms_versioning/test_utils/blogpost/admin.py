@@ -1,6 +1,5 @@
-from django.contrib import admin
-
 from cms.admin.utils import GrouperModelAdmin
+from django.contrib import admin
 
 from djangocms_versioning.admin import (
     ExtendedGrouperVersionAdminMixin,

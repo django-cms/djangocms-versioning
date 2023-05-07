@@ -3,6 +3,10 @@ import typing
 import warnings
 from contextlib import contextmanager
 
+from cms.models import Page, PageContent, Placeholder
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils.helpers import is_editable_model
+from cms.utils.urlutils import add_url_parameters, admin_reverse
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
@@ -13,15 +17,9 @@ from django.db.models.sql.where import WhereNode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 
-from cms.models import Page, PageContent, Placeholder
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
-from cms.utils.helpers import is_editable_model
-from cms.utils.urlutils import add_url_parameters, admin_reverse
-
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
-
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -94,7 +92,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
             "{!r} is already registered with admin.".format(
                 versionable.version_model_proxy
             ),
-            UserWarning,
+            UserWarning, stacklevel=2,
         )
         return
 
@@ -285,7 +283,7 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
 
 def get_admin_url(model: type, action: str, *args) -> str:
     opts = model._meta
-    url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
+    url_name = f"{opts.app_label}_{opts.model_name}_{action}"
     return admin_reverse(url_name, args=args)
 
 
@@ -301,9 +299,9 @@ def remove_published_where(queryset):
     all_except_published = [
         lookup for lookup in where_children
         if not (
-            lookup.lookup_name == 'exact' and
+            lookup.lookup_name == "exact" and
             lookup.rhs == PUBLISHED and
-            lookup.lhs.field.name == 'state'
+            lookup.lhs.field.name == "state"
         )
     ]
 
@@ -418,7 +416,7 @@ def send_email(
     """
     Send emails using locking templates
     """
-    template = 'djangocms_versioning/emails/{}'.format(template)
+    template = f"djangocms_versioning/emails/{template}"
     subject = force_str(subject)
     content = render_to_string(template, template_context)
 

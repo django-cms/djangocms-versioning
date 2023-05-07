@@ -5,6 +5,13 @@ from unittest import skip
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
+from bs4 import BeautifulSoup
+from cms.test_utils.testcases import CMSTestCase
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
+from cms.utils.conf import get_cms_setting
+from cms.utils.helpers import is_editable_model
+from cms.utils.urlutils import admin_reverse
 from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
@@ -18,15 +25,6 @@ from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.timezone import now
-
-from cms.test_utils.testcases import CMSTestCase
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
-from cms.utils import get_language_from_request
-from cms.utils.conf import get_cms_setting
-from cms.utils.helpers import is_editable_model
-from cms.utils.urlutils import admin_reverse
-
-from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -358,8 +356,8 @@ class AdminRegisterVersionTestCase(CMSTestCase):
 
         with patch.object(warnings, "warn") as mock:
             register_versionadmin_proxy(versionable, site)
-        message = "{!r} is already registered with admin.".format(Version)
-        mock.assert_called_with(message, UserWarning)
+        message = f"{Version!r} is already registered with admin."
+        mock.assert_called_with(message, UserWarning, stacklevel=2)
 
 
 class VersionAdminTestCase(CMSTestCase):
@@ -381,7 +379,7 @@ class VersionAdminTestCase(CMSTestCase):
         with self.assertNumQueries(2):
             qs = self.site._registry[Version].get_queryset(RequestFactory().get("/"))
             for version in qs:
-                version.content
+                version.content  # noqa B018
         self.assertTrue(qs._prefetch_done)
         self.assertIn("content", qs._prefetch_related_lookups)
 
@@ -549,15 +547,15 @@ class VersionAdminActionsTestCase(CMSTestCase):
         draft_discard_url = self.get_admin_url(
             self.versionable.version_model_proxy, "discard", version.pk
         )
-        request = RequestFactory().post(draft_discard_url, {'discard': '1'})
+        request = RequestFactory().post(draft_discard_url, {"discard": "1"})
         request.user = factories.UserFactory()
 
-        setattr(request, 'session', 'session')
+        request.session = "session"
         messages = FallbackStorage(request)
-        setattr(request, '_messages', messages)
+        request._messages = messages
 
         redirect = self.version_admin.discard_view(request, str(version.pk))
-        changelist_url = helpers.get_admin_url(version.content.__class__, 'changelist')
+        changelist_url = helpers.get_admin_url(version.content.__class__, "changelist")
 
         self.assertEqual(redirect.status_code, 302)
         self.assertEqual(redirect.url, changelist_url)
@@ -1454,7 +1452,7 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertEqual(response.status_code, 405)
 
         # Django 2.2 backwards compatibility
-        if hasattr(response, '_headers'):
+        if hasattr(response, "_headers"):
             self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
         else:
             self.assertEqual(response.headers.get("Allow"), "POST")
@@ -1964,7 +1962,7 @@ class EditRedirectTestCase(BaseStateTestCase):
         self.assertEqual(response.status_code, 405)
 
         # Django 2.2 backwards compatibility
-        if hasattr(response, '_headers'):
+        if hasattr(response, "_headers"):
             self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
         else:
             self.assertEqual(response.headers.get("Allow"), "POST")
@@ -2070,9 +2068,9 @@ class CompareViewTestCase(CMSTestCase):
         with self.login_user_context(user):
             response = self.client.get(url)
 
-        self.assertContains(response, "Comparing Version #{}".format(versions[0].number))
-        self.assertContains(response, "Version #{}".format(versions[0].number))
-        self.assertContains(response, "Version #{}".format(versions[1].number))
+        self.assertContains(response, f"Comparing Version #{versions[0].number}")
+        self.assertContains(response, f"Version #{versions[0].number}")
+        self.assertContains(response, f"Version #{versions[1].number}")
 
         context = response.context
         self.assertIn("v1", context)
@@ -2220,7 +2218,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         factories.PollVersionFactory.create_batch(4)
 
         with self.login_user_context(self.superuser):
-            querystring = "?poll={grouper}".format(grouper=pv.content.poll_id)
+            querystring = f"?poll={pv.content.poll_id}"
             response = self.client.get(
                 self.get_admin_url(self.versionable.version_model_proxy, "changelist")
                 + querystring
@@ -2507,7 +2505,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
@@ -2529,7 +2527,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
@@ -2556,7 +2554,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
@@ -3072,7 +3070,7 @@ class ListActionsTestCase(CMSTestCase):
             args=(version.content_type_id, version.object_id),
         )
         with self.login_user_context(self.get_superuser()):
-            response = self.client.get(changelist + "?" + urlencode(dict(back=valid_url)))
+            response = self.client.get(changelist + "?" + urlencode({"back": valid_url}))
             self.assertContains(response, valid_url)
             self.assertNotContains(response, version_list_url(version.content))
 

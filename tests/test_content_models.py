@@ -1,9 +1,8 @@
 from unittest.mock import patch
 
-from django.db import models
-
 from cms.models.contentmodels import PageContent
 from cms.test_utils.testcases import CMSTestCase
+from django.db import models
 
 from djangocms_versioning import constants, helpers
 from djangocms_versioning.helpers import replace_manager

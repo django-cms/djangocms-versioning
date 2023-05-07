@@ -22,5 +22,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff
       - name: Run Ruff
-        run: ruff djangocms_versioning
-          ruff tests
+        run: |
+          ruff djangocms_versioning
+          ruff test

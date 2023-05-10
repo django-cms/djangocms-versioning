@@ -5,6 +5,7 @@ Changelog
 Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
+* fix: Added ``related_name`` attribute to the ``content_type`` foreign key of the ``Version`` model.
 * fix: burger menu adjusts to the design of django cms core dropdown
 * fix: bug that showed an archived version as unpublished in some cases in the state indicator
 * add: Dutch and French translations thanks to Stefan van den Eertwegh and François Palmierso

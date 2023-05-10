@@ -1,11 +1,10 @@
-from django.apps import apps
-
 from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
 from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
+from django.apps import apps
 from menus.base import Menu, NavigationNode
 from menus.menu_pool import menu_pool
 
@@ -49,8 +48,8 @@ def _get_attrs_for_node(renderer, page_content):
     if page.navigation_extenders:
         if page.navigation_extenders in renderer.menus:
             extenders.append(page.navigation_extenders)
-        elif "{0}:{1}".format(page.navigation_extenders, page.pk) in renderer.menus:
-            extenders.append("{0}:{1}".format(page.navigation_extenders, page.pk))
+        elif f"{page.navigation_extenders}:{page.pk}" in renderer.menus:
+            extenders.append(f"{page.navigation_extenders}:{page.pk}")
 
     if page.application_urls:
         app = apphook_pool.get_apphook(page.application_urls)
@@ -62,7 +61,7 @@ def _get_attrs_for_node(renderer, page_content):
 
     for ext in extenders:
         if hasattr(ext, "get_instances"):
-            exts.append("{0}:{1}".format(ext.__name__, page.pk))
+            exts.append(f"{ext.__name__}:{page.pk}")
         elif hasattr(ext, "__name__"):
             exts.append(ext.__name__)
         else:

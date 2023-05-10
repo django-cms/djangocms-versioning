@@ -1,13 +1,11 @@
 import string
 
+import factory
+from cms import constants
+from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-
-from cms import constants
-from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
-
-import factory
 from djangocms_text_ckeditor.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
@@ -28,7 +26,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
     email = factory.LazyAttribute(
-        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower())
+        lambda u: f"{u.first_name.lower()}.{u.last_name.lower()}@example.com"
     )
 
     class Meta:
@@ -187,10 +185,10 @@ class TreeNodeFactory(factory.django.DjangoModelFactory):
 
 
 class PageUrlFactory(factory.django.DjangoModelFactory):
-    slug = ''
-    path = ''
+    slug = ""
+    path = ""
     managed = False
-    language = 'en'
+    language = "en"
 
     class Meta:
         model = PageUrl
@@ -216,7 +214,7 @@ class PageContentFactory(AbstractContentFactory):
     in_navigation = FuzzyChoice([True, False])
     soft_root = FuzzyChoice([True, False])
     limit_visibility_in_menu = constants.VISIBILITY_USERS
-    template = 'page.html'
+    template = "page.html"
     xframe_options = FuzzyInteger(0, 25)
 
     class Meta:

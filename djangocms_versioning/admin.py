@@ -2,6 +2,10 @@ import json
 from collections import OrderedDict
 from urllib.parse import urlparse
 
+from cms.models import PageContent
+from cms.utils import get_language_from_request
+from cms.utils.conf import get_cms_setting
+from cms.utils.urlutils import add_url_parameters, static_with_version
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
@@ -18,11 +22,6 @@ from django.urls import Resolver404, re_path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
-
-from cms.models import PageContent
-from cms.utils import get_language_from_request
-from cms.utils.conf import get_cms_setting
-from cms.utils.urlutils import add_url_parameters, static_with_version
 
 from . import versionables
 from .conf import USERNAME_FIELD
@@ -173,7 +172,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     "description": INDICATOR_DESCRIPTIONS.get(status, _("Empty")),
                     "menu_template": "admin/cms/page/tree/indicator_menu.html",
                     "menu": json.dumps(render_to_string("admin/cms/page/tree/indicator_menu.html",
-                                                        dict(indicator_menu_items=menu))) if menu else None,
+                                                        {"indicator_menu_items": menu})) if menu else None,
                 }
             )
         indicator.short_description = self.indicator_column_label
@@ -181,8 +180,8 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     def state_indicator(self, obj):
         raise ValueError(
-            "ModelAdmin.display_list contains \"state_indicator\" as a placeholder for status indicators. "
-            "Status indicators, however, are not loaded. If you implement \"get_list_display\" make "
+            'ModelAdmin.display_list contains "state_indicator" as a placeholder for status indicators. '
+            'Status indicators, however, are not loaded. If you implement "get_list_display" make '
             "sure it calls super().get_list_display."
         )  # pragma: no cover
 
@@ -392,8 +391,8 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin, metaclass=MediaDefiningCla
                 list_display[list_display.index(field)] = self._get_field_modifier(request, modifier_dict, field)
                 list_display = tuple(list_display)
                 return list_display
-            except ValueError:
-                raise ImproperlyConfigured("The target field does not exist in this context")
+            except ValueError as err:
+                raise ImproperlyConfigured("The target field does not exist in this context") from err
         return tuple(list_display)
 
     def get_list_display(self, request):
@@ -777,19 +776,19 @@ class VersionAdmin(admin.ModelAdmin):
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                object_id=object_id,
-                archive_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "object_id": object_id,
+                "archive_url": reverse(
                     "admin:{app}_{model}_archive".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/archive_confirmation.html", context
             )
@@ -857,19 +856,19 @@ class VersionAdmin(admin.ModelAdmin):
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                object_id=object_id,
-                unpublish_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "object_id": object_id,
+                "unpublish_url": reverse(
                     "admin:{app}_{model}_unpublish".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             extra_context = OrderedDict(
                 [
                     (key, func(request, version))
@@ -970,20 +969,20 @@ class VersionAdmin(admin.ModelAdmin):
             draft_version = drafts.first()
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                draft_version=draft_version,
-                object_id=object_id,
-                revert_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "draft_version": draft_version,
+                "object_id": object_id,
+                "revert_url": reverse(
                     "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/revert_confirmation.html", context
             )
@@ -1012,20 +1011,20 @@ class VersionAdmin(admin.ModelAdmin):
             return redirect(version_list_url(version.content))
 
         if request.method != "POST":
-            context = dict(
-                object_name=version.content,
-                version_number=version.number,
-                draft_version=version,
-                object_id=object_id,
-                revert_url=reverse(
+            context = {
+                "object_name": version.content,
+                "version_number": version.number,
+                "draft_version": version,
+                "object_id": object_id,
+                "revert_url": reverse(
                     "admin:{app}_{model}_revert".format(
                         app=self.model._meta.app_label,
                         model=self.model._meta.model_name,
                     ),
                     args=(version.content.pk,),
                 ),
-                back_url=self.back_link(request, version),
-            )
+                "back_url": self.back_link(request, version),
+            }
             return render(
                 request, "djangocms_versioning/admin/discard_confirmation.html", context
             )
@@ -1034,9 +1033,9 @@ class VersionAdmin(admin.ModelAdmin):
         if request.POST.get("discard"):
             ModelClass = version.content.__class__
             deleted = version.delete()
-            if deleted[1]['last']:
-                version_url = get_admin_url(ModelClass, 'changelist')
-                self.message_user(request, _('The last version has been deleted'))
+            if deleted[1]["last"]:
+                version_url = get_admin_url(ModelClass, "changelist")
+                self.message_user(request, _("The last version has been deleted"))
 
         return redirect(version_url)
 
@@ -1116,7 +1115,7 @@ class VersionAdmin(admin.ModelAdmin):
             # redirect to grouper form when there's no GET parameters
             opts = self.model._meta
             return redirect(
-                reverse("admin:{}_{}_grouper".format(opts.app_label, opts.model_name))
+                reverse(f"admin:{opts.app_label}_{opts.model_name}_grouper")
             )
         extra_context = extra_context or {}
         versionable = versionables.for_content(self.model._source_model)
@@ -1134,7 +1133,7 @@ class VersionAdmin(admin.ModelAdmin):
 
         if grouper:
             # CAVEAT: as the breadcrumb trails expect a value for latest content in the template
-            extra_context["latest_content"] = ({'pk': None})
+            extra_context["latest_content"] = ({"pk": None})
 
             extra_context.update(
                 grouper=grouper,

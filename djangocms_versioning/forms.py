@@ -30,7 +30,7 @@ class GrouperFormMixin:
         self.fields[versionable.grouper_field_name].queryset = queryset
 
 
-@lru_cache()
+@lru_cache
 def grouper_form_factory(content_model, language=None):
     """Returns a form class used for selecting a grouper to see versions of.
     Form has a single field - grouper - which is a model choice field

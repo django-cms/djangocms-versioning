@@ -40,15 +40,15 @@ class PageContentAdminTestCase(CMSTestCase):
         """
         from cms.admin.forms import RequestToolbarForm
         version = PageVersionFactory()
-        parameter = dict(
-            obj_id=version.object_id,
-            obj_type=f"{version.content_type.app_label}.{version.content_type.model}",
-        )
+        parameter = {
+            "obj_id": version.object_id,
+            "obj_type": f"{version.content_type.app_label}.{version.content_type.model}",
+        }
         form = RequestToolbarForm(parameter)
         self.assertTrue(form.is_valid())
 
         data = form.clean()
-        self.assertEqual(version.state, 'draft')
+        self.assertEqual(version.state, "draft")
         self.assertEqual(data["attached_obj"].pk, version.content.pk)
 
     def test_get_title_cache(self):
@@ -80,10 +80,10 @@ class PageAdminCopyLanguageTestCase(CMSTestCase):
 
         # Use the endpoint that the toolbar copy uses, this indirectly runs the monkey patched logic!
         # Simulating the user selecting in the Language menu "Copy all plugins" in the Versioned Page toolbar
-        self.copy_url = admin_reverse('cms_pagecontent_copy_language', args=(self.source_version.content.pk,))
+        self.copy_url = admin_reverse("cms_pagecontent_copy_language", args=(self.source_version.content.pk,))
         self.copy_url_data = {
-            'source_language': "en",
-            'target_language': "it"
+            "source_language": "en",
+            "target_language": "it"
         }
 
     def test_page_copy_language_copies_source_draft_placeholder_plugins(self):
@@ -223,7 +223,9 @@ class WizzardTestCase(CMSTestCase):
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
         from cms.toolbar.utils import get_object_preview_url
 
-        from djangocms_versioning.test_utils.polls.cms_wizards import poll_wizard
+        from djangocms_versioning.test_utils.polls.cms_wizards import (
+            poll_wizard,
+        )
 
         # Test against page creations in different languages.
         version = PageVersionFactory(content__language="en")

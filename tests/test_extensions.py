@@ -1,14 +1,15 @@
+from cms.extensions.extension_pool import ExtensionPool
+from cms.test_utils.testcases import CMSTestCase
+from cms.utils.urlutils import admin_reverse
 from django.contrib import admin
 from django.contrib.sites.models import Site
 from django.test import RequestFactory
 
-from cms.extensions.extension_pool import ExtensionPool
-from cms.test_utils.testcases import CMSTestCase
-from cms.utils.urlutils import admin_reverse
-
 from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
+from djangocms_versioning.test_utils.extended_polls.admin import (
+    PollExtensionAdmin,
+)
 from djangocms_versioning.test_utils.extended_polls.models import (
     PollPageContentExtension,
 )
@@ -40,16 +41,16 @@ class ExtensionTestCase(CMSTestCase):
             extensions=False,
             user=self.get_superuser(),
         )
-        new_page_content = PageContentFactory(page=self.new_page, language='de')
+        new_page_content = PageContentFactory(page=self.new_page, language="de")
         self.new_page.page_content_cache[de_pagecontent.language] = new_page_content
 
     def test_copy_extensions(self):
         """Try to copy the extension, without the monkeypatch this tests fails"""
         extension_pool = ExtensionPool()
-        extension_pool.page_extensions = set([TestPageExtension])
-        extension_pool.title_extensions = set([TestPageContentExtension])
+        extension_pool.page_extensions = {TestPageExtension}
+        extension_pool.title_extensions = {TestPageContentExtension}
         extension_pool.copy_extensions(
-            self.page, self.new_page, languages=['de']
+            self.page, self.new_page, languages=["de"]
         )
         # No asserts, this test originally failed because the versioned manager was called
         # in copy_extensions, now we call the original manager instead

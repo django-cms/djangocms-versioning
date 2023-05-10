@@ -79,7 +79,11 @@ class Version(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )
     number = models.CharField(max_length=11)
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="cms_versions"
+    )
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey("content_type", "object_id")
     state = FSMField(

@@ -1,8 +1,7 @@
+from cms.utils.urlutils import admin_reverse
 from django.contrib.auth import get_permission_codename
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-
-from cms.utils.urlutils import admin_reverse
 
 from djangocms_versioning.constants import (
     ARCHIVED,
@@ -15,7 +14,7 @@ from djangocms_versioning.models import Version
 
 
 def _reverse_action(version, action, back=None):
-    get_params = f"?{urlencode(dict(back=back))}" if back else ""
+    get_params = f"?{urlencode({'back': back})}" if back else ""
     return admin_reverse(
         f"{version._meta.app_label}_{version.versionable.version_model_proxy._meta.model_name}_{action}",
         args=(version.pk,)
@@ -69,10 +68,10 @@ def content_indicator_menu(request, status, versions, back=""):
             menu.append((
                 _("Compare Draft to Published..."), "cms-icon-layers",
                 _reverse_action(versions[1], "compare") +
-                "?" + urlencode(dict(
-                    compare_to=versions[0].pk,
-                    back=back,
-                )),
+                "?" + urlencode({
+                    "compare_to": versions[0].pk,
+                    "back": back,
+                }),
                 "",
             ))
     menu.append(

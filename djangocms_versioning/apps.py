@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 class VersioningConfig(AppConfig):
     name = "djangocms_versioning"
     verbose_name = _("django CMS Versioning")
-    default_auto_field = 'django.db.models.AutoField'
+    default_auto_field = "django.db.models.AutoField"
 
     def ready(self):
         from cms.models import contentmodels, fields
@@ -24,7 +24,7 @@ class VersioningConfig(AppConfig):
 
         # Remove uniqueness constraint from PageContent model to allow for different versions
         pagecontent_unique_together = tuple(
-            set(contentmodels.PageContent._meta.unique_together) - set((("language", "page"),))
+            set(contentmodels.PageContent._meta.unique_together) - {("language", "page")}
         )
         contentmodels.PageContent._meta.unique_together = pagecontent_unique_together
 

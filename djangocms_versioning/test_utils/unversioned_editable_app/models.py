@@ -1,7 +1,6 @@
+from cms.models.fields import PlaceholderRelationField
 from django.db import models
 from django.urls import reverse
-
-from cms.models.fields import PlaceholderRelationField
 
 
 class FancyPoll(models.Model):

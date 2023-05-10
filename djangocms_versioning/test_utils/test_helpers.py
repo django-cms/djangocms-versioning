@@ -1,6 +1,5 @@
-from django.test import RequestFactory
-
 from cms.toolbar.toolbar import CMSToolbar
+from django.test import RequestFactory
 
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import UserFactory

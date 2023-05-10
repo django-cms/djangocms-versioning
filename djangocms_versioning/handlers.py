@@ -1,5 +1,3 @@
-from django.utils import timezone
-
 from cms.extensions.models import BaseExtension
 from cms.operations import (
     ADD_PLUGIN,
@@ -12,6 +10,7 @@ from cms.operations import (
     PASTE_PLACEHOLDER,
     PASTE_PLUGIN,
 )
+from django.utils import timezone
 
 from .models import Version
 from .versionables import _cms_extension

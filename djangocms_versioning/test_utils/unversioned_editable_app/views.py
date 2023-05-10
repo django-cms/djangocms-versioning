@@ -8,8 +8,8 @@ from .models import FancyPoll
 def detail(request, poll_id):
     try:
         poll = FancyPoll.objects.get(pk=poll_id)
-    except FancyPoll.DoesNotExist:
-        raise Http404("Fancy Poll doesn't exist") from None
+    except FancyPoll.DoesNotExist as err:
+        raise Http404("Fancy Poll doesn't exist") from err
 
     toolbar = get_toolbar_from_request(request)
     toolbar.set_object(poll)

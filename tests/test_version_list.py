@@ -2,7 +2,10 @@ from urllib.parse import parse_qs, urlparse
 
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.helpers import version_list_url, version_list_url_for_grouper
+from djangocms_versioning.helpers import (
+    version_list_url,
+    version_list_url_for_grouper,
+)
 from djangocms_versioning.test_utils import factories
 
 

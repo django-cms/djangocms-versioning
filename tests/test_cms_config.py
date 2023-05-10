@@ -12,13 +12,21 @@ from django.test import RequestFactory
 from django.utils.text import slugify
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
+from djangocms_versioning.cms_config import (
+    VersioningCMSConfig,
+    VersioningCMSExtension,
+)
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
-from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
+from djangocms_versioning.test_utils.blogpost.cms_config import (
+    BlogpostCMSConfig,
+)
+from djangocms_versioning.test_utils.blogpost.models import (
+    BlogContent,
+    Comment,
+)
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import (
     IncorrectBlogpostCMSConfig,
 )

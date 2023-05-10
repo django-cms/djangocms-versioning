@@ -92,7 +92,8 @@ def register_versionadmin_proxy(versionable, admin_site=None):
             "{!r} is already registered with admin.".format(
                 versionable.version_model_proxy
             ),
-            UserWarning, stacklevel=2,
+            UserWarning,
+            stacklevel=2
         )
         return
 

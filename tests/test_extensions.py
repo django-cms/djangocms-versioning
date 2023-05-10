@@ -7,7 +7,9 @@ from django.test import RequestFactory
 
 from djangocms_versioning.cms_config import copy_page_content
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.extended_polls.admin import PollExtensionAdmin
+from djangocms_versioning.test_utils.extended_polls.admin import (
+    PollExtensionAdmin,
+)
 from djangocms_versioning.test_utils.extended_polls.models import (
     PollPageContentExtension,
 )

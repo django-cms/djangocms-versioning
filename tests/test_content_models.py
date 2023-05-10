@@ -10,7 +10,10 @@ from djangocms_versioning.managers import (
     AdminManagerMixin,
     PublishedContentManagerMixin,
 )
-from djangocms_versioning.test_utils.factories import PageFactory, PageVersionFactory
+from djangocms_versioning.test_utils.factories import (
+    PageFactory,
+    PageVersionFactory,
+)
 from djangocms_versioning.test_utils.people.models import Person
 
 

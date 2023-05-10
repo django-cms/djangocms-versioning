@@ -120,6 +120,28 @@ and a :term:`copy function <copy function>`. For simple model structures, the `d
 which we have used is sufficient, but in many cases you might need to write your own custom :term:`copy function <copy function>`
 (more on that below).
 
+Once a model is registered for versioning its behaviour changes:
+
+1. It's default manager (``Model.objects``) only sees published versions of the model. See :term:``content model``.
+2. It's ``Model.objects.create`` method now will not only create the :term:`content model` but also a corresponding ``Version`` model. Since the ``Version`` model requires a ``User`` object to track who created which version the correct way of creating a versioned :term:`content model` is::
+
+    Model.objects.with_user(request.user).create(...)
+
+  In certain situations, e.g., when implementing a :term:`copy function`, this is not desirable. Use ``Model._original_manager.create(...)`` in such situations.
+
+.. note::
+
+    If you want to allow using your models with and without versioning enabled we suggest to add dummy manager to your model that will swallow the ``with_user()`` syntax. This way you can always create objects with::
+
+        class ModelManager(models.Manager):
+            def with_user(self, user):
+                return self
+
+        class MyModel(models.Model):
+            objects = ModelManager()
+
+            ...
+
 For more details on how `cms_config.py` integration works please check the documentation
 for django-cms>=4.0.
 
@@ -205,7 +227,7 @@ This is probably not how one would want things to work in this scenario, so to f
             # don't copy pk because we're creating a new obj
             if PostContent._meta.pk.name != field.name
         }
-        new_content = PostContent.objects.create(**content_fields)
+        new_content = PostContent._original_manager.create(**content_fields)
         original_polls = Poll.objects.filter(post_content=original_content)
         for poll in original_polls:
             poll_fields = {
@@ -244,6 +266,10 @@ As you can see from the example above the :term:`copy function <copy function>` 
 and returns the copied content object. We have customized it to create not just a new PostContent object (which `default_copy` would have done),
 but also new Poll and Answer objects.
 
+.. note::
+
+    A custom copy method will need to use the content model's ``PostContent._original_manager`` to create only a content model object and not also a Version object which the ``PostContent.objects`` manager would have done!
+
 Notice that we have not created new Category objects in this example. This is because the default behaviour actually suits Category objects fine.
 If the name of a category changed, we would not want to revert the whole site to use the old name of the category when reverting a PostContent object.
 
@@ -266,12 +292,92 @@ to add the fields:
 
 
 .. code-block:: python
+
     class PostAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
         list_display = "title"
+
+The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`admin_field_modifiers` to a given apps :term:`cms_config`,
+in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
+
+.. code-block:: python
+
+    # cms_config.py
+    def post_modifier(obj, field):
+        return obj.get(field) + " extra field text!"
+
+    class PostCMSConfig(CMSAppConfig):
+        # Other versioning configurations...
+        admin_field_modifiers = [
+            {PostContent: {"title": post_modifier}},
+        ]
+
+Given the code sample above, "This is how we add" would be displayed as
+"this is how we add extra field text!" in the changelist of PostAdmin.
+
+Adding status indicators to a versioned content model
+-----------------------------------------------------
+
+djangocms-versioning provides status indicators for django CMS' content models, you may know them from the page tree in django-cms:
+
+.. image:: static/Status-indicators.png
+    :width: 50%
+
+You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:
+
+.. code-block:: python
+
+    import json
+    from djangocms_versioning.admin import StateIndicatorAdminMixin
+
+
+    class MyContentModelAdmin(StateIndicatorAdminMixin, admin.Admin):
+        # Adds "indicator" to the list_items
+         list_items = [..., "state_indicator", ...]
+
+.. note::
+
+    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
+
+    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
+
+    .. code-block:: python
+
+        def get_changelist_instance(self, request):
+            """Set language property and remove language from changelist_filter_params"""
+            if request.method == "GET":
+                request.GET = request.GET.copy()
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    value = request.GET.pop(field, [None])[0]
+                    # Validation is recommended: Add clean_language etc. to your Admin class!
+                    if hasattr(self, f"clean_{field}"):
+                        value = getattr(self, f"clean_{field}")(value):
+                    setattr(self, field) = value
+                # Grouping field-specific cache needs to be cleared when they are changed
+                self._content_cache = {}
+            instance = super().get_changelist_instance(request)
+            # Remove grouping fields from filters
+            if request.method == "GET":
+                for field in versionables.for_grouper(self.model).extra_grouping_fields:
+                    if field in instance.params:
+                        del instance.params[field]
+            return instance
+
+Adding Status Indicators *and* Versioning Entries to a versioned content model
+------------------------------------------------------------------------
+
+Both mixins can be easily combined. If you want both, state indicators and the additional author, modified date, preview action, and edit action, you can simpliy use the ``ExtendedIndicatorVersionAdminMixin``:
+
+.. code-block:: python
+
+    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.Admin):
+        ...
+
+The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
+
+Add additional actions by overwriting the ``self.get_list_actions()`` method and calling ``super()``.
 
 
 Additional/advanced configuration
 ----------------------------------
 
 The above should be enough configuration for most cases, but versioning has a lot more configuration options. See the :doc:`advanced_configuration` page for details.
-

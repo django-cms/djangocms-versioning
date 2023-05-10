@@ -6,7 +6,7 @@ class BlogPost(models.Model):
     name = models.TextField()
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.pk)
+        return f"{self.name} ({self.pk})"
 
 
 class BlogContent(models.Model):

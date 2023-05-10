@@ -5,19 +5,27 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.formats import localize
 from django.utils.translation import gettext_lazy as _
-
 from django_fsm import FSMField, can_proceed, transition
+
+from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS
 
 from . import constants, versionables
 from .conditions import Conditions, in_state
 from .operations import send_post_version_operation, send_pre_version_operation
 
-
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+
+def allow_deleting_versions(collector, field, sub_objs, using):
+    if ALLOW_DELETING_VERSIONS:
+        models.SET_NULL(collector, field, sub_objs, using)
+    else:
+        models.PROTECT(collector, field, sub_objs, using)
 
 
 class VersionQuerySet(models.QuerySet):
@@ -65,8 +73,8 @@ class VersionQuerySet(models.QuerySet):
 
 class Version(models.Model):
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(auto_now_add=True, verbose_name=_("Created"))
+    modified = models.DateTimeField(default=timezone.now, verbose_name=_("Modified"))
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )
@@ -84,7 +92,7 @@ class Version(models.Model):
         "self",
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=allow_deleting_versions,
         verbose_name=_("source"),
     )
     objects = VersionQuerySet.as_manager()
@@ -93,7 +101,19 @@ class Version(models.Model):
         unique_together = ("content_type", "object_id")
 
     def __str__(self):
-        return "Version #{}".format(self.pk)
+        return f"Version #{self.pk}"
+
+    def verbose_name(self):
+        return _("Version #{number} ({state} {date})").format(
+            number=self.number,
+            state=dict(constants.VERSION_STATES)[self.state],
+            date=localize(self.created, settings.DATETIME_FORMAT),
+        )
+
+    def short_name(self):
+        return _("Version #{number} ({state})").format(
+            number=self.number, state=dict(constants.VERSION_STATES)[self.state]
+        )
 
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper
@@ -101,22 +121,22 @@ class Version(models.Model):
 
         def get_grouper_name(ContentModel, GrouperModel):
             for field in ContentModel._meta.fields:
-                if getattr(field, 'related_model', None) == GrouperModel:
+                if getattr(field, "related_model", None) == GrouperModel:
                     return field.name
 
         grouper = self.grouper
         ContentModel = self.content._meta.model
 
         grouper_name = get_grouper_name(ContentModel, grouper._meta.model)
-        querydict = {'{}__pk'.format(grouper_name): grouper.pk}
+        querydict = {f"{grouper_name}__pk": grouper.pk}
         count = ContentModel._original_manager.filter(**querydict).count()
 
         self.content.delete()
         deleted = super().delete(using=using, keep_parents=keep_parents)
-        deleted[1]['last'] = False
+        deleted[1]["last"] = False
         if count == 1:
             grouper.delete()
-            deleted[1]['last'] = True
+            deleted[1]["last"] = True
         return deleted
 
     def save(self, **kwargs):
@@ -212,7 +232,9 @@ class Version(models.Model):
         )
         return new_version
 
-    check_archive = Conditions()
+    check_archive = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_archived(self):
         return can_proceed(self._set_archive)
@@ -257,7 +279,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_publish = Conditions()
+    check_publish = Conditions(
+        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+    )
 
     def can_be_published(self):
         return can_proceed(self._set_publish)
@@ -315,7 +339,9 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
-    check_unpublish = Conditions()
+    check_unpublish = Conditions([
+        in_state([constants.PUBLISHED], _("Version is not in published state"))
+    ])
 
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)

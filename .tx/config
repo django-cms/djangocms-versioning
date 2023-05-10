@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[o:divio:p:django-cms-versioning:r:djangocms-versioning-locale-en-lc-messages-django-po--master]
+file_filter   = djangocms_versioning/locale/<lang>/LC_MESSAGES/django.po
+source_file   = djangocms_versioning/locale/en/LC_MESSAGES/django.po
+type          = PO
+minimum_perc  = 0
+resource_name = django.po
+

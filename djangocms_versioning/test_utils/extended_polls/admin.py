@@ -1,10 +1,10 @@
+from cms.extensions import PageContentExtensionAdmin
 from django.contrib import admin
 
-from cms.extensions import TitleExtensionAdmin
-
-from .models import PollTitleExtension
+from .models import PollPageContentExtension
 
 
-@admin.register(PollTitleExtension)
-class PollExtensionAdmin(TitleExtensionAdmin):
+@admin.register(PollPageContentExtension)
+class PollExtensionAdmin(PageContentExtensionAdmin):
+
     pass

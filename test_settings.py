@@ -10,15 +10,10 @@ HELPER_SETTINGS = {
         "djangocms_versioning.test_utils.blogpost",
         "djangocms_versioning.test_utils.text",
         "djangocms_versioning.test_utils.people",
+        "djangocms_versioning.test_utils.incorrectly_configured_blogpost",
         "djangocms_versioning.test_utils.unversioned_editable_app",
         "djangocms_versioning.test_utils.extended_polls",
     ],
-    "MIGRATION_MODULES": {
-        "auth": None,
-        "cms": None,
-        "menus": None,
-        "djangocms_versioning": None,
-    },
     "CMS_PERMISSION": True,
     "LANGUAGES": (
         ("en", "English"),
@@ -49,6 +44,7 @@ HELPER_SETTINGS = {
     "PARLER_ENABLE_CACHING": False,
     "LANGUAGE_CODE": "en",
     "DEFAULT_AUTO_FIELD": "django.db.models.AutoField",
+    "CMS_CONFIRM_VERSION4": True
 }
 
 

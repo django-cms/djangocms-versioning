@@ -2,20 +2,17 @@ import copy
 import warnings
 from contextlib import contextmanager
 
-from django.contrib import admin
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
-from django.db.models.sql.where import WhereNode
-from django.urls import reverse
-
-from cms.models import PageContent
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, admin_reverse
+from django.contrib import admin
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.db.models.sql.where import WhereNode
 
 from . import versionables
 from .constants import DRAFT, PUBLISHED
-from .managers import PublishedContentManagerMixin
 from .versionables import _cms_extension
 
 
@@ -85,6 +82,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
                 versionable.version_model_proxy
             ),
             UserWarning,
+            stacklevel=2
         )
         return
 
@@ -105,30 +103,34 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     admin_site.register(versionable.version_model_proxy, ProxiedAdmin)
 
 
-def published_content_manager_factory(manager):
-    """A class factory returning manager class with overriden
+def manager_factory(manager, prefix, mixin):
+    """A class factory returning a manager class with an added mixin to override for
     versioning functionality.
 
     :param manager: Existing manager class
     :return: A subclass of `PublishedContentManagerMixin` and `manager`
     """
     return type(
-        "Published" + manager.__name__,
-        (PublishedContentManagerMixin, manager),
+        prefix + manager.__name__,
+        (mixin, manager),
         {"use_in_migrations": False},
     )
 
 
-def replace_default_manager(model):
-    if isinstance(model.objects, PublishedContentManagerMixin):
+def replace_manager(model, manager, mixin, **kwargs):
+    if hasattr(model, manager) and isinstance(getattr(model, manager), mixin):
         return
-    original_manager = model.objects.__class__
-    manager = published_content_manager_factory(original_manager)()
+    original_manager = getattr(model, manager).__class__ if hasattr(model, manager) else models.Manager
+    manager_object = manager_factory(original_manager, "Versioned", mixin)()
+    for key, value in kwargs.items():
+        setattr(manager_object, key, value)
     model._meta.local_managers = [
-        manager for manager in model._meta.local_managers if manager.name != "objects"
+        mngr for mngr in model._meta.local_managers if mngr.name != manager
     ]
-    model.add_to_class("objects", manager)
-    model.add_to_class("_original_manager", original_manager())
+    model.add_to_class(manager, manager_object)
+    if manager == "objects":
+        # only safe the original default manager
+        model.add_to_class(f'_original_{"manager" if manager == "objects" else manager}', original_manager())
 
 
 def inject_generic_relation_to_version(model):
@@ -224,8 +226,8 @@ def get_editable_url(content_obj):
         url = get_object_edit_url(content_obj, language)
     # Or else, the standard edit view should be used
     else:
-        url = reverse(
-            "admin:{app}_{model}_change".format(
+        url = admin_reverse(
+            "{app}_{model}_change".format(
                 app=content_obj._meta.app_label, model=content_obj._meta.model_name
             ),
             args=(content_obj.pk,),
@@ -260,8 +262,8 @@ def get_preview_url(content_obj):
         url = get_object_preview_url(content_obj)
         # Or else, the standard change view should be used
     else:
-        url = reverse(
-            "admin:{app}_{model}_change".format(
+        url = admin_reverse(
+            "{app}_{model}_change".format(
                 app=content_obj._meta.app_label, model=content_obj._meta.model_name
             ),
             args=[content_obj.pk],
@@ -271,13 +273,13 @@ def get_preview_url(content_obj):
 
 def get_admin_url(model, action, *args):
     opts = model._meta
-    url_name = "{}_{}_{}".format(opts.app_label, opts.model_name, action)
+    url_name = f"{opts.app_label}_{opts.model_name}_{action}"
     return admin_reverse(url_name, args=args)
 
 
 def remove_published_where(queryset):
     """
-    By default the versioned queryset filters out so that only versions
+    By default, the versioned queryset filters out so that only versions
     that are published are returned. If you need to return the full queryset
     this method can be used.
 
@@ -287,9 +289,9 @@ def remove_published_where(queryset):
     all_except_published = [
         lookup for lookup in where_children
         if not (
-            lookup.lookup_name == 'exact' and
+            lookup.lookup_name == "exact" and
             lookup.rhs == PUBLISHED and
-            lookup.lhs.field.name == 'state'
+            lookup.lhs.field.name == "state"
         )
     ]
 
@@ -298,16 +300,35 @@ def remove_published_where(queryset):
     return queryset
 
 
-# FIXME: This should reuse a generic method that uses the groupers defined filters
-def get_latest_admin_viewable_page_content(page, language):
+def get_latest_admin_viewable_content(grouper, include_unpublished_archived=False, **extra_grouping_fields):
     """
     Return the latest Draft or Published PageContent using the draft where possible
     """
-    return PageContent._original_manager.filter(
-        page=page, language=language, versions__state__in=[DRAFT, PUBLISHED]
-    ).order_by(
-        "versions__state"
-    ).first()
+    versionable = versionables.for_grouper(grouper)
+
+    # Check if all required grouping fields are given to be able to select the latest admin viewable content
+    missing_fields = [field for field in versionable.extra_grouping_fields if field not in extra_grouping_fields]
+    if missing_fields:
+        raise ValueError(f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}.")
+
+    # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
+    content_set = versionable.grouper_field.remote_field.get_accessor_name()
+
+    # Accessing the content set through the grouper preserves prefetches
+    qs = getattr(grouper, content_set)(manager="admin_manager")
+
+    if include_unpublished_archived:
+        # Relevant for admin to see e.g., the latest unpublished or archived versions
+        return qs.filter(**extra_grouping_fields).latest_content().first()
+    # Return only active versions, e.g., for copying
+    return qs.filter(**extra_grouping_fields).current_content().first()
+
+
+def get_latest_admin_viewable_page_content(page, language):  # pragma: no cover
+    warnings.warn("get_latst_admin_viewable_page_content has ben deprecated. "
+                  "Use get_latest_admin_viewable_content(page, language=language) instead.",
+                  DeprecationWarning, stacklevel=2)
+    return get_latest_admin_viewable_content(page, language=language)
 
 
 def proxy_model(obj, content_model):

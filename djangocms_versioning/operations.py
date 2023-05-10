@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import uuid
 
 from .signals import post_version_operation, pre_version_operation

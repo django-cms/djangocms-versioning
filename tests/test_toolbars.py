@@ -1,9 +1,9 @@
-from django.contrib.auth.models import Permission
-
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
+from django.contrib.auth.models import Permission
+from django.utils.text import slugify
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
@@ -12,6 +12,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentWithVersionFactory,
+    PageUrlFactory,
     PageVersionFactory,
     PollVersionFactory,
     UserFactory,
@@ -41,19 +42,50 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         return admin_url
 
+    def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected publish url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, "revert", version.pk
+        )
+        return admin_url
+
     def test_publish_in_toolbar_in_edit_mode(self):
+        """Test for Edit button in edit mode"""
         version = PollVersionFactory()
         toolbar = get_toolbar(version.content, edit_mode=True)
 
         toolbar.post_template_populate()
-        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
+        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)
+        self.assertListEqual(revert_button, [])  # No revert button
 
+        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
         self.assertEqual(publish_button.name, "Publish")
         self.assertEqual(publish_button.url, self._get_publish_url(version))
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
             ["cms-btn-action", "cms-versioning-js-publish-btn"],
+        )
+
+    def test_revert_in_toolbar_in_preview_mode(self):
+        """Test for Revert button outside mode"""
+
+        version = PollVersionFactory()
+        version.archive(self.get_superuser())
+        toolbar = get_toolbar(version.content, edit_mode=False)
+
+        toolbar.post_template_populate()
+        publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)
+        self.assertListEqual(publish_button, [])  # No publish button
+
+        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)[0]
+        self.assertEqual(revert_button.name, "Revert")
+        self.assertEqual(revert_button.url, self._get_revert_url(version))
+        self.assertFalse(revert_button.disabled)
+        self.assertListEqual(
+            revert_button.extra_classes,
+            ["cms-btn-action", ],
         )
 
     def test_publish_not_in_toolbar_in_preview_mode(self):
@@ -181,14 +213,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         pagecontent = PageVersionFactory(content__template="")
         url = get_object_preview_url(pagecontent.content)
         edit_url = self._get_edit_url(
-            pagecontent.content, VersioningCMSConfig.versioning[0]
+            pagecontent, VersioningCMSConfig.versioning[0]
         )
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
 
         found_button_list = find_toolbar_buttons("Edit", response.wsgi_request.toolbar)
-
         # Only one edit button exists
         self.assertEqual(len(found_button_list), 1)
         # The only edit button that exists is the versioning button
@@ -290,6 +321,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_version_menu_label(self):
         # Versioned item should have correct version menu label
+        from djangocms_versioning.constants import VERSION_STATES
         version = PollVersionFactory()
         toolbar = get_toolbar(
             version.content, user=self.get_superuser(), preview_mode=True
@@ -298,10 +330,136 @@ class VersioningToolbarTestCase(CMSTestCase):
         version_menu = toolbar.toolbar.get_menu("version")
 
         expected_label = "Version #{number} ({state})".format(
-            number=version.number, state=version.state
+            number=version.number, state=dict(VERSION_STATES)[version.state]
         )
 
         self.assertEqual(expected_label, version_menu.name)
+
+    def test_view_published_in_toolbar_in_edit_mode_for_published_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(published_version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_in_toolbar_in_preview_mode_for_published_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        toolbar = get_toolbar(published_version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertTrue(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_edit_mode_for_draft_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en")
+        toolbar = get_toolbar(draft_version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_preview_mode_for_draft_page(self):
+        """
+        The 'View Published' control is only relevant for pages that
+        are published
+        """
+        draft_version = PageVersionFactory(content__language="en")
+        toolbar = get_toolbar(draft_version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_edit_mode_for_poll(self):
+        """
+        The 'View Published' toolbar control is only relevant for pages that have
+        the concept of a live url / web viewable url with the toolbar
+        """
+        version = PollVersionFactory(state=PUBLISHED)
+        toolbar = get_toolbar(version.content, edit_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_not_in_toolbar_in_preview_mode_for_poll(self):
+        """
+        The 'View Published' toolbar control is only relevant for pages that have
+        the concept of a live url / web viewable url with the toolbar
+        """
+        version = PollVersionFactory(state=PUBLISHED)
+        toolbar = get_toolbar(version.content, preview_mode=True)
+
+        toolbar.post_template_populate()
+
+        self.assertFalse(toolbar_button_exists("View Published", toolbar.toolbar))
+
+    def test_view_published_in_toolbar_in_edit_mode_button_url(self):
+        """
+        The 'View Published' toolbar control url should be a valid
+        live url when in the edit mode
+        """
+        published_version = PageVersionFactory(content__language="en")
+        language = published_version.content.language
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
+        published_version.publish(user=self.get_superuser())
+        draft_version = published_version.copy(self.get_superuser())
+        edit_endpoint = get_object_edit_url(draft_version.content)
+        expected_url = published_version.content.page.get_absolute_url(language=language)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(edit_endpoint)
+
+        found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
+
+        # check only one View Published button exists
+        self.assertEqual(len(found_button_list), 1)
+        self.assertEqual(found_button_list[0].url, expected_url)
+
+    def test_view_published_in_toolbar_in_preview_mode_button_url(self):
+        """
+        The 'View Published' toolbar control url should be a valid
+        live url when in the preview mode
+        """
+        published_version = PageVersionFactory(content__language="en")
+        language = published_version.content.language
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
+        published_version.publish(user=self.get_superuser())
+        draft_version = published_version.copy(self.get_superuser())
+        preview_endpoint = get_object_preview_url(draft_version.content)
+        expected_url = published_version.content.page.get_absolute_url(language=language)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(preview_endpoint)
+
+        found_button_list = find_toolbar_buttons("View Published", response.wsgi_request.toolbar)
+
+        # check only one View Published button exists
+        self.assertEqual(len(found_button_list), 1)
+        self.assertEqual(found_button_list[0].url, expected_url)
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):
@@ -336,7 +494,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(language_menu.get_item_count(), 6)
 
         language_menu_dict = {
-            menu.name: [item for item in menu.items]
+            menu.name: list(menu.items)
             for key, menu in language_menu.menus.items()
         }
         self.assertIn("Add Translation", language_menu_dict.keys())
@@ -344,20 +502,20 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
 
         self.assertEqual(
-            set([lang.name for lang in language_menu_dict["Add Translation"]]),
-            set(["Française..."]),
+            {lang.name for lang in language_menu_dict["Add Translation"]},
+            {"Française..."},
         )
 
         self.assertEqual(
-            set([lang.name for lang in language_menu_dict["Copy all plugins"]]),
-            set(["from Italiano", "from Deutsche"]),
+            {lang.name for lang in language_menu_dict["Copy all plugins"]},
+            {"from Italiano", "from Deutsche"},
         )
 
         for item in language_menu_dict["Add Translation"]:
             self.assertIn(admin_reverse("cms_pagecontent_add"), item.url)
-            self.assertIn("cms_page={}".format(page.pk), item.url)
+            self.assertIn(f"cms_page={page.pk}", item.url)
             lang_code = "fr" if "Française" in item.name else "it"
-            self.assertIn("language={}".format(lang_code), item.url)
+            self.assertIn(f"language={lang_code}", item.url)
 
     def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """

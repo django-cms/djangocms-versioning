@@ -1,12 +1,10 @@
 from itertools import chain
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
-from django.db.models import Case, Max, OuterRef, Prefetch, Subquery, When
+from django.db.models import Max, Prefetch
 from django.utils.functional import cached_property
 
 from .admin import VersioningAdminMixin
-from .constants import DRAFT, PUBLISHED
 from .helpers import get_content_types_with_subclasses
 from .models import Version
 
@@ -83,6 +81,24 @@ class VersionableItem(BaseVersionableItem):
         """Returns the grouper model class"""
         return self.grouper_field.remote_field.model
 
+    @cached_property
+    def content_model_is_sideframe_editable(self):
+        """Determine if a content model can be opened in the sideframe or not.
+
+        :return: Default True, False if the content model is not suitable for the sideframe
+        :rtype: bool
+        """
+        from cms.models import Placeholder
+
+        # Any models that contain a placeholder are deemed as not sideframe editing
+        # compatible i.e. they are toolbar enabled and contain placeholders. We can't
+        # use toolbar enabled status alone because any models that use version compare
+        # enable the toolbar to display.
+        for field in self.content_model._meta.get_fields(include_hidden=True):
+            if field.related_model == Placeholder:
+                return False
+        return True
+
     def distinct_groupers(self, **kwargs):
         """Returns a queryset of `self.content` objects with unique
         grouper objects.
@@ -135,23 +151,7 @@ class VersionableItem(BaseVersionableItem):
 
     def grouper_choices_queryset(self):
         """Returns a queryset of all the available groupers instances of the registered type"""
-        inner = (
-            self.content_model._base_manager.annotate(
-                order=Case(
-                    When(versions__state=PUBLISHED, then=2),
-                    When(versions__state=DRAFT, then=1),
-                    default=0,
-                    output_field=models.IntegerField(),
-                )
-            )
-            .filter(**{self.grouper_field_name: OuterRef("pk")})
-            .order_by("-order")
-        )
-        content_objects = self.content_model._base_manager.filter(
-            pk__in=self.grouper_model._base_manager.annotate(
-                content=Subquery(inner.values_list("pk")[:1])
-            ).values_list("content")
-        )
+        content_objects = self.content_model.admin_manager.all().latest_content()
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(
             Prefetch(cache_name, queryset=content_objects)
@@ -208,6 +208,9 @@ def default_copy(original_content):
     would expect a version to copy some of its related objects as well).
     In such cases a custom copy method must be defined and specified in
     cms_config.py
+
+    NOTE: A custom copy method will need to use the content model's
+    _original_manage to create only a content model object and not also a Version object.
     """
     content_model = original_content.__class__
     content_fields = {
@@ -216,4 +219,5 @@ def default_copy(original_content):
         # don't copy primary key because we're creating a new obj
         if content_model._meta.pk.name != field.name
     }
-    return content_model.objects.create(**content_fields)
+    # Use original manager to avoid creating a new draft version here!
+    return content_model._original_manager.create(**content_fields)

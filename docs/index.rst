@@ -11,15 +11,23 @@ Welcome to "djangocms-versioning"'s documentation!
    :maxdepth: 2
    :caption: API Reference:
 
-   advanced_configuration
-   signals
-   customizing_version_list
+   api/advanced_configuration
+   api/signals
+   api/customizing_version_list
+   api/management_commands
+   settings
 
 .. toctree::
    :maxdepth: 2
    :caption: Internals:
 
    admin_architecture
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Release notes:
+
+   upgrade/2.0.0
 
 
 Glossary

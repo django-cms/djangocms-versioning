@@ -5,6 +5,49 @@ Changelog
 Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
+* fix: burger menu adjusts to the design of django cms core dropdown
+* fix: bug that showed an archived version as unpublished in some cases in the state indicator
+* add: Dutch and French translations thanks to Stefan van den Eertwegh and François Palmierso
+* add: transifex support, German translations
+* add: Revert button as replacement for dysfunctional Edit button for unpublished
+  versions
+* add: status indicators and drop down menus for django cms page tree
+* fix: only offer languages for plugin copy with available content
+* feat: Add support for Django 4.0, 4.1 and Python 3.10 and 3.11
+* fix: migrations for MySql
+* ci: Updated isort params in lint workflow to meet current requirements.
+* ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
+* ci: Remove ``os`` from test workflow matrix because it's unused
+* ci: Added concurrency option to cancel in progress runs when new changes occur
+* fix: Added setting to make the field to identify a user configurable in ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models with no ``username``
+* ci: Run tests on sqlite, mysql and postgres db
+
+* feat: Compatibility with page content extension changes to django-cms
+* ci: Added basic linting pre-commit hooks
+
+1.2.2 (2022-07-20)
+==================
+* fix: Admin burger menu excluding Preview and Edit buttons in all languages
+
+1.2.1 (2022-06-13)
+==================
+* fix: Added correct relationship description to get_created_by admin_order_field
+
+1.2.0 (2022-06-09)
+==================
+* feat: Add View Published button for page edit or preview mode
+
+1.1.0 (2022-06-08)
+==================
+* feat: Added injection point for field modification in the ExtendedAdminMixin
+
+1.0.6 (2022-05-31)
+==================
+* fix: Version Changelist table edit button opens all items out of the sideframe
+
+1.0.5 (2022-05-27)
+==================
+* fix: Sideframe always closing when it has been specified to stay open
 
 1.0.4 (2022-04-05)
 ==================

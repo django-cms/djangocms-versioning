@@ -1,30 +1,49 @@
 import collections
 
+from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.models import PageContent, Placeholder
+from cms.utils import get_language_from_request
+from cms.utils.i18n import get_language_list, get_language_tuple
+from cms.utils.plugins import copy_plugins_to_placeholder
+from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    ObjectDoesNotExist,
+    PermissionDenied,
+)
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+)
+from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from cms.app_base import CMSAppConfig, CMSAppExtension
-from cms.models import PageContent, Placeholder
-from cms.utils.i18n import get_language_tuple
-
+from . import indicators, versionables
 from .admin import VersioningAdminMixin
+from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
+from .exceptions import ConditionFailed
 from .helpers import (
+    get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
     register_versionadmin_proxy,
     replace_admin_for_models,
-    replace_default_manager,
+    replace_manager,
 )
+from .managers import AdminManagerMixin, PublishedContentManagerMixin
 from .models import Version
+from .plugin_rendering import CMSToolbarVersioningMixin
 
 
 class VersioningCMSExtension(CMSAppExtension):
     def __init__(self):
         self.versionables = []
         self.add_to_context = {}
+        self.add_to_field_extension = {}
 
     @cached_property
     def versionables_by_content(self):
@@ -71,7 +90,7 @@ class VersioningCMSExtension(CMSAppExtension):
             registered_so_far = [v.content_model for v in self.versionables]
             if versionable.content_model in registered_so_far:
                 raise ImproperlyConfigured(
-                    "{!r} has already been registered".format(versionable.content_model)
+                    f"{versionable.content_model!r} has already been registered"
                 )
             # Checks passed. Add versionable to our master list
             self.versionables.append(versionable)
@@ -127,9 +146,23 @@ class VersioningCMSExtension(CMSAppExtension):
         one inheriting from PublishedContentManagerMixin.
         """
         for versionable in cms_config.versioning:
-            replace_default_manager(versionable.content_model)
+            replace_manager(versionable.content_model, "objects", PublishedContentManagerMixin)
+            replace_manager(versionable.content_model, "admin_manager", AdminManagerMixin,
+                            _group_by_key=list(versionable.grouping_fields))
+
+    def handle_admin_field_modifiers(self, cms_config):
+        """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
+        """
+        extended_admin_field_modifiers = getattr(cms_config, "extended_admin_field_modifiers", None)
+        if not isinstance(extended_admin_field_modifiers, list):
+            raise ImproperlyConfigured("extended_admin_field_modifiers must be list of dictionaries")
+        for modifier in extended_admin_field_modifiers:
+            for key in modifier.keys():
+                self.add_to_field_extension[key] = modifier[key]
 
     def configure_app(self, cms_config):
+        if hasattr(cms_config, "extended_admin_field_modifiers"):
+            self.handle_admin_field_modifiers(cms_config)
         # Validation to ensure either the versioning or the
         # versioning_add_to_confirmation_context config has been defined
         has_extra_context = hasattr(
@@ -165,7 +198,8 @@ def copy_page_content(original_content):
         if field.name not in (PageContent._meta.pk.name, "creation_date")
     }
 
-    new_content = PageContent.objects.create(**content_fields)
+    # Use original manager to not create a new Version object here
+    new_content = PageContent._original_manager.create(**content_fields)
 
     # Copy placeholders
     new_placeholders = []
@@ -206,8 +240,8 @@ def label_from_instance(obj, language):
     """
     title = obj.get_title(language) or _("No available title")
     path = obj.get_path(language)
-    path = "/{}/".format(path) if path else _("Unpublished")
-    return "{title} ({path})".format(title=title, path=path)
+    path = f"/{path}/" if path else _("Unpublished")
+    return f"{title} ({path})"
 
 
 def on_page_content_publish(version):
@@ -248,7 +282,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
                 form = self.get_form_class(request)
-                if getattr(form, "fieldsets"):
+                if form.fieldsets:
                     fields = flatten_fieldsets(form.fieldsets)
                 fields = list(fields)
                 for f_name in ["slug", "overwrite_url"]:
@@ -264,11 +298,97 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                     form.declared_fields[f_name].widget.attrs["readonly"] = True
         return form
 
+    def get_queryset(self, request):
+        urls = ("cms_pagecontent_get_tree",)
+        queryset = super().get_queryset(request)
+        if request.resolver_match.url_name in urls:
+            versionable = versionables.for_content(queryset.model)
+
+            # TODO: Improve the grouping filters to use anything defined in the
+            #       apps versioning config extra_grouping_fields
+            grouping_filters = {}
+            if "language" in versionable.extra_grouping_fields:
+                grouping_filters["language"] = get_language_from_request(request)
+
+            return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
+        return queryset
+
+    # CAVEAT:
+    #   - PageContent contains the template, this can differ for each language,
+    #     it is assumed that templates would be the same when copying from one language to another
+    # FIXME: The long term solution will require knowing:
+    #           - why this view is an ajax call
+    #           - where it should live going forwards (cms vs versioning)
+    #           - A better way of making the feature extensible / modifiable for versioning
+    def copy_language(self, request, object_id):
+        target_language = request.POST.get("target_language")
+
+        # CAVEAT: Avoiding self.get_object because it sets the page cache,
+        #         We don't want a draft showing to a regular site visitor!
+        #         source_page_content = self.get_object(request, object_id=object_id)
+        source_page_content = PageContent._original_manager.get(pk=object_id)
+
+        if source_page_content is None:
+            raise self._get_404_exception(object_id)
+
+        page = source_page_content.page
+
+        if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
+            return HttpResponseBadRequest(force_str(_("Language must be set to a supported language!")))
+
+        target_page_content = get_latest_admin_viewable_content(page, language=target_language)
+
+        # First check that we are able to edit the target
+        if not self.has_change_permission(request, obj=target_page_content):
+            raise PermissionDenied
+
+        for placeholder in source_page_content.get_placeholders():
+            # Try and get a matching placeholder, only if it exists
+            try:
+                target = target_page_content.get_placeholders().get(slot=placeholder.slot)
+            except ObjectDoesNotExist:
+                continue
+
+            plugins = placeholder.get_plugins_list(source_page_content.language)
+
+            if not target.has_add_plugins_permission(request.user, plugins):
+                return HttpResponseForbidden(force_str(_("You do not have permission to copy these plugins.")))
+            copy_plugins_to_placeholder(plugins, target, language=target_language)
+        return HttpResponse("ok")
+
+    def change_innavigation(self, request, object_id):
+        page_content = self.get_object(request, object_id=object_id)
+        version = Version.objects.get_for_content(page_content)
+        try:
+            version.check_modify(request.user)
+        except ConditionFailed as e:
+            # Send error message
+            return HttpResponseForbidden(force_str(e))
+        return super().change_innavigation(request, object_id)
+
+    @property
+    def indicator_descriptions(self):
+        """Publish indicator description to CMSPageAdmin"""
+        return INDICATOR_DESCRIPTIONS
+
+    @classmethod
+    def get_indicator_menu(cls, request, page_content):
+        """Get the indicator menu for PageContent object taking into account the
+        currently available versions"""
+        menu_template = "admin/cms/page/tree/indicator_menu.html"
+        status = page_content.content_indicator()
+        if not status or status == "empty":  # pragma: no cover
+            return super().get_indicator_menu(request, page_content)
+        versions = page_content._version  # Cache from .content_indicator()
+        back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
+        menu = indicators.content_indicator_menu(request, status, versions, back=back)
+        return menu_template if menu else "", menu
+
 
 class VersioningCMSConfig(CMSAppConfig):
     """Implement versioning for core cms models
     """
-
+    cms_enabled = True
     djangocms_versioning_enabled = getattr(
         settings, "VERSIONING_CMS_MODELS_ENABLED", True
     )
@@ -287,3 +407,7 @@ class VersioningCMSConfig(CMSAppConfig):
             content_admin_mixin=VersioningCMSPageAdminMixin,
         )
     ]
+    cms_toolbar_mixin = CMSToolbarVersioningMixin
+    PageContent.add_to_class("is_editable", indicators.is_editable)
+    PageContent.add_to_class("content_indicator", indicators.content_indicator)
+    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

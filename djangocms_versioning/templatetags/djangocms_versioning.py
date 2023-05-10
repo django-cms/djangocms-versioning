@@ -2,7 +2,6 @@ from django import template
 
 from ..helpers import version_list_url
 
-
 register = template.Library()
 
 

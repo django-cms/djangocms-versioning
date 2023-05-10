@@ -1,32 +1,34 @@
 from collections import OrderedDict
 from copy import copy
 
-from django.apps import apps
-from django.conf import settings
-from django.contrib.auth import get_permission_codename
-from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
-
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
     LANGUAGE_MENU_IDENTIFIER,
     PageToolbar,
     PlaceholderToolbar,
 )
-from cms.toolbar.items import ButtonList
+from cms.models import PageContent
+from cms.toolbar.items import Break, ButtonList
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions
 from cms.utils.conf import get_cms_setting
 from cms.utils.i18n import get_language_dict, get_language_tuple
 from cms.utils.urlutils import add_url_parameters, admin_reverse
+from django.apps import apps
+from django.conf import settings
+from django.contrib.auth import get_permission_codename
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.utils.translation import gettext_lazy as _
 
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
-    get_latest_admin_viewable_page_content,
+    get_latest_admin_viewable_content,
     version_list_url,
 )
 from djangocms_versioning.models import Version
-
 
 VERSIONING_MENU_IDENTIFIER = "version"
 
@@ -60,8 +62,7 @@ class VersioningToolbar(PlaceholderToolbar):
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar
         """
-        # Only add the publish button if the content type is registered
-        # with versioning
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
         # Add the publish button if in edit mode
@@ -98,24 +99,57 @@ class VersioningToolbar(PlaceholderToolbar):
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = Version.objects.get_for_content(self.toolbar.obj)
-        edit_url = reverse(
-            "admin:{app}_{model}_edit_redirect".format(
-                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-            ),
-            args=(version.pk,),
-        )
-        item.add_button(
-            _("Edit"),
-            url=edit_url,
-            disabled=disabled,
-            extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
-        )
-        self.toolbar.add_item(item)
+        if version.check_edit_redirect.as_bool(self.request.user):
+            edit_url = reverse(
+                "admin:{app}_{model}_edit_redirect".format(
+                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ),
+                args=(version.pk,),
+            )
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                version.content
+            ).values_list("pk", flat=True)
+            content_type = ContentType.objects.get_for_model(version.content)
+            draft_exists = Version.objects.filter(
+                object_id__in=pks_for_grouper, content_type=content_type, state=DRAFT
+            ).exists()
+            item.add_button(
+                _("Edit") if draft_exists else _("New Draft"),
+                url=edit_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
+            )
+            self.toolbar.add_item(item)
+
+    def _add_revert_button(self, disabled=False):
+        """Helper method to add a revert button to the toolbar
+         """
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+        item = ButtonList(side=self.toolbar.RIGHT)
+        proxy_model = self._get_proxy_model()
+        version = Version.objects.get_for_content(self.toolbar.obj)
+        if version.check_revert.as_bool(self.request.user):
+            revert_url = reverse(
+                "admin:{app}_{model}_revert".format(
+                    app=proxy_model._meta.app_label,
+                    model=proxy_model._meta.model_name,
+                ),
+                args=(version.pk,),
+            )
+            item.add_button(
+                _("Revert"),
+                url=revert_url,
+                disabled=disabled,
+                extra_classes=["cms-btn-action"],
+            )
+            self.toolbar.add_item(item)
 
     def _add_versioning_menu(self):
         """ Helper method to add version menu in the toolbar
         """
-        # Check if object is registred with versioning otherwise dont add
+        # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
 
@@ -123,9 +157,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if version is None:
             return
 
-        version_menu_label = _("Version #{number} ({state})").format(
-            number=version.number, state=version.state
-        )
+        version_menu_label = version.short_name()
         versioning_menu = self.toolbar.get_or_create_menu(
             VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
         )
@@ -138,9 +170,81 @@ class VersioningToolbar(PlaceholderToolbar):
         ):
             url = version_list_url(version.content)
             versioning_menu.add_sideframe_item(_("Manage Versions"), url=url)
+            # Compare to source menu entry
+            if version.source:
+                name = _("Compare to {source}").format(source=_(version.source.short_name()))
+                proxy_model = self._get_proxy_model()
+                url = reverse("admin:{app}_{model}_compare".format(
+                     app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                ), args=(version.source.pk,))
+
+                url += "?" + urlencode({
+                    "compare_to": version.pk,
+                    "back": self.request.get_full_path(),
+                })
+                versioning_menu.add_link_item(name, url=url)
+                # Discard changes menu entry (wrt to source)
+                if version.check_discard.as_bool(self.request.user):  # pragma: no cover
+                    versioning_menu.add_item(Break())
+                    versioning_menu.add_link_item(
+                        _("Discard Changes"),
+                        url=reverse("admin:{app}_{model}_discard".format(
+                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                        ), args=(version.pk,))
+                    )
+
+    def _get_published_page_version(self):
+        """Returns a published page if one exists for the toolbar object
+        """
+        language = self.current_lang
+
+        # Exit the current toolbar object is not a Page / PageContent instance
+        if not isinstance(self.toolbar.obj, PageContent) or not self.page:
+            return
+
+        return PageContent._original_manager.filter(
+            page=self.page, language=language, versions__state=PUBLISHED
+        ).first()
+
+    def _add_view_published_button(self):
+        """Helper method to add a publish button to the toolbar
+        """
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+
+        # Add the View published button if in edit or preview mode
+        published_version = self._get_published_page_version()
+        if not published_version:
+            return
+
+        url = published_version.get_absolute_url() if hasattr(published_version, "get_absolute_url") else None
+        if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
+            item = ButtonList(side=self.toolbar.RIGHT)
+            item.add_button(
+                _("View Published"),
+                url=url,
+                disabled=False,
+                extra_classes=["cms-btn", "cms-btn-switch-save"],
+            )
+            self.toolbar.add_item(item)
+
+    def _add_preview_button(self):
+        """Helper method to add a preview button to the toolbar when not in preview mode"""
+        # Check if object is registered with versioning otherwise don't add
+        if not self._is_versioned():
+            return
+
+        if not self.toolbar.preview_mode_active and not self.toolbar.edit_mode_active:
+            # Any mode not preview mode can have a preview button
+            # Exclude edit mode, however, since the django CMS core already ads the preview button for edit mode
+            self.add_preview_button()
 
     def post_template_populate(self):
-        super(VersioningToolbar, self).post_template_populate()
+        super().post_template_populate()
+        self._add_preview_button()
+        self._add_view_published_button()
+        self._add_revert_button()
         self._add_publish_button()
         self._add_versioning_menu()
 
@@ -154,12 +258,12 @@ class VersioningPageToolbar(PageToolbar):
         if not language:
             language = self.current_lang
 
-        return get_latest_admin_viewable_page_content(self.page, language)
+        return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
         self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
         self.title = self.get_page_content() if self.page else None
-        self.permissions_activated = get_cms_setting('PERMISSION')
+        self.permissions_activated = get_cms_setting("PERMISSION")
 
         self.override_language_menu()
         self.change_admin_menu()
@@ -173,14 +277,14 @@ class VersioningPageToolbar(PageToolbar):
         """
         # Only override the menu if a page can be found
         if settings.USE_I18N and self.page:
-            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _('Language'))
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
 
             # remove_item uses `items` attribute so we have to copy object
             for _item in copy(language_menu.items):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
-                # Get the pagw content, it could be draft too!
+                # Get the page content, it could be draft too!
                 page_content = self.get_page_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)
@@ -220,7 +324,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
                 add_plugins_menu = language_menu.get_or_create_menu(
-                    "{0}-add".format(LANGUAGE_MENU_IDENTIFIER), _("Add Translation")
+                    f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation")
                 )
 
                 page_add_url = admin_reverse("cms_pagecontent_add")
@@ -233,20 +337,28 @@ class VersioningPageToolbar(PageToolbar):
 
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
-                    '{0}-copy'.format(LANGUAGE_MENU_IDENTIFIER), _('Copy all plugins')
+                    f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
                 )
-                title = _('from %s')
-                question = _('Are you sure you want to copy all plugins from %s?')
-
+                title = _("from %s")
+                question = _("Are you sure you want to copy all plugins from %s?")
+                item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
-                    page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
-                    copy_plugins_menu.add_ajax_item(
-                        title % name, action=page_copy_url,
-                        data={'source_language': code, 'target_language': self.current_lang},
-                        question=question % name, on_success=self.toolbar.REFRESH_PAGE
-                    )
+                    if page_content:  # Only offer to copy if content for source language exists
+                        page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
+                        copy_plugins_menu.add_ajax_item(
+                            title % name, action=page_copy_url,
+                            data={"source_language": code, "target_language": self.current_lang},
+                            question=question % name, on_success=self.toolbar.REFRESH_PAGE
+                        )
+                        item_added = True
+                    if not item_added:  # pragma: no cover
+                        copy_plugins_menu.add_link_item(
+                            _("No other language available"),
+                            url="#",
+                            disabled=True,
+                        )
 
 
 def replace_toolbar(old, new):
@@ -256,10 +368,8 @@ def replace_toolbar(old, new):
     new_name = ".".join((new.__module__, new.__name__))
     old_name = ".".join((old.__module__, old.__name__))
     toolbar_pool.toolbars = OrderedDict(
-        [
-            (new_name, new) if name == old_name else (name, toolbar)
-            for name, toolbar in toolbar_pool.toolbars.items()
-        ]
+        (new_name, new) if name == old_name else (name, toolbar)
+        for name, toolbar in toolbar_pool.toolbars.items()
     )
 
 

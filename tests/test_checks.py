@@ -1,7 +1,12 @@
 from cms.models.fields import PlaceholderRelationField
 from cms.test_utils.testcases import CMSTestCase
 
-from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED
+from djangocms_versioning.constants import (
+    ARCHIVED,
+    DRAFT,
+    PUBLISHED,
+    UNPUBLISHED,
+)
 from djangocms_versioning.helpers import is_content_editable
 from djangocms_versioning.test_utils.factories import (
     FancyPollFactory,

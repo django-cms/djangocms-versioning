@@ -1,20 +1,22 @@
 import string
 
+import factory
+from cms import constants
+from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-
-from cms import constants
-from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
-
-import factory
 from djangocms_text_ckeditor.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version
 from .blogpost.models import BlogContent, BlogPost
-from .extended_polls.models import PollTitleExtension
-from .extensions.models import TestTitleExtension
+from .extended_polls.models import PollPageContentExtension
+from .extensions.models import TestPageContentExtension
+from .incorrectly_configured_blogpost.models import (
+    IncorrectBlogContent,
+    IncorrectBlogPost,
+)
 from .polls.models import Answer, Poll, PollContent
 from .unversioned_editable_app.models import FancyPoll
 
@@ -24,7 +26,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker("first_name")
     last_name = factory.Faker("last_name")
     email = factory.LazyAttribute(
-        lambda u: "%s.%s@example.com" % (u.first_name.lower(), u.last_name.lower())
+        lambda u: f"{u.first_name.lower()}.{u.last_name.lower()}@example.com"
     )
 
     class Meta:
@@ -50,6 +52,12 @@ class AbstractVersionFactory(factory.django.DjangoModelFactory):
         abstract = True
 
 
+class AbstractContentFactory(factory.django.DjangoModelFactory):
+    @classmethod
+    def _get_manager(cls, model_class):
+        return model_class._base_manager
+
+
 class PollFactory(factory.django.DjangoModelFactory):
     name = FuzzyText(length=6)
 
@@ -64,6 +72,10 @@ class PollContentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = PollContent
+
+    @classmethod
+    def _get_manager(cls, model_class):
+        return model_class._base_manager
 
 
 class PollVersionFactory(AbstractVersionFactory):
@@ -101,7 +113,7 @@ class BlogPostFactory(factory.django.DjangoModelFactory):
         model = BlogPost
 
 
-class BlogContentFactory(factory.django.DjangoModelFactory):
+class BlogContentFactory(AbstractContentFactory):
     blogpost = factory.SubFactory(BlogPostFactory)
     language = FuzzyChoice(["en", "fr", "it"])
     text = FuzzyText(length=24)
@@ -128,6 +140,36 @@ class BlogContentWithVersionFactory(BlogContentFactory):
         BlogPostVersionFactory(content=self, **kwargs)
 
 
+class IncorrectBlogPostFactory(factory.django.DjangoModelFactory):
+    name = FuzzyText(length=6)
+
+    class Meta:
+        model = IncorrectBlogPost
+
+
+class IncorrectBlogContentFactory(AbstractContentFactory):
+    blogpost = factory.SubFactory(IncorrectBlogPostFactory)
+    text = FuzzyText(length=24)
+
+    class Meta:
+        model = IncorrectBlogContent
+
+
+class IncorrectBlogPostVersionFactory(AbstractVersionFactory):
+    content = factory.SubFactory(IncorrectBlogContentFactory)
+
+    class Meta:
+        model = Version
+
+
+class IncorrectBlogContentWithVersionFactory(IncorrectBlogContentFactory):
+    @factory.post_generation
+    def version(self, create, extracted, **kwargs):
+        if not create:
+            return
+        IncorrectBlogPostVersionFactory(content=self, **kwargs)
+
+
 class TreeNodeFactory(factory.django.DjangoModelFactory):
     site = factory.fuzzy.FuzzyChoice(Site.objects.all())
     depth = 0
@@ -143,10 +185,10 @@ class TreeNodeFactory(factory.django.DjangoModelFactory):
 
 
 class PageUrlFactory(factory.django.DjangoModelFactory):
-    slug = ''
-    path = ''
+    slug = ""
+    path = ""
     managed = False
-    language = 'en'
+    language = "en"
 
     class Meta:
         model = PageUrl
@@ -159,7 +201,7 @@ class PageFactory(factory.django.DjangoModelFactory):
         model = Page
 
 
-class PageContentFactory(factory.django.DjangoModelFactory):
+class PageContentFactory(AbstractContentFactory):
     page = factory.SubFactory(PageFactory)
     language = FuzzyChoice(["en", "fr", "it"])
     title = FuzzyText(length=12)
@@ -172,7 +214,7 @@ class PageContentFactory(factory.django.DjangoModelFactory):
     in_navigation = FuzzyChoice([True, False])
     soft_root = FuzzyChoice([True, False])
     limit_visibility_in_menu = constants.VISIBILITY_USERS
-    template = 'page.html'
+    template = "page.html"
     xframe_options = FuzzyInteger(0, 25)
 
     class Meta:
@@ -249,11 +291,11 @@ class PollTitleExtensionFactory(factory.django.DjangoModelFactory):
     votes = FuzzyInteger(0, 100)
 
     class Meta:
-        model = PollTitleExtension
+        model = PollPageContentExtension
 
 
 class TestTitleExtensionFactory(factory.django.DjangoModelFactory):
     extended_object = factory.SubFactory(PageContentFactory)
 
     class Meta:
-        model = TestTitleExtension
+        model = TestPageContentExtension

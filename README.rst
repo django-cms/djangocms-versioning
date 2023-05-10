@@ -1,6 +1,13 @@
-****************
+*********************
 django CMS Versioning
-****************
+*********************
+
+.. warning::
+
+    This is the development branch for django CMS version 4.1 support.
+
+    For django CMS V4.0 support, see `support/django-cms-4.0.x branch <https://github.com/django-cms/djangocms-versioning/tree/support/django-cms-4.0.x>`_
+
 
 ============
 Installation
@@ -63,3 +70,32 @@ Run::
 
 This should generate all html files from rst documents under `docs/_build` folder, which can be browsed.
 
+============
+Contributing
+============
+
+Because this is a an open-source project, we welcome everyone to
+`get involved in the project <https://www.django-cms.org/en/contribute/>`_ and
+`receive a reward <https://www.django-cms.org/en/bounty-program/>`_ for their contribution.
+Become part of a fantastic community and help us make django CMS the best CMS in the world.
+
+We'll be delighted to receive your
+feedback in the form of issues and pull requests. Before submitting your
+pull request, please review our `contribution guidelines
+<http://docs.django-cms.org/en/latest/contributing/index.html>`_.
+
+The project makes use of git pre-commit hooks to maintain code quality.
+Please follow the installation steps to get `pre-commit <https://pre-commit.com/#installation>`_
+setup in your development environment.
+
+We're grateful to all contributors who have helped create and maintain
+this package. Contributors are listed at the `contributors
+<https://github.com/django-cms/djangocms-versioning/graphs/contributors>`_
+section.
+
+One of the easiest contributions you can make is helping to translate this addon on
+`Transifex <https://www.transifex.com/divio/django-cms-versioning/dashboard/>`_.
+To update transifex translation in this repo you need to download the
+`transifex cli <https://developers.transifex.com/docs/cli>`_ and run
+``tx pull`` from the repo's root directory. After downloading the translations
+do not forget to run the ``compilemessages`` management command.

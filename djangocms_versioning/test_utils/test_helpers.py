@@ -1,6 +1,5 @@
-from django.test import RequestFactory
-
 from cms.toolbar.toolbar import CMSToolbar
+from django.test import RequestFactory
 
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import UserFactory
@@ -34,15 +33,15 @@ def get_toolbar(content_obj, user=None, **kwargs):
     # Set the toolbar mode
     if kwargs.get("edit_mode", False):
         toolbar.toolbar.edit_mode_active = True
-        toolbar.toolbar.content_mode_active = False
+        toolbar.toolbar.preview_mode_active = False
         toolbar.toolbar.structure_mode_active = False
     elif kwargs.get("preview_mode", False):
         toolbar.toolbar.edit_mode_active = False
-        toolbar.toolbar.content_mode_active = True
+        toolbar.toolbar.preview_mode_active = True
         toolbar.toolbar.structure_mode_active = False
     elif kwargs.get("structure_mode", False):
         toolbar.toolbar.edit_mode_active = False
-        toolbar.toolbar.content_mode_active = False
+        toolbar.toolbar.preview_mode_active = False
         toolbar.toolbar.structure_mode_active = True
     toolbar.populate()
     return toolbar

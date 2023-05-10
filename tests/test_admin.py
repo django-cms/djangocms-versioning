@@ -6,6 +6,13 @@ from unittest import skip
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
+from bs4 import BeautifulSoup
+from cms.test_utils.testcases import CMSTestCase
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
+from cms.utils import get_language_from_request
+from cms.utils.conf import get_cms_setting
+from cms.utils.helpers import is_editable_model
+from cms.utils.urlutils import admin_reverse
 from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
@@ -13,19 +20,12 @@ from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
-from django.utils.formats import localize
+from django.utils.http import urlencode
 from django.utils.timezone import now
-
-from cms.test_utils.testcases import CMSTestCase
-from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
-from cms.utils.conf import get_cms_setting
-from cms.utils.helpers import is_editable_model
-from cms.utils.urlutils import admin_reverse
-
-from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -40,12 +40,21 @@ from djangocms_versioning.compat import DJANGO_GTE_30
 from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
+    version_list_url,
     versioning_admin_factory,
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.blogpost.models import BlogContent
+from djangocms_versioning.test_utils.factories import (
+    BlogContentFactory,
+    BlogPostFactory,
+    BlogPostVersionFactory,
+)
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
+    IncorrectBlogContent,
+)
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
@@ -270,7 +279,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         )
 
     def test_default_changelist_view_language_on_polls_with_language_content(self):
-        """A multi lingual model shows the correct values when
+        """A multilingual model shows the correct values when
         language filters / additional grouping values are set
         using the default content changelist overriden by VersioningChangeListMixin
         """
@@ -291,6 +300,25 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         self.assertEqual(200, fr_response.status_code)
         self.assertEqual(1, fr_response.context["cl"].queryset.count())
         self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first())
+
+    def test_additional_grouping_fields_got_from_admin_method(self):
+        """If the admin has a method called ``get_{field}_from_request`` this method
+        is called to get the additional grouping field ``field``"""
+
+        from djangocms_versioning.test_utils.polls.admin import PollContentAdmin
+
+        PollContentAdmin.get_language_from_request = lambda self, request: get_language_from_request(request)
+
+        changelist_url = self.get_admin_url(PollContent, "changelist")
+        poll = factories.PollFactory()
+        factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        patch_string = "djangocms_versioning.test_utils.polls.admin.PollContentAdmin.get_language_from_request"
+        with patch(patch_string) as mock:
+            with self.login_user_context(self.get_superuser()):
+                self.client.get(changelist_url, {"language": "en"})
+
+        mock.assert_called()
 
 
 class AdminRegisterVersionTestCase(CMSTestCase):
@@ -329,8 +357,8 @@ class AdminRegisterVersionTestCase(CMSTestCase):
 
         with patch.object(warnings, "warn") as mock:
             register_versionadmin_proxy(versionable, site)
-        message = "{!r} is already registered with admin.".format(Version)
-        mock.assert_called_with(message, UserWarning)
+        message = f"{Version!r} is already registered with admin."
+        mock.assert_called_with(message, UserWarning, stacklevel=2)
 
 
 class VersionAdminTestCase(CMSTestCase):
@@ -352,7 +380,7 @@ class VersionAdminTestCase(CMSTestCase):
         with self.assertNumQueries(2):
             qs = self.site._registry[Version].get_queryset(RequestFactory().get("/"))
             for version in qs:
-                version.content
+                version.content  # noqa todo
         self.assertTrue(qs._prefetch_done)
         self.assertIn("content", qs._prefetch_related_lookups)
 
@@ -374,13 +402,13 @@ class VersionAdminTestCase(CMSTestCase):
 
     def test_content_link_non_editable_object_with_preview_url(self):
         """
-        The link returned is the preview url for a non editable object with preview url config in versionable
+        The link returned is the preview url for a non-editable object with preview url config in versionable
         """
         version = factories.PollVersionFactory(content__text="test4")
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url="/en/admin/polls/pollcontent/1/preview/", label="test4"
+                url=f"/en/admin/polls/pollcontent/{version.content.pk}/preview/", label="test4"
             ),
         )
 
@@ -393,7 +421,7 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             '<a target="_top" class="js-versioning-close-sideframe" href="{url}">{label}</a>'.format(
-                url="/en/admin/blogpost/blogcontent/1/change/", label="test4"
+                url=f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/", label="test4"
             ),
         )
 
@@ -418,47 +446,52 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
     def test_edit_action_link_enabled_state(self):
         """
-        The edit action is active
+        The edit action is active, a user can follow a link
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
-        draft_edit_url = self.get_admin_url(
+        request.user = factories.UserFactory()
+        expected_disabled_control = "inactive"
+        expected_href = self.get_admin_url(
             self.versionable.version_model_proxy, "edit_redirect", version.pk
         )
 
-        actual_enabled_control = self.version_admin._get_edit_link(
+        edit_link = self.version_admin._get_edit_link(
             version, request, disabled=False
         )
-        expected_enabled_state = (
-            '<a class="btn cms-versioning-action-btn js-versioning-action"'
-            ' href="%s" title="Edit">'
-        ) % draft_edit_url
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_disabled_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
 
-        self.assertIn(expected_enabled_state, actual_enabled_control)
+        self.assertIn(expected_href, actual_href)
+        self.assertNotIn(expected_disabled_control, actual_disabled_control)
 
     def test_edit_action_link_disabled_state(self):
         """
-        The edit action is disabled
+        The edit action is disabled, a user cannot follow a link
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
-        user = factories.UserFactory()
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = user
+        request.user = factories.UserFactory()
+        expected_disabled_control = "inactive"
+        expected_href = None
 
-        actual_disabled_control = self.version_admin._get_edit_link(
+        edit_link = self.version_admin._get_edit_link(
             version, request, disabled=True
         )
-        expected_disabled_control = (
-            '<a class="btn cms-versioning-action-btn inactive" title="Edit">'
-        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_disabled_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
 
         self.assertIn(expected_disabled_control, actual_disabled_control)
+        # No href should be present in the edit link when it is disabled
+        self.assertEqual(expected_href, actual_href)
 
     def test_revert_action_link_enable_state(self):
         """
-        The edit action is active
+        The revert action is active
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         user = factories.UserFactory()
@@ -469,7 +502,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", version.pk
         )
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'
@@ -482,6 +518,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -494,6 +531,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
         actual_disabled_control = self.version_admin._get_revert_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
@@ -508,15 +546,15 @@ class VersionAdminActionsTestCase(CMSTestCase):
         draft_discard_url = self.get_admin_url(
             self.versionable.version_model_proxy, "discard", version.pk
         )
-        request = RequestFactory().post(draft_discard_url, {'discard': '1'})
+        request = RequestFactory().post(draft_discard_url, {"discard": "1"})
         request.user = factories.UserFactory()
 
-        setattr(request, 'session', 'session')
+        request.session = "session"
         messages = FallbackStorage(request)
-        setattr(request, '_messages', messages)
+        request._messages = messages
 
         redirect = self.version_admin.discard_view(request, str(version.pk))
-        changelist_url = helpers.get_admin_url(version.content.__class__, 'changelist')
+        changelist_url = helpers.get_admin_url(version.content.__class__, "changelist")
 
         self.assertEqual(redirect.status_code, 302)
         self.assertEqual(redirect.url, changelist_url)
@@ -535,7 +573,10 @@ class VersionAdminActionsTestCase(CMSTestCase):
         actual_enabled_control = self.version_admin._get_discard_link(version, request)
 
         expected_enabled_state = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method '
+            'cms-versioning-action-btn '
+            'cms-versioning-action-discard '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Discard">'
@@ -598,7 +639,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "revert", archive_version.pk
         )
         expected_disabled_control = (
-            '<a class="btn cms-form-get-method cms-versioning-action-btn js-versioning-action '
+            '<a class="btn cms-form-get-method cms-versioning-action-btn '
+            'cms-versioning-action-revert '
+            'js-versioning-action '
             'js-versioning-keep-sideframe" '
             'href="%s" '
             'title="Revert">'
@@ -607,6 +650,56 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
+
+    def test_edit_action_link_sideframe_editing_disabled_state(self):
+        """
+        Sideframe editing is disabled for objects with placeholders i.e. PageContent
+        """
+        version = factories.PageVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get("/")
+        request.user = factories.UserFactory()
+        expected_sideframe_open_control = "js-versioning-keep-sideframe"
+        expected_sideframe_close_control = "js-versioning-close-sideframe"
+        expected_href = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", version.pk
+        )
+
+        edit_link = self.version_admin._get_edit_link(
+            version, request, disabled=False
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
+
+        self.assertIn(expected_href, actual_href)
+        self.assertNotIn(expected_sideframe_open_control, actual_sideframe_control)
+        self.assertIn(expected_sideframe_close_control, actual_sideframe_control)
+
+    def test_edit_action_link_sideframe_editing_enabled_state(self):
+        """
+        Sideframe editing is enabled for all other objects without placeholders.
+        """
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = factories.UserFactory()
+        expected_sideframe_open_control = "js-versioning-keep-sideframe"
+        expected_sideframe_close_control = "js-versioning-close-sideframe"
+        expected_href = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", version.pk
+        )
+
+        edit_link = self.version_admin._get_edit_link(
+            version, request, disabled=False
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+        actual_href = actual_link.get("href")
+
+        self.assertIn(expected_href, actual_href)
+        self.assertIn(expected_sideframe_open_control, actual_sideframe_control)
+        self.assertNotIn(expected_sideframe_close_control, actual_sideframe_control)
 
 
 class StateActionsTestCase(CMSTestCase):
@@ -899,7 +992,7 @@ class StateActionsTestCase(CMSTestCase):
         state_actions = admin.site._registry[version_model_proxy]._state_actions(
             request
         )(version)
-
+        self.assertEqual(constants.PUBLISHED, version.state)
         self.assertIn(edit_url, state_actions)
 
     def test_edit_not_in_state_actions_for_published_version_when_draft_exists(self):
@@ -1356,7 +1449,7 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertEqual(response.status_code, 405)
 
         # Django 2.2 backwards compatibility
-        if hasattr(response, '_headers'):
+        if hasattr(response, "_headers"):
             self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
         else:
             self.assertEqual(response.headers.get("Allow"), "POST")
@@ -1866,7 +1959,7 @@ class EditRedirectTestCase(BaseStateTestCase):
         self.assertEqual(response.status_code, 405)
 
         # Django 2.2 backwards compatibility
-        if hasattr(response, '_headers'):
+        if hasattr(response, "_headers"):
             self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
         else:
             self.assertEqual(response.headers.get("Allow"), "POST")
@@ -1913,12 +2006,13 @@ class CompareViewTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "compare", versions[0].pk
         )
         user = self.get_staff_user_with_no_permissions()
-
         with self.login_user_context(user):
             response = self.client.get(url)
-
-        self.assertContains(response, "Version #{number} ({date})".format(
-            number=versions[0].number, date=localize(versions[0].created)))
+        # the version created last will be in its created state (others might have transitioned to archived)
+        self.assertContains(response, versions[1].verbose_name())
+        # Get versions[0] from db with the correct state
+        version0 = Version.objects.get(pk=versions[0].pk)
+        self.assertContains(response, version0.verbose_name())
 
         context = response.context
         self.assertIn("v1", context)
@@ -1971,9 +2065,9 @@ class CompareViewTestCase(CMSTestCase):
         with self.login_user_context(user):
             response = self.client.get(url)
 
-        self.assertContains(response, "Comparing Version #{}".format(versions[0].number))
-        self.assertContains(response, "Version #{}".format(versions[0].number))
-        self.assertContains(response, "Version #{}".format(versions[1].number))
+        self.assertContains(response, f"Comparing Version #{versions[0].number}")
+        self.assertContains(response, f"Version #{versions[0].number}")
+        self.assertContains(response, f"Version #{versions[1].number}")
 
         context = response.context
         self.assertIn("v1", context)
@@ -2121,7 +2215,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         factories.PollVersionFactory.create_batch(4)
 
         with self.login_user_context(self.superuser):
-            querystring = "?poll={grouper}".format(grouper=pv.content.poll_id)
+            querystring = f"?poll={pv.content.poll_id}"
             response = self.client.get(
                 self.get_admin_url(self.versionable.version_model_proxy, "changelist")
                 + querystring
@@ -2408,7 +2502,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
@@ -2429,21 +2523,20 @@ class VersionChangeViewTestCase(CMSTestCase):
         The user is redirectd to the compare view with two versions selected
         """
         poll = factories.PollFactory()
-        factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
         )
         success_redirect = self.get_admin_url(
-            self.versionable.version_model_proxy, "compare", 1
+            self.versionable.version_model_proxy, "compare", versions[0].pk
         )
-        success_redirect += "?compare_to=2"
-
+        success_redirect += f"?compare_to={versions[1].pk}"
         with self.login_user_context(self.superuser):
             data = {
                 "action": "compare_versions",
-                ACTION_CHECKBOX_NAME: ["1", "2"],
+                ACTION_CHECKBOX_NAME: [versions[0].pk, versions[1].pk],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
@@ -2458,7 +2551,7 @@ class VersionChangeViewTestCase(CMSTestCase):
         """
         poll = factories.PollFactory()
         factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        querystring = "?poll={grouper}".format(grouper=poll.pk)
+        querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
             + querystring
@@ -2493,7 +2586,10 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertEqual(200, response.status_code)
 
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="?o=1">Text</a></div>')
+        self.assertContains(response, '<a href="/en/admin/polls/pollcontent/{}/change/">[TEST]{}</a>'.format(
+            content.id,
+            content.text
+        ))
         # Check list_action links are rendered
         self.assertContains(response, "cms-versioning-action-btn")
         self.assertContains(response, "cms-versioning-action-preview")
@@ -2522,6 +2618,113 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertContains(response, "cms-versioning-action-manage-versions")
         self.assertContains(response, "js-versioning-action")
 
+    def test_extended_version_get_list_display_with_field_modifier_cms_config(self):
+        """
+        With extended_admin_field_modifiers configured, the list_display swaps the field provided, with the method
+        provided
+        """
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        list_display = modeladmin.get_list_display(request)
+
+        self.assertTrue(callable(list_display[0]))
+
+    def test_extended_version_get_list_display_without_field_modifier_cms_config(self):
+        """
+        Without extended_admin_field_modifiers, no change to the list_display is required
+        """
+        factories.BlogContentWithVersionFactory()
+        modeladmin = admin.site._registry[BlogContent]
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        list_display = modeladmin.get_list_display(request)
+
+        self.assertEqual("__str__", list_display[0])
+
+    def test_extended_version_extend_list_display(self):
+        """
+        With a valid config the target field should be replaced with the field modifier method
+        """
+        def field_modifier(obj, field):
+            return obj.getattr(field)
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": field_modifier}
+        list_display = ("text", )
+
+        list_display = modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+        self.assertTrue(callable(list_display[0]))
+
+    def test_extended_version_extend_list_display_handles_non_callable(self):
+        """
+        When a non-callable is provided as the field modifier method, ImproperlyConfigured is raised
+        """
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": "field_modifier"}
+        list_display = ("text", )
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+    def test_get_field_modifier(self):
+        """
+        Get field modifier returns modified field from returned inner method
+        """
+        def field_modifier(obj, field):
+            return getattr(obj, field) + " Test!"
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"text": field_modifier}
+
+        modified_field = modeladmin._get_field_modifier(request, modifier_dict, "text")
+
+        self.assertEqual("{} {}".format(content.text, "Test!"), modified_field(content))
+
+    def test_extended_version_extend_list_display_handles_non_existent_field(self):
+        """
+        When a non-existent field is provided as the target, ImproperlyConfigured is raised
+        """
+        def field_modifier(obj, field):
+            return obj.getattr(field)
+        content = factories.PollContentFactory(language="en")
+        modeladmin = admin.site._registry[PollContent]
+        factories.PollVersionFactory(content=content)
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+        modifier_dict = {"non_existent": field_modifier}
+        list_display = ("text", )
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.extend_list_display(request, modifier_dict, list_display)
+
+    def test_extended_version_get_list_display_incorrectly_configured(self):
+        """
+        With an incorrect configuration provided, the admin should raise the appropriate error
+        """
+        factories.IncorrectBlogContentWithVersionFactory()
+        modeladmin = admin.site._registry[IncorrectBlogContent]
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        with self.assertRaises(ImproperlyConfigured):
+            modeladmin.get_list_display(request)
+
     def test_extended_version_change_list_actions_burger_menu_available(self):
         """
         The actions burger menu should be available for anything that inherits ExtendedVersionAdminMixin.
@@ -2538,6 +2741,77 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         # action script exists and static path variable exists
         self.assertContains(response, "versioning_static_url_prefix")
         self.assertTrue(soup.find("script", src=re.compile("djangocms_versioning/js/actions.js")))
+
+    def test_extended_version_change_list_author_ordering(self):
+        """
+        The author is sortable by username in both ascending and descending order
+        """
+        # Create a series of users, so we can order them alphabetically by username!
+        user_first = factories.UserFactory(username="A Username Capitalised")
+        user_first_lower = factories.UserFactory(username="a username lower")
+        user_middle = factories.UserFactory(username="Middle Username Capitalised")
+        user_middle_lower = factories.UserFactory(username="middle username lower")
+        user_last = factories.UserFactory(username="Z Username Capitalised")
+        user_last_lower = factories.UserFactory(username="z username lower")
+        # Create some pollcontent and their corresponding versions, and polls!
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_first,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_first_lower,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_middle,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_middle_lower,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_last,
+        )
+        factories.PollVersionFactory(
+            content=factories.PollContentFactory(language="en"),
+            created_by=user_last_lower,
+        )
+        request = RequestFactory().get("/", IS_POPUP_VAR=1)
+        request.user = self.get_superuser()
+        modeladmin = admin.site._registry[PollContent]
+        # List display must be accessed via the changelist, as the list may be incomplete when accessed from admin
+        admin_field_list = modeladmin.get_changelist_instance(request).list_display
+        author_index = admin_field_list.index("get_author")
+
+        with self.login_user_context(self.get_superuser()):
+            base_url = self.get_admin_url(PollContent, "changelist")
+            base_url += f"?o={author_index}"
+            response = self.client.get(base_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        results = soup.find_all("td", class_="field-get_author")
+
+        self.assertEqual(results[0].text, user_first.username)
+        self.assertEqual(results[1].text, user_first_lower.username)
+        self.assertEqual(results[2].text, user_middle.username)
+        self.assertEqual(results[3].text, user_middle_lower.username)
+        self.assertEqual(results[4].text, user_last.username)
+        self.assertEqual(results[5].text, user_last_lower.username)
+
+        with self.login_user_context(self.get_superuser()):
+            base_url = self.get_admin_url(PollContent, "changelist")
+            base_url += f"?o={-abs(author_index)}"
+            response = self.client.get(base_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        results = soup.find_all("td", class_="field-get_author")
+
+        self.assertEqual(results[5].text, user_first.username)
+        self.assertEqual(results[4].text, user_first_lower.username)
+        self.assertEqual(results[3].text, user_middle.username)
+        self.assertEqual(results[2].text, user_middle_lower.username)
+        self.assertEqual(results[1].text, user_last.username)
+        self.assertEqual(results[0].text, user_last_lower.username)
 
 
 class ListActionsTestCase(CMSTestCase):
@@ -2579,3 +2853,41 @@ class ListActionsTestCase(CMSTestCase):
         self.assertIn("inactive", response)
         self.assertIn('title="Edit"', response)
         self.assertNotIn(edit_endpoint, response)
+
+    def test_valid_back_link(self):
+        """The discard view upon get request replaces the link for the back button with
+        a valid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk,))
+        valid_url = admin_reverse(
+            "cms_placeholder_render_object_preview",
+            args=(version.content_type_id, version.object_id),
+        )
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?" + urlencode({"back": valid_url}))
+            self.assertContains(response, valid_url)
+            self.assertNotContains(response, version_list_url(version.content))
+
+    def test_fake_back_link(self):
+        """The discard view upon get request denies replacing the link for the back button with
+        an invalid link given by back query parameter"""
+        blogpost = BlogPostFactory()
+        content = BlogContentFactory(
+            blogpost=blogpost
+        )
+        version = BlogPostVersionFactory(
+            content=content,
+        )
+
+        changelist = admin_reverse("djangocms_versioning_blogcontentversion_discard", args=(version.pk, ))
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(changelist + "?back=/hijack_url")
+            self.assertNotContains(response, "hijack_url")
+            self.assertContains(response, version_list_url(version.content))

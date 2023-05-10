@@ -1,6 +1,9 @@
 from collections import OrderedDict
 from unittest.mock import Mock, patch
 
+from cms.admin.forms import ChangePageForm
+from cms.models import Page
+from cms.test_utils.testcases import CMSTestCase
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.sites.models import Site
@@ -8,21 +11,27 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.utils.text import slugify
 
-from cms.admin.forms import ChangePageForm
-from cms.models import Page
-from cms.test_utils.testcases import CMSTestCase
-
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
-from djangocms_versioning.cms_config import VersioningCMSConfig, VersioningCMSExtension
+from djangocms_versioning.cms_config import (
+    VersioningCMSConfig,
+    VersioningCMSExtension,
+)
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
-from djangocms_versioning.test_utils.blogpost.models import BlogContent, Comment
+from djangocms_versioning.test_utils.blogpost.cms_config import (
+    BlogpostCMSConfig,
+)
+from djangocms_versioning.test_utils.blogpost.models import (
+    BlogContent,
+    Comment,
+)
+from djangocms_versioning.test_utils.incorrectly_configured_blogpost.cms_config import (
+    IncorrectBlogpostCMSConfig,
+)
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
-
 
 req_factory = RequestFactory()
 
@@ -32,13 +41,13 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
     def setUp(self):
         self.site = Site.objects.get_current()
         self.user = self.get_superuser()
-        self.language = 'en'
-        self.title = 'test page'
+        self.language = "en"
+        self.title = "test page"
 
-        self.version = factories.PageVersionFactory(content__language='en', state=DRAFT,)
+        self.version = factories.PageVersionFactory(content__language="en", state=DRAFT,)
         factories.PageUrlFactory(
             page=self.version.content.page,
-            language='en',
+            language="en",
             path=slugify(self.title),
             slug=slugify(self.title),
         )
@@ -98,13 +107,13 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
 
     def test_changing_slug_changes_page_url(self):
         """Using change form to change title / slug updates path?"""
-        new_title = 'new slug here'
+        new_title = "new slug here"
         data = {
-            'title': self.content.title,
-            'slug': new_title
+            "title": self.content.title,
+            "slug": new_title
         }
 
-        request = req_factory.get('/?language=en')
+        request = req_factory.get("/?language=en")
         request.user = self.user
 
         form = ChangePageForm(data, instance=self.content)
@@ -409,6 +418,55 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             admin.site._registry[versionable.version_model_proxy].__class__.mro(),
         )
 
+    def test_field_extension_populates(self):
+        """
+        With proper configuration provided, cms extension populates
+        """
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers=[{PollContent: {"text": poll_modifier}}, ]
+        )
+        extensions.handle_admin_field_modifiers(cms_config)
+
+        self.assertEqual(extensions.add_to_field_extension, {PollContent: {"text": poll_modifier}})
+
+    def test_field_extension_proper_error_non_iterable(self):
+        """
+        When a non-iterable is passed as the method for modifying a field,
+        raise ImproperlyConfigured
+        """
+        def poll_modifier(obj, field):
+            return obj
+
+        extensions = VersioningCMSExtension()
+        cms_config = Mock(
+            spec=[],
+            djangocms_versioning_enabled=True,
+            versioning=[
+                VersionableItem(
+                    content_model=PollContent,
+                    grouper_field_name="poll",
+                    copy_function=default_copy,
+                )
+            ],
+            extended_admin_field_modifiers=(PollContent, "text", poll_modifier)
+        )
+
+        with self.assertRaises(ImproperlyConfigured):
+            extensions.handle_admin_field_modifiers(cms_config)
+
 
 # NOTE: These tests simply test what has already happened on start up
 # when the app registry has been instantiated.
@@ -422,9 +480,10 @@ class VersioningIntegrationTestCase(CMSTestCase):
         poll_versionable = PollsCMSConfig.versioning[0]
         blog_versionable = BlogpostCMSConfig.versioning[0]
         comment_versionable = BlogpostCMSConfig.versioning[1]
+        incorrect_blog_versionable = IncorrectBlogpostCMSConfig.versioning[0]
         self.assertListEqual(
             app.cms_extension.versionables,
-            [page_versionable, poll_versionable, blog_versionable, comment_versionable],
+            [page_versionable, poll_versionable, blog_versionable, comment_versionable, incorrect_blog_versionable],
         )
 
     def test_admin_classes_reregistered(self):

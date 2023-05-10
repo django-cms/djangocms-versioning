@@ -1,11 +1,10 @@
+from cms.extensions import PageContentExtension
+from cms.extensions.extension_pool import extension_pool
 from django.db import models
 
-from cms.extensions import TitleExtension
-from cms.extensions.extension_pool import extension_pool
 
-
-class PollTitleExtension(TitleExtension):
+class PollPageContentExtension(PageContentExtension):
     votes = models.IntegerField()
 
 
-extension_pool.register(PollTitleExtension)
+extension_pool.register(PollPageContentExtension)

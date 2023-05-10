@@ -1,0 +1,451 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# Translators:
+# Besnik Bleta <besnik@programeshqip.org>, 2023
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-22 12:20+0100\n"
+"PO-Revision-Date: 2023-01-10 15:29+0000\n"
+"Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2023\n"
+"Language-Team: Albanian (https://www.transifex.com/divio/teams/58664/sq/)\n"
+"Language: sq\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:161
+msgid "State"
+msgstr "Gjendje"
+
+#: admin.py:173
+msgid "Author"
+msgstr "Autor"
+
+#: admin.py:184 models.py:70
+msgid "Modified"
+msgstr "E ndryshuar"
+
+#: admin.py:211 admin.py:441
+msgid "actions"
+msgstr "veprime"
+
+#: admin.py:284 admin.py:287
+#: templates/djangocms_versioning/admin/icons/preview.html:3
+#: templates/djangocms_versioning/admin/preview.html:3
+msgid "Preview"
+msgstr "Paraparje"
+
+#: admin.py:470
+msgid "version number"
+msgstr "numër versioni"
+
+#: admin.py:483
+msgid "Content"
+msgstr "Lëndë"
+
+#: admin.py:639
+msgid "Exactly two versions need to be selected."
+msgstr "Lypset të përzgjidhen saktësisht dy versione."
+
+#: admin.py:653
+msgid "Compare versions"
+msgstr "Krahasoni versione"
+
+#: admin.py:680
+msgid "Version cannot be archived"
+msgstr "Versioni s’mund të arkivohet"
+
+#: admin.py:709
+msgid "Version archived"
+msgstr "Versioni u arkivua"
+
+#: admin.py:720 admin.py:838
+msgid "This view only supports POST method."
+msgstr "Kjo pamje mbulon vetëm metodën POST."
+
+#: admin.py:731
+msgid "Version cannot be published"
+msgstr "Versioni s’mund të botohet"
+
+#: admin.py:742
+msgid "Version published"
+msgstr "Versioni u botua"
+
+#: admin.py:759
+msgid "Version cannot be unpublished"
+msgstr "Versioni s’mund të shbotohet"
+
+#: admin.py:800
+msgid "Version unpublished"
+msgstr "Versioni u shbotua"
+
+#: admin.py:948
+msgid "The last version has been deleted"
+msgstr "Versioni i fundit është fshirë"
+
+#: admin.py:1046
+#, python-brace-format
+msgid "Displaying versions of \"{grouper}\""
+msgstr "Po shfaqen versione të “{grouper}”"
+
+#: apps.py:8
+msgid "django CMS Versioning"
+msgstr "Versione në django CMS"
+
+#: cms_config.py:236
+msgid "No available title"
+msgstr "S’ka titull"
+
+#: cms_config.py:238 constants.py:13 indicators.py:25
+msgid "Unpublished"
+msgstr "I pabotuar"
+
+#: cms_config.py:332
+msgid "Language must be set to a supported language!"
+msgstr "Si gjuhë duhet të caktoni një gjuhë të mbuluar!"
+
+#: cms_config.py:350
+msgid "You do not have permission to copy these plugins."
+msgstr "S’keni leje të kopjoni këto shtojca."
+
+#: cms_toolbars.py:82 indicators.py:42
+#: templates/djangocms_versioning/admin/icons/publish_icon.html:3
+msgid "Publish"
+msgstr "Botoje"
+
+#: cms_toolbars.py:119
+#: templates/djangocms_versioning/admin/icons/edit_icon.html:3
+msgid "Edit"
+msgstr "Përpunojeni"
+
+#: cms_toolbars.py:119
+#, fuzzy
+#| msgid "Draft"
+msgid "New Draft"
+msgstr "Skicë"
+
+#: cms_toolbars.py:144
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "Riktheje"
+
+#: cms_toolbars.py:174
+msgid "Manage Versions"
+msgstr "Administroni Versione"
+
+#: cms_toolbars.py:177
+#, fuzzy, python-brace-format
+#| msgid "Compare to {state} source"
+msgid "Compare to {source}"
+msgstr "Krahasoje me burimin {state}"
+
+#: cms_toolbars.py:192
+#, fuzzy
+#| msgid "Discard"
+msgid "Discard Changes"
+msgstr "Hidhe tej"
+
+#: cms_toolbars.py:227
+msgid "View Published"
+msgstr "Shihni të Botuarin"
+
+#: cms_toolbars.py:282
+msgid "Language"
+msgstr "Gjuhë"
+
+#: cms_toolbars.py:329
+msgid "Add Translation"
+msgstr "Shtoni Përkthim"
+
+#: cms_toolbars.py:342
+msgid "Copy all plugins"
+msgstr "Kopjo krejt shtojcat"
+
+#: cms_toolbars.py:344
+#, python-format
+msgid "from %s"
+msgstr "prej %s"
+
+#: cms_toolbars.py:345
+#, python-format
+msgid "Are you sure you want to copy all plugins from %s?"
+msgstr "Jeni i sigurt se doni të kopjohen krejt shtojcat prej %s?"
+
+#: cms_toolbars.py:360
+msgid "No other language available"
+msgstr "S’ka gjuhë të tjera"
+
+#: constants.py:11 indicators.py:24
+msgid "Draft"
+msgstr "Skicë"
+
+#: constants.py:12 indicators.py:22
+msgid "Published"
+msgstr "I botuar"
+
+#: constants.py:14 indicators.py:26
+msgid "Archived"
+msgstr "I arkivuar"
+
+#: indicators.py:23
+msgid "Changed"
+msgstr "I ndryshur"
+
+#: indicators.py:27
+msgid "Empty"
+msgstr "I zbrazët"
+
+#: indicators.py:48
+msgid "Create new draft"
+msgstr "Krijoni një skicë të re"
+
+#: indicators.py:54
+msgid "Revert from Unpublish"
+msgstr "Riktheje nga Shbotoje"
+
+#: indicators.py:62 indicators.py:68
+#: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
+msgid "Unpublish"
+msgstr "Hiqe nga të botuar"
+
+#: indicators.py:74
+msgid "Delete Draft"
+msgstr "Fshije Skicën"
+
+#: indicators.py:74
+msgid "Delete Changes"
+msgstr "Fshiji Ndryshimet"
+
+#: indicators.py:80
+msgid "Compare Draft to Published..."
+msgstr "Krahaso Skicë me të Pabotuar…"
+
+#: indicators.py:90
+msgid "Manage Versions..."
+msgstr "Administroni Versione…"
+
+#: models.py:69
+#, fuzzy
+#| msgid "Create new draft"
+msgid "Created"
+msgstr "Krijoni një skicë të re"
+
+#: models.py:72
+msgid "author"
+msgstr "autor"
+
+#: models.py:81
+msgid "status"
+msgstr "gjendje"
+
+#: models.py:89
+msgid "source"
+msgstr "burim"
+
+#: models.py:100
+#, python-brace-format
+msgid "Version #{number} ({state} {date})"
+msgstr "Version #{number} ({state} {date})"
+
+#: models.py:107
+#, python-brace-format
+msgid "Version #{number} ({state})"
+msgstr "Version #{number} ({state})"
+
+#: models.py:229 models.py:276
+msgid "Version is not in draft state"
+msgstr "Versioni s’është nën gjendjen “skicë”"
+
+#: models.py:336
+msgid "Version is not in published state"
+msgstr "Versioni s’është nën gjendjen “i botuar”"
+
+#: models.py:383 models.py:394
+msgid "Version is not a draft"
+msgstr "Versioni s’është skicë"
+
+#: models.py:389
+msgid "Version is not in archived or unpublished state"
+msgstr "Versioni s’është nën gjendjen “i arkivuar” ose “i pabotuar”"
+
+#: models.py:400
+msgid "Version is not in draft or published state"
+msgstr "Versioni s’është nën gjendjen “skicë” ose “i botuar”"
+
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
+#: templates/djangocms_versioning/admin/grouper_form.html:9
+msgid "Home"
+msgstr "Kreu"
+
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:7
+#: templates/djangocms_versioning/admin/mixin/change_form.html:7
+msgid "Versions"
+msgstr "Versione"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:3
+msgid "Archive Confirmation"
+msgstr "Ripohim Arkivimi"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:15
+msgid "Are you sure you want to archive the following version?"
+msgstr "Jeni i sigurt se doni të arkivohet versioni vijues?"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:17
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:17
+#, python-format
+msgid " Version number: %(version_number)s"
+msgstr " Numër versioni: %(version_number)s"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:22
+#: templates/djangocms_versioning/admin/discard_confirmation.html:23
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:27
+msgid "Yes, I'm sure"
+msgstr "Po, jam i sigurt"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:26
+#: templates/djangocms_versioning/admin/discard_confirmation.html:27
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:31
+msgid "No, take me back"
+msgstr "Jo, kthemëni mbrapsht"
+
+#: templates/djangocms_versioning/admin/compare.html:8
+#, python-format
+msgid ""
+"\n"
+"        Compare %(left)s to %(right)s\n"
+"        "
+msgstr ""
+"\n"
+"        Krahaso %(left)s me %(right)s\n"
+"        "
+
+#: templates/djangocms_versioning/admin/compare.html:12
+#, python-format
+msgid ""
+"\n"
+"        Compare %(left)s\n"
+"        "
+msgstr ""
+"\n"
+"        Krahaso %(left)s\n"
+"        "
+
+#: templates/djangocms_versioning/admin/compare.html:16
+#, python-format
+msgid ""
+"\n"
+"        Compare %(right)s\n"
+"        "
+msgstr ""
+"\n"
+"        Krahaso %(right)s\n"
+"        "
+
+#: templates/djangocms_versioning/admin/compare.html:37
+msgid "Back"
+msgstr "Mbrapsht"
+
+#: templates/djangocms_versioning/admin/compare.html:40
+#, python-format
+msgid ""
+"\n"
+"                    Comparing %(left)s with\n"
+"                "
+msgstr ""
+"\n"
+"                    Po krahasohen %(left)s me\n"
+"                "
+
+#: templates/djangocms_versioning/admin/compare.html:45
+msgid "Pick a version to compare to"
+msgstr "Zgjidhni një version për krahasim"
+
+#: templates/djangocms_versioning/admin/compare.html:56
+msgid "Visual"
+msgstr "Pamor"
+
+#: templates/djangocms_versioning/admin/compare.html:59
+msgid "Source"
+msgstr "Burim"
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:3
+msgid "Discard Confirmation"
+msgstr "Ripohim Hedhje Tej"
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:15
+msgid "Are you sure you want to discard following version?"
+msgstr "Jeni i sigurt se doni të hidhet tej versioni vijues?"
+
+#: templates/djangocms_versioning/admin/discard_confirmation.html:17
+#: templates/djangocms_versioning/admin/revert_confirmation.html:24
+#, python-format
+msgid "Version number: %(version_number)s"
+msgstr "Numër versioni: %(version_number)s"
+
+#: templates/djangocms_versioning/admin/grouper_form.html:27
+#, python-format
+msgid "Add %(name)s"
+msgstr "Shto %(name)s"
+
+#: templates/djangocms_versioning/admin/grouper_form.html:37
+msgid "Submit"
+msgstr "Parashtroje"
+
+#: templates/djangocms_versioning/admin/icons/archive_icon.html:3
+msgid "Archive"
+msgstr "Arkiv"
+
+#: templates/djangocms_versioning/admin/icons/discard_icon.html:3
+msgid "Discard"
+msgstr "Hidhe tej"
+
+#: templates/djangocms_versioning/admin/icons/manage_versions.html:3
+msgid "Manage versions"
+msgstr "Administroni versione"
+
+#: templates/djangocms_versioning/admin/icons/view.html:3
+msgid "View on site"
+msgstr "Shiheni në sajt"
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:3
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:3
+msgid "Revert Confirmation"
+msgstr "Ripohim Rikthimi"
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:18
+msgid ""
+"Reverting to this version may cause loss of an existing draft version. "
+"Please select an option to continue"
+msgstr ""
+"Rikthimi te ky version mund të shkaktojë humbjen e një versioni ekzistues "
+"skicë. Që të vazhdohet, ju lutemi, përzgjidhni një mundësi"
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:20
+msgid "Are you sure you want to revert to the following version?"
+msgstr "Jeni i sigurt se doni të rikthehet te versioni vijues?"
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:31
+msgid "Discard existing draft and Revert"
+msgstr "Hidhe tej skicën ekzistuese dhe bëj Rikthimin"
+
+#: templates/djangocms_versioning/admin/revert_confirmation.html:35
+msgid "Archive existing draft and Revert"
+msgstr "Arkivo skicën ekzistuese dhe bëj Rikthimin"
+
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+msgid ""
+"Unpublishing will remove this version from live. Are you sure you want to "
+"unpublish?"
+msgstr ""
+"Heqja nga botimi do të heqë këtë version nga sajti faktik. Jeni i sigurt se "
+"doni të shbotohet?"

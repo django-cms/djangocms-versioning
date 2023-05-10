@@ -358,7 +358,7 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         with patch.object(warnings, "warn") as mock:
             register_versionadmin_proxy(versionable, site)
         message = f"{Version!r} is already registered with admin."
-        mock.assert_called_with(message, UserWarning)
+        mock.assert_called_with(message, UserWarning, stacklevel=2)
 
 
 class VersionAdminTestCase(CMSTestCase):

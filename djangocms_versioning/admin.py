@@ -28,7 +28,8 @@ from django.http import (
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import Resolver404, re_path, resolve, reverse
+from django.urls import path
+from django.urls import Resolver404, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -372,15 +373,20 @@ class ExtendedVersionAdminMixin(
         """
         return obj.versions.all()[0]
 
+    @admin.display(
+        description=_("State"),
+        ordering="versions__state",
+    )
     def get_versioning_state(self, obj):
         """
         Return the state of a given version
         """
         return self.get_version(obj).get_state_display()
 
-    get_versioning_state.admin_order_field = "versions__state"
-    get_versioning_state.short_description = _("State")
-
+    @admin.display(
+        description=_("Author"),
+        ordering="created_by_username_ordering",
+    )
     def get_author(self, obj):
         """
         Return the author who created a version
@@ -390,9 +396,11 @@ class ExtendedVersionAdminMixin(
         return self.get_version(obj).created_by
 
     # This needs to target the annotation, or ordering will be alphabetically, with uppercase then lowercase
-    get_author.admin_order_field = "created_by_username_ordering"
-    get_author.short_description = _("Author")
 
+    @admin.display(
+        description=_("Modified"),
+        ordering="versions__modified",
+    )
     def get_modified_date(self, obj):
         """
         Get the last modified date of a version
@@ -400,9 +408,6 @@ class ExtendedVersionAdminMixin(
         :return: Modified Date
         """
         return self.get_version(obj).modified
-
-    get_modified_date.admin_order_field = "versions__modified"
-    get_modified_date.short_description = _("Modified")
 
     def _get_preview_url(self, obj):
         """
@@ -624,6 +629,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             del actions["delete_selected"]
         return actions
 
+    @admin.display(
+        description=_("Content"),
+        ordering="content",
+    )
     def content_link(self, obj):
         """Display html for the content preview url - replaced by Preview action"""
         warnings.warn("VersionAdmin.content_link is deprecated.", DeprecationWarning, stacklevel=2)
@@ -635,9 +644,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             url=mark_safe(url),
             label=content,
         )
-    content_link.short_description = _("Content")
-    content_link.admin_order_field = "content"
 
+    @admin.display(
+        description=_("locked")
+    )
     def locked(self, version):
         """
         Generate an locked field for Versioning Admin
@@ -645,7 +655,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if version.state == DRAFT and version_is_locked(version):
             return mark_safe('<span class="cms-icon cms-icon-lock"></span>')
         return ""
-    locked.short_description = _("locked")
 
     def _get_preview_link(self, obj, request):
         if obj.state == DRAFT:
@@ -833,6 +842,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
     def get_actions_list(self):
         """Returns all action links as a list"""
+        return self.get_state_actions()
+
+    def get_state_actions(self):
+        """Compatibility shim for djangocms-moderation. Do not use.
+        It will be removed in a future version."""
+
         return [
             self._get_preview_link,
             self._get_edit_link,
@@ -844,6 +859,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self._get_unlock_link,
         ]
 
+    @admin.action(
+        description=_("Compare versions")
+    )
     def compare_versions(self, request, queryset):
         """
         Redirects to a compare versions view based on a users choice
@@ -865,8 +883,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         url += "?compare_to=%d" % queryset[1].pk
 
         return redirect(url)
-
-    compare_versions.short_description = _("Compare versions")
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -1344,48 +1360,48 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
-            re_path(
-                r"^select/$",
+            path(
+                "select/",
                 self.admin_site.admin_view(self.grouper_form_view),
                 name="{}_{}_grouper".format(*info),
             ),
-            re_path(
-                r"^(.+)/archive/$",
+            path(
+                "<path:object_id>/archive/",
                 self.admin_site.admin_view(self.archive_view),
                 name="{}_{}_archive".format(*info),
             ),
-            re_path(
-                r"^(.+)/publish/$",
+            path(
+                r"<path:object_id>/publish/",
                 self.admin_site.admin_view(self.publish_view),
                 name="{}_{}_publish".format(*info),
             ),
-            re_path(
-                r"^(.+)/unpublish/$",
+            path(
+                "<path:object_id>/unpublish/",
                 self.admin_site.admin_view(self.unpublish_view),
                 name="{}_{}_unpublish".format(*info),
             ),
-            re_path(
-                r"^(.+)/edit-redirect/$",
+            path(
+                "<path:object_id>/edit-redirect/",
                 self.admin_site.admin_view(self.edit_redirect_view),
                 name="{}_{}_edit_redirect".format(*info),
             ),
-            re_path(
-                r"^(.+)/revert/$",
+            path(
+                "<path:object_id>/revert/",
                 self.admin_site.admin_view(self.revert_view),
                 name="{}_{}_revert".format(*info),
             ),
-            re_path(
-                r"^(.+)/compare/$",
+            path(
+                "<path:object_id>/compare/",
                 self.admin_site.admin_view(self.compare_view),
                 name="{}_{}_compare".format(*info),
             ),
-            re_path(
-                r"^(.+)/discard/$",
+            path(
+                "<path:object_id>/discard/",
                 self.admin_site.admin_view(self.discard_view),
                 name="{}_{}_discard".format(*info),
             ),
-            re_path(
-                r"^(.+)/unlock/$",
+            path(
+                "<path:object_id>/unlock/",
                 self.admin_site.admin_view(self.unlock_view),
                 name="{}_{}_unlock".format(*info),
             ),

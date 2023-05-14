@@ -223,7 +223,9 @@ class WizzardTestCase(CMSTestCase):
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
         from cms.toolbar.utils import get_object_preview_url
 
-        from djangocms_versioning.test_utils.polls.cms_wizards import poll_wizard
+        from djangocms_versioning.test_utils.polls.cms_wizards import (
+            poll_wizard,
+        )
 
         # Test against page creations in different languages.
         version = PageVersionFactory(content__language="en")

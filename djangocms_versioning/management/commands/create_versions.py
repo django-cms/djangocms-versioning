@@ -47,22 +47,24 @@ class Command(BaseCommand):
         if DEFAULT_USER is not None:  # pragma: no cover
             try:
                 return User.objects.get(pk=DEFAULT_USER)
-            except User.DoesNotExist:
-                raise CommandError(f"No user with id {DEFAULT_USER} found "
-                                   f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py") from None
+            except User.DoesNotExist as err:
+                raise CommandError(
+                    f"No user with id {DEFAULT_USER} found "
+                    f"(specified as DJANGOCMS_VERSIONING_DEFAULT USER in settings.py"
+                ) from err
 
         if options["userid"] and options["username"]:  # pragma: no cover
             raise CommandError("Only either one of the options '--userid' or '--username' may be given")
         if options["userid"]:
             try:
                 return User.objects.get(pk=options["userid"])
-            except User.DoesNotExist:
-                raise CommandError(f"No user with id {options['userid']} found") from None
+            except User.DoesNotExist as err:
+                raise CommandError(f"No user with id {options['userid']} found") from err
         if options["username"]:  # pragma: no cover
             try:
                 return User.objects.get(**{USERNAME_FIELD: options["username"]})
-            except User.DoesNotExist:
-                raise CommandError(f"No user with name {options['username']} found") from None
+            except User.DoesNotExist as err:
+                raise CommandError(f"No user with name {options['username']} found") from err
         return None  # pragma: no cover
 
     def handle(self, *args, **options):

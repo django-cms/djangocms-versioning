@@ -10,7 +10,10 @@ from django.test.utils import override_settings
 from menus.menu_pool import menu_pool
 
 from djangocms_versioning.cms_menus import CMSMenu
-from djangocms_versioning.test_utils.factories import PageVersionFactory, UserFactory
+from djangocms_versioning.test_utils.factories import (
+    PageVersionFactory,
+    UserFactory,
+)
 
 
 class CMSVersionedMenuTestCase(CMSTestCase):

@@ -6,7 +6,10 @@ from djangocms_versioning import versionables
 class VersionableTestCase(CMSTestCase):
     def test_exists_functions_for_models(self):
         """With the example of the poll app test if versionables exists for models"""
-        from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+        from djangocms_versioning.test_utils.polls.models import (
+            Poll,
+            PollContent,
+        )
 
         # Check existence
         self.assertTrue(versionables.exists_for_grouper(Poll))
@@ -37,7 +40,10 @@ class VersionableTestCase(CMSTestCase):
     def test_get_versionable(self):
         """With the example of the poll app test if versionables for grouper and content models are the same.
         The versionable correctly identfies the content model."""
-        from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+        from djangocms_versioning.test_utils.polls.models import (
+            Poll,
+            PollContent,
+        )
 
         v1 = versionables.for_grouper(Poll)
         v2 = versionables.for_content(PollContent)

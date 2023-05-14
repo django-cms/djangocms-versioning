@@ -4,7 +4,10 @@ from cms.test_utils.util.context_managers import signal_tester
 from django.dispatch import receiver
 
 from djangocms_versioning import constants
-from djangocms_versioning.signals import post_version_operation, pre_version_operation
+from djangocms_versioning.signals import (
+    post_version_operation,
+    pre_version_operation,
+)
 from djangocms_versioning.test_utils import factories
 
 

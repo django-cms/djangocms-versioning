@@ -20,6 +20,10 @@ LOCK_VERSIONS = getattr(
     settings, "DJANGOCMS_VERSIONING_LOCK_VERSIONS", False,
 )
 
+VERBOSE = getattr(
+    settings, "DJANGOCMS_VERSIONING_VERBOSE", True,
+)
+
 EMAIL_NOTIFICATIONS_FAIL_SILENTLY = getattr(
     settings, "EMAIL_NOTIFICATIONS_FAIL_SILENTLY", False
 )

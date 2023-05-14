@@ -9,6 +9,7 @@ from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.urlutils import add_url_parameters, static_with_version
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
@@ -846,6 +847,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     def get_state_actions(self):
         """Compatibility shim for djangocms-moderation. Do not use.
         It will be removed in a future version."""
+
+        if settings.DEBUG:
+            # Only introspect in DEBUG mode. Issue warning if method is monkey-patched
+            import inspect
+            caller_frame = inspect.getouterframes(inspect.currentframe(), 2)
+            if caller_frame[1][3] != "get_actions_list":
+                warnings.warn("Modifying get_state_actions is deprecated. VersionAdmin.get_state_actions "
+                              "will be removed in a future version. Use get_actions_list instead.",
+                              DeprecationWarning, stacklevel=2)
 
         return [
             self._get_preview_link,

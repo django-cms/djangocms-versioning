@@ -28,8 +28,7 @@ from django.http import (
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import path
-from django.urls import Resolver404, resolve, reverse
+from django.urls import Resolver404, path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe

@@ -52,7 +52,7 @@ class CreateVersionsTestCase(CMSTestCase):
             self.assertEqual(cont.versions.first().state, constants.ARCHIVED)
 
         # Poll has additional grouping field, i.e. for each language there must be one draft (rest archived)
-        for language, _ in content_models_by_language.items():
+        for language, _cnt in content_models_by_language.items():
             poll_contents = PollContent.admin_manager.filter(poll=poll, language=language).order_by("-pk")
             self.assertEqual(poll_contents[0].versions.first().state, constants.DRAFT)
             for cont in poll_contents[1:]:

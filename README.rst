@@ -1,3 +1,5 @@
+|django| |djangocms4|
+
 *********************
 django CMS Versioning
 *********************
@@ -99,3 +101,9 @@ To update transifex translation in this repo you need to download the
 `transifex cli <https://developers.transifex.com/docs/cli>`_ and run
 ``tx pull`` from the repo's root directory. After downloading the translations
 do not forget to run the ``compilemessages`` management command.
+
+
+.. |django| image:: https://img.shields.io/badge/django-3.2%2B-blue.svg
+    :target: https://www.djangoproject.com/
+.. |djangocms4| image:: https://img.shields.io/badge/django%20CMS-4.1-blue.svg
+    :target: https://www.django-cms.org/

@@ -65,7 +65,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
-            ["cms-btn-action", "cms-versioning-js-publish-btn"],
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
         )
 
     def test_revert_in_toolbar_in_preview_mode(self):
@@ -149,7 +149,8 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
-            edit_button.extra_classes, ["cms-btn-action", "cms-versioning-js-edit-btn"]
+            edit_button.extra_classes,
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
@@ -211,7 +212,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         when versioning is installed and the model is versionable.
         """
         pagecontent = PageVersionFactory(content__template="")
-        url = get_object_preview_url(pagecontent.content)
+        url = get_object_preview_url(pagecontent.content, language="en")
         edit_url = self._get_edit_url(
             pagecontent, VersioningCMSConfig.versioning[0]
         )
@@ -230,7 +231,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         The default cms edit button is present for a default model
         """
         unversionedpoll = FancyPollFactory()
-        url = get_object_preview_url(unversionedpoll)
+        url = get_object_preview_url(unversionedpoll, language="en")
         edit_url = get_object_edit_url(unversionedpoll)
 
         with self.login_user_context(self.get_superuser()):
@@ -422,7 +423,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         published_version.publish(user=self.get_superuser())
         draft_version = published_version.copy(self.get_superuser())
-        edit_endpoint = get_object_edit_url(draft_version.content)
+        edit_endpoint = get_object_edit_url(draft_version.content, language="en")
         expected_url = published_version.content.page.get_absolute_url(language=language)
 
         with self.login_user_context(self.get_superuser()):
@@ -449,7 +450,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         published_version.publish(user=self.get_superuser())
         draft_version = published_version.copy(self.get_superuser())
-        preview_endpoint = get_object_preview_url(draft_version.content)
+        preview_endpoint = get_object_preview_url(draft_version.content, language="en")
         expected_url = published_version.content.page.get_absolute_url(language=language)
 
         with self.login_user_context(self.get_superuser()):

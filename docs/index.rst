@@ -6,6 +6,7 @@ Welcome to "djangocms-versioning"'s documentation!
    :caption: Quick Start:
 
    versioning_integration
+   version_locking
 
 .. toctree::
    :maxdepth: 2

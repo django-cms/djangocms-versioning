@@ -1,7 +1,11 @@
+from cms.admin.utils import GrouperModelAdmin
 from django.contrib import admin
 from django.urls import re_path
 
-from djangocms_versioning.admin import ExtendedVersionAdminMixin
+from djangocms_versioning.admin import (
+    ExtendedGrouperVersionAdminMixin,
+    ExtendedVersionAdminMixin,
+)
 
 from .models import Answer, Poll, PollContent
 from .views import PreviewView
@@ -23,8 +27,8 @@ class PollContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(Poll)
-class PollAdmin(admin.ModelAdmin):
-    pass
+class PollAdmin(ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
+    list_display = ("content__text", "get_author", "get_modified_date", "get_versioning_state", "admin_list_actions")
 
 
 @admin.register(Answer)

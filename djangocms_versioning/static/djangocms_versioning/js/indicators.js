@@ -1,17 +1,19 @@
 (function ($) {
-    var container;
+    'use strict';
+
+    let container;
 
     function ajax_post(event) {
         event.preventDefault();
-        var element = $(this);
+        let element = $(this);
         if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
             return;
         }
-        var csrfToken = document.cookie.match(/csrftoken=([^;]*);?/)[1];
+        let csrfToken = document.cookie.match(/csrftoken=([^;]*);?/)[1];
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it
-            var parent = window;
+            let parent = window;
 
             if (window.parent) {
                 parent = window.parent;
@@ -58,10 +60,10 @@
      * @param {String} message string message to display
      */
     function showError(message) {
-        var messages = $('.messagelist');
-        var breadcrumb = $('.breadcrumbs');
-        var reload = "Reload";
-        var tpl =
+        let messages = $('.messagelist');
+        let breadcrumb = $('.breadcrumbs');
+        let reload = "Reload";
+        let tpl =
             '' +
             '<ul class="messagelist">' +
             '   <li class="error">' +
@@ -71,7 +73,7 @@
             ' </a>' +
             '   </li>' +
             '</ul>';
-        var msg = tpl.replace('{msg}', '<strong>' + window.top.CMS.config.lang.error + '</strong> ' + message);
+        let msg = tpl.replace('{msg}', '<strong>' + window.top.CMS.config.lang.error + '</strong> ' + message);
 
         if (messages.length) {
             messages.replaceWith(msg);
@@ -92,7 +94,6 @@
     }
 
     function open_menu(menu) {
-        var menu;
         close_menu();
         container = $("body");  // first parent with position: relative
         container.append('<div class="menu-cover cms-pagetree cms-pagetree-dropdown-menu-open"></div>');
@@ -108,9 +109,9 @@
         $('.js-cms-pagetree-dropdown-trigger').click(function(event) {
             event.stopPropagation();
             event.preventDefault();
-            var menu = JSON.parse(this.dataset.menu);
+            let menu = JSON.parse(this.dataset.menu);
             menu = open_menu(menu);
-            var offset = $(this).offset();
+            const offset = $(this).offset();
             menu.css({
                 top: offset.top - 10,
                 right: container.width() - offset.left + 10

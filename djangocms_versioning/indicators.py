@@ -3,14 +3,8 @@ from django.contrib.auth import get_permission_codename
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
-from djangocms_versioning.constants import (
-    ARCHIVED,
-    DRAFT,
-    PUBLISHED,
-    UNPUBLISHED,
-    VERSION_STATES,
-)
-from djangocms_versioning.models import Version
+from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED, VERSION_STATES
+from .models import Version
 
 
 def _reverse_action(version, action, back=None):
@@ -26,6 +20,15 @@ def content_indicator_menu(request, status, versions, back=""):
 
     menu = []
     if request.user.has_perm(f"cms.{get_permission_codename('change', versions[0]._meta)}"):
+        if versions[0].check_unlock.as_bool(request.user):
+            can_unlock = request.user.has_perm("djangocms_versioning.delete_versionlock")
+            # disable if permissions are insufficient
+            additional_class = "" if can_unlock else " cms-pagetree-dropdown-item-disabled"
+            menu.append((
+                _("Unlock (%(message)s)") % {"message": versions[0].locked_message()}, "cms-icon-unlock",
+                _reverse_action(versions[0], "unlock"),
+                "js-cms-tree-lang-trigger" + additional_class,  # Triggers POST from the frontend
+            ))
         if versions[0].check_publish.as_bool(request.user):
             menu.append((
                 _("Publish"), "cms-icon-publish",

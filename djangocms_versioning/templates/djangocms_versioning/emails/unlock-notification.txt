@@ -1,0 +1,9 @@
+{% load i18n %}
+{% blocktrans %}
+The following draft version has been unlocked by {{ by_user }} for their use.
+{{ version_link }}
+
+Please note you will not be able to further edit this draft. Kindly reach out to {{ by_user }} in case of any concerns.
+
+This is an automated notification from Django CMS.
+{% endblocktrans %}

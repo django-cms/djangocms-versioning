@@ -44,7 +44,7 @@ HELPER_SETTINGS = {
     "PARLER_ENABLE_CACHING": False,
     "LANGUAGE_CODE": "en",
     "DEFAULT_AUTO_FIELD": "django.db.models.AutoField",
-    "CMS_CONFIRM_VERSION4": True
+    "CMS_CONFIRM_VERSION4": True,
 }
 
 

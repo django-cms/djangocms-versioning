@@ -8,7 +8,7 @@ from cms.cms_toolbars import (
     PlaceholderToolbar,
 )
 from cms.models import PageContent
-from cms.toolbar.items import Break, ButtonList
+from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
 from cms.toolbar.utils import get_object_preview_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions
@@ -23,6 +23,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
+from djangocms_versioning.conf import LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
@@ -35,7 +36,7 @@ VERSIONING_MENU_IDENTIFIER = "version"
 
 class VersioningToolbar(PlaceholderToolbar):
     class Media:
-        js = ("djangocms_versioning/js/actions.js",)
+        js = ("cms/js/admin/actions.js",)
 
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
@@ -80,7 +81,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=["cms-btn-action", "cms-versioning-js-publish-btn"],
+                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -92,6 +93,7 @@ class VersioningToolbar(PlaceholderToolbar):
             # Show the standard cms edit button for non versionable objects
             return super().add_edit_button()
         self._add_edit_button()
+        self._add_unlock_button()
 
     def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar
@@ -117,9 +119,51 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
-                extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
+                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
             )
             self.toolbar.add_item(item)
+
+    def _add_unlock_button(self):
+        """Helper method to add an edit button to the toolbar
+        """
+        if LOCK_VERSIONS and self._is_versioned():
+            item = ButtonList(side=self.toolbar.RIGHT)
+            proxy_model = self._get_proxy_model()
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            if version.check_unlock.as_bool(self.request.user):
+                unlock_url = reverse(
+                    "admin:{app}_{model}_unlock".format(
+                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                    ),
+                    args=(version.pk,),
+                )
+                can_unlock = self.request.user.has_perm("djangocms_versioning.delete_versionlock")
+                if can_unlock:
+                    extra_classes = [
+                        "cms-btn-action",
+                        "js-action",
+                        "cms-form-post-method",
+                        "cms-versioning-js-unlock-btn",
+                    ]
+                else:
+                    extra_classes = ["cms-versioning-js-unlock-btn"]
+                item.add_button(
+                    _("Unlock"),
+                    url=unlock_url if can_unlock else "#",
+                    disabled=not can_unlock,
+                    extra_classes=extra_classes,
+                )
+                self.toolbar.add_item(item)
+
+    def _add_lock_message(self):
+        if self._is_versioned() and LOCK_VERSIONS and not self.toolbar.edit_mode_active:
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            lock_message = TemplateItem(
+                template="djangocms_versioning/admin/lock_indicator.html",
+                extra_context={"version": version},
+                side=RIGHT,
+            )
+            self.toolbar.add_item(lock_message, position=0)
 
     def _add_revert_button(self, disabled=False):
         """Helper method to add a revert button to the toolbar
@@ -242,6 +286,7 @@ class VersioningToolbar(PlaceholderToolbar):
 
     def post_template_populate(self):
         super().post_template_populate()
+        self._add_lock_message()
         self._add_preview_button()
         self._add_view_published_button()
         self._add_revert_button()

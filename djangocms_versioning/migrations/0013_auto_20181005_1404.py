@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="version", name="number", field=models.CharField(max_length=11)
+            model_name="version", name="number", field=models.CharField(max_length=11, verbose_name="#",)
         )
     ]

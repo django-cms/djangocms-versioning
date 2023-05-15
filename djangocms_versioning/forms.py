@@ -21,15 +21,6 @@ class VersionContentChoiceField(forms.ModelChoiceField):
             return super().label_from_instance(obj)
 
 
-class GrouperFormMixin:
-    """Mixin used by grouper_form_factory to create the grouper select form class"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        versionable = versionables.for_content(self._content_model)
-        queryset = versionable.grouper_choices_queryset()
-        self.fields[versionable.grouper_field_name].queryset = queryset
-
-
 @lru_cache
 def grouper_form_factory(content_model, language=None):
     """Returns a form class used for selecting a grouper to see versions of.
@@ -40,13 +31,19 @@ def grouper_form_factory(content_model, language=None):
     :param language: Language
     """
     versionable = versionables.for_content(content_model)
+    valid_grouper_pk = content_model.admin_manager\
+        .latest_content()\
+        .values_list(versionable.grouper_field_name, flat=True)
+
     return type(
         content_model.__name__ + "GrouperForm",
-        (GrouperFormMixin, forms.Form),
+        (forms.Form,),
         {
             "_content_model": content_model,
             versionable.grouper_field_name: VersionContentChoiceField(
-                queryset=versionable.grouper_model.objects.all(),
+                queryset=versionable.grouper_model.objects.filter(
+                    pk__in=valid_grouper_pk,
+                ),
                 label=versionable.grouper_model._meta.verbose_name,
                 option_label_override=versionable.grouper_selector_option_label,
                 language=language,

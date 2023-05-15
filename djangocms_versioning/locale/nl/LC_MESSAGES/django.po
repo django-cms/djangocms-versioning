@@ -60,7 +60,7 @@ msgstr "Content"
 
 #: admin.py:649
 msgid "locked"
-msgstr ""
+msgstr "gesloten"
 
 #: admin.py:679 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
@@ -91,7 +91,7 @@ msgstr "Annuleer"
 
 #: admin.py:829 cms_toolbars.py:153
 msgid "Unlock"
-msgstr ""
+msgstr "Ongesloten"
 
 #: admin.py:856
 msgid "Exactly two versions need to be selected."
@@ -134,16 +134,12 @@ msgid "The last version has been deleted"
 msgstr "De laatste versie is verwijderd"
 
 #: admin.py:1255
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have permission to remove the version lock"
-msgstr "Je hebt geen rechten om deze plugin te kopieëren."
+msgstr "Je hebt geen rechten om de versie van t slot te halen"
 
 #: admin.py:1260
-#, fuzzy
-#| msgid "Version unpublished"
 msgid "Version unlocked"
-msgstr "Versie ongepubliceerd"
+msgstr "Versie ongesloten"
 
 #: admin.py:1309
 #, python-brace-format
@@ -231,12 +227,12 @@ msgstr "Gewijzigd"
 
 #: emails.py:38
 msgid "Unlocked"
-msgstr ""
+msgstr "Ongesloten"
 
 #: indicators.py:35
 #, python-format
 msgid "Unlock (%(message)s)"
-msgstr ""
+msgstr "Ongesloten (%(message)s)"
 
 #: indicators.py:47
 msgid "Create new draft"
@@ -265,12 +261,12 @@ msgstr "Versie is niet een concept"
 #: models.py:32
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
-msgstr ""
+msgstr "Actie niet geldig. De laatste versie is gesloten door {user}"
 
 #: models.py:33
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
-msgstr ""
+msgstr "Actie niet geldig. De concept versie is gesloten door "
 
 #: models.py:88
 msgid "Created"
@@ -286,7 +282,7 @@ msgstr "status"
 
 #: models.py:108
 msgid "locked by"
-msgstr ""
+msgstr "gesloten door"
 
 #: models.py:117
 msgid "source"
@@ -305,7 +301,7 @@ msgstr "Versie #{number} ({state})"
 #: models.py:144
 #, python-format
 msgid "Locked by %(user)s"
-msgstr ""
+msgstr "Gesloten door %(user)s"
 
 #: models.py:276 models.py:325
 msgid "Version is not in draft state"
@@ -324,16 +320,12 @@ msgid "Version is not in draft or published state"
 msgstr "Versie is niet een concept of gepubliceerde staat"
 
 #: models.py:465
-#, fuzzy
-#| msgid "Version archived"
 msgid "Version is already locked"
-msgstr "Versie gearchiveerd"
+msgstr "Versie is al gesloten"
 
 #: models.py:471
-#, fuzzy
-#| msgid "Version is not a draft"
 msgid "Draft version is not locked"
-msgstr "Versie is niet een concept"
+msgstr "Concept versie is niet gesloten"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9
@@ -500,17 +492,13 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
-
-#~ msgid "actions"
-#~ msgstr "acties"
-
-#~ msgid "version number"
-#~ msgstr "versie nummer"
-
-#~ msgid "Delete Changes"
-#~ msgstr "Verwijder veranderingen"
+"\n"
+"De volgende concept versie is van het slot af door%(by_user)svoor hun gebruik.\n"
+" %(version_link)s\n"
+"Let op: je kunt niet verder bewerken in dit concept. Neem asjeblieft contact op met %(by_user)s in geval van enige zorgen. \n"
+"\n"
+"Dit is een geautomatiseerde notificatie van Django CMS.\n"

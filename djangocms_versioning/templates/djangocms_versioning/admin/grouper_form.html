@@ -33,7 +33,7 @@
     {% endblock %}
     <div class="module" id="changelist">
       <form action="{% url opts|admin_urlname:"changelist" %}">
-        {{ form.as_p }}
+        {{ form }}
         <button type="submit">{% translate "Submit" %}</button>
         </form>
       </form>

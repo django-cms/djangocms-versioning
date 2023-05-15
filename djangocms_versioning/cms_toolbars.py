@@ -1,6 +1,20 @@
 from collections import OrderedDict
 from copy import copy
 
+from cms.cms_toolbars import (
+    ADD_PAGE_LANGUAGE_BREAK,
+    LANGUAGE_MENU_IDENTIFIER,
+    PageToolbar,
+    PlaceholderToolbar,
+)
+from cms.models import PageContent
+from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
+from cms.toolbar.utils import get_object_preview_url
+from cms.toolbar_pool import toolbar_pool
+from cms.utils import page_permissions
+from cms.utils.conf import get_cms_setting
+from cms.utils.i18n import get_language_dict, get_language_tuple
+from cms.utils.urlutils import add_url_parameters, admin_reverse
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_permission_codename
@@ -9,21 +23,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
-from cms.cms_toolbars import (
-    ADD_PAGE_LANGUAGE_BREAK,
-    LANGUAGE_MENU_IDENTIFIER,
-    PageToolbar,
-    PlaceholderToolbar,
-)
-from cms.models import PageContent
-from cms.toolbar.items import Break, ButtonList
-from cms.toolbar.utils import get_object_preview_url
-from cms.toolbar_pool import toolbar_pool
-from cms.utils import page_permissions
-from cms.utils.conf import get_cms_setting
-from cms.utils.i18n import get_language_dict, get_language_tuple
-from cms.utils.urlutils import add_url_parameters, admin_reverse
-
+from djangocms_versioning.conf import LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
@@ -31,13 +31,12 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import Version
 
-
 VERSIONING_MENU_IDENTIFIER = "version"
 
 
 class VersioningToolbar(PlaceholderToolbar):
     class Media:
-        js = ("djangocms_versioning/js/actions.js",)
+        js = ("cms/js/admin/actions.js",)
 
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
@@ -82,7 +81,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=["cms-btn-action", "cms-versioning-js-publish-btn"],
+                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -94,6 +93,7 @@ class VersioningToolbar(PlaceholderToolbar):
             # Show the standard cms edit button for non versionable objects
             return super().add_edit_button()
         self._add_edit_button()
+        self._add_unlock_button()
 
     def _add_edit_button(self, disabled=False):
         """Helper method to add an edit button to the toolbar
@@ -119,9 +119,51 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
-                extra_classes=["cms-btn-action", "cms-versioning-js-edit-btn"],
+                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
             )
             self.toolbar.add_item(item)
+
+    def _add_unlock_button(self):
+        """Helper method to add an edit button to the toolbar
+        """
+        if LOCK_VERSIONS and self._is_versioned():
+            item = ButtonList(side=self.toolbar.RIGHT)
+            proxy_model = self._get_proxy_model()
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            if version.check_unlock.as_bool(self.request.user):
+                unlock_url = reverse(
+                    "admin:{app}_{model}_unlock".format(
+                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
+                    ),
+                    args=(version.pk,),
+                )
+                can_unlock = self.request.user.has_perm("djangocms_versioning.delete_versionlock")
+                if can_unlock:
+                    extra_classes = [
+                        "cms-btn-action",
+                        "js-action",
+                        "cms-form-post-method",
+                        "cms-versioning-js-unlock-btn",
+                    ]
+                else:
+                    extra_classes = ["cms-versioning-js-unlock-btn"]
+                item.add_button(
+                    _("Unlock"),
+                    url=unlock_url if can_unlock else "#",
+                    disabled=not can_unlock,
+                    extra_classes=extra_classes,
+                )
+                self.toolbar.add_item(item)
+
+    def _add_lock_message(self):
+        if self._is_versioned() and LOCK_VERSIONS and not self.toolbar.edit_mode_active:
+            version = Version.objects.get_for_content(self.toolbar.obj)
+            lock_message = TemplateItem(
+                template="djangocms_versioning/admin/lock_indicator.html",
+                extra_context={"version": version},
+                side=RIGHT,
+            )
+            self.toolbar.add_item(lock_message, position=0)
 
     def _add_revert_button(self, disabled=False):
         """Helper method to add a revert button to the toolbar
@@ -180,10 +222,10 @@ class VersioningToolbar(PlaceholderToolbar):
                      app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
                 ), args=(version.source.pk,))
 
-                url += "?" + urlencode(dict(
-                    compare_to=version.pk,
-                    back=self.request.get_full_path(),
-                ))
+                url += "?" + urlencode({
+                    "compare_to": version.pk,
+                    "back": self.request.get_full_path(),
+                })
                 versioning_menu.add_link_item(name, url=url)
                 # Discard changes menu entry (wrt to source)
                 if version.check_discard.as_bool(self.request.user):  # pragma: no cover
@@ -220,14 +262,14 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_absolute_url() if hasattr(published_version, 'get_absolute_url') else None
+        url = published_version.get_absolute_url() if hasattr(published_version, "get_absolute_url") else None
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
                 _("View Published"),
                 url=url,
                 disabled=False,
-                extra_classes=['cms-btn', 'cms-btn-switch-save'],
+                extra_classes=["cms-btn", "cms-btn-switch-save"],
             )
             self.toolbar.add_item(item)
 
@@ -243,7 +285,8 @@ class VersioningToolbar(PlaceholderToolbar):
             self.add_preview_button()
 
     def post_template_populate(self):
-        super(VersioningToolbar, self).post_template_populate()
+        super().post_template_populate()
+        self._add_lock_message()
         self._add_preview_button()
         self._add_view_published_button()
         self._add_revert_button()
@@ -265,7 +308,7 @@ class VersioningPageToolbar(PageToolbar):
     def populate(self):
         self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
         self.title = self.get_page_content() if self.page else None
-        self.permissions_activated = get_cms_setting('PERMISSION')
+        self.permissions_activated = get_cms_setting("PERMISSION")
 
         self.override_language_menu()
         self.change_admin_menu()
@@ -279,7 +322,7 @@ class VersioningPageToolbar(PageToolbar):
         """
         # Only override the menu if a page can be found
         if settings.USE_I18N and self.page:
-            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _('Language'))
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
 
             # remove_item uses `items` attribute so we have to copy object
             for _item in copy(language_menu.items):
@@ -326,7 +369,7 @@ class VersioningPageToolbar(PageToolbar):
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
                 add_plugins_menu = language_menu.get_or_create_menu(
-                    "{0}-add".format(LANGUAGE_MENU_IDENTIFIER), _("Add Translation")
+                    f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation")
                 )
 
                 page_add_url = admin_reverse("cms_pagecontent_add")
@@ -339,19 +382,19 @@ class VersioningPageToolbar(PageToolbar):
 
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
-                    '{0}-copy'.format(LANGUAGE_MENU_IDENTIFIER), _('Copy all plugins')
+                    f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
                 )
-                title = _('from %s')
-                question = _('Are you sure you want to copy all plugins from %s?')
+                title = _("from %s")
+                question = _("Are you sure you want to copy all plugins from %s?")
                 item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
                     page_content = self.get_page_content(language=code)
                     if page_content:  # Only offer to copy if content for source language exists
-                        page_copy_url = admin_reverse('cms_pagecontent_copy_language', args=(page_content.pk,))
+                        page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
                         copy_plugins_menu.add_ajax_item(
                             title % name, action=page_copy_url,
-                            data={'source_language': code, 'target_language': self.current_lang},
+                            data={"source_language": code, "target_language": self.current_lang},
                             question=question % name, on_success=self.toolbar.REFRESH_PAGE
                         )
                         item_added = True

@@ -7,20 +7,28 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.formats import localize
 from django.utils.translation import gettext_lazy as _
-
 from django_fsm import FSMField, can_proceed, transition
 
-from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS
-
 from . import constants, versionables
-from .conditions import Conditions, in_state
+from .conditions import (
+    Conditions,
+    draft_is_locked,
+    draft_is_not_locked,
+    in_state,
+    is_not_locked,
+)
+from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
-
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+
+not_draft_error = _("Version is not a draft")
+lock_error_message = _("Action Denied. The latest version is locked by {user}")
+lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
 
 
 def allow_deleting_versions(collector, field, sub_objs, using):
@@ -80,8 +88,12 @@ class Version(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name=_("author")
     )
-    number = models.CharField(max_length=11)
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    number = models.CharField(max_length=11, verbose_name="#")
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.PROTECT,
+        related_name="cms_versions"
+    )
     object_id = models.PositiveIntegerField()
     content = GenericForeignKey("content_type", "object_id")
     state = FSMField(
@@ -90,6 +102,15 @@ class Version(models.Model):
         verbose_name=_("status"),
         protected=True,
     )
+    locked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,  # Deleting a user removes the lock
+        null=True,
+        default=None,
+        verbose_name=_("locked by"),
+        related_name="locking_users",
+    )
+
     source = models.ForeignKey(
         "self",
         null=True,
@@ -101,9 +122,12 @@ class Version(models.Model):
 
     class Meta:
         unique_together = ("content_type", "object_id")
+        permissions = (
+            ("delete_versionlock", "Can unlock verision"),
+        )
 
     def __str__(self):
-        return "Version #{}".format(self.pk)
+        return f"Version #{self.pk}"
 
     def verbose_name(self):
         return _("Version #{number} ({state} {date})").format(
@@ -117,28 +141,33 @@ class Version(models.Model):
             number=self.number, state=dict(constants.VERSION_STATES)[self.state]
         )
 
+    def locked_message(self):
+        if self.locked_by:
+            return _("Locked by %(user)s") % {"user": self.locked_by}
+        return ""
+
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper
         as well if we are deleting the last version."""
 
         def get_grouper_name(ContentModel, GrouperModel):
             for field in ContentModel._meta.fields:
-                if getattr(field, 'related_model', None) == GrouperModel:
+                if getattr(field, "related_model", None) == GrouperModel:
                     return field.name
 
         grouper = self.grouper
         ContentModel = self.content._meta.model
 
         grouper_name = get_grouper_name(ContentModel, grouper._meta.model)
-        querydict = {'{}__pk'.format(grouper_name): grouper.pk}
+        querydict = {f"{grouper_name}__pk": grouper.pk}
         count = ContentModel._original_manager.filter(**querydict).count()
 
         self.content.delete()
         deleted = super().delete(using=using, keep_parents=keep_parents)
-        deleted[1]['last'] = False
+        deleted[1]["last"] = False
         if count == 1:
             grouper.delete()
-            deleted[1]['last'] = True
+            deleted[1]["last"] = True
         return deleted
 
     def save(self, **kwargs):
@@ -151,6 +180,14 @@ class Version(models.Model):
             )
             # Set the version number
             self.number = self.make_version_number()
+        if self.pk is None and self.state == constants.DRAFT:
+            # A new draft version is locked by default
+            if LOCK_VERSIONS and self.locked_by is None:
+                # create a lock
+                self.locked_by = self.created_by
+        elif self.state != constants.DRAFT:
+            # A any other state than draft has no lock, an existing lock should be removed
+            self.locked_by = None
 
         super().save(**kwargs)
         # Only one draft version is allowed per unique grouping values.
@@ -229,13 +266,18 @@ class Version(models.Model):
         """
         copy_function = versionables.for_content(self.content).copy_function
         new_content = copy_function(self.content)
+
         new_version = Version.objects.create(
-            content=new_content, source=self, created_by=created_by
+            content=new_content, source=self, created_by=created_by,
+            **({"locked_by": created_by} if LOCK_VERSIONS else {}),
         )
         return new_version
 
     check_archive = Conditions(
-        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+        [
+            in_state([constants.DRAFT], _("Version is not in draft state")),
+            is_not_locked(lock_error_message),
+        ]
     )
 
     def can_be_archived(self):
@@ -342,7 +384,8 @@ class Version(models.Model):
         pass
 
     check_unpublish = Conditions([
-        in_state([constants.PUBLISHED], _("Version is not in published state"))
+        in_state([constants.PUBLISHED], _("Version is not in published state")),
+        draft_is_not_locked(lock_draft_error_message),
     ])
 
     def can_be_unpublished(self):
@@ -389,25 +432,45 @@ class Version(models.Model):
         pass
 
     check_modify = Conditions(
-        [in_state([constants.DRAFT], _("Version is not a draft"))]
+        [
+            in_state([constants.DRAFT], not_draft_error),
+            draft_is_not_locked(lock_draft_error_message),
+        ]
     )
     check_revert = Conditions(
         [
             in_state(
                 [constants.ARCHIVED, constants.UNPUBLISHED],
                 _("Version is not in archived or unpublished state"),
-            )
+            ),
+            draft_is_not_locked(lock_draft_error_message),
         ]
     )
     check_discard = Conditions(
-        [in_state([constants.DRAFT], _("Version is not a draft"))]
+        [
+            in_state([constants.DRAFT], not_draft_error),
+            is_not_locked(lock_error_message),
+        ]
     )
     check_edit_redirect = Conditions(
         [
             in_state(
                 [constants.DRAFT, constants.PUBLISHED],
                 _("Version is not in draft or published state"),
-            )
+            ),
+            draft_is_not_locked(lock_draft_error_message),
+        ]
+    )
+    check_lock = Conditions(
+        [
+            in_state([constants.DRAFT], not_draft_error),
+            is_not_locked(_("Version is already locked"))
+        ]
+    )
+    check_unlock = Conditions(
+        [
+            in_state([constants.DRAFT, constants.PUBLISHED], not_draft_error),
+            draft_is_locked(_("Draft version is not locked"))
         ]
     )
 

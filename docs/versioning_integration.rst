@@ -293,7 +293,7 @@ to add the fields:
 
 .. code-block:: python
 
-    class PostAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
+    class PostContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
         list_display = "title"
 
 The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`admin_field_modifiers` to a given apps :term:`cms_config`,
@@ -327,18 +327,18 @@ You can use these on your content model's changelist view admin by adding the fo
 .. code-block:: python
 
     import json
-    from djangocms_versioning.admin import StateIndicatorAdminMixin
+    from djangocms_versioning.admin import StateIndicatorMixin
 
 
-    class MyContentModelAdmin(StateIndicatorAdminMixin, admin.Admin):
+    class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
         # Adds "indicator" to the list_items
          list_items = [..., "state_indicator", ...]
 
 .. note::
 
-    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field.
+    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field. If you derive your admin class from :class:`~cms.admin.utils.GrouperModelAdmin`, this behaviour is automatically observed.
 
-    This is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
+    Otherwise, this is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
 
     .. code-block:: python
 
@@ -363,18 +363,93 @@ You can use these on your content model's changelist view admin by adding the fo
             return instance
 
 Adding Status Indicators *and* Versioning Entries to a versioned content model
-------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 Both mixins can be easily combined. If you want both, state indicators and the additional author, modified date, preview action, and edit action, you can simpliy use the ``ExtendedIndicatorVersionAdminMixin``:
 
 .. code-block:: python
 
-    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.Admin):
+    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.ModelAdmin):
         ...
 
 The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
 
 Add additional actions by overwriting the ``self.get_list_actions()`` method and calling ``super()``.
+
+Adding Versioning Entries to a Grouper Model Admin
+--------------------------------------------------
+
+Django CMS 4.1 and above provide the :class:`~cms.admin.utils.GrouperModelAdmin` as to creat model admins for grouper models. To add version admin fields, use the :class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin`:
+
+.. code-block:: python
+
+    class PostAdmin(ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
+        list_display = ["title", "get_author", "get_modified_date", "get_versioning_state"]
+
+:class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin` also observes the :term:`admin_field_modifiers`.
+
+.. note::
+
+    Compared to the :term:`ExtendedVersionAdminMixin`, the :term:`ExtendedGrouperVersionAdminMixin` does not automatically add the new fields to the :attr:`list_display`.
+
+    The difference has compatibility reasons.
+
+To also add state indicators, just add the :class:`~djangocms_versioning.admin.StateIndicatorMixin`:
+
+.. code-block:: python
+
+    class PostAdmin(ExtendedGrouperVersionAdminMixin, StateIndicatorMixin, GrouperModelAdmin):
+        list_display = ["title", "get_author", "get_modified_date", "state_indicator"]
+
+Summary admin options
+---------------------
+
+.. list-table:: Overview on versioning admin options: Grouper models
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Versioning state
+     - Grouper Model Admin
+   * - Text, no interaction
+     - .. code-block::
+
+            class GrouperAdmin(
+                ExtendedGrouperVersionAdminMixin,
+                GrouperModelAdmin
+            )
+                list_display = ...
+
+   * - Indicators, drop down menu
+     - .. code-block::
+
+            class GrouperAdmin(
+                ExtendedGrouperVersionAdminMixin,
+                StateIndicatorMixin,
+                GrouperModelAdmin
+            )
+                list_display = ...
+
+.. list-table:: Overview on versioning admin options: Content models
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Versioning state
+     - **Content Model Admin**
+   * - Text, no interaction
+     - .. code-block::
+
+            class ContentAdmin(
+                ExtendedVersionAdminMixin,
+                admin.ModelAdmin
+            )
+
+   * - Indicators, drop down menu
+     - .. code-block::
+
+            class ContentAdmin(
+                ExtendedIndicatorVersionAdminMixin,
+                admin.ModelAdmin,
+            )
 
 
 Additional/advanced configuration

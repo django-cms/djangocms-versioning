@@ -1,12 +1,11 @@
 from django.conf import settings
 
-
 ENABLE_MENU_REGISTRATION = getattr(
     settings, "DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION", True
 )
 
 USERNAME_FIELD = getattr(
-    settings, "DJANGOCMS_VERSIONING_USERNAME_FIELD", 'username'
+    settings, "DJANGOCMS_VERSIONING_USERNAME_FIELD", "username"
 )
 
 DEFAULT_USER = getattr(
@@ -15,4 +14,16 @@ DEFAULT_USER = getattr(
 
 ALLOW_DELETING_VERSIONS = getattr(
     settings, "DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS", False
+)
+
+LOCK_VERSIONS = getattr(
+    settings, "DJANGOCMS_VERSIONING_LOCK_VERSIONS", False,
+)
+
+VERBOSE = getattr(
+    settings, "DJANGOCMS_VERSIONING_VERBOSE", True,
+)
+
+EMAIL_NOTIFICATIONS_FAIL_SILENTLY = getattr(
+    settings, "EMAIL_NOTIFICATIONS_FAIL_SILENTLY", False
 )

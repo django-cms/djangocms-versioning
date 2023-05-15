@@ -1,17 +1,19 @@
-from django.contrib.auth.models import AnonymousUser
-from django.template import Context, Template
-from django.test import RequestFactory
-from django.test.utils import override_settings
-
 from cms import constants as cms_constants
 from cms.cms_menus import CMSMenu as OriginalCMSMenu
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.toolbar.utils import get_object_preview_url
+from django.contrib.auth.models import AnonymousUser
+from django.template import Context, Template
+from django.test import RequestFactory
+from django.test.utils import override_settings
 from menus.menu_pool import menu_pool
 
 from djangocms_versioning.cms_menus import CMSMenu
-from djangocms_versioning.test_utils.factories import PageVersionFactory, UserFactory
+from djangocms_versioning.test_utils.factories import (
+    PageVersionFactory,
+    UserFactory,
+)
 
 
 class CMSVersionedMenuTestCase(CMSTestCase):
@@ -308,9 +310,8 @@ class CMSVersionedMenuTestCase(CMSTestCase):
 
     @override_settings(CMS_PUBLIC_FOR="staff")
     def test_show_menu_only_visible_for_user(self):
-        from django.contrib.auth.models import Group
-
         from cms.models import ACCESS_PAGE, PagePermission
+        from django.contrib.auth.models import Group
 
         group = Group.objects.create(name="test_group")
         user = UserFactory()

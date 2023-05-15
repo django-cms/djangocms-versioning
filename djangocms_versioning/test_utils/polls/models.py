@@ -1,14 +1,13 @@
+from cms.models import CMSPlugin
 from django.db import models
 from django.urls import reverse
-
-from cms.models import CMSPlugin
 
 
 class Poll(models.Model):
     name = models.TextField()
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.pk)
+        return f"{self.name} ({self.pk})"
 
 
 class PollContent(models.Model):

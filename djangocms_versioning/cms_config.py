@@ -1,5 +1,11 @@
 import collections
 
+from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.models import PageContent, Placeholder
+from cms.utils import get_language_from_request
+from cms.utils.i18n import get_language_list, get_language_tuple
+from cms.utils.plugins import copy_plugins_to_placeholder
+from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
 from django.core.exceptions import (
@@ -7,26 +13,25 @@ from django.core.exceptions import (
     ObjectDoesNotExist,
     PermissionDenied,
 )
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+)
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from cms.app_base import CMSAppConfig, CMSAppExtension
-from cms.models import PageContent, Placeholder
-from cms.utils import get_language_from_request
-from cms.utils.i18n import get_language_list, get_language_tuple
-from cms.utils.plugins import copy_plugins_to_placeholder
-from cms.utils.urlutils import admin_reverse
-
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
+from .conf import LOCK_VERSIONS
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
+    placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
     replace_manager,
@@ -87,7 +92,7 @@ class VersioningCMSExtension(CMSAppExtension):
             registered_so_far = [v.content_model for v in self.versionables]
             if versionable.content_model in registered_so_far:
                 raise ImproperlyConfigured(
-                    "{!r} has already been registered".format(versionable.content_model)
+                    f"{versionable.content_model!r} has already been registered"
                 )
             # Checks passed. Add versionable to our master list
             self.versionables.append(versionable)
@@ -157,6 +162,12 @@ class VersioningCMSExtension(CMSAppExtension):
             for key in modifier.keys():
                 self.add_to_field_extension[key] = modifier[key]
 
+    def handle_locking(self):
+        if LOCK_VERSIONS:
+            from cms.models import fields
+
+            fields.PlaceholderRelationField.default_checks += [placeholder_content_is_unlocked_for_user]
+
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)
@@ -179,6 +190,7 @@ class VersioningCMSExtension(CMSAppExtension):
             self.handle_version_admin(cms_config)
             self.handle_content_model_generic_relation(cms_config)
             self.handle_content_model_manager(cms_config)
+        self.handle_locking()
 
 
 def copy_page_content(original_content):
@@ -237,8 +249,8 @@ def label_from_instance(obj, language):
     """
     title = obj.get_title(language) or _("No available title")
     path = obj.get_path(language)
-    path = "/{}/".format(path) if path else _("Unpublished")
-    return "{title} ({path})".format(title=title, path=path)
+    path = f"/{path}/" if path else _("Unpublished")
+    return f"{title} ({path})"
 
 
 def on_page_content_publish(version):
@@ -279,7 +291,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             version = Version.objects.get_for_content(obj)
             if not version.check_modify.as_bool(request.user):
                 form = self.get_form_class(request)
-                if getattr(form, "fieldsets"):
+                if form.fieldsets:
                     fields = flatten_fieldsets(form.fieldsets)
                 fields = list(fields)
                 for f_name in ["slug", "overwrite_url"]:
@@ -304,8 +316,8 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             # TODO: Improve the grouping filters to use anything defined in the
             #       apps versioning config extra_grouping_fields
             grouping_filters = {}
-            if 'language' in versionable.extra_grouping_fields:
-                grouping_filters['language'] = get_language_from_request(request)
+            if "language" in versionable.extra_grouping_fields:
+                grouping_filters["language"] = get_language_from_request(request)
 
             return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
         return queryset
@@ -318,7 +330,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     #           - where it should live going forwards (cms vs versioning)
     #           - A better way of making the feature extensible / modifiable for versioning
     def copy_language(self, request, object_id):
-        target_language = request.POST.get('target_language')
+        target_language = request.POST.get("target_language")
 
         # CAVEAT: Avoiding self.get_object because it sets the page cache,
         #         We don't want a draft showing to a regular site visitor!
@@ -349,7 +361,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             plugins = placeholder.get_plugins_list(source_page_content.language)
 
             if not target.has_add_plugins_permission(request.user, plugins):
-                return HttpResponseForbidden(force_str(_('You do not have permission to copy these plugins.')))
+                return HttpResponseForbidden(force_str(_("You do not have permission to copy these plugins.")))
             copy_plugins_to_placeholder(plugins, target, language=target_language)
         return HttpResponse("ok")
 

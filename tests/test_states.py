@@ -1,7 +1,5 @@
-from django.utils.timezone import now
-
 from cms.test_utils.testcases import CMSTestCase
-
+from django.utils.timezone import now
 from django_fsm import TransitionNotAllowed
 from freezegun import freeze_time
 

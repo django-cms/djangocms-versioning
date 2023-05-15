@@ -1,10 +1,9 @@
-from django.contrib.auth.models import Permission
-from django.utils.text import slugify
-
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
+from django.contrib.auth.models import Permission
+from django.utils.text import slugify
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
@@ -66,7 +65,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
-            ["cms-btn-action", "cms-versioning-js-publish-btn"],
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
         )
 
     def test_revert_in_toolbar_in_preview_mode(self):
@@ -150,7 +149,8 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
-            edit_button.extra_classes, ["cms-btn-action", "cms-versioning-js-edit-btn"]
+            edit_button.extra_classes,
+            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
@@ -212,7 +212,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         when versioning is installed and the model is versionable.
         """
         pagecontent = PageVersionFactory(content__template="")
-        url = get_object_preview_url(pagecontent.content)
+        url = get_object_preview_url(pagecontent.content, language="en")
         edit_url = self._get_edit_url(
             pagecontent, VersioningCMSConfig.versioning[0]
         )
@@ -231,7 +231,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         The default cms edit button is present for a default model
         """
         unversionedpoll = FancyPollFactory()
-        url = get_object_preview_url(unversionedpoll)
+        url = get_object_preview_url(unversionedpoll, language="en")
         edit_url = get_object_edit_url(unversionedpoll)
 
         with self.login_user_context(self.get_superuser()):
@@ -418,12 +418,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         PageUrlFactory(
             page=published_version.content.page,
             language=language,
-            path=slugify('test_page'),
-            slug=slugify('test_page'),
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
         )
         published_version.publish(user=self.get_superuser())
         draft_version = published_version.copy(self.get_superuser())
-        edit_endpoint = get_object_edit_url(draft_version.content)
+        edit_endpoint = get_object_edit_url(draft_version.content, language="en")
         expected_url = published_version.content.page.get_absolute_url(language=language)
 
         with self.login_user_context(self.get_superuser()):
@@ -445,12 +445,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         PageUrlFactory(
             page=published_version.content.page,
             language=language,
-            path=slugify('test_page'),
-            slug=slugify('test_page'),
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
         )
         published_version.publish(user=self.get_superuser())
         draft_version = published_version.copy(self.get_superuser())
-        preview_endpoint = get_object_preview_url(draft_version.content)
+        preview_endpoint = get_object_preview_url(draft_version.content, language="en")
         expected_url = published_version.content.page.get_absolute_url(language=language)
 
         with self.login_user_context(self.get_superuser()):
@@ -495,7 +495,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(language_menu.get_item_count(), 6)
 
         language_menu_dict = {
-            menu.name: [item for item in menu.items]
+            menu.name: list(menu.items)
             for key, menu in language_menu.menus.items()
         }
         self.assertIn("Add Translation", language_menu_dict.keys())
@@ -503,20 +503,20 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
 
         self.assertEqual(
-            set([lang.name for lang in language_menu_dict["Add Translation"]]),
-            set(["Française..."]),
+            {lang.name for lang in language_menu_dict["Add Translation"]},
+            {"Française..."},
         )
 
         self.assertEqual(
-            set([lang.name for lang in language_menu_dict["Copy all plugins"]]),
-            set(["from Italiano", "from Deutsche"]),
+            {lang.name for lang in language_menu_dict["Copy all plugins"]},
+            {"from Italiano", "from Deutsche"},
         )
 
         for item in language_menu_dict["Add Translation"]:
             self.assertIn(admin_reverse("cms_pagecontent_add"), item.url)
-            self.assertIn("cms_page={}".format(page.pk), item.url)
+            self.assertIn(f"cms_page={page.pk}", item.url)
             lang_code = "fr" if "Française" in item.name else "it"
-            self.assertIn("language={}".format(lang_code), item.url)
+            self.assertIn(f"language={lang_code}", item.url)
 
     def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """

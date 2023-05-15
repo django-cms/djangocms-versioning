@@ -1,9 +1,8 @@
 import copy
 
-from django.apps import apps
-
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
+from django.apps import apps
 
 from djangocms_versioning.constants import ARCHIVED, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy

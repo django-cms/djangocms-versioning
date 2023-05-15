@@ -1,6 +1,6 @@
-from django.test import RequestFactory
-
+from cms.toolbar.items import ButtonList
 from cms.toolbar.toolbar import CMSToolbar
+from django.test import RequestFactory
 
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.test_utils.factories import UserFactory
@@ -57,9 +57,10 @@ def find_toolbar_buttons(button_name, toolbar):
     """
     found = []
     for button_list in toolbar.get_right_items():
-        found = found + [
-            button for button in button_list.buttons if button.name == button_name
-        ]
+        if isinstance(button_list, ButtonList):
+            found = found + [
+                button for button in button_list.buttons if button.name == button_name
+            ]
     return found
 
 

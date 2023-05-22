@@ -578,6 +578,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(en_item.url, en_preview_url)
         self.assertEqual(de_item.url, de_preview_url)
         self.assertEqual(it_item.url, it_preview_url)
+
     def test_page_toolbar_wo_language_menu(self):
         from django.utils.translation import gettext as _
 

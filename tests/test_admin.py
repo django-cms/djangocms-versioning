@@ -2576,6 +2576,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         self.versionable = PollsCMSConfig.versioning[0]
         self.superuser = self.get_superuser()
 
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
     def test_change_view_action_bulk_delete_versions_three_selected(self):
         """
         Query returns 1 versions when three versioning options are selected
@@ -2591,7 +2592,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             data = {
-                "action": "delete_versions",
+                "action": "delete_selected",
                 ACTION_CHECKBOX_NAME: ["1", "2", "3"],
                 "post": "yes",
             }

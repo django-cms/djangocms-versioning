@@ -2,6 +2,11 @@
 Changelog
 =========
 
+
+Unreleased
+==========
+* feat: Reversable generic foreign key lookup from version
+
 2.0.0rc1
 ========
 * fix: Only try modifying page language menu if it is present

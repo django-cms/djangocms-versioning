@@ -266,7 +266,7 @@ msgstr "Actie niet geldig. De laatste versie is gesloten door {user}"
 #: models.py:33
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Actie niet geldig. De concept versie is gesloten door "
+msgstr "Actie niet geldig. De concept versie is gesloten door {user}"
 
 #: models.py:88
 msgid "Created"

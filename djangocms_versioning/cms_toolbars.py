@@ -320,10 +320,9 @@ class VersioningPageToolbar(PageToolbar):
         Override the default language menu for pages that are versioned.
         The default language menu is too generic so for pages we need to replace it.
         """
-        # Only override the menu if a page can be found
-        if settings.USE_I18N and self.page:
-            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
-
+        # Only override the menu if it exists and a page can be found
+        language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
+        if settings.USE_I18N and language_menu and self.page:
             # remove_item uses `items` attribute so we have to copy object
             for _item in copy(language_menu.items):
                 language_menu.remove_item(item=_item)

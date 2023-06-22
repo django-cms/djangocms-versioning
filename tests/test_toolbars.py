@@ -578,3 +578,27 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(en_item.url, en_preview_url)
         self.assertEqual(de_item.url, de_preview_url)
         self.assertEqual(it_item.url, it_preview_url)
+
+    def test_page_toolbar_wo_language_menu(self):
+        from django.utils.translation import gettext as _
+
+        pagecontent = PageContentWithVersionFactory(language="en")
+        page = pagecontent.page
+        # Get request
+        request = self.get_page_request(
+            page=page,
+            path=get_object_edit_url(pagecontent),
+            user=self.get_superuser(),
+        )
+        # Remove language menu from request's toolbar
+        del request.toolbar.menus[LANGUAGE_MENU_IDENTIFIER]
+
+        # find VersioningPageToolbar
+        for cls, toolbar in request.toolbar.toolbars.items():
+            if cls == "djangocms_versioning.cms_toolbars.VersioningPageToolbar":
+                # and call override_language_menu
+                toolbar.override_language_menu()
+                break
+
+        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
+        self.assertIsNone(language_menu)

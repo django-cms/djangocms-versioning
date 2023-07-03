@@ -1447,15 +1447,15 @@ class PublishViewTestCase(BaseStateTestCase):
         )
 
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
-            response = self.client.get(url)
+            response = self.client.put(url)
 
         self.assertEqual(response.status_code, 405)
 
         # Django 2.2 backwards compatibility
         if hasattr(response, "_headers"):
-            self.assertEqual(response._headers.get("allow"), ("Allow", "POST"))
+            self.assertEqual(response._headers.get("allow"), ("Allow", "GET, POST"))
         else:
-            self.assertEqual(response.headers.get("Allow"), "POST")
+            self.assertEqual(response.headers.get("Allow"), "GET, POST")
 
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=poll_version.pk)

@@ -39,7 +39,7 @@ from . import conf, versionables
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
 from .emails import notify_version_author_version_unlocked
 from .exceptions import ConditionFailed
-from .forms import grouper_form_factory
+from .forms import TimedPublishingForm, grouper_form_factory
 from .helpers import (
     content_is_unlocked_for_user,
     create_version_lock,
@@ -955,11 +955,20 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         """Publishes the specified version and redirects back to the
         version changelist
         """
-        # This view always changes data so only POST requests should work
+
+        form = TimedPublishingForm(request.POST) if request.method == "POST" else TimedPublishingForm()
+        if request.method == "GET" or not form.is_valid():
+            return render(
+                request,
+                template_name="djangocms_versioning/admin/timed_publication.html",
+                context={"form": form, "errors": request.method != "GET" and not form.is_valid()},
+            )
         if request.method != "POST":
             return HttpResponseNotAllowed(
-                ["POST"], _("This view only supports POST method.")
+                ["GET", "POST"], _("This view only supports GET or POST method.")
             )
+        visibility_start = form.cleaned_data["visibility_start"]
+        visibility_end = form.cleaned_data["visibility_end"]
 
         # Check version exists
         version = self.get_object(request, unquote(object_id))
@@ -978,9 +987,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Publish the version
-        version.publish(request.user)
+        version.publish(request.user, visibility_start, visibility_end)
         # Display message
-        self.message_user(request, _("Version published"))
+        self.message_user(request, _("Version published"), level=messages.SUCCESS)
         # Redirect
         return redirect(version_list_url(version.content))
 
@@ -1185,13 +1194,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
 
         version_url = version_list_url(version.content)
-        if request.POST.get("discard"):
-            ModelClass = version.content.__class__
-            deleted = version.delete()
-            if deleted[1]["last"]:
-                version_url = get_admin_url(ModelClass, "changelist")
-                self.message_user(request, _("The last version has been deleted"))
-
+        ModelClass = version.content.__class__
+        deleted = version.delete()
+        if deleted[1]["last"]:
+            version_url = get_admin_url(ModelClass, "changelist")
+            self.message_user(request, _("The last version has been deleted"), messages.SUCCESS)
+        else:
+            self.message_user(request, _("The version has been deleted."), messages.SUCCESS)
         return redirect(version_url)
 
     def compare_view(self, request, object_id):

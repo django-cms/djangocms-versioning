@@ -110,6 +110,21 @@ class Version(models.Model):
         verbose_name=_("locked by"),
         related_name="locking_users",
     )
+    visibility_start = models.DateTimeField(
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name=_("visible after"),
+        help_text=_("Leave empty for immediate public visibility"),
+    )
+
+    visibility_end = models.DateTimeField(
+        default=None,
+        blank=True,
+        null=True,
+        verbose_name=_("visible until"),
+        help_text=_("Leave empty for unrestricted public visibility"),
+    )
 
     source = models.ForeignKey(
         "self",
@@ -137,8 +152,14 @@ class Version(models.Model):
         )
 
     def short_name(self):
+        state = dict(constants.VERSION_STATES)[self.state]
+        if self.state == constants.PUBLISHED:
+            if self.visibility_start and self.visibility_start > timezone.now():
+                state = _("Pending")
+            elif self.visibility_end and self.visibility_end < timezone.now():
+                state = _("Expired")
         return _("Version #{number} ({state})").format(
-            number=self.number, state=dict(constants.VERSION_STATES)[self.state]
+            number=self.number, state=state
         )
 
     def locked_message(self):
@@ -330,7 +351,7 @@ class Version(models.Model):
     def can_be_published(self):
         return can_proceed(self._set_publish)
 
-    def publish(self, user):
+    def publish(self, user, visibility_start=None, visibility_end=None):
         """Change state to PUBLISHED and unpublish currently
         published versions"""
         # trigger pre operation signal
@@ -338,6 +359,8 @@ class Version(models.Model):
             constants.OPERATION_PUBLISH, version=self
         )
         self._set_publish(user)
+        self.visibility_start = visibility_start
+        self.visibility_end = visibility_end
         self.modified = timezone.now()
         self.save()
         StateTracking.objects.create(
@@ -382,6 +405,14 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    def is_visible(self):
+        now = timezone.now()
+        return self.state == constants.PUBLISHED and (
+            self.visibility_start is None or self.visibility_start < now
+        ) and (
+            self.visibility_end is None or self.visibility_end > now
+        )
 
     check_unpublish = Conditions([
         in_state([constants.PUBLISHED], _("Version is not in published state")),

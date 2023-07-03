@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+{% block extrahead %}{{ block.super }}
+    <script src="{% url 'admin:jsi18n' %}"></script>
+    <script src="{% static "admin/js/core.js" %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/forms.css" %}">{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<h1>{% block title %}{% translate "Publish with time limits" %}{% endblock %}</h1>
+
+<form action="" method="POST">
+    {% blocktrans %}
+        <p>You can publish with optional dates and times in the future when the content will become visible
+            and/or ceases to be visible to visitors of the site.</p>
+        <p>Once published the contents or times cannot be changed anymore.</p>
+    {% endblocktrans %}
+    {% if errors %}
+        <p class="errornote">
+        {% blocktranslate count counter=errors|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+        </p>
+    {% endif %}
+    {% csrf_token %}
+    <div>
+
+        {{ form.non_field_errors }}
+        <div class="form-row">
+            <div class="fieldBox">
+                {{ form.visibility_start.errors }}
+                <label for="{{ form.visibility_start.id_for_label }}"><b>{{ form.visibility_start.label }}</b></label>
+                {{ form.visibility_start }}
+            </div>
+            <div class="fieldBox">
+                {{ form.visibility_end.errors }}
+                <label for="{{ form.visibility_end.id_for_label }}"><b>{{ form.visibility_end.label }}</b></label>
+                {{ form.visibility_end }}
+            </div>
+        </div>
+    </div>
+    <div class="submit-row">
+        <input  class="button default"
+                type="submit"
+                value="{% translate "Publish" %}">
+    </div>
+</form>
+{% endblock %}

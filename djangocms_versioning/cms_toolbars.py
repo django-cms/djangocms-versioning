@@ -205,11 +205,13 @@ class VersioningToolbar(PlaceholderToolbar):
 
         version_menu_label = version.short_name()
         if version.visibility_start or version.visibility_end:
+            # Mark time-restricted visibility in the toolbar
             version_menu_label += "*"
 
         versioning_menu = self.toolbar.get_or_create_menu(
             VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
         )
+        # Inform about time restrictions
         if version.visibility_start:
             if version.visibility_start < timezone.now():
                 msg = gettext("Visible since %(datetime)s") % {"datetime": localize(version.visibility_start)}
@@ -227,6 +229,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 disabled=True,
             )
         if version.visibility_start or version.visibility_end:
+            # Add a break if info fields on time restrictions have been added
             versioning_menu.add_item(Break())
 
         version = version.convert_to_proxy()

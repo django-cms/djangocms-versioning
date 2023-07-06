@@ -110,7 +110,7 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
         new_title = "new slug here"
         data = {
             "title": self.content.title,
-            "slug": new_title
+            "slug": slugify(new_title),
         }
 
         request = req_factory.get("/?language=en")

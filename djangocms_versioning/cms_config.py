@@ -238,7 +238,9 @@ def copy_page_content(original_content):
                 if field.name not in (PageContent._meta.pk.name, "extended_object")
             }
             extension_fields["extended_object"] = new_content
-            field.related_model.objects.create(**extension_fields)
+            new_extension = field.related_model.objects.create(**extension_fields)
+            if callable(getattr(new_extension, 'copy_relations', None)):
+                new_extension.copy_relations(extension)
 
     return new_content
 

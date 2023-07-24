@@ -247,5 +247,7 @@ def default_copy(original_content):
                 placeholder.copy_plugins(new_placeholder)
                 new_placeholders.append(new_placeholder)
             getattr(new_content, field.name).add(*new_placeholders)
-
+        if hasattr(new_content, "copy_relations"):
+            if callable(new_content.copy_relations):
+                new_content.copy_relations()
     return new_content

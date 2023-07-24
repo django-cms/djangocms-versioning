@@ -203,8 +203,11 @@ def default_copy(original_content):
     """Copy all fields of the original content object exactly as they are
     and return a new content object which is different only in its pk.
 
-    NOTE: This will only work for very simple content objects. This will
-    throw exceptions on one2one and m2m relationships. And it might not
+    NOTE: This will only work for very simple content objects.
+
+    It copies placeholders and their plugins.
+
+    It will throw exceptions on one2one and m2m relationships. And it might not
     be the desired behaviour for some foreign keys (in some cases we
     would expect a version to copy some of its related objects as well).
     In such cases a custom copy method must be defined and specified in

@@ -261,7 +261,7 @@ def get_plugin_language(plugin):
     """Helper function to get the language from a plugin's relationships.
     Use this in plugin factory classes
     """
-    if plugin.placeholder.source:
+    if plugin.placeholder.source is not None:
         return plugin.placeholder.source.language
     # NOTE: If plugin.placeholder.source is None then language will
     # also be None unless set manually

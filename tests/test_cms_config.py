@@ -107,7 +107,7 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
 
     def test_changing_slug_changes_page_url(self):
         """Using change form to change title / slug updates path?"""
-        new_title = "new slug here"
+        new_title = "new-slug-here"
         data = {
             "title": self.content.title,
             "slug": new_title

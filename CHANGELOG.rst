@@ -6,6 +6,7 @@ Changelog
 Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
+* feat: Provide additional information about unpublished/published versions when sending signals
 
 2.0.0rc1
 ========

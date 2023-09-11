@@ -6,6 +6,7 @@ Changelog
 Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
+* fix: formatted files through ruff to fix tests
 * fix: Remove version check when evaluating CMS PageContent objects
 
 2.0.0rc1

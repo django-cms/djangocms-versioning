@@ -72,9 +72,7 @@ class VersioningToolbar(PlaceholderToolbar):
             proxy_model = self._get_proxy_model()
             version = Version.objects.get_for_content(self.toolbar.obj)
             publish_url = reverse(
-                "admin:{app}_{model}_publish".format(
-                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ),
+                f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",
                 args=(version.pk,),
             )
             item.add_button(
@@ -103,9 +101,7 @@ class VersioningToolbar(PlaceholderToolbar):
         version = Version.objects.get_for_content(self.toolbar.obj)
         if version.check_edit_redirect.as_bool(self.request.user):
             edit_url = reverse(
-                "admin:{app}_{model}_edit_redirect".format(
-                    app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ),
+                f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_edit_redirect",
                 args=(version.pk,),
             )
             pks_for_grouper = version.versionable.for_content_grouping_values(
@@ -132,9 +128,7 @@ class VersioningToolbar(PlaceholderToolbar):
             version = Version.objects.get_for_content(self.toolbar.obj)
             if version.check_unlock.as_bool(self.request.user):
                 unlock_url = reverse(
-                    "admin:{app}_{model}_unlock".format(
-                        app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                    ),
+                    f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",
                     args=(version.pk,),
                 )
                 can_unlock = self.request.user.has_perm("djangocms_versioning.delete_versionlock")
@@ -176,10 +170,7 @@ class VersioningToolbar(PlaceholderToolbar):
         version = Version.objects.get_for_content(self.toolbar.obj)
         if version.check_revert.as_bool(self.request.user):
             revert_url = reverse(
-                "admin:{app}_{model}_revert".format(
-                    app=proxy_model._meta.app_label,
-                    model=proxy_model._meta.model_name,
-                ),
+                f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_revert",
                 args=(version.pk,),
             )
             item.add_button(
@@ -218,9 +209,7 @@ class VersioningToolbar(PlaceholderToolbar):
             if version.source:
                 name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
-                url = reverse("admin:{app}_{model}_compare".format(
-                     app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                ), args=(version.source.pk,))
+                url = reverse(f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_compare", args=(version.source.pk,))
 
                 url += "?" + urlencode({
                     "compare_to": version.pk,
@@ -232,9 +221,7 @@ class VersioningToolbar(PlaceholderToolbar):
                     versioning_menu.add_item(Break())
                     versioning_menu.add_link_item(
                         _("Discard Changes"),
-                        url=reverse("admin:{app}_{model}_discard".format(
-                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                        ), args=(version.pk,))
+                        url=reverse(f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard", args=(version.pk,))
                     )
 
     def _get_published_page_version(self):

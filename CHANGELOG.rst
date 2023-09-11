@@ -6,6 +6,7 @@ Changelog
 Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
+* fix: formatted files through ruff to fix tests
 
 2.0.0rc1
 ========

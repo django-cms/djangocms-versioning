@@ -415,4 +415,3 @@ class VersioningCMSConfig(CMSAppConfig):
     cms_toolbar_mixin = CMSToolbarVersioningMixin
     PageContent.add_to_class("is_editable", indicators.is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)
-    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

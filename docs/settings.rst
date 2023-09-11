@@ -21,3 +21,12 @@ Settings for djangocms Versioning
 
     The latest version (which is not a source of a newer version) can always be
     deleted (if the user has the appropriate rights).
+
+
+.. py:attribute: DJANGOCMS_VERSIONING_LOCK_VERSIONS
+
+    Defaults to ``False``
+
+    This setting controls if draft versions are locked. If they are, only the user 
+    who created the draft can change the draft. See :ref:`locking versions` for more
+    details.

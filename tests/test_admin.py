@@ -394,9 +394,7 @@ class VersionAdminTestCase(CMSTestCase):
         )
         self.assertEqual(
             self.site._registry[Version].content_link(version),
-            '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                url=preview_url, label=version.content
-            ),
+            f'<a target="_top" class="js-close-sideframe" href="{preview_url}">{version.content}</a>',
         )
 
     def test_content_link_non_editable_object_with_preview_url(self):
@@ -2324,9 +2322,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
         # Specify English here - this should mean the version picked up
         # for the breadcrumbs is the English one, not the French one
-        url += "?page={page_id}&language=en".format(
-            page_id=str(page_content_en.page_id)
-        )
+        url += f"?page={str(page_content_en.page_id)}&language=en"
 
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
@@ -2351,9 +2347,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         page_content = factories.PageContentWithVersionFactory()
         versionable = VersioningCMSConfig.versioning[0]
         url = self.get_admin_url(versionable.version_model_proxy, "changelist")
-        url += "?title={title}&page={page_id}".format(
-            title=page_content.title, page_id=str(page_content.page_id)
-        )
+        url += f"?title={page_content.title}&page={str(page_content.page_id)}"
 
         with self.login_user_context(self.superuser):
             response = self.client.get(url)

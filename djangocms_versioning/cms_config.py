@@ -84,9 +84,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(
-                    "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(
-                        versionable
-                    )
+                    f"{versionable!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem"
                 )
             # NOTE: Do not use the cached property here as this is
             # still changing and needs to be calculated on the fly
@@ -108,9 +106,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for key, value in add_to_context.items():
             if key not in supported_keys:
                 raise ImproperlyConfigured(
-                    "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(
-                        key
-                    )
+                    f"{key!r} is not a supported dict key in the versioning_add_to_confirmation_context setting"
                 )
             if key not in self.add_to_context:
                 self.add_to_context[key] = collections.OrderedDict()
@@ -414,4 +410,3 @@ class VersioningCMSConfig(CMSAppConfig):
     cms_toolbar_mixin = CMSToolbarVersioningMixin
     PageContent.add_to_class("is_editable", indicators.is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)
-    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

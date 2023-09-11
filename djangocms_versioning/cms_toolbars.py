@@ -209,7 +209,10 @@ class VersioningToolbar(PlaceholderToolbar):
             if version.source:
                 name = _("Compare to {source}").format(source=_(version.source.short_name()))
                 proxy_model = self._get_proxy_model()
-                url = reverse(f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_compare", args=(version.source.pk,))
+                url = reverse(
+                    f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_compare",
+                    args=(version.source.pk,)
+                )
 
                 url += "?" + urlencode({
                     "compare_to": version.pk,
@@ -221,7 +224,10 @@ class VersioningToolbar(PlaceholderToolbar):
                     versioning_menu.add_item(Break())
                     versioning_menu.add_link_item(
                         _("Discard Changes"),
-                        url=reverse(f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard", args=(version.pk,))
+                        url=reverse(
+                            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard",
+                            args=(version.pk,)
+                        )
                     )
 
     def _get_published_page_version(self):

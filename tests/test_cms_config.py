@@ -107,10 +107,10 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
 
     def test_changing_slug_changes_page_url(self):
         """Using change form to change title / slug updates path?"""
-        new_title = "new slug here"
+        new_slug = "new-slug-here"
         data = {
             "title": self.content.title,
-            "slug": new_title
+            "slug": new_slug
         }
 
         request = req_factory.get("/?language=en")
@@ -125,8 +125,8 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
         page = Page.objects.get(pk=self.page.pk)
         url = page.get_urls().first()
 
-        self.assertEqual(url.slug, slugify(new_title))
-        self.assertEqual(url.path, slugify(new_title))
+        self.assertEqual(url.slug, new_slug)
+        self.assertEqual(url.path, new_slug)
 
 
 class VersioningExtensionUnitTestCase(CMSTestCase):

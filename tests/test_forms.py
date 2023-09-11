@@ -67,10 +67,7 @@ class GrouperFormTestCase(CMSTestCase):
         )
         version.publish(version.created_by)
         form_class = grouper_form_factory(PageContent, version.content.language)
-        label = "{title} (/{path}/)".format(
-            title=version.content.title,
-            path=version.content.page.get_path(version.content.language),
-        )
+        label = f"{version.content.title} (/{version.content.page.get_path(version.content.language)}/)"
         self.assertIn(
             (version.content.page.pk, label), form_class.base_fields["page"].choices
         )

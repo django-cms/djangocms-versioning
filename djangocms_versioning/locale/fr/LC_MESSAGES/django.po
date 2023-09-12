@@ -2,10 +2,11 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # Translators:
 # François Palmier <fp@kapt.mobi>, 2023
-#
+# Frédéric Roland, 2023
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -13,14 +14,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-05-05 17:59+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
-"Last-Translator: François Palmier <fp@kapt.mobi>, 2023\n"
-"Language-Team: French (https://www.transifex.com/divio/teams/58664/fr/)\n"
-"Language: fr\n"
+"Last-Translator: Frédéric Roland, 2023\n"
+"Language-Team: French (https://app.transifex.com/divio/teams/58664/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % "
-"1000000 == 0 ? 1 : 2;\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #: admin.py:164 admin.py:301 admin.py:383
 msgid "State"
@@ -60,7 +60,7 @@ msgstr "Contenu"
 
 #: admin.py:649
 msgid "locked"
-msgstr ""
+msgstr "verrouillé"
 
 #: admin.py:679 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
@@ -77,10 +77,8 @@ msgid "Unpublish"
 msgstr "Dépublier"
 
 #: admin.py:760 cms_toolbars.py:121
-#, fuzzy
-#| msgid "Draft"
 msgid "New Draft"
-msgstr "Brouillon"
+msgstr "Nouveau Brouillon"
 
 #: admin.py:783 cms_toolbars.py:188
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
@@ -93,7 +91,7 @@ msgstr "Rejeter"
 
 #: admin.py:829 cms_toolbars.py:153
 msgid "Unlock"
-msgstr ""
+msgstr "Déverrouiller"
 
 #: admin.py:856
 msgid "Exactly two versions need to be selected."
@@ -136,16 +134,12 @@ msgid "The last version has been deleted"
 msgstr "La dernière version a été supprimée"
 
 #: admin.py:1255
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have permission to remove the version lock"
-msgstr "Vous n'avez pas la permission de copier ces plugins."
+msgstr "Vous n'avez pas la permission de retirer le verrouillage de version"
 
 #: admin.py:1260
-#, fuzzy
-#| msgid "Version unpublished"
 msgid "Version unlocked"
-msgstr "Version non publiée"
+msgstr "Version déverrouillée"
 
 #: admin.py:1309
 #, python-brace-format
@@ -177,16 +171,13 @@ msgid "Manage Versions"
 msgstr "Gérer les versions"
 
 #: cms_toolbars.py:221
-#, fuzzy, python-brace-format
-#| msgid "Compare to {state} source"
+#, python-brace-format
 msgid "Compare to {source}"
-msgstr "Comparer avec la source {state}"
+msgstr "Comparer à {source}"
 
 #: cms_toolbars.py:236 indicators.py:73
-#, fuzzy
-#| msgid "Discard"
 msgid "Discard Changes"
-msgstr "Rejeter"
+msgstr "Abandonner les modifications"
 
 #: cms_toolbars.py:271
 msgid "View Published"
@@ -236,12 +227,12 @@ msgstr "Modifié"
 
 #: emails.py:38
 msgid "Unlocked"
-msgstr ""
+msgstr "Déverrouillée"
 
 #: indicators.py:35
 #, python-format
 msgid "Unlock (%(message)s)"
-msgstr ""
+msgstr "Déverrouiller (%(message)s)"
 
 #: indicators.py:47
 msgid "Create new draft"
@@ -270,18 +261,16 @@ msgstr "La version n'est pas un brouillon"
 #: models.py:32
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
-msgstr ""
+msgstr "Action Refusée. La dernière version est verrouillée par {user}"
 
 #: models.py:33
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
-msgstr ""
+msgstr "Action Refusée. Le brouillon est verrouillé par {user}"
 
 #: models.py:88
-#, fuzzy
-#| msgid "Create new draft"
 msgid "Created"
-msgstr "Créer un brouillon"
+msgstr "Créée"
 
 #: models.py:91
 msgid "author"
@@ -293,7 +282,7 @@ msgstr "statut"
 
 #: models.py:108
 msgid "locked by"
-msgstr ""
+msgstr "verrouillée par"
 
 #: models.py:117
 msgid "source"
@@ -312,7 +301,7 @@ msgstr "Version #{number} ({state})"
 #: models.py:144
 #, python-format
 msgid "Locked by %(user)s"
-msgstr ""
+msgstr "Verrouillée par %(user)s"
 
 #: models.py:276 models.py:325
 msgid "Version is not in draft state"
@@ -331,16 +320,12 @@ msgid "Version is not in draft or published state"
 msgstr "La version n'est pas en brouillon ou publiée"
 
 #: models.py:465
-#, fuzzy
-#| msgid "Version archived"
 msgid "Version is already locked"
-msgstr "Version archivée"
+msgstr "La version  est déjà verrouillée"
 
 #: models.py:471
-#, fuzzy
-#| msgid "Version is not a draft"
 msgid "Draft version is not locked"
-msgstr "La version n'est pas un brouillon"
+msgstr "Le brouillon n'est pas verrouillé"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9
@@ -507,17 +492,14 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
-
-#~ msgid "actions"
-#~ msgstr "actions"
-
-#~ msgid "version number"
-#~ msgstr "numéro de version"
-
-#~ msgid "Delete Changes"
-#~ msgstr "Supprimer les changements"
+"\n"
+"Le brouillon suivant a été déverrouillé par %(by_user)s pour son usage.\n"
+"%(version_link)s\n"
+"\n"
+"Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes prié de contacter %(by_user)s en cas de soucis.\n"
+"\n"
+"C'est une notification automatique de Django CMS.\n"

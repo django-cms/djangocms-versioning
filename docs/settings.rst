@@ -23,10 +23,10 @@ Settings for djangocms Versioning
     deleted (if the user has the appropriate rights).
 
 
-.. py:attribute: DJANGOCMS_VERSIONING_LOCK_VERSIONS
+.. py:attribute:: DJANGOCMS_VERSIONING_LOCK_VERSIONS
 
     Defaults to ``False``
 
-    This setting controls if draft versions are locked. If they are, only the user 
-    who created the draft can change the draft. See :ref:`locking versions` for more
-    details.
+    This setting controls if draft versions are locked. If they are, only the user
+    who created the draft can change the draft. See
+    :ref:`Locking versions <locking-versions>` for more details.

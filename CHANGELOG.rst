@@ -7,6 +7,8 @@ Unreleased
 ==========
 * feat: Reversable generic foreign key lookup from version
 * feat: Provide additional information about unpublished/published versions when sending signals
+* fix: formatted files through ruff to fix tests
+* fix: Remove version check when evaluating CMS PageContent objects
 
 2.0.0rc1
 ========

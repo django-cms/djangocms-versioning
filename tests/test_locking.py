@@ -549,9 +549,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
             title=draft_version.content,
             description=_("Unlocked"),
         )
-        expected_body = "The following draft version has been unlocked by {by_user} for their use.".format(
-            by_user=self.user_has_unlock_perms
-        )
+        expected_body = f"The following draft version has been unlocked by {self.user_has_unlock_perms} for their use."
         expected_version_url = get_full_url(
             get_object_preview_url(draft_version.content)
         )
@@ -600,9 +598,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         with self.login_user_context(user):
             self.client.post(draft_unlock_url, follow=True)
 
-        expected_body = "The following draft version has been unlocked by {by_user} for their use.".format(
-            by_user=user.get_full_name()
-        )
+        expected_body = f"The following draft version has been unlocked by {user.get_full_name()} for their use."
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(expected_body, mail.outbox[0].body)
@@ -623,9 +619,7 @@ class VersionLockNotificationEmailsTestCase(CMSTestCase):
         with self.login_user_context(user):
             self.client.post(draft_unlock_url, follow=True)
 
-        expected_body = "The following draft version has been unlocked by {by_user} for their use.".format(
-            by_user=user.username
-        )
+        expected_body = f"The following draft version has been unlocked by {user.username} for their use."
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(expected_body, mail.outbox[0].body)
@@ -813,9 +807,7 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         toolbar = get_toolbar(version.content, user=self.get_superuser(), content_mode=True)
         proxy_model = toolbar._get_proxy_model()
         expected_unlock_url = reverse(
-            "admin:{app}_{model}_unlock".format(
-                app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-            ),
+            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",
             args=(version.pk,),
         )
         toolbar.post_template_populate()

@@ -89,9 +89,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     if versionable.version_model_proxy in admin_site._registry:
         # Attempting to register the proxy again is a no-op.
         warnings.warn(
-            "{!r} is already registered with admin.".format(
-                versionable.version_model_proxy
-            ),
+            f"{versionable.version_model_proxy!r} is already registered with admin.",
             UserWarning,
             stacklevel=2
         )
@@ -181,9 +179,7 @@ def _version_list_url(versionable, **params):
     proxy = versionable.version_model_proxy
     return add_url_parameters(
         admin_reverse(
-            "{app}_{model}_changelist".format(
-                app=proxy._meta.app_label, model=proxy._meta.model_name
-            )
+            f"{proxy._meta.app_label}_{proxy._meta.model_name}_changelist"
         ),
         **params
     )
@@ -238,9 +234,7 @@ def get_editable_url(content_obj):
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(
-            "{app}_{model}_change".format(
-                app=content_obj._meta.app_label, model=content_obj._meta.model_name
-            ),
+            f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=(content_obj.pk,),
         )
     return url
@@ -274,9 +268,7 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
         # Or else, the standard change view should be used
     else:
         url = admin_reverse(
-            "{app}_{model}_change".format(
-                app=content_obj._meta.app_label, model=content_obj._meta.model_name
-            ),
+            f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=[content_obj.pk],
         )
         if language:

@@ -156,9 +156,11 @@ object. This will ensure that only published objects are visible to the public.
 In some situations, namely when working in the admin, it is helpful to also have
 other content objects available, e.g. when linking to a not-yet-published object.
 
-Verisoned objects therefore also have an additional manager ``admin_manager``
+Versioned objects therefore also have an additional manager ``admin_manager``
 which can access all objects. To get all draft blog posts, you can write
-``PostContent.admin_manager.filter(versions__state=DRAFT)``.
+``PostContent.admin_manager.filter(versions__state=DRAFT)``. Since the
+``admin_manager`` has access to non-public information it should only be
+used inside the Django admin (hence its name).
 
 
 Implement a custom copy function

@@ -287,7 +287,7 @@ def remove_published_where(queryset):
     that are published are returned. If you need to return the full queryset
     use the "admin_manager" instead of "objects"
     """
-    raise NotImplementedError("remove_published_where has beenreplaced by ContentObj.admin_manager")
+    raise NotImplementedError("remove_published_where has been replaced by ContentObj.admin_manager")
 
 
 def get_latest_admin_viewable_content(

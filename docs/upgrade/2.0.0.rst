@@ -75,6 +75,13 @@ Monkey patching
 * As a result monkey patching has been removed from djangocms-versioning and
   is discouraged
 
+Accessing helper functions
+--------------------------
+* Direct imports from djangocms_versioning are discouraged. They block drop-in
+  replacements of djangocms_versioning.
+* ``djangocms_verisoning.helpers.remove_published_where`` has been removed.
+  Use the ``admin_manager`` of a verisoned content object instead.
+
 Title Extension
 ---------------
 

@@ -13,13 +13,12 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 from django.db import models
-from django.db.models.sql.where import WhereNode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change

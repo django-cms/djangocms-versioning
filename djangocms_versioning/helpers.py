@@ -13,13 +13,12 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 from django.db import models
-from django.db.models.sql.where import WhereNode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -286,23 +285,9 @@ def remove_published_where(queryset):
     """
     By default, the versioned queryset filters out so that only versions
     that are published are returned. If you need to return the full queryset
-    this method can be used.
-
-    It will modify the sql to remove `where state = 'published'`
+    use the "admin_manager" instead of "objects"
     """
-    where_children = queryset.query.where.children
-    all_except_published = [
-        lookup for lookup in where_children
-        if not (
-            lookup.lookup_name == "exact" and
-            lookup.rhs == PUBLISHED and
-            lookup.lhs.field.name == "state"
-        )
-    ]
-
-    queryset.query.where = WhereNode()
-    queryset.query.where.children = all_except_published
-    return queryset
+    raise NotImplementedError("remove_published_where has been replaced by ContentObj.admin_manager")
 
 
 def get_latest_admin_viewable_content(

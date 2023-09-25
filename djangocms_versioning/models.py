@@ -398,7 +398,7 @@ class Version(models.Model):
         """Change state to UNPUBLISHED"""
         # trigger pre operation signal
         action_token = send_pre_version_operation(
-            constants.OPERATION_UNPUBLISH, version=self
+            constants.OPERATION_UNPUBLISH, version=self, to_be_published=to_be_published
         )
         self._set_unpublish(user)
         self.modified = timezone.now()

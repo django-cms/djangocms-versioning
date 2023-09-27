@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from cms.extensions.extension_pool import ExtensionPool
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.urlutils import admin_reverse
@@ -63,9 +65,12 @@ class ExtensionTestCase(CMSTestCase):
         page_content = self.version.content
         poll_extension = PollTitleExtensionFactory(extended_object=page_content)
         poll_extension.votes = 5
+        poll_extension.save()
 
-        new_pagecontent = copy_page_content(page_content)
+        with patch("cms.extensions.PageContentExtension.copy_relations") as mock:
+            new_pagecontent = copy_page_content(page_content)
 
+        mock.assert_called_once()
         self.assertNotEqual(new_pagecontent.pollpagecontentextension, poll_extension)
         self.assertEqual(page_content.pollpagecontentextension.pk, poll_extension.pk)
         self.assertNotEqual(page_content.pollpagecontentextension.pk, new_pagecontent.pollpagecontentextension.pk)
@@ -89,6 +94,7 @@ class ExtensionTestCase(CMSTestCase):
         page_content = self.version.content
         poll_extension = PollTitleExtensionFactory(extended_object=page_content)
         poll_extension.votes = 5
+        poll_extension.save()  # Needs to be in the db for copy method of core to work
         title_extension = TestTitleExtensionFactory(extended_object=page_content)
 
         new_pagecontent = copy_page_content(page_content)

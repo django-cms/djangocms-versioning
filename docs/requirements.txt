@@ -1,0 +1,4 @@
+sphinx
+sphinxcontrib-spelling
+sphinx-copybutton
+furo

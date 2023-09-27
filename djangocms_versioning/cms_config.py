@@ -1,6 +1,7 @@
 import collections
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.extensions.models import BaseExtension
 from cms.models import PageContent, Placeholder
 from cms.utils import get_language_from_request
 from cms.utils.i18n import get_language_list, get_language_tuple
@@ -83,9 +84,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for versionable in cms_config.versioning:
             if not isinstance(versionable, BaseVersionableItem):
                 raise ImproperlyConfigured(
-                    "{!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem".format(
-                        versionable
-                    )
+                    f"{versionable!r} is not a subclass of djangocms_versioning.datastructures.BaseVersionableItem"
                 )
             # NOTE: Do not use the cached property here as this is
             # still changing and needs to be calculated on the fly
@@ -107,9 +106,7 @@ class VersioningCMSExtension(CMSAppExtension):
         for key, value in add_to_context.items():
             if key not in supported_keys:
                 raise ImproperlyConfigured(
-                    "{!r} is not a supported dict key in the versioning_add_to_confirmation_context setting".format(
-                        key
-                    )
+                    f"{key!r} is not a supported dict key in the versioning_add_to_confirmation_context setting"
                 )
             if key not in self.add_to_context:
                 self.add_to_context[key] = collections.OrderedDict()
@@ -228,17 +225,12 @@ def copy_page_content(original_content):
         new_placeholders.append(new_placeholder)
     new_content.placeholders.add(*new_placeholders)
 
-    # If pagecontent has an associated title or page extension, also copy this!
+    # If pagecontent has an associated content or page extension, also copy this!
     for field in PageContent._meta.related_objects:
         if hasattr(original_content, field.name):
             extension = getattr(original_content, field.name)
-            extension_fields = {
-                field.name: getattr(extension, field.name)
-                for field in extension._meta.fields
-                if field.name not in (PageContent._meta.pk.name, "extended_object")
-            }
-            extension_fields["extended_object"] = new_content
-            field.related_model.objects.create(**extension_fields)
+            if isinstance(extension, BaseExtension):
+                extension.copy(new_content, new_content.language)
 
     return new_content
 
@@ -262,7 +254,6 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-
 
 def on_page_content_unpublish(version):
     """Url path and cache operations to do when a PageContent obj is unpublished"""
@@ -419,4 +410,3 @@ class VersioningCMSConfig(CMSAppConfig):
     cms_toolbar_mixin = CMSToolbarVersioningMixin
     PageContent.add_to_class("is_editable", indicators.is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)
-    PageContent.add_to_class("__bool__", lambda self: self.versions.exists())

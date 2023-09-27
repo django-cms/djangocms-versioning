@@ -4,7 +4,7 @@
 2.0.0 release notes (unreleased)
 ********************************
 
-*Date in 2023*
+*October 2023*
 
 Welcome to django CMS versioning 2.0.0!
 
@@ -55,6 +55,14 @@ object nor the grouper object can be deleted. To allow deletion of ``Version``
 objects set ``DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS`` to ``True`` in
 the project's ``settings.py``.
 
+Version-locking
+---------------
+
+Previously a separate package, djangocms-version-locking has now been included
+in djangocms-versioning. Upon setting ``DJANGOCMS_VERSIONING_LOCK_VERSIONS`` to
+``True``, draft versions will be locked by default and can only be edited by
+the person who created the draft. This is to avoid conflicts in certain
+editorial situations.
 
 Backwards incompatible changes in 2.0.0
 =======================================
@@ -66,6 +74,13 @@ Monkey patching
   therefor is incompatible with versions 4.0.x
 * As a result monkey patching has been removed from djangocms-versioning and
   is discouraged
+
+Accessing helper functions
+--------------------------
+* Direct imports from djangocms_versioning are discouraged. They block drop-in
+  replacements of djangocms_versioning.
+* ``djangocms_verisoning.helpers.remove_published_where`` has been removed.
+  Use the ``admin_manager`` of a verisoned content object instead.
 
 Title Extension
 ---------------

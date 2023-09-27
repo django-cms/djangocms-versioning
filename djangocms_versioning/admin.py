@@ -462,9 +462,7 @@ class ExtendedVersionAdminMixin(
             disabled = True
 
         url = reverse(
-            "admin:{app}_{model}_edit_redirect".format(
-                app=version._meta.app_label, model=version._meta.model_name
-            ),
+            f"admin:{version._meta.app_label}_{version._meta.model_name}_edit_redirect",
             args=(version.pk,),
         )
         return self.admin_action_button(
@@ -677,9 +675,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Don't display the link if it can't be archived
             return ""
         archive_url = reverse(
-            "admin:{app}_{model}_archive".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_archive",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -697,9 +693,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Don't display the link if it can't be published
             return ""
         publish_url = reverse(
-            "admin:{app}_{model}_publish".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_publish",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -719,9 +713,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Don't display the link if it can't be unpublished
             return ""
         unpublish_url = reverse(
-            "admin:{app}_{model}_unpublish".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_unpublish",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -758,9 +750,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         keepsideframe = obj.versionable.content_model_is_sideframe_editable
 
         edit_url = reverse(
-            "admin:{app}_{model}_edit_redirect".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_edit_redirect",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -781,9 +771,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return ""
 
         revert_url = reverse(
-            "admin:{app}_{model}_revert".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_revert",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -802,9 +790,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return ""
 
         discard_url = reverse(
-            "admin:{app}_{model}_discard".format(
-                app=obj._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_discard",
             args=(obj.pk,),
         )
         return self.admin_action_button(
@@ -829,9 +815,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if request.user.has_perm("djangocms_versioning.delete_versionlock"):
             disabled = False
 
-        unlock_url = reverse("admin:{app}_{model}_unlock".format(
-            app=obj._meta.app_label, model=self.model._meta.model_name,
-        ), args=(obj.pk,))
+        unlock_url = reverse(f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_unlock", args=(obj.pk,))
         return self.admin_action_button(
             unlock_url,
             icon="unlock",
@@ -885,9 +869,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         # Build the link for the version comparison of the two selected versions
         url = reverse(
-            "admin:{app}_{model}_compare".format(
-                app=self.model._meta.app_label, model=self.model._meta.model_name
-            ),
+            f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_compare",
             args=(queryset[0].pk,),
         )
         url += "?compare_to=%d" % queryset[1].pk
@@ -947,10 +929,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "version_number": version.number,
                 "object_id": object_id,
                 "archive_url": reverse(
-                    "admin:{app}_{model}_archive".format(
-                        app=self.model._meta.app_label,
-                        model=self.model._meta.model_name,
-                    ),
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_archive",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),
@@ -1027,10 +1006,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "version_number": version.number,
                 "object_id": object_id,
                 "unpublish_url": reverse(
-                    "admin:{app}_{model}_unpublish".format(
-                        app=self.model._meta.app_label,
-                        model=self.model._meta.model_name,
-                    ),
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_unpublish",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),
@@ -1145,10 +1121,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "draft_version": draft_version,
                 "object_id": object_id,
                 "revert_url": reverse(
-                    "admin:{app}_{model}_revert".format(
-                        app=self.model._meta.app_label,
-                        model=self.model._meta.model_name,
-                    ),
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_revert",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),
@@ -1187,10 +1160,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "draft_version": version,
                 "object_id": object_id,
                 "revert_url": reverse(
-                    "admin:{app}_{model}_revert".format(
-                        app=self.model._meta.app_label,
-                        model=self.model._meta.model_name,
-                    ),
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_revert",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),

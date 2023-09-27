@@ -13,13 +13,12 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
 from django.db import models
-from django.db.models.sql.where import WhereNode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT, PUBLISHED
+from .constants import DRAFT
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -89,9 +88,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
     if versionable.version_model_proxy in admin_site._registry:
         # Attempting to register the proxy again is a no-op.
         warnings.warn(
-            "{!r} is already registered with admin.".format(
-                versionable.version_model_proxy
-            ),
+            f"{versionable.version_model_proxy!r} is already registered with admin.",
             UserWarning,
             stacklevel=2
         )
@@ -181,9 +178,7 @@ def _version_list_url(versionable, **params):
     proxy = versionable.version_model_proxy
     return add_url_parameters(
         admin_reverse(
-            "{app}_{model}_changelist".format(
-                app=proxy._meta.app_label, model=proxy._meta.model_name
-            )
+            f"{proxy._meta.app_label}_{proxy._meta.model_name}_changelist"
         ),
         **params
     )
@@ -238,9 +233,7 @@ def get_editable_url(content_obj):
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(
-            "{app}_{model}_change".format(
-                app=content_obj._meta.app_label, model=content_obj._meta.model_name
-            ),
+            f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=(content_obj.pk,),
         )
     return url
@@ -274,9 +267,7 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
         # Or else, the standard change view should be used
     else:
         url = admin_reverse(
-            "{app}_{model}_change".format(
-                app=content_obj._meta.app_label, model=content_obj._meta.model_name
-            ),
+            f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=[content_obj.pk],
         )
         if language:
@@ -294,23 +285,9 @@ def remove_published_where(queryset):
     """
     By default, the versioned queryset filters out so that only versions
     that are published are returned. If you need to return the full queryset
-    this method can be used.
-
-    It will modify the sql to remove `where state = 'published'`
+    use the "admin_manager" instead of "objects"
     """
-    where_children = queryset.query.where.children
-    all_except_published = [
-        lookup for lookup in where_children
-        if not (
-            lookup.lookup_name == "exact" and
-            lookup.rhs == PUBLISHED and
-            lookup.lhs.field.name == "state"
-        )
-    ]
-
-    queryset.query.where = WhereNode()
-    queryset.query.where.children = all_except_published
-    return queryset
+    raise NotImplementedError("remove_published_where has been replaced by ContentObj.admin_manager")
 
 
 def get_latest_admin_viewable_content(

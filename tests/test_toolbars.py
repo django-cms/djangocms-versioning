@@ -330,9 +330,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
 
-        expected_label = "Version #{number} ({state})".format(
-            number=version.number, state=dict(VERSION_STATES)[version.state]
-        )
+        expected_label = f"Version #{version.number} ({dict(VERSION_STATES)[version.state]})"
 
         self.assertEqual(expected_label, version_menu.name)
 

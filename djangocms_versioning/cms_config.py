@@ -1,6 +1,7 @@
 import collections
 
 from cms.app_base import CMSAppConfig, CMSAppExtension
+from cms.extensions.models import BaseExtension
 from cms.models import PageContent, Placeholder
 from cms.utils import get_language_from_request
 from cms.utils.i18n import get_language_list, get_language_tuple
@@ -224,17 +225,12 @@ def copy_page_content(original_content):
         new_placeholders.append(new_placeholder)
     new_content.placeholders.add(*new_placeholders)
 
-    # If pagecontent has an associated title or page extension, also copy this!
+    # If pagecontent has an associated content or page extension, also copy this!
     for field in PageContent._meta.related_objects:
         if hasattr(original_content, field.name):
             extension = getattr(original_content, field.name)
-            extension_fields = {
-                field.name: getattr(extension, field.name)
-                for field in extension._meta.fields
-                if field.name not in (PageContent._meta.pk.name, "extended_object")
-            }
-            extension_fields["extended_object"] = new_content
-            field.related_model.objects.create(**extension_fields)
+            if isinstance(extension, BaseExtension):
+                extension.copy(new_content, new_content.language)
 
     return new_content
 
@@ -258,7 +254,6 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
-
 
 def on_page_content_unpublish(version):
     """Url path and cache operations to do when a PageContent obj is unpublished"""

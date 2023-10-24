@@ -7,7 +7,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sqlite-unit-tests:
+  sqlite:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -39,7 +39,7 @@ jobs:
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
 
-  postgres-unit-tests:
+  postgres:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -85,7 +85,7 @@ jobs:
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
 
-  mysql-unit-tests:
+  mysql:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

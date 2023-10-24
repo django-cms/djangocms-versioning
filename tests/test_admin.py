@@ -440,6 +440,14 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.versionable = PollsCMSConfig.versioning[0]
         self.version_admin = admin.site._registry[self.versionable.version_model_proxy]
 
+
+    def test_get_preview_url(self):
+        content = factories.PollContentWithVersionFactory(language="fr")
+        self.assertEqual(
+            helpers.get_preview_url(content, language="en"),
+            helpers.get_preview_url(content, language="fr"),
+        )
+
     def test_edit_action_link_enabled_state(self):
         """
         The edit action is active, a user can follow a link
@@ -3072,3 +3080,4 @@ class ListActionsTestCase(CMSTestCase):
             response = self.client.get(changelist + "?back=/hijack_url")
             self.assertNotContains(response, "hijack_url")
             self.assertContains(response, version_list_url(version.content))
+

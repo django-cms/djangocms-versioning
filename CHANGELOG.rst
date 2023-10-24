@@ -5,6 +5,7 @@ Changelog
 
 Unreleased
 ==========
+* fix: Add keyword arguments in VersionAdminMixin render_change_form
 * feat: Reversable generic foreign key lookup from version
 * fix: formatted files through ruff to fix tests
 * fix: Remove version check when evaluating CMS PageContent objects

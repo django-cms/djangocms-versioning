@@ -33,7 +33,7 @@ from django.urls import Resolver404, path, resolve, reverse
 from django.utils.encoding import force_str
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, get_language
 
 from . import conf, versionables
 from .constants import DRAFT, INDICATOR_DESCRIPTIONS, PUBLISHED, VERSION_STATES
@@ -1177,13 +1177,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             get_cms_setting("CMS_TOOLBAR_URL__DISABLE"): 1,
             get_cms_setting("CMS_TOOLBAR_URL__PERSIST"): 0,
         }
-        v1_preview_url = add_url_parameters(
-            reverse(
-                "admin:cms_placeholder_render_object_preview",
-                args=(v1.content_type_id, v1.object_id),
-            ),
-            **persist_params
-        )
+        v1_preview_url = get_preview_url(v1.content)
+        v1_preview_url = add_url_parameters(v1_preview_url, **persist_params)
         # Get the list of versions for the grouper. This is for use
         # in the dropdown to choose a version.
         version_list = Version.objects.filter_by_content_grouping_values(
@@ -1206,16 +1201,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                     request, self.model._meta, request.GET["compare_to"]
                 )
             else:
+                v2_preview_url = get_preview_url(v2.content)
+                v2_preview_url = add_url_parameters(v2_preview_url, **persist_params)
                 context.update(
                     {
                         "v2": v2,
-                        "v2_preview_url": add_url_parameters(
-                            reverse(
-                                "admin:cms_placeholder_render_object_preview",
-                                args=(v2.content_type_id, v2.object_id),
-                            ),
-                            **persist_params
-                        ),
+                        "v2_preview_url": add_url_parameters(v2_preview_url, **persist_params),
                     }
                 )
         return TemplateResponse(

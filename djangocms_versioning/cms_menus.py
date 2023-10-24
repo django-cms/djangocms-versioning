@@ -94,7 +94,7 @@ class CMSMenu(Menu):
 
         # Depending on the toolbar mode, we need to get the correct version.
         # On edit or preview mode: return DRAFT,
-        # if DRAFT does not exists then return PUBLISHED.
+        # if DRAFT does not exist then return PUBLISHED.
         # On public mode: return PUBLISHED.
         if edit_or_preview:
             states = [constants.DRAFT, constants.PUBLISHED]

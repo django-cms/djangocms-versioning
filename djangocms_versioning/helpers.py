@@ -15,6 +15,7 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
+from django.utils.translation import get_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
@@ -263,6 +264,9 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
     if versionable.preview_url:
         return versionable.preview_url(content_obj)
     if is_editable_model(content_obj.__class__):
+        if not language:
+            # Use language field is content object has one to determine the language
+            language = getattr(content_obj, "language", get_language())
         url = get_object_preview_url(content_obj, language=language)
         # Or else, the standard change view should be used
     else:

@@ -388,10 +388,7 @@ class VersionAdminTestCase(CMSTestCase):
         The link returned is the change url for an editable object
         """
         version = factories.PageVersionFactory(content__title="mypage")
-        preview_url = admin_reverse(
-            "cms_placeholder_render_object_preview",
-            args=(version.content_type_id, version.object_id),
-        )
+        preview_url = helpers.get_preview_url(version.content)
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             f'<a target="_top" class="js-close-sideframe" href="{preview_url}">{version.content}</a>',
@@ -432,7 +429,7 @@ class VersionAdminTestCase(CMSTestCase):
             self.assertEqual(
                 self.site._registry[Version].content_link(version),
                 '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content),
+                    url=get_object_preview_url(version.content, language=version.content.language),
                     label=version.content
                 ),
             )
@@ -2019,10 +2016,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v1", context)
         self.assertEqual(context["v1"], versions[0])
         self.assertIn("v1_preview_url", context)
-        v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
-        )
+        v1_preview_url = helpers.get_preview_url(versions[0].content)
         parsed = urlparse(context["v1_preview_url"])
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
@@ -2074,10 +2068,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v1", context)
         self.assertEqual(context["v1"], versions[0])
         self.assertIn("v1_preview_url", context)
-        v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
-        )
+        v1_preview_url = helpers.get_preview_url(versions[0].content)
         parsed = urlparse(context["v1_preview_url"])
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
@@ -2087,10 +2078,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v2", context)
         self.assertEqual(context["v2"], versions[1])
         self.assertIn("v2_preview_url", context)
-        v2_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[1].content_type_id, versions[1].object_id),
-        )
+        v2_preview_url = helpers.get_preview_url(versions[1].content)
         parsed = urlparse(context["v2_preview_url"])
         self.assertEqual(parsed.path, v2_preview_url)
         self.assertEqual(

@@ -1206,7 +1206,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 context.update(
                     {
                         "v2": v2,
-                        "v2_preview_url": add_url_parameters(v2_preview_url, **persist_params),
+                        "v2_preview_url": v2_preview_url,
                     }
                 )
         return TemplateResponse(

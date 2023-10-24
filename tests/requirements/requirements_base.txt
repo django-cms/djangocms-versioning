@@ -2,9 +2,8 @@ beautifulsoup4
 coverage
 django-app-helper
 factory-boy
-flake8
+ruff
 freezegun
-isort
 lxml
 mock
 pillow

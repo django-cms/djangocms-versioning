@@ -25,6 +25,7 @@ from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.timezone import now
+from django.utils.translation import override
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -426,13 +427,14 @@ class VersionAdminTestCase(CMSTestCase):
         """
         version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
-            self.assertEqual(
-                self.site._registry[Version].content_link(version),
-                '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content, language=version.content.language),
-                    label=version.content
-                ),
-            )
+            with override(version.content.language):
+                self.assertEqual(
+                    self.site._registry[Version].content_link(version),
+                    '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
+                        url=get_object_preview_url(version.content, language=version.content.language),
+                        label=version.content
+                    ),
+                )
 
 
 class VersionAdminActionsTestCase(CMSTestCase):

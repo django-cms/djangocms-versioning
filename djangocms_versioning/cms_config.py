@@ -35,7 +35,7 @@ from .helpers import (
     placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
-    replace_manager,
+    replace_manager, is_editable,
 )
 from .managers import AdminManagerMixin, PublishedContentManagerMixin
 from .models import Version
@@ -408,5 +408,5 @@ class VersioningCMSConfig(CMSAppConfig):
         )
     ]
     cms_toolbar_mixin = CMSToolbarVersioningMixin
-    PageContent.add_to_class("is_editable", indicators.is_editable)
+    PageContent.add_to_class("is_editable", is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)

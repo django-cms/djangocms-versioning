@@ -32,10 +32,11 @@ from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
+    is_editable,
     placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
-    replace_manager, is_editable,
+    replace_manager,
 )
 from .managers import AdminManagerMixin, PublishedContentManagerMixin
 from .models import Version

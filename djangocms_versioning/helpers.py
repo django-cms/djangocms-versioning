@@ -15,7 +15,6 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
-from django.utils.translation import get_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY

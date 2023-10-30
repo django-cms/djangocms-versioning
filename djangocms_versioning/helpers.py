@@ -28,7 +28,9 @@ except ImportError:
 
 def is_editable(content_obj, request):
     """Check of content_obj is editable"""
-    return content_obj.versions.first().check_modify.as_bool(request.user)
+    from .models import Version
+
+    return Version.objects.get_for_content(content_obj).check_modify.as_bool(request.user)
 
 
 def versioning_admin_factory(admin_class, mixin):

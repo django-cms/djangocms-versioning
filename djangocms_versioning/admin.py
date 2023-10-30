@@ -949,19 +949,34 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
-            return redirect(version_list_url(version.content))
+            return redirect(get_preview_url(version.content))
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(version_list_url(version.content))
+            return redirect(get_preview_url(version.content))
 
         # Publish the version
         version.publish(request.user)
+
         # Display message
         self.message_user(request, _("Version published"))
+
         # Redirect
-        return redirect(version_list_url(version.content))
+        redirect_url = version_list_url(version.content)
+        if conf.ON_PUBLISH_REDIRECT == "published":
+            if hasattr(version.content, "get_absolute_url"):
+                redirect_url = version.content.get_absolute_url()
+                if not redirect_url:
+                    # Empty?
+                    redirect_url = get_preview_url(version.content)
+            else:
+                # Not available, take preview url
+                redirect_url = get_preview_url(version.content)
+        elif conf.ON_PUBLISH_REDIRECT == "preview":
+            redirect_url = get_preview_url(version.content)
+
+        return redirect(redirect_url)
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the

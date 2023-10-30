@@ -74,6 +74,22 @@ class BaseStateTestCase(CMSTestCase):
             },
         )
 
+    def assertRedirectsToPreview(self, response, version):
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            djangocms_versioning.get_preview_url(version.content),
+        )
+        self.assertEqual(
+            {k: v[0] for k, v in parse_qs(parsed.query).items()},
+            {
+                "poll": str(version.content.poll.pk),
+                "language": version.content.language,
+            },
+        )
+
+
 
 class AdminVersioningTestCase(CMSTestCase):
     def test_admin_factory(self):
@@ -1321,7 +1337,7 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], "Version published")
         # Redirect happened
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
     def test_published_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1354,7 +1370,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPrewview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1378,7 +1394,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1402,7 +1418,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1829,7 +1845,7 @@ class EditRedirectTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1853,7 +1869,7 @@ class EditRedirectTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)

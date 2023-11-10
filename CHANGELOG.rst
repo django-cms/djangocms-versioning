@@ -7,6 +7,7 @@ Unreleased
 ==========
 * fix: Add keyword arguments in VersionAdminMixin render_change_form
 * feat: Reversable generic foreign key lookup from version
+* feat: Provide additional information about unpublished/published versions when sending signals
 * fix: formatted files through ruff to fix tests
 * fix: Remove version check when evaluating CMS PageContent objects
 

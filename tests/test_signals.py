@@ -48,6 +48,31 @@ class TestVersioningSignals(CMSTestCase):
             )
             self.assertEqual(post_call_kwargs["obj"], version)
 
+
+    def test_publish_signals_fired_with_to_be_published_and_unpublished(self):
+        poll = factories.PollFactory()
+        version1 = factories.PollVersionFactory(
+            state=constants.DRAFT, content__poll=poll
+        )
+        version2 = version1.copy(self.superuser)
+
+        # Here, we just expect the signals for version 1
+        with signal_tester(pre_version_operation, post_version_operation) as env:
+            version1.publish(self.superuser)
+            self.assertEqual(env.call_count, 2)
+
+        # Here, we expect the signals for the unpublish of version 1 and the
+        # publish of version 2.
+        with signal_tester(pre_version_operation, post_version_operation) as env:
+            version2.publish(self.superuser)
+            self.assertEqual(env.call_count, 4)
+            version_1_pre_call_kwargs = env.calls[1][1]
+            version_2_post_call_kwargs = env.calls[3][1]
+
+            self.assertEqual(version_1_pre_call_kwargs["to_be_published"], version2)
+            self.assertEqual(version_2_post_call_kwargs["unpublished"], [version1])
+
+
     def test_unpublish_signals_fired(self):
         """
         When a version is changed to unpublished the correct signals are fired!

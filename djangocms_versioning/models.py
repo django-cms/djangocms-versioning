@@ -380,13 +380,16 @@ class Version(models.Model):
             content_type=self.content_type,
         )
         for version in to_unpublish:
-            version.unpublish(user)
+            version.unpublish(user, to_be_published=self)
         on_publish = self.versionable.on_publish
         if on_publish:
             on_publish(self)
         # trigger post operation signal
         send_post_version_operation(
-            constants.OPERATION_PUBLISH, version=self, token=action_token
+            constants.OPERATION_PUBLISH,
+            version=self,
+            token=action_token,
+            unpublished=list(to_unpublish),
         )
         if emit_content_change:
             emit_content_change(self.content)
@@ -422,11 +425,11 @@ class Version(models.Model):
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)
 
-    def unpublish(self, user):
+    def unpublish(self, user, to_be_published=None):
         """Change state to UNPUBLISHED"""
         # trigger pre operation signal
         action_token = send_pre_version_operation(
-            constants.OPERATION_UNPUBLISH, version=self
+            constants.OPERATION_UNPUBLISH, version=self, to_be_published=to_be_published
         )
         self._set_unpublish(user)
         self.modified = timezone.now()
@@ -442,7 +445,10 @@ class Version(models.Model):
             on_unpublish(self)
         # trigger post operation signal
         send_post_version_operation(
-            constants.OPERATION_UNPUBLISH, version=self, token=action_token
+            constants.OPERATION_UNPUBLISH,
+            version=self,
+            token=action_token,
+            to_be_published=to_be_published,
         )
         if emit_content_change:
             emit_content_change(self.content)

@@ -749,7 +749,7 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         self.user_has_change_perms = self._create_user(
             "user_default_perms",
             is_staff=True,
-            permissions=["change_page", "add_page", "publish_page", "delete_page"],
+            permissions=["change_page", "add_page", "delete_page"],
         )
         # Grant permission (or Unlock button will not be shown)
         GlobalPagePermission.objects.create(

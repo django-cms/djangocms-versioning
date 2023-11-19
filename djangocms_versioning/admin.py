@@ -965,13 +965,11 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         # Redirect
         redirect_url = version_list_url(version.content)
         if conf.ON_PUBLISH_REDIRECT == "published":
+            redirect_url = None
             if hasattr(version.content, "get_absolute_url"):
                 redirect_url = version.content.get_absolute_url()
-                if not redirect_url:
-                    # Empty?
-                    redirect_url = get_preview_url(version.content)
-            else:
-                # Not available, take preview url
+            if not redirect_url:
+                # Not set? Fall back to preview url
                 redirect_url = get_preview_url(version.content)
         elif conf.ON_PUBLISH_REDIRECT == "preview":
             redirect_url = get_preview_url(version.content)
@@ -1217,7 +1215,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 )
             else:
                 v2_preview_url = get_preview_url(v2.content)
-                v2_preview_url = add_url_parameters(v2_preview_url, **persist_params)
                 context.update(
                     {
                         "v2": v2,

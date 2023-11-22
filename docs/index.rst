@@ -5,6 +5,7 @@ Welcome to "djangocms-versioning"'s documentation!
    :maxdepth: 2
    :caption: Quick Start:
 
+   basic_concepts
    versioning_integration
    version_locking
 

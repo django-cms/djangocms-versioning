@@ -25,7 +25,7 @@ Each versioned object carries a version number, creation date, modification date
 
 Each new draft version will generate a new version number.
 
-.. image:: /images/version-states.png
+.. image:: /static/version-states.png
      :align: center
      :alt: Version states
 

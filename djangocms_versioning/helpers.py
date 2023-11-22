@@ -27,6 +27,13 @@ except ImportError:
     emit_content_change = None
 
 
+def is_editable(content_obj, request):
+    """Check of content_obj is editable"""
+    from .models import Version
+
+    return Version.objects.get_for_content(content_obj).check_modify.as_bool(request.user)
+
+
 def versioning_admin_factory(admin_class, mixin):
     """A class factory returning admin class with overriden
     versioning functionality.
@@ -148,6 +155,8 @@ def inject_generic_relation_to_version(model):
     related_query_name = f"{model._meta.app_label}_{model._meta.model_name}"
     model.add_to_class("versions", GenericRelation(
         Version, related_query_name=related_query_name))
+    if not hasattr(model, "is_editable"):
+        model.add_to_class("is_editable", is_editable)
 
 
 def _set_default_manager(model, manager):
@@ -268,8 +277,8 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
             # Use language field is content object has one to determine the language
             language = getattr(content_obj, "language", get_language())
         url = get_object_preview_url(content_obj, language=language)
-        # Or else, the standard change view should be used
     else:
+        # Or else, the standard change view should be used
         url = admin_reverse(
             f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=[content_obj.pk],

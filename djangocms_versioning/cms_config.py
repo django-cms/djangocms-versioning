@@ -32,6 +32,7 @@ from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
+    is_editable,
     placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
@@ -408,5 +409,5 @@ class VersioningCMSConfig(CMSAppConfig):
         )
     ]
     cms_toolbar_mixin = CMSToolbarVersioningMixin
-    PageContent.add_to_class("is_editable", indicators.is_editable)
+    PageContent.add_to_class("is_editable", is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)

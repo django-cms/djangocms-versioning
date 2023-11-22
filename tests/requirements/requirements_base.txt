@@ -1,4 +1,3 @@
-setuptools
 beautifulsoup4
 coverage
 django-app-helper

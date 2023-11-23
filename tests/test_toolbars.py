@@ -211,20 +211,17 @@ class VersioningToolbarTestCase(CMSTestCase):
         The versioning edit button is available on the toolbar
         when versioning is installed and the model is versionable.
         """
-        from django.utils.translation import gettext as _, override
+        page = PageVersionFactory(content__template="", content__language="en")
+        url = get_object_preview_url(page.content)
 
-        page = PageVersionFactory(content__template="")
-        url = get_object_preview_url(page.content, language="en")
+        edit_url = self._get_edit_url(
+            page, VersioningCMSConfig.versioning[0]
+        )
 
-        with override(page.content.language):
-            edit_url = self._get_edit_url(
-                page, VersioningCMSConfig.versioning[0]
-            )
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.post(url)
 
-            with self.login_user_context(self.get_superuser()):
-                response = self.client.post(url)
-
-            found_button_list = find_toolbar_buttons(_("Edit"), response.wsgi_request.toolbar)
+        found_button_list = find_toolbar_buttons("Edit", response.wsgi_request.toolbar)
         # Only one edit button exists
         self.assertEqual(len(found_button_list), 1)
         # The only edit button that exists is the versioning button

@@ -1564,7 +1564,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], "Version unpublished")
         # Redirect happened
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
     def test_unpublish_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -1597,7 +1597,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1623,7 +1623,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1644,7 +1644,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1762,6 +1762,44 @@ class UnpublishViewTestCase(BaseStateTestCase):
                 response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_unpublish_view_redirects_according_to_settings(self):
+        from djangocms_versioning import conf
+
+        original_setting = conf.ON_PUBLISH_REDIRECT
+        user = self.get_staff_user_with_no_permissions()
+
+        conf.ON_PUBLISH_REDIRECT ="published"
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="preview"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="versions"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
 
 
 class RevertViewTestCase(BaseStateTestCase):

@@ -68,17 +68,19 @@ Settings for djangocms Versioning
 
         Before version 2.0 the behavior was always ``"versions"``.
 
-    This setting determines what happens after publication of a content
-    object. Three options exist:
+    This setting determines what happens after publication/unpublication of a
+    content object. Three options exist:
 
     * ``"versions"``: The user will be redirected to a version overview of
-      the current object. This is particularly useful for advanced users.
+      the current object. This is particularly useful for advanced users who
+      need to keep a regular overview on the existing versions.
 
     * ``"published"``: The user will be redirected to the content object on
       the site. Its URL is determined by calling ``.get_absolute_url()`` on
-      the content object. If does not have an absolute url the the user is
-      redirected to the object's preview endpoint. This is particularly
-      useful if users only want to interact with versions if necessary.
+      the content object. If does not have an absolute url or the object was
+      unpublished the user is redirected to the object's preview endpoint.
+      This is particularly useful if users only want to interact with versions
+      if necessary.
 
     * ``"preview"``: The user will be redirected to the content object's
       preview endpoint.

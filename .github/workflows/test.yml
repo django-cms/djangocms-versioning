@@ -96,6 +96,7 @@ jobs:
             dj40_cms41.txt,
             dj41_cms41.txt,
             dj42_cms41.txt,
+            dj42_cms_develop.txt,
         ]
 
     services:

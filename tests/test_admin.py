@@ -1342,6 +1342,44 @@ class PublishViewTestCase(BaseStateTestCase):
         # Redirect happened
         self.assertRedirectsToPublished(response, poll_version)
 
+    def test_publish_view_redirects_according_to_settings(self):
+        from djangocms_versioning import conf
+
+        original_setting = conf.ON_PUBLISH_REDIRECT
+        user = self.get_staff_user_with_no_permissions()
+
+        conf.ON_PUBLISH_REDIRECT ="published"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPublished(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="preview"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="versions"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
+
     def test_published_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(

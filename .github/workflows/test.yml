@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -90,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -125,6 +125,40 @@ jobs:
       run: coverage run setup.py test
       env:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v2
+
+  cms-develop-sqlite:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11']
+        requirements-file: ['dj42_cms41.txt']
+        cms-version: [
+          'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
+        ]
+        os: [
+          ubuntu-20.04,
+        ]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r tests/requirements/${{ matrix.requirements-file }}
+        pip install ${{ matrix.cms-version }}
+        python setup.py install
+
+    - name: Run coverage
+      run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2

@@ -117,7 +117,7 @@ class CMSMenu(Menu):
 
             if page not in visible_pages_for_user:
                 # The page is restricted for the user.
-                # Therefore we avoid adding it to the menu.
+                # Therefore, we avoid adding it to the menu.
                 continue
 
             version = page_content.versions.all()[0]

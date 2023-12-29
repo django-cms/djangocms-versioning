@@ -475,7 +475,7 @@ class Version(models.Model):
     )
     check_unlock = Conditions(
         [
-            in_state([constants.DRAFT, constants.PUBLISHED], not_draft_error),
+            in_state([constants.DRAFT], not_draft_error),
             draft_is_locked(_("Draft version is not locked"))
         ]
     )

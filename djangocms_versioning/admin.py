@@ -655,7 +655,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return ""
 
     def _get_preview_link(self, obj, request):
-        if obj.state == DRAFT:
+        if obj.state == DRAFT and not obj.locked_by:
             # Draft versions have edit button
             return ""
         url = get_preview_url(obj.content)

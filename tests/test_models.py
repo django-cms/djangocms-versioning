@@ -12,6 +12,10 @@ from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class CopyTestCase(CMSTestCase):
     def _create_versionables_mock(self, copy_function):

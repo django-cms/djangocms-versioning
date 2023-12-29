@@ -58,6 +58,10 @@ from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models impo
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class BaseStateTestCase(CMSTestCase):
     def assertRedirectsToVersionList(self, response, version):

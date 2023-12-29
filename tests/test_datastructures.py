@@ -11,6 +11,10 @@ from djangocms_versioning.test_utils.factories import PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class VersionableItemTestCase(CMSTestCase):
     def setUp(self):

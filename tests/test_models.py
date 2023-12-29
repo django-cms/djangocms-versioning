@@ -261,12 +261,22 @@ class TestVersionQuerySet(CMSTestCase):
 
         versions_for_grouper = Version.objects.filter_by_grouper(poll)
 
-        self.assertQuerysetEqual(
-            versions_for_grouper,
-            [versions[0].pk, versions[1].pk],
-            transform=lambda o: o.pk,
-            ordered=False,
-        )
+        try:
+            self.assertQuerySetEqual(
+                versions_for_grouper,
+                [versions[0].pk, versions[1].pk],
+                transform=lambda o: o.pk,
+                ordered=False,
+            )
+        except AttributeError:
+            # django 3.2 doesn't have assertQuerySetEqual
+            self.assertQuerysetEqual(
+                versions_for_grouper,
+                [versions[0].pk, versions[1].pk],
+                transform=lambda o: o.pk,
+                ordered=False,
+            )
+
 
     def test_filter_by_grouper_doesnt_include_other_content_types(self):
         """Regression test for a bug in which filtering by content_type
@@ -278,9 +288,13 @@ class TestVersionQuerySet(CMSTestCase):
         versions_for_grouper = Version.objects.filter_by_grouper(pv.content.poll)
 
         # Only poll version included
-        self.assertQuerysetEqual(
-            versions_for_grouper, [pv.pk], transform=lambda o: o.pk, ordered=False
-        )
+        try:
+            self.assertQuerySetEqual(
+                versions_for_grouper, [pv.pk], transform=lambda o: o.pk, ordered=False
+            )
+        except AttributeError:
+            # django 3.2 doesn't have assertQuerySetEqual
+            self.assertQuerysetEqual(versions_for_grouper, [pv.pk], transform=lambda o: o.pk, ordered=False)
 
 
 class ModelsTestCase(CMSTestCase):

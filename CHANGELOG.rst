@@ -3,37 +3,72 @@ Changelog
 =========
 
 
-Unreleased
-==========
-* fix: Add keyword arguments in VersionAdminMixin render_change_form
-* feat: Reversable generic foreign key lookup from version
-* feat: Provide additional information about unpublished/published versions when sending signals
-* fix: formatted files through ruff to fix tests
-* fix: Remove version check when evaluating CMS PageContent objects
+2.0.0 (2023-12-29)
+==================
 
-2.0.0rc1
-========
-* fix: Only try modifying page language menu if it is present
-* fix: Added ``related_name`` attribute to the ``content_type`` foreign key of the ``Version`` model.
-* fix: burger menu adjusts to the design of django cms core dropdown
-* fix: bug that showed an archived version as unpublished in some cases in the state indicator
-* add: Dutch and French translations thanks to Stefan van den Eertwegh and François Palmierso
-* add: transifex support, German translations
-* add: Revert button as replacement for dysfunctional Edit button for unpublished
-  versions
-* add: status indicators and drop down menus for django cms page tree
-* fix: only offer languages for plugin copy with available content
-* feat: Add support for Django 4.0, 4.1 and Python 3.10 and 3.11
-* fix: migrations for MySql
-* ci: Updated isort params in lint workflow to meet current requirements.
-* ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
-* ci: Remove ``os`` from test workflow matrix because it's unused
-* ci: Added concurrency option to cancel in progress runs when new changes occur
-* fix: Added setting to make the field to identify a user configurable in ``ExtendedVersionAdminMixin.get_queryset()`` to fix issue for custom user models with no ``username``
-* ci: Run tests on sqlite, mysql and postgres db
+What's Changed
+--------------
+* ci: Added concurrency to workflows by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/271
+* ci: Remove ``os`` from test workflow matrix by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/270
+* ci: Update actions to latest versions by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/269
+* ci: Update isort params for v5 by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/268
+* Add CodeQL workflow for GitHub code scanning by @lgtm-com in https://github.com/django-cms/djangocms-versioning/pull/297
+* feat: Django 4.0, 4.1 / Python 3.10/3.11, mysql support, running tests on sqlite, postgres and mysql by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/287
+* feat: Compat with cms page content extension changes by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/291
+* fix: Additional change missed in #291 by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/301
+* Add: Allow simple version management commands from the page tree indicator drop down menus by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/295
+* fix: Adds compatibility for User models with no username field [#292] by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/293
+* feat: Use same icons in page tree state indicators and Manage verisons by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/302
+* fix: Remove patching the django CMS core by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/300
+* fix: test requirements after removing the patching pattern by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/303
+* feat: add localization and transifex support by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/305
+* feat: Add management command to create version objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/304
+* feat: add Dutch translations, transifex integration file by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/306
+* feat: French localization by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/307
+* feat: Albanian localization, Transifex integration by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/308
+* Some fixed strings are now translatable by @svandeneertwegh in https://github.com/django-cms/djangocms-versioning/pull/310
+* Translate '/djangocms_versioning/locale/en/LC_MESSAGES/django.po' in 'de' by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/311
+* Translate '/djangocms_versioning/locale/en/LC_MESSAGES/django.po' in 'nl' by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/312
+* fix: translation inconsistencies by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/313
+* feat: Add preview button to view published mode by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/316
+* feat: Huge performance improvement for admin_manager by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/318
+* fix: Minor usability improvements by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/317
+* fix: update messages by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/321
+* Translate 'djangocms_versioning/locale/en/LC_MESSAGES/django.po' in 'de' by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/322
+* fix: deletion of version objects blocked by source fields by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/320
+* feat: allow reuse of status indicators by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/319
+* fix: burger menu to also work with new core icons by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/323
+* Translate 'djangocms_versioning/locale/en/LC_MESSAGES/django.po' in 'nl' by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/328
+* ci: Switch flake8 and isort for ruff by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/329
+* fix: Added related_name to version content type field by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/274
+* feat: Django 4.2, Django CMS 4.1.0rc2 compatibility, and version locking by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/326
+* Translations for djangocms_versioning/locale/en/LC_MESSAGES/django.po in de by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/330
+* Translations for djangocms_versioning/locale/en/LC_MESSAGES/django.po in nl by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/331
+* fix: Modify language menu for pages only if it is present by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/333
+* feat: Add pypi actions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/335
+* feat: Reversable generic foreign key lookup from version by @Aiky30 in https://github.com/django-cms/djangocms-versioning/pull/241
+* Add caching to PageContent __bool__ by @stefanw in https://github.com/django-cms/djangocms-versioning/pull/346
+* Fix tests by @FinalAngel in https://github.com/django-cms/djangocms-versioning/pull/349
+* Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in fr on branch master by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/347
+* docs: List `DJANGOCMS_VERSIONING_LOCK_VERSIONS`  in settings by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/350
+* docs: Update documentation by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/351
+* fix: Update templates for better styling w/o djangocms-admin-style by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/352
+* fix: PageContent extension's `copy_relations` method not called by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/344
+* Bugfix/use keyword arguments in admin render change form method by @vipulnarang95 in https://github.com/django-cms/djangocms-versioning/pull/356
+* Provide additional information when sending publish/unpublish events by @GaretJax in https://github.com/django-cms/djangocms-versioning/pull/348
+* fix: Preview link language by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/357
+* docs: Document version states by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/362
+* feat: Add configuration to manage redirect on publish by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/358
 
-* feat: Compatibility with page content extension changes to django-cms
-* ci: Added basic linting pre-commit hooks
+New Contributors
+----------------
+* @marksweb made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/271
+* @fsbraun made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/287
+* @svandeneertwegh made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/310
+* @stefanw made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/346
+* @FinalAngel made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/349
+* @vipulnarang95 made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/356
+* @GaretJax made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/348
 
 1.2.2 (2022-07-20)
 ==================

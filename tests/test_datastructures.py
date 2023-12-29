@@ -31,21 +31,12 @@ class VersionableItemTestCase(CMSTestCase):
             grouper_field_name="poll",
             copy_function=default_copy,
         )
-        try:
-            self.assertQuerySetEqual(
-                versionable.distinct_groupers(),
-                [latest_poll1_version.content.pk, latest_poll2_version.content.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                versionable.distinct_groupers(),
-                [latest_poll1_version.content.pk, latest_poll2_version.content.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            versionable.distinct_groupers(),
+            [latest_poll1_version.content.pk, latest_poll2_version.content.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_queryset_filter_for_distinct_groupers(self):
         poll1_archived_version = PollVersionFactory(
@@ -68,7 +59,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_published_filter = {"versions__state__in": [PUBLISHED]}
         # Should be one published version
-        self.assertQuerySetEqual(
+        self.assertQuerysetEqual(
             versionable.distinct_groupers(**qs_published_filter),
             [poll1_published_version.content.pk],
             transform=lambda x: x.pk,
@@ -77,7 +68,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_archive_filter = {"versions__state__in": [ARCHIVED]}
         # Should be two archived versions
-        self.assertQuerySetEqual(
+        self.assertQuerysetEqual(
             versionable.distinct_groupers(**qs_archive_filter),
             [poll1_archived_version.content.pk, poll2_archived_version.content.pk],
             transform=lambda x: x.pk,
@@ -98,7 +89,7 @@ class VersionableItemTestCase(CMSTestCase):
             copy_function=default_copy,
         )
 
-        self.assertQuerySetEqual(
+        self.assertQuerysetEqual(
             versionable.for_grouper(self.initial_version.content.poll),
             [self.initial_version.content.pk, poll1_version2.content.pk],
             transform=lambda x: x.pk,

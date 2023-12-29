@@ -268,21 +268,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
 
-        try:
-            self.assertQuerySetEqual(
-                response.context["cl"].queryset,
-                [poll_content1.pk, poll_content2.pk, poll_content3.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                response.context["cl"].queryset,
-                [poll_content1.pk, poll_content2.pk, poll_content3.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            response.context["cl"].queryset,
+            [poll_content1.pk, poll_content2.pk, poll_content3.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_records_filtering_is_generic(self):
         """Check there's nothing specific to polls hardcoded in
@@ -300,21 +291,12 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
 
-        try:
-            self.assertQuerySetEqual(
-                response.context["cl"].queryset,
-                [blog_content1.pk, blog_content2.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                response.context["cl"].queryset,
-                [blog_content1.pk, blog_content2.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            response.context["cl"].queryset,
+            [blog_content1.pk, blog_content2.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_default_changelist_view_language_on_polls_with_language_content(self):
         """A multilingual model shows the correct values when
@@ -2142,22 +2124,12 @@ class CompareViewTestCase(CMSTestCase):
         self.assertNotIn("v2", context)
         self.assertNotIn("v2_preview_url", context)
         self.assertIn("version_list", context)
-        try:
-            self.assertQuerySetEqual(
-                context["version_list"],
-                [versions[0].pk, versions[1].pk],
-                transform=lambda o: o.pk,
-                ordered=False,
-            )
-
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                context["version_list"],
-                [versions[0].pk, versions[1].pk],
-                transform=lambda o: o.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            context["version_list"],
+            [versions[0].pk, versions[1].pk],
+            transform=lambda o: o.pk,
+            ordered=False,
+        )
 
     def test_compare_view_has_version_data_in_context_when_version2_in_get_param(self):
         """When the url for the compare view does have the compare_to
@@ -2212,21 +2184,12 @@ class CompareViewTestCase(CMSTestCase):
             self.disable_toolbar_params,
         )
         self.assertIn("version_list", context)
-        try:
-            self.assertQuerySetEqual(
-                context["version_list"],
-                [versions[0].pk, versions[1].pk, versions[2].pk],
-                transform=lambda o: o.pk,
-                ordered=False,
-            )
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                context["version_list"],
-                [versions[0].pk, versions[1].pk, versions[2].pk],
-                transform=lambda o: o.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            context["version_list"],
+            [versions[0].pk, versions[1].pk, versions[2].pk],
+            transform=lambda o: o.pk,
+            ordered=False,
+        )
 
     @patch("django.contrib.messages.add_message")
     def test_edit_compare_view_handles_nonexistent_v1(self, mocked_messages):
@@ -2347,21 +2310,12 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("cl", response.context)
-        try:
-            self.assertQuerySetEqual(
-                response.context["cl"].queryset,
-                [pv.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
-        except AttributeError:
-            # django 3.2 doesn't have assertQuerySetEqual
-            self.assertQuerysetEqual(
-                response.context["cl"].queryset,
-                [pv.pk],
-                transform=lambda x: x.pk,
-                ordered=False,
-            )
+        self.assertQuerysetEqual(
+            response.context["cl"].queryset,
+            [pv.pk],
+            transform=lambda x: x.pk,
+            ordered=False,
+        )
 
     def test_view_language_on_poll_with_no_language_content(self):
         """A multi lingual model shows an empty version list when no

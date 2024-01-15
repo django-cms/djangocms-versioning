@@ -58,6 +58,10 @@ from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models impo
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class BaseStateTestCase(CMSTestCase):
     def assertRedirectsToVersionList(self, response, version):
@@ -268,7 +272,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [poll_content1.pk, poll_content2.pk, poll_content3.pk],
             transform=lambda x: x.pk,
@@ -291,7 +295,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [blog_content1.pk, blog_content2.pk],
             transform=lambda x: x.pk,
@@ -2124,7 +2128,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertNotIn("v2", context)
         self.assertNotIn("v2_preview_url", context)
         self.assertIn("version_list", context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             context["version_list"],
             [versions[0].pk, versions[1].pk],
             transform=lambda o: o.pk,
@@ -2184,7 +2188,7 @@ class CompareViewTestCase(CMSTestCase):
             self.disable_toolbar_params,
         )
         self.assertIn("version_list", context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             context["version_list"],
             [versions[0].pk, versions[1].pk, versions[2].pk],
             transform=lambda o: o.pk,
@@ -2310,7 +2314,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("cl", response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [pv.pk],
             transform=lambda x: x.pk,

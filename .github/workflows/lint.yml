@@ -14,5 +14,4 @@ jobs:
     - run: python -Im pip install --user ruff
 
     - name: Run ruff
-      working-directory: ./src
       run: ruff --output-format=github djangocms_versioning tests

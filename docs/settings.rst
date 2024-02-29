@@ -37,6 +37,9 @@ Settings for djangocms Versioning
 
     Defaults to ``False``
 
+    .. versionadded:: 2.0
+       Before version 2.0 version locking was part of a separate package.
+
     This setting controls if draft versions are locked. If they are, only the user
     who created the draft can change the draft. See
     :ref:`Locking versions <locking-versions>` for more details.
@@ -65,8 +68,7 @@ Settings for djangocms Versioning
     Defaults to ``"published"``
 
     .. versionadded:: 2.0
-
-        Before version 2.0 the behavior was always ``"versions"``.
+       Before version 2.0 the behavior was always ``"versions"``.
 
     This setting determines what happens after publication/unpublication of a
     content object. Three options exist:

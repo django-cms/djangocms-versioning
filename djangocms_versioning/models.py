@@ -15,7 +15,7 @@ from .conditions import (
     draft_is_locked,
     draft_is_not_locked,
     in_state,
-    is_not_locked,
+    is_not_locked, has_permission,
 )
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
@@ -29,7 +29,7 @@ except ImportError:
 not_draft_error = _("Version is not a draft")
 lock_error_message = _("Action Denied. The latest version is locked by {user}")
 lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
-
+permission_error_message = _("You do not have permission to perform this action")
 
 def allow_deleting_versions(collector, field, sub_objs, using):
     if ALLOW_DELETING_VERSIONS:
@@ -324,6 +324,7 @@ class Version(models.Model):
         pass
 
     check_publish = Conditions(
+        has_permission(permission_error_message),
         [in_state([constants.DRAFT], _("Version is not in draft state"))]
     )
 
@@ -387,6 +388,7 @@ class Version(models.Model):
         pass
 
     check_unpublish = Conditions([
+        has_permission(permission_error_message),
         in_state([constants.PUBLISHED], _("Version is not in published state")),
         draft_is_not_locked(lock_draft_error_message),
     ])
@@ -436,6 +438,20 @@ class Version(models.Model):
         state change is not guaranteed to be saved (making it
         possible to be left with inconsistent data)"""
         pass
+
+    def has_change_permission(self, user):
+        """Check if the user has permission to change the version"""
+        if hasattr(self.content, "has_publish_permission"):
+            # First try explicit publish permission
+            return self.content.has_publish_permission(user)
+        if hasattr(self.content, "has_change_permission"):
+            # First fallback: change permissions
+            return self.content.has_change_permission(user)
+        if hasattr(self.content, "has_placeholder_change_permission"):
+            # Second fallback: placeholder change permissions - works for PageContent
+            return self.content.has_placeholder_change_permission(user)
+        # final fallback: Django perms
+        return user.has_perm("djangocms_versioning.change_version")
 
     check_modify = Conditions(
         [

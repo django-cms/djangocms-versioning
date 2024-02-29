@@ -14,8 +14,9 @@ from .conditions import (
     Conditions,
     draft_is_locked,
     draft_is_not_locked,
+    has_permission,
     in_state,
-    is_not_locked, has_permission,
+    is_not_locked,
 )
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation

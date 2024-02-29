@@ -26,7 +26,10 @@ checks for specific methods within the **content object**, e.g.
 
    .. code:: python
 
-      def has_publish_permission(self, request):
+      def has_publish_permission(self, user):
+          if user.is_superuser:
+              # Superusers typically have permission to publish
+              return True
           # Custom logic to determine if the user can publish
           return user_has_permission
 
@@ -40,7 +43,10 @@ checks for specific methods within the **content object**, e.g.
 
    .. code:: python
 
-      def has_change_permission(self, request):
+      def has_change_permission(self, user):
+          if user.is_superuser:
+              # Superusers typically have permission to publish
+              return True
           # Custom logic to determine if the user can change the content
           return user_has_permission
 
@@ -54,7 +60,10 @@ checks for specific methods within the **content object**, e.g.
 
    .. code:: python
 
-      def has_placeholder_change_permission(self, request, placeholder):
+      def has_placeholder_change_permission(self, user):
+          if user.is_superuser:
+              # Superusers typically have permission to publish
+              return True
           # Custom logic to determine if the user can change placeholders
           return user_has_permission
 

@@ -243,7 +243,10 @@ class WizzardTestCase(CMSTestCase):
         version = PageVersionFactory(content__language="de")
         self.assertIn(
             cms_page_wizard.get_success_url(version.content.page, language="de"),
-            [get_object_preview_url(version.content, language="de"), get_object_edit_url(version.content, language="de")],
+            [
+                get_object_preview_url(version.content, language="de"),
+                get_object_edit_url(version.content, language="de")
+            ],
         )
 
         # Test against a model that doesn't have a PlaceholderRelationField

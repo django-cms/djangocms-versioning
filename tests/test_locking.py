@@ -647,7 +647,7 @@ class TestVersionsLockTestCase(CMSTestCase):
         """
         A version lock is not present when a content version is in a published or unpublished state
         """
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         poll_version = factories.PollVersionFactory(state=DRAFT, created_by=user, locked_by=user)
         publish_url = self.get_admin_url(self.versionable.version_model_proxy, "publish", poll_version.pk)
         unpublish_url = self.get_admin_url(self.versionable.version_model_proxy, "unpublish", poll_version.pk)

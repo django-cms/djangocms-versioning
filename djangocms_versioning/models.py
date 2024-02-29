@@ -325,8 +325,10 @@ class Version(models.Model):
         pass
 
     check_publish = Conditions(
-        has_permission(permission_error_message),
-        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+        [
+            has_permission(permission_error_message),
+            in_state([constants.DRAFT], _("Version is not in draft state")),
+        ]
     )
 
     def can_be_published(self):

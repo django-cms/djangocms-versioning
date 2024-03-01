@@ -259,7 +259,7 @@ class Version(models.Model):
         Allows customization of how the content object will be copied
         when specified in cms_config.py
 
-        This method needs to be ran in a transaction due to the fact that if
+        This method needs to be run in a transaction due to the fact that if
         models are partially created in the copy method a version is not attached.
         It needs to be that if anything goes wrong we should roll back the entire task.
         We shouldn't leave this to package developers to know to add this feature

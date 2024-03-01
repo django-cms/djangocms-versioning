@@ -478,10 +478,10 @@ class Version(models.Model):
         """
         if perm == "publish" and hasattr(self.content, "has_publish_permission"):
             # First try explicit publish permission
-            return self.content.can_publish(user)
+            return self.content.has_publish_permission(user)
         if hasattr(self.content, "has_change_permission"):
             # First fallback: change permissions
-            return self.content.can_change(user)
+            return self.content.has_change_permission(user)
         if hasattr(self.content, "has_placeholder_change_permission"):
             # Second fallback: placeholder change permissions - works for PageContent
             return self.content.has_placeholder_change_permission(user)

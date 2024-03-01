@@ -14,10 +14,10 @@ from .conditions import (
     Conditions,
     draft_is_locked,
     draft_is_not_locked,
-    user_can_change,
-    user_can_publish,
     in_state,
     is_not_locked,
+    user_can_change,
+    user_can_publish,
 )
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation

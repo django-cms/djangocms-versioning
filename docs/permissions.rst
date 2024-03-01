@@ -4,8 +4,8 @@
 
 This documentation covers the permissions system introduced for
 publishing and unpublishing content in djangocms-versioning. This system
-allows for fine-grained control over who can publish and unpublish
-content, without affecting other version management actions.
+allows for fine-grained control over who can publish and unpublish or otherwise
+manage versions of content.
 
 ***************************
  Understanding Permissions
@@ -16,7 +16,8 @@ access control based on the user's roles and permissions. The system
 checks for specific methods within the **content object**, e.g.
 ``PageContent`` to determine if a user has the necessary permissions.
 
--  **Specific publish permission**: To check if a user has the
+-  **Specific publish permission** (only for publish/unpublish action):
+   To check if a user has the
    permission to publish content, the system looks for a method named
    ``has_publish_permission`` on the content object. If this method is
    present, it will be called to determine whether the user is allowed
@@ -33,7 +34,8 @@ checks for specific methods within the **content object**, e.g.
           # Custom logic to determine if the user can publish
           return user_has_permission
 
--  **First fallback Change Permission**: If the content object has a
+-  **Change Permission** (and first fallback for ``has_publish_permission``):
+   If the content object has a
    method named ``has_change_permission``, this method will be called to
    assess if a user has the permission to change the content. This is a
    general permission check that is not specific to publishing or
@@ -50,7 +52,7 @@ checks for specific methods within the **content object**, e.g.
           # Custom logic to determine if the user can change the content
           return user_has_permission
 
--  **Second Fallback Placeholder Change Permission**: For content
+-  **First Fallback Placeholder Change Permission**: For content
    objects that involve placeholders, such as PageContent objects, a
    method named ``has_placeholder_change_permission`` is checked. This
    method should determine if the user has the permission to change

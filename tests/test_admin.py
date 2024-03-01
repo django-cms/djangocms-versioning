@@ -516,7 +516,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The revert action is active
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
-        user = factories.UserFactory()
+        user = self.get_superuser()
         request = RequestFactory().get("/admin/polls/pollcontent/")
         version.created_by = request.user = user
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
@@ -569,7 +569,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "discard", version.pk
         )
         request = RequestFactory().post(draft_discard_url, {"discard": "1"})
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
 
         request.session = "session"
         messages = FallbackStorage(request)
@@ -587,7 +587,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         draft_discard_url = self.get_admin_url(
             self.versionable.version_model_proxy, "discard", version.pk
         )
@@ -649,7 +649,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The revert url should be null for unpublished state
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
-        user = factories.UserFactory()
+        user = self.get_superuser()
         archive_version = version.copy(user)
         archive_version.archive(user)
         request = RequestFactory().get("/admin/polls/pollcontent/")
@@ -962,7 +962,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -1002,7 +1002,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -1129,7 +1129,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1165,7 +1165,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1288,7 +1288,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
 
-        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+        with self.login_user_context(self.get_superuser()):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1815,7 +1815,7 @@ class RevertViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "revert", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):

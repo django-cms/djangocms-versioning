@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.core.checks import messages
 
 from djangocms_versioning import constants
-from djangocms_versioning.models import Version, StateTracking
+from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -81,7 +81,7 @@ class PermissionTestCase(BaseStateTestCase):
         )
 
         with self.login_user_context(self.get_user("bob")):
-            response = self.client.post(url)
+            self.client.post(url)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.INFO)
@@ -129,7 +129,7 @@ class PermissionTestCase(BaseStateTestCase):
         )
 
         with self.login_user_context(self.get_user("bob")):
-            response = self.client.post(url)
+            self.client.post(url)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.INFO)

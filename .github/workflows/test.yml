@@ -24,7 +24,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -37,7 +37,7 @@ jobs:
       run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   postgres:
     runs-on: ubuntu-latest
@@ -68,7 +68,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -83,7 +83,7 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   mysql:
     runs-on: ubuntu-latest
@@ -112,7 +112,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -127,7 +127,7 @@ jobs:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   cms-develop-sqlite:
     runs-on: ${{ matrix.os }}
@@ -147,7 +147,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -161,7 +161,7 @@ jobs:
       run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   sqlite-django-main:
     runs-on: ubuntu-latest
@@ -183,7 +183,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -197,4 +197,4 @@ jobs:
       run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4

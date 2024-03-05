@@ -25,6 +25,7 @@ from django.test.utils import ignore_warnings
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.timezone import now
+from django.utils.translation import override
 from freezegun import freeze_time
 
 import djangocms_versioning.helpers
@@ -57,6 +58,10 @@ from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models impo
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class BaseStateTestCase(CMSTestCase):
     def assertRedirectsToVersionList(self, response, version):
@@ -72,6 +77,26 @@ class BaseStateTestCase(CMSTestCase):
                 "poll": str(version.content.poll.pk),
                 "language": version.content.language,
             },
+        )
+
+    def assertRedirectsToPreview(self, response, version):
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            helpers.get_preview_url(version.content),
+        )
+
+    def assertRedirectsToPublished(self, response, version):
+        if hasattr(version.content, "get_absolute_url"):
+            published_url = version.content.get_absolute_url()
+        else:
+            published_url = helpers.get_preview_url(version.content)
+        parsed = urlparse(response.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parsed.path,
+            published_url,
         )
 
 
@@ -247,7 +272,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(PollContent, "changelist"))
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [poll_content1.pk, poll_content2.pk, poll_content3.pk],
             transform=lambda x: x.pk,
@@ -270,7 +295,7 @@ class ContentAdminChangelistTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_admin_url(BlogContent, "changelist"))
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [blog_content1.pk, blog_content2.pk],
             transform=lambda x: x.pk,
@@ -388,10 +413,7 @@ class VersionAdminTestCase(CMSTestCase):
         The link returned is the change url for an editable object
         """
         version = factories.PageVersionFactory(content__title="mypage")
-        preview_url = admin_reverse(
-            "cms_placeholder_render_object_preview",
-            args=(version.content_type_id, version.object_id),
-        )
+        preview_url = helpers.get_preview_url(version.content)
         self.assertEqual(
             self.site._registry[Version].content_link(version),
             f'<a target="_top" class="js-close-sideframe" href="{preview_url}">{version.content}</a>',
@@ -429,13 +451,14 @@ class VersionAdminTestCase(CMSTestCase):
         """
         version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
-            self.assertEqual(
-                self.site._registry[Version].content_link(version),
-                '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                    url=get_object_preview_url(version.content),
-                    label=version.content
-                ),
-            )
+            with override(version.content.language):
+                self.assertEqual(
+                    self.site._registry[Version].content_link(version),
+                    '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
+                        url=get_object_preview_url(version.content, language=version.content.language),
+                        label=version.content
+                    ),
+                )
 
 
 class VersionAdminActionsTestCase(CMSTestCase):
@@ -1321,7 +1344,45 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], "Version published")
         # Redirect happened
+        self.assertRedirectsToPublished(response, poll_version)
+
+    def test_publish_view_redirects_according_to_settings(self):
+        from djangocms_versioning import conf
+
+        original_setting = conf.ON_PUBLISH_REDIRECT
+        user = self.get_staff_user_with_no_permissions()
+
+        conf.ON_PUBLISH_REDIRECT ="published"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPublished(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="preview"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="versions"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
         self.assertRedirectsToVersionList(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
 
     def test_published_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1354,7 +1415,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1378,7 +1439,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1402,7 +1463,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1507,7 +1568,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], "Version unpublished")
         # Redirect happened
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
     def test_unpublish_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -1540,7 +1601,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1566,7 +1627,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1587,7 +1648,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(self.get_staff_user_with_no_permissions()):
             response = self.client.post(url)
 
-        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertRedirectsToPreview(response, poll_version)
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
@@ -1705,6 +1766,44 @@ class UnpublishViewTestCase(BaseStateTestCase):
                 response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_unpublish_view_redirects_according_to_settings(self):
+        from djangocms_versioning import conf
+
+        original_setting = conf.ON_PUBLISH_REDIRECT
+        user = self.get_staff_user_with_no_permissions()
+
+        conf.ON_PUBLISH_REDIRECT ="published"
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "unpublish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="preview"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToPreview(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT ="versions"
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+        self.assertRedirectsToVersionList(response, poll_version)
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
 
 
 class RevertViewTestCase(BaseStateTestCase):
@@ -2019,10 +2118,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v1", context)
         self.assertEqual(context["v1"], versions[0])
         self.assertIn("v1_preview_url", context)
-        v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
-        )
+        v1_preview_url = helpers.get_preview_url(versions[0].content)
         parsed = urlparse(context["v1_preview_url"])
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
@@ -2032,7 +2128,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertNotIn("v2", context)
         self.assertNotIn("v2_preview_url", context)
         self.assertIn("version_list", context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             context["version_list"],
             [versions[0].pk, versions[1].pk],
             transform=lambda o: o.pk,
@@ -2074,10 +2170,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v1", context)
         self.assertEqual(context["v1"], versions[0])
         self.assertIn("v1_preview_url", context)
-        v1_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[0].content_type_id, versions[0].object_id),
-        )
+        v1_preview_url = helpers.get_preview_url(versions[0].content)
         parsed = urlparse(context["v1_preview_url"])
         self.assertEqual(parsed.path, v1_preview_url)
         self.assertEqual(
@@ -2087,10 +2180,7 @@ class CompareViewTestCase(CMSTestCase):
         self.assertIn("v2", context)
         self.assertEqual(context["v2"], versions[1])
         self.assertIn("v2_preview_url", context)
-        v2_preview_url = reverse(
-            "admin:cms_placeholder_render_object_preview",
-            args=(versions[1].content_type_id, versions[1].object_id),
-        )
+        v2_preview_url = helpers.get_preview_url(versions[1].content)
         parsed = urlparse(context["v2_preview_url"])
         self.assertEqual(parsed.path, v2_preview_url)
         self.assertEqual(
@@ -2098,7 +2188,7 @@ class CompareViewTestCase(CMSTestCase):
             self.disable_toolbar_params,
         )
         self.assertIn("version_list", context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             context["version_list"],
             [versions[0].pk, versions[1].pk, versions[2].pk],
             transform=lambda o: o.pk,
@@ -2224,7 +2314,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("cl", response.context)
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context["cl"].queryset,
             [pv.pk],
             transform=lambda x: x.pk,
@@ -3084,3 +3174,4 @@ class ListActionsTestCase(CMSTestCase):
             response = self.client.get(changelist + "?back=/hijack_url")
             self.assertNotContains(response, "hijack_url")
             self.assertContains(response, version_list_url(version.content))
+

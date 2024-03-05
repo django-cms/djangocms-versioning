@@ -335,7 +335,7 @@ class VersioningPageToolbar(PageToolbar):
         return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
-        self.page = self.request.current_page or getattr(self.toolbar.obj, "page", None)
+        self.page = self.request.current_page
         self.title = self.get_page_content() if self.page else None
         self.permissions_activated = get_cms_setting("PERMISSION")
 

@@ -27,3 +27,8 @@ VERBOSE = getattr(
 EMAIL_NOTIFICATIONS_FAIL_SILENTLY = getattr(
     settings, "EMAIL_NOTIFICATIONS_FAIL_SILENTLY", False
 )
+
+ON_PUBLISH_REDIRECT = getattr(
+    settings, "DJANGOCMS_VERISONING_ON_PUBLISH_REDIRECT", "published"
+)
+# Allowed values: "versions", "published", "preview"

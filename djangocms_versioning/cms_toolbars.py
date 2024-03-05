@@ -253,9 +253,10 @@ class VersioningToolbar(PlaceholderToolbar):
                 if version.check_publish.as_bool(self.request.user):
                     versioning_menu.add_modal_item(
                         _("Publish with time limits"),
-                        url=reverse("admin:{app}_{model}_publish".format(
-                            app=proxy_model._meta.app_label, model=proxy_model.__name__.lower()
-                        ), args=(version.pk,)),
+                        url=reverse(
+                            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",
+                            args=(version.pk,)
+                        ),
                         on_close=version_list_url(version.content)
                     )
                 # Discard changes menu entry (wrt to source)

@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-05 17:59+0200\n"
+"POT-Creation-Date: 2023-10-02 09:37+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Stefan van den Eertwegh <stefan@corebyte.nl>, 2023\n"
 "Language-Team: Dutch (https://app.transifex.com/divio/teams/58664/nl/)\n"
@@ -22,106 +22,106 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:164 admin.py:301 admin.py:383
+#: admin.py:164 admin.py:301 admin.py:377
 msgid "State"
 msgstr "Status"
 
-#: admin.py:192 constants.py:28
+#: admin.py:192 constants.py:27
 msgid "Empty"
 msgstr "Leeg"
 
-#: admin.py:315 admin.py:395
+#: admin.py:315 admin.py:387
 msgid "Author"
 msgstr "Auteur"
 
-#: admin.py:329 admin.py:406 models.py:89
+#: admin.py:329 admin.py:401 models.py:87
 msgid "Modified"
 msgstr "Gewijzigd"
 
-#: admin.py:433 admin.py:661
+#: admin.py:437 admin.py:667
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Voorbeeld"
 
-#: admin.py:468 admin.py:760 cms_toolbars.py:121
+#: admin.py:470 admin.py:758 cms_toolbars.py:115
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Bewerk"
 
-#: admin.py:480
+#: admin.py:482
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Beheer versies"
 
-#: admin.py:639
+#: admin.py:631
 msgid "Content"
 msgstr "Content"
 
-#: admin.py:649
+#: admin.py:647
 msgid "locked"
 msgstr "gesloten"
 
-#: admin.py:679 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:683 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Archiveer"
 
-#: admin.py:699 cms_toolbars.py:83 indicators.py:41
+#: admin.py:701 cms_toolbars.py:79 indicators.py:34
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Publiceer"
 
-#: admin.py:721 indicators.py:61 indicators.py:67
+#: admin.py:721 indicators.py:54 indicators.py:60
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Gedepubliceerd"
 
-#: admin.py:760 cms_toolbars.py:121
+#: admin.py:758 cms_toolbars.py:115
 msgid "New Draft"
 msgstr "Nieuw concept"
 
-#: admin.py:783 cms_toolbars.py:188
+#: admin.py:779 cms_toolbars.py:177
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Terugdraaien"
 
-#: admin.py:804 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:798 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Annuleer"
 
-#: admin.py:829 cms_toolbars.py:153
+#: admin.py:821 cms_toolbars.py:145
 msgid "Unlock"
 msgstr "Ongesloten"
 
 #: admin.py:856
-msgid "Exactly two versions need to be selected."
-msgstr "Precies twee versies moeten zijn geselecteerd."
-
-#: admin.py:870
 msgid "Compare versions"
 msgstr "Vergelijk versies"
 
-#: admin.py:897
+#: admin.py:866
+msgid "Exactly two versions need to be selected."
+msgstr "Precies twee versies moeten zijn geselecteerd."
+
+#: admin.py:903
 msgid "Version cannot be archived"
 msgstr "Versie kan niet worden gearchiveerd"
 
-#: admin.py:926
+#: admin.py:929
 msgid "Version archived"
 msgstr "Versie gearchiveerd"
 
-#: admin.py:937 admin.py:1059 admin.py:1241
+#: admin.py:940 admin.py:1059 admin.py:1235
 msgid "This view only supports POST method."
 msgstr "Deze weergave ondersteunt alleen de POST methode"
 
-#: admin.py:948
+#: admin.py:951
 msgid "Version cannot be published"
 msgstr "Versie kan niet worden gepubliceerd"
 
-#: admin.py:959
+#: admin.py:962
 msgid "Version published"
 msgstr "Versie gepubliceerd"
 
-#: admin.py:976
+#: admin.py:979
 msgid "Version cannot be unpublished"
 msgstr "Versie kan niet worden gedepubliceerd"
 
@@ -129,19 +129,19 @@ msgstr "Versie kan niet worden gedepubliceerd"
 msgid "Version unpublished"
 msgstr "Versie ongepubliceerd"
 
-#: admin.py:1169
+#: admin.py:1163
 msgid "The last version has been deleted"
 msgstr "De laatste versie is verwijderd"
 
-#: admin.py:1255
+#: admin.py:1249
 msgid "You do not have permission to remove the version lock"
 msgstr "Je hebt geen rechten om de versie van t slot te halen"
 
-#: admin.py:1260
+#: admin.py:1254
 msgid "Version unlocked"
 msgstr "Versie ongesloten"
 
-#: admin.py:1309
+#: admin.py:1303
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Weergave versies van \"{grouper}\""
@@ -150,180 +150,180 @@ msgstr "Weergave versies van \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "django CMS Versionering"
 
-#: cms_config.py:262
+#: cms_config.py:246
 msgid "No available title"
 msgstr "Geen beschikbare titel"
 
-#: cms_config.py:264 constants.py:13 constants.py:26
+#: cms_config.py:248 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "Ongepubliceerd"
 
-#: cms_config.py:358
+#: cms_config.py:342
 msgid "Language must be set to a supported language!"
 msgstr "Taal moet gespecificeerd worden binnen de ondersteunde talen!"
 
-#: cms_config.py:376
+#: cms_config.py:360
 msgid "You do not have permission to copy these plugins."
 msgstr "Je hebt geen rechten om deze plugin te kopieëren."
 
-#: cms_toolbars.py:218
+#: cms_toolbars.py:207
 msgid "Manage Versions"
 msgstr "Beheer versies"
 
-#: cms_toolbars.py:221
+#: cms_toolbars.py:210
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Vergelijk met {source}"
 
-#: cms_toolbars.py:236 indicators.py:73
+#: cms_toolbars.py:226 indicators.py:66
 msgid "Discard Changes"
 msgstr "Annuleer wijzigingen"
 
-#: cms_toolbars.py:271
+#: cms_toolbars.py:262
 msgid "View Published"
 msgstr "Bekijk live versie"
 
-#: cms_toolbars.py:327
+#: cms_toolbars.py:317
 msgid "Language"
 msgstr "Taal"
 
-#: cms_toolbars.py:374
+#: cms_toolbars.py:364
 msgid "Add Translation"
 msgstr "Voeg vertaling toe"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:377
 msgid "Copy all plugins"
 msgstr "Kopieer alle plugins"
 
-#: cms_toolbars.py:389
+#: cms_toolbars.py:379
 #, python-format
 msgid "from %s"
 msgstr "van %s"
 
-#: cms_toolbars.py:390
+#: cms_toolbars.py:380
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Ben je er zeker van om alle plugins te kopiëren van %s?"
 
-#: cms_toolbars.py:405
+#: cms_toolbars.py:395
 msgid "No other language available"
 msgstr "Geen andere taal beschikbaar"
 
-#: constants.py:11 constants.py:25
+#: constants.py:10 constants.py:24
 msgid "Draft"
 msgstr "Concept"
 
-#: constants.py:12 constants.py:23
+#: constants.py:11 constants.py:22
 msgid "Published"
 msgstr "Gepubliceerd"
 
-#: constants.py:14 constants.py:27
+#: constants.py:13 constants.py:26
 msgid "Archived"
 msgstr "Gearchiveerd"
 
-#: constants.py:24
+#: constants.py:23
 msgid "Changed"
 msgstr "Gewijzigd"
 
-#: emails.py:38
+#: emails.py:39
 msgid "Unlocked"
 msgstr "Ongesloten"
 
-#: indicators.py:35
+#: indicators.py:28
 #, python-format
 msgid "Unlock (%(message)s)"
 msgstr "Ongesloten (%(message)s)"
 
-#: indicators.py:47
+#: indicators.py:40
 msgid "Create new draft"
 msgstr "Maakt een nieuw concept"
 
-#: indicators.py:53
+#: indicators.py:46
 msgid "Revert from Unpublish"
 msgstr "Gedepubliceerde terugdraaien"
 
-#: indicators.py:73
+#: indicators.py:66
 msgid "Delete Draft"
 msgstr "Verwijder concept"
 
-#: indicators.py:79
+#: indicators.py:72
 msgid "Compare Draft to Published..."
 msgstr "Vergelijk Concept met Gepubliceerde..."
 
-#: indicators.py:89
+#: indicators.py:82
 msgid "Manage Versions..."
 msgstr "Beheer versies..."
 
-#: models.py:31
+#: models.py:29
 msgid "Version is not a draft"
 msgstr "Versie is niet een concept"
 
-#: models.py:32
+#: models.py:30
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
 msgstr "Actie niet geldig. De laatste versie is gesloten door {user}"
 
-#: models.py:33
+#: models.py:31
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
 msgstr "Actie niet geldig. De concept versie is gesloten door {user}"
 
-#: models.py:88
+#: models.py:86
 msgid "Created"
 msgstr "Aangemaakt"
 
-#: models.py:91
+#: models.py:89
 msgid "author"
 msgstr "auteur"
 
-#: models.py:100
+#: models.py:102
 msgid "status"
 msgstr "status"
 
-#: models.py:108
+#: models.py:110
 msgid "locked by"
 msgstr "gesloten door"
 
-#: models.py:117
+#: models.py:119
 msgid "source"
 msgstr "bron"
 
-#: models.py:131
+#: models.py:133
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
 msgstr "Versie #{number} ({state} {date})"
 
-#: models.py:138
+#: models.py:140
 #, python-brace-format
 msgid "Version #{number} ({state})"
 msgstr "Versie #{number} ({state})"
 
-#: models.py:144
+#: models.py:146
 #, python-format
 msgid "Locked by %(user)s"
 msgstr "Gesloten door %(user)s"
 
-#: models.py:276 models.py:325
+#: models.py:278 models.py:327
 msgid "Version is not in draft state"
 msgstr "Versie is niet in concept staat"
 
-#: models.py:385
+#: models.py:387
 msgid "Version is not in published state"
 msgstr "Versie is niet in gepubliceerde staat"
 
-#: models.py:442
+#: models.py:444
 msgid "Version is not in archived or unpublished state"
 msgstr "Versie is niet gearchiveerd en niet gepubliceerd"
 
-#: models.py:457
+#: models.py:459
 msgid "Version is not in draft or published state"
 msgstr "Versie is niet een concept of gepubliceerde staat"
 
-#: models.py:465
+#: models.py:467
 msgid "Version is already locked"
 msgstr "Versie is al gesloten"
 
-#: models.py:471
+#: models.py:473
 msgid "Draft version is not locked"
 msgstr "Concept versie is niet gesloten"
 
@@ -492,13 +492,16 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach "
+"out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
 "\n"
-"De volgende concept versie is van het slot af door%(by_user)svoor hun gebruik.\n"
+"De volgende concept versie is van het slot af door%(by_user)svoor hun "
+"gebruik.\n"
 " %(version_link)s\n"
-"Let op: je kunt niet verder bewerken in dit concept. Neem asjeblieft contact op met %(by_user)s in geval van enige zorgen. \n"
+"Let op: je kunt niet verder bewerken in dit concept. Neem asjeblieft contact "
+"op met %(by_user)s in geval van enige zorgen. \n"
 "\n"
 "Dit is een geautomatiseerde notificatie van Django CMS.\n"

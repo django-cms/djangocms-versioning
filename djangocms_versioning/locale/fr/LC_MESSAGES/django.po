@@ -2,126 +2,127 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 # Translators:
 # François Palmier <fp@kapt.mobi>, 2023
 # Frédéric Roland, 2023
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-05 17:59+0200\n"
+"POT-Creation-Date: 2023-10-02 09:37+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Frédéric Roland, 2023\n"
 "Language-Team: French (https://app.transifex.com/divio/teams/58664/fr/)\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % "
+"1000000 == 0 ? 1 : 2;\n"
 
-#: admin.py:164 admin.py:301 admin.py:383
+#: admin.py:164 admin.py:301 admin.py:377
 msgid "State"
 msgstr "État"
 
-#: admin.py:192 constants.py:28
+#: admin.py:192 constants.py:27
 msgid "Empty"
 msgstr "Vide"
 
-#: admin.py:315 admin.py:395
+#: admin.py:315 admin.py:387
 msgid "Author"
 msgstr "Auteur"
 
-#: admin.py:329 admin.py:406 models.py:89
+#: admin.py:329 admin.py:401 models.py:87
 msgid "Modified"
 msgstr "Modifié"
 
-#: admin.py:433 admin.py:661
+#: admin.py:437 admin.py:667
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Pré-visualisation"
 
-#: admin.py:468 admin.py:760 cms_toolbars.py:121
+#: admin.py:470 admin.py:758 cms_toolbars.py:115
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Éditer"
 
-#: admin.py:480
+#: admin.py:482
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Gérer les versions"
 
-#: admin.py:639
+#: admin.py:631
 msgid "Content"
 msgstr "Contenu"
 
-#: admin.py:649
+#: admin.py:647
 msgid "locked"
 msgstr "verrouillé"
 
-#: admin.py:679 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:683 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Archiver"
 
-#: admin.py:699 cms_toolbars.py:83 indicators.py:41
+#: admin.py:701 cms_toolbars.py:79 indicators.py:34
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Publier"
 
-#: admin.py:721 indicators.py:61 indicators.py:67
+#: admin.py:721 indicators.py:54 indicators.py:60
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Dépublier"
 
-#: admin.py:760 cms_toolbars.py:121
+#: admin.py:758 cms_toolbars.py:115
 msgid "New Draft"
 msgstr "Nouveau Brouillon"
 
-#: admin.py:783 cms_toolbars.py:188
+#: admin.py:779 cms_toolbars.py:177
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Rétablir"
 
-#: admin.py:804 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:798 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Rejeter"
 
-#: admin.py:829 cms_toolbars.py:153
+#: admin.py:821 cms_toolbars.py:145
 msgid "Unlock"
 msgstr "Déverrouiller"
 
 #: admin.py:856
-msgid "Exactly two versions need to be selected."
-msgstr "Il faut sélectionner exactement deux versions."
-
-#: admin.py:870
 msgid "Compare versions"
 msgstr "Comparer les versions"
 
-#: admin.py:897
+#: admin.py:866
+msgid "Exactly two versions need to be selected."
+msgstr "Il faut sélectionner exactement deux versions."
+
+#: admin.py:903
 msgid "Version cannot be archived"
 msgstr "La version ne peut pas être archivée"
 
-#: admin.py:926
+#: admin.py:929
 msgid "Version archived"
 msgstr "Version archivée"
 
-#: admin.py:937 admin.py:1059 admin.py:1241
+#: admin.py:940 admin.py:1059 admin.py:1235
 msgid "This view only supports POST method."
 msgstr "Cette vue ne prend en charge que la méthode POST."
 
-#: admin.py:948
+#: admin.py:951
 msgid "Version cannot be published"
 msgstr "La version ne peut pas être publiée"
 
-#: admin.py:959
+#: admin.py:962
 msgid "Version published"
 msgstr "Version publiée"
 
-#: admin.py:976
+#: admin.py:979
 msgid "Version cannot be unpublished"
 msgstr "La version ne peut pas être dépubliée"
 
@@ -129,19 +130,19 @@ msgstr "La version ne peut pas être dépubliée"
 msgid "Version unpublished"
 msgstr "Version non publiée"
 
-#: admin.py:1169
+#: admin.py:1163
 msgid "The last version has been deleted"
 msgstr "La dernière version a été supprimée"
 
-#: admin.py:1255
+#: admin.py:1249
 msgid "You do not have permission to remove the version lock"
 msgstr "Vous n'avez pas la permission de retirer le verrouillage de version"
 
-#: admin.py:1260
+#: admin.py:1254
 msgid "Version unlocked"
 msgstr "Version déverrouillée"
 
-#: admin.py:1309
+#: admin.py:1303
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Afficher les versions de \"{grouper}\""
@@ -150,180 +151,180 @@ msgstr "Afficher les versions de \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "django CMS Versioning"
 
-#: cms_config.py:262
+#: cms_config.py:246
 msgid "No available title"
 msgstr "Aucun titre disponible"
 
-#: cms_config.py:264 constants.py:13 constants.py:26
+#: cms_config.py:248 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "Non publié"
 
-#: cms_config.py:358
+#: cms_config.py:342
 msgid "Language must be set to a supported language!"
 msgstr "La langue doit être définie comme une langue prise en charge !"
 
-#: cms_config.py:376
+#: cms_config.py:360
 msgid "You do not have permission to copy these plugins."
 msgstr "Vous n'avez pas la permission de copier ces plugins."
 
-#: cms_toolbars.py:218
+#: cms_toolbars.py:207
 msgid "Manage Versions"
 msgstr "Gérer les versions"
 
-#: cms_toolbars.py:221
+#: cms_toolbars.py:210
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Comparer à {source}"
 
-#: cms_toolbars.py:236 indicators.py:73
+#: cms_toolbars.py:226 indicators.py:66
 msgid "Discard Changes"
 msgstr "Abandonner les modifications"
 
-#: cms_toolbars.py:271
+#: cms_toolbars.py:262
 msgid "View Published"
 msgstr "Vue publiée"
 
-#: cms_toolbars.py:327
+#: cms_toolbars.py:317
 msgid "Language"
 msgstr "Langue"
 
-#: cms_toolbars.py:374
+#: cms_toolbars.py:364
 msgid "Add Translation"
 msgstr "Ajouter une traduction"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:377
 msgid "Copy all plugins"
 msgstr "Copier tous les plugins"
 
-#: cms_toolbars.py:389
+#: cms_toolbars.py:379
 #, python-format
 msgid "from %s"
 msgstr "de %s"
 
-#: cms_toolbars.py:390
+#: cms_toolbars.py:380
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Êtes-vous sûr de vouloir copier tous les plugins de %s?"
 
-#: cms_toolbars.py:405
+#: cms_toolbars.py:395
 msgid "No other language available"
 msgstr "Aucune autre langue disponible"
 
-#: constants.py:11 constants.py:25
+#: constants.py:10 constants.py:24
 msgid "Draft"
 msgstr "Brouillon"
 
-#: constants.py:12 constants.py:23
+#: constants.py:11 constants.py:22
 msgid "Published"
 msgstr "Publié"
 
-#: constants.py:14 constants.py:27
+#: constants.py:13 constants.py:26
 msgid "Archived"
 msgstr "Archivé"
 
-#: constants.py:24
+#: constants.py:23
 msgid "Changed"
 msgstr "Modifié"
 
-#: emails.py:38
+#: emails.py:39
 msgid "Unlocked"
 msgstr "Déverrouillée"
 
-#: indicators.py:35
+#: indicators.py:28
 #, python-format
 msgid "Unlock (%(message)s)"
 msgstr "Déverrouiller (%(message)s)"
 
-#: indicators.py:47
+#: indicators.py:40
 msgid "Create new draft"
 msgstr "Créer un brouillon"
 
-#: indicators.py:53
+#: indicators.py:46
 msgid "Revert from Unpublish"
 msgstr "Annulation de la publication"
 
-#: indicators.py:73
+#: indicators.py:66
 msgid "Delete Draft"
 msgstr "Supprimer le brouillon"
 
-#: indicators.py:79
+#: indicators.py:72
 msgid "Compare Draft to Published..."
 msgstr "Comparer le brouillon à la version publiée..."
 
-#: indicators.py:89
+#: indicators.py:82
 msgid "Manage Versions..."
 msgstr "Gérer les versions..."
 
-#: models.py:31
+#: models.py:29
 msgid "Version is not a draft"
 msgstr "La version n'est pas un brouillon"
 
-#: models.py:32
+#: models.py:30
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
 msgstr "Action Refusée. La dernière version est verrouillée par {user}"
 
-#: models.py:33
+#: models.py:31
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
 msgstr "Action Refusée. Le brouillon est verrouillé par {user}"
 
-#: models.py:88
+#: models.py:86
 msgid "Created"
 msgstr "Créée"
 
-#: models.py:91
+#: models.py:89
 msgid "author"
 msgstr "auteur"
 
-#: models.py:100
+#: models.py:102
 msgid "status"
 msgstr "statut"
 
-#: models.py:108
+#: models.py:110
 msgid "locked by"
 msgstr "verrouillée par"
 
-#: models.py:117
+#: models.py:119
 msgid "source"
 msgstr "source"
 
-#: models.py:131
+#: models.py:133
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
 msgstr "Version #{number} ({state} {date})"
 
-#: models.py:138
+#: models.py:140
 #, python-brace-format
 msgid "Version #{number} ({state})"
 msgstr "Version #{number} ({state})"
 
-#: models.py:144
+#: models.py:146
 #, python-format
 msgid "Locked by %(user)s"
 msgstr "Verrouillée par %(user)s"
 
-#: models.py:276 models.py:325
+#: models.py:278 models.py:327
 msgid "Version is not in draft state"
 msgstr "La version n'est pas à l'état de brouillon"
 
-#: models.py:385
+#: models.py:387
 msgid "Version is not in published state"
 msgstr "La version n'est pas dans l'état publié"
 
-#: models.py:442
+#: models.py:444
 msgid "Version is not in archived or unpublished state"
 msgstr "La version n'est pas archivé ou non publié"
 
-#: models.py:457
+#: models.py:459
 msgid "Version is not in draft or published state"
 msgstr "La version n'est pas en brouillon ou publiée"
 
-#: models.py:465
+#: models.py:467
 msgid "Version is already locked"
 msgstr "La version  est déjà verrouillée"
 
-#: models.py:471
+#: models.py:473
 msgid "Draft version is not locked"
 msgstr "Le brouillon n'est pas verrouillé"
 
@@ -492,7 +493,8 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach "
+"out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -500,6 +502,7 @@ msgstr ""
 "Le brouillon suivant a été déverrouillé par %(by_user)s pour son usage.\n"
 "%(version_link)s\n"
 "\n"
-"Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes prié de contacter %(by_user)s en cas de soucis.\n"
+"Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes "
+"prié de contacter %(by_user)s en cas de soucis.\n"
 "\n"
 "C'est une notification automatique de Django CMS.\n"

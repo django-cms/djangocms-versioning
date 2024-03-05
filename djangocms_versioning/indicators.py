@@ -120,12 +120,3 @@ def content_indicator(content_obj):
             content_obj._indicator_status = None
             content_obj._version = [None]
     return content_obj._indicator_status
-
-
-def is_editable(content_obj, request):
-    """Check of content_obj is editable"""
-    if not content_obj.content_indicator():
-        # Something's wrong: content indicator not identified. Maybe no version?
-        return False
-    versions = content_obj._version
-    return versions[0].check_modify.as_bool(request.user)

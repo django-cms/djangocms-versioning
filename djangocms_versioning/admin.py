@@ -608,6 +608,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     # def get_queryset(self, request):
     #     return super().get_queryset(request).prefetch_related('content')
 
+    class Media:
+        js = ["djangocms_versioning/js/versioning.js"]
+
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 

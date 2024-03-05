@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -21,10 +21,10 @@ jobs:
         ]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -37,14 +37,14 @@ jobs:
       run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   postgres:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -65,10 +65,10 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -83,14 +83,14 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   mysql:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
             dj40_cms41.txt,
@@ -109,10 +109,10 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -127,7 +127,7 @@ jobs:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
 
   cms-develop-sqlite:
     runs-on: ${{ matrix.os }}
@@ -144,21 +144,57 @@ jobs:
         ]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
 
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        pip install ${{ matrix.cms-version }}
+        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
+        python -m pip install ${{ matrix.cms-version }}
         python setup.py install
 
     - name: Run coverage
       run: coverage run setup.py test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
+
+  sqlite-django-main:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.11" ]
+        cms-version: [
+          'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
+        ]
+        django-version: [
+          'https://github.com/django/django/archive/main.tar.gz'
+        ]
+        requirements-file: [
+            requirements_base.txt,
+        ]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
+        python -m pip install ${{ matrix.cms-version }} ${{ matrix.django-version }}
+        python setup.py install
+
+    - name: Run coverage
+      run: coverage run setup.py test
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4

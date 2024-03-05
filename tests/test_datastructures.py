@@ -11,6 +11,10 @@ from djangocms_versioning.test_utils.factories import PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
+if not hasattr(CMSTestCase, "assertQuerySetEqual"):
+    # Django < 4.2
+    CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
 
 class VersionableItemTestCase(CMSTestCase):
     def setUp(self):
@@ -31,7 +35,7 @@ class VersionableItemTestCase(CMSTestCase):
             grouper_field_name="poll",
             copy_function=default_copy,
         )
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(),
             [latest_poll1_version.content.pk, latest_poll2_version.content.pk],
             transform=lambda x: x.pk,
@@ -59,7 +63,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_published_filter = {"versions__state__in": [PUBLISHED]}
         # Should be one published version
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(**qs_published_filter),
             [poll1_published_version.content.pk],
             transform=lambda x: x.pk,
@@ -68,7 +72,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_archive_filter = {"versions__state__in": [ARCHIVED]}
         # Should be two archived versions
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(**qs_archive_filter),
             [poll1_archived_version.content.pk, poll2_archived_version.content.pk],
             transform=lambda x: x.pk,
@@ -89,7 +93,7 @@ class VersionableItemTestCase(CMSTestCase):
             copy_function=default_copy,
         )
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.for_grouper(self.initial_version.content.poll),
             [self.initial_version.content.pk, poll1_version2.content.pk],
             transform=lambda x: x.pk,

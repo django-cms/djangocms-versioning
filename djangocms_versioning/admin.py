@@ -608,6 +608,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     # def get_queryset(self, request):
     #     return super().get_queryset(request).prefetch_related('content')
 
+    class Media:
+        js = ["djangocms_versioning/js/versioning.js"]
+
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 
@@ -969,7 +972,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         # Redirect to published?
         if conf.ON_PUBLISH_REDIRECT == "published":
-            redirect_url = None
             if hasattr(version.content, "get_absolute_url"):
                 redirect_url = version.content.get_absolute_url() or redirect_url
 

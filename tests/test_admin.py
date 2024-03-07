@@ -452,7 +452,7 @@ class VersionAdminTestCase(CMSTestCase):
         version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
             with override(version.content.language):
-                url = get_object_preview_url(version.content, language=version.content.language),
+                url = get_object_preview_url(version.content, language=version.content.language)
                 label = version.content
                 self.assertEqual(
                     self.site._registry[Version].content_link(version),
@@ -2370,7 +2370,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-        expected += """<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
+        expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 

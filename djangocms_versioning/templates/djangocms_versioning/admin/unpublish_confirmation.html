@@ -5,6 +5,7 @@
     {{ block.super }}
     {{ media }}
     <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
+    <script type="text/javascript" src="{% static 'djangocms_versioning/js/admin/versioning-actions.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumbs %}{% endblock %}
@@ -20,10 +21,10 @@
         <p>{{thing}}</p>
     {% endfor %}
 </div>
-<form action="" method="POST">
+<form action="" method="POST" class="js-close-sideframe">
     {% csrf_token %}
     <div class="submit-row">
-        <input  class="button confirm-link js-versioning-keep-sideframe"
+        <input  class="button confirm-link"
                 type="submit"
                 value="{% translate "Yes, I'm sure" %}">
         <a href="{{ back_url }}">

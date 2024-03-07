@@ -452,12 +452,11 @@ class VersionAdminTestCase(CMSTestCase):
         version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
             with override(version.content.language):
+                url = get_object_preview_url(version.content, language=version.content.language)
+                label = version.content
                 self.assertEqual(
                     self.site._registry[Version].content_link(version),
-                    '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                        url=get_object_preview_url(version.content, language=version.content.language),
-                        label=version.content
-                    ),
+                    f'<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
                 )
 
 
@@ -2371,9 +2370,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-        expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(poll_content.pk), name=str(poll_content)
-        )
+        expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
@@ -2422,12 +2419,11 @@ class VersionChangeListViewTestCase(CMSTestCase):
         breadcrumb_html = soup.find("div", class_="breadcrumbs")
         # Assert the breadcrumbs - we should have ignored the French one
         # and put the English one in the breadcrumbs
+        pk = page_content_en.pk
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
         expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
-        expected += """<a href="/en/admin/cms/pagecontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(page_content_en.pk), name=str(page_content_en)
-        )
+        expected += f"""<a href="/en/admin/cms/pagecontent/{pk}/change/">{page_content_en}</a>\\n› """
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
@@ -2673,10 +2669,10 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertEqual(200, response.status_code)
 
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="/en/admin/polls/pollcontent/{}/change/">[TEST]{}</a>'.format(
-            content.id,
-            content.text
-        ))
+        self.assertContains(
+            response,
+            f'<a href="/en/admin/polls/pollcontent/{content.id}/change/">[TEST]{content.text}</a>'
+        )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
         self.assertContains(response, "cms-action-preview")
@@ -2901,10 +2897,10 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         # Check response is valid
         self.assertEqual(200, response.status_code)
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="/en/admin/polls/poll/{}/change/">[TEST]{}</a>'.format(
-            content.poll.id,
-            content.text
-        ))
+        self.assertContains(
+            response,
+            f'<a href="/en/admin/polls/poll/{content.poll.id}/change/">[TEST]{content.text}</a>',
+        )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
         self.assertContains(response, "cms-action-view")

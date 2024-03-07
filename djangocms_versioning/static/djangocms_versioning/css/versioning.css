@@ -207,6 +207,3 @@ ins.cms-diff img {
 .cms-select::-ms-expand {
     opacity: 0;
 }
-input.button.revert-button {
-    margin: 5px;
-}

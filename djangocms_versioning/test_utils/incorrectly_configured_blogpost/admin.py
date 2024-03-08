@@ -8,5 +8,3 @@ from .models import IncorrectBlogContent
 @admin.register(IncorrectBlogContent)
 class IncorrectBlogContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
     pass
-
-

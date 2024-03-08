@@ -11,8 +11,7 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
-from django.urls import path
-from django.urls import re_path, reverse
+from django.urls import path, re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.formats import localize
 from django.utils.html import format_html, format_html_join
@@ -159,7 +158,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).get_state_display()
 
-
     @admin.display(
         description=_("Author"),
         ordering="created_by_username_ordering",
@@ -185,7 +183,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         :return: Modified Date
         """
         return self.get_version(obj).modified
-
 
     def _get_preview_url(self, obj):
         """
@@ -290,7 +287,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             obj.get_preview_url(),
             _("Preview"),
         )
-
 
     def _get_field_modifier(self, request, modifier_dict, field):
         method = modifier_dict[field]
@@ -473,7 +469,6 @@ class VersionAdmin(admin.ModelAdmin):
         """
         return obj.number
 
-
     @admin.display(
         description=_("Content"),
         ordering="content",
@@ -488,7 +483,6 @@ class VersionAdmin(admin.ModelAdmin):
             url=url,
             label=content,
         )
-
 
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
@@ -670,7 +664,6 @@ class VersionAdmin(admin.ModelAdmin):
         url += "?compare_to=%d" % queryset[1].pk
 
         return redirect(url)
-
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

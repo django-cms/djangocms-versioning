@@ -1,5 +1,5 @@
 ****************
-django CMS Versioning
+django CMS Versioning 
 ****************
 
 ============

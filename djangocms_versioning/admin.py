@@ -11,6 +11,7 @@ from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
+from django.urls import path
 from django.urls import re_path, reverse
 from django.utils.encoding import force_str
 from django.utils.formats import localize
@@ -148,15 +149,21 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return obj.versions.all()[0]
 
+    @admin.display(
+        description=_("State"),
+        ordering="versions__state",
+    )
     def get_versioning_state(self, obj):
         """
         Return the state of a given version
         """
         return self.get_version(obj).get_state_display()
 
-    get_versioning_state.admin_order_field = "versions__state"
-    get_versioning_state.short_description = _("State")
 
+    @admin.display(
+        description=_("Author"),
+        ordering="created_by_username_ordering",
+    )
     def get_author(self, obj):
         """
         Return the author who created a version
@@ -166,9 +173,11 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         return self.get_version(obj).created_by
 
     # This needs to target the annotation, or ordering will be alphabetically, with uppercase then lowercase
-    get_author.admin_order_field = "created_by_username_ordering"
-    get_author.short_description = _("Author")
 
+    @admin.display(
+        description=_("Modified"),
+        ordering="versions__modified",
+    )
     def get_modified_date(self, obj):
         """
         Get the last modified date of a version
@@ -177,8 +186,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
         """
         return self.get_version(obj).modified
 
-    get_modified_date.admin_order_field = "versions__modified"
-    get_modified_date.short_description = _("Modified")
 
     def _get_preview_url(self, obj):
         """
@@ -272,6 +279,9 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             self._get_manage_versions_link,
         ]
 
+    @admin.display(
+        description=_("Preview")
+    )
     def get_preview_link(self, obj):
         return format_html(
             '<a href="{}" class="js-moderation-close-sideframe" target="_top">'
@@ -281,7 +291,6 @@ class ExtendedVersionAdminMixin(VersioningAdminMixin):
             _("Preview"),
         )
 
-    get_preview_link.short_description = _("Preview")
 
     def _get_field_modifier(self, request, modifier_dict, field):
         method = modifier_dict[field]
@@ -454,15 +463,21 @@ class VersionAdmin(admin.ModelAdmin):
             del actions["delete_selected"]
         return actions
 
+    @admin.display(
+        description=_("version number"),
+        ordering="pk",
+    )
     def nr(self, obj):
         """Get the identifier of the version. Might be something other
         than the pk eventually.
         """
         return obj.number
 
-    nr.admin_order_field = "pk"
-    nr.short_description = _("version number")
 
+    @admin.display(
+        description=_("Content"),
+        ordering="content",
+    )
     def content_link(self, obj):
         """Display html for the content preview url"""
         content = obj.content
@@ -474,8 +489,6 @@ class VersionAdmin(admin.ModelAdmin):
             label=content,
         )
 
-    content_link.short_description = _("Content")
-    content_link.admin_order_field = "content"
 
     def _get_archive_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the archive action
@@ -633,6 +646,9 @@ class VersionAdmin(admin.ModelAdmin):
             self._get_discard_link,
         ]
 
+    @admin.action(
+        description=_("Compare versions")
+    )
     def compare_versions(self, request, queryset):
         """
         Redirects to a compare versions view based on a users choice
@@ -655,7 +671,6 @@ class VersionAdmin(admin.ModelAdmin):
 
         return redirect(url)
 
-    compare_versions.short_description = _("Compare versions")
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -1091,8 +1106,8 @@ class VersionAdmin(admin.ModelAdmin):
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.model_name
         return [
-            re_path(
-                r"^select/$",
+            path(
+                "select/",
                 self.admin_site.admin_view(self.grouper_form_view),
                 name="{}_{}_grouper".format(*info),
             ),

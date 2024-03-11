@@ -1,7 +1,8 @@
+from cms import __version__ as CMS_VERSION
 from django.conf import settings
 
 ENABLE_MENU_REGISTRATION = getattr(
-    settings, "DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION", True
+    settings, "DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION", CMS_VERSION <= "4.1.0"
 )
 
 USERNAME_FIELD = getattr(

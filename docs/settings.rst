@@ -25,10 +25,12 @@ Settings for djangocms Versioning
 
 .. py:attribute:: DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION
 
-    Defaults to ``True``
+    Defaults to ``True`` (for django CMS <= 4.1.0) and ``False``
+    (for django CMS > 4.1.0)
 
     This settings specifies if djangocms-versioning should register its own
-    versioned CMS menu.
+    versioned CMS menu. This is necessary for CMS <= 4.1.0. For CMS > 4.1.0, the
+    django CMS core comes with a version-ready menu.
 
     The versioned CMS menu also shows draft content in edit and preview mode.
 

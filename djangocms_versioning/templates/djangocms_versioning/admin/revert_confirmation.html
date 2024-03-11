@@ -6,6 +6,7 @@
     {{ media }}
     <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
     <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
+    <script type="text/javascript" src="{% static 'djangocms_versioning/js/admin/versioning-actions.js' %}"></script>
 {% endblock %}
 
 {% block breadcrumbs %}{% endblock %}
@@ -22,20 +23,20 @@
 </p>
 <h3>{{ object_name }}</h3>
 <h4>{% blocktrans %}Version number: {{ version_number }}{% endblocktrans %}</h4>
-<form action="" method="POST">
+<form action="" method="POST" class="js-close-sideframe">
     {% csrf_token %}
     <div class="submit-row">
         {% if draft_version %}
-        <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
+        <input  class="button revert-button confirm-link"
                 type="submit"
                 name="discard"
                 value="{% translate 'Discard existing draft and Revert' %}">
-        <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
+        <input  class="button revert-button confirm-link"
                 name="archive"
                 type="submit"
                 value="{% translate 'Archive existing draft and Revert' %}">
         {% else %}
-        <input  class="button revert-button confirm-link js-versioning-keep-sideframe"
+        <input  class="button revert-button confirm-link"
                 type="submit"
                 name="revert"
                 value="{% translate "Yes, I'm sure" %}">

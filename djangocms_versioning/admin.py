@@ -765,7 +765,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     def _get_revert_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the revert action
         """
-        if obj.state == PUBLISHED or obj.state == DRAFT:
+        if obj.state in (PUBLISHED, DRAFT):
             # Don't display the link if it's a draft or published
             return ""
 

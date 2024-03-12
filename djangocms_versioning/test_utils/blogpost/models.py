@@ -14,6 +14,18 @@ class BlogContent(models.Model):
     language = models.TextField()
     text = models.TextField()
 
+    def has_publish_permission(self, user):
+        if user.is_superuser:
+            return True
+        # Fake a simple object-dependent permission
+        return user.username in self.text
+
+    def has_change_permission(self, user):
+        if user.is_superuser:
+            return True
+        # Fake a simple object-dependent permission
+        return f"<{user.username}>" in self.text
+
     def __str__(self):
         return self.text
 

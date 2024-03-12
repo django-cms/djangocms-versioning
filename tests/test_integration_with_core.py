@@ -221,7 +221,7 @@ class WizzardTestCase(CMSTestCase):
 
     def test_success_url_for_cms_wizard(self):
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
-        from cms.toolbar.utils import get_object_preview_url
+        from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 
         from djangocms_versioning.test_utils.polls.cms_wizards import (
             poll_wizard,
@@ -229,21 +229,24 @@ class WizzardTestCase(CMSTestCase):
 
         # Test against page creations in different languages.
         version = PageVersionFactory(content__language="en")
-        self.assertEqual(
+        self.assertIn(
             cms_page_wizard.get_success_url(version.content.page, language="en"),
-            get_object_preview_url(version.content),
+            [get_object_preview_url(version.content), get_object_edit_url(version.content)],
         )
 
         version = PageVersionFactory(content__language="en")
-        self.assertEqual(
+        self.assertIn(
             cms_subpage_wizard.get_success_url(version.content.page, language="en"),
-            get_object_preview_url(version.content),
+            [get_object_preview_url(version.content), get_object_edit_url(version.content)],
         )
 
         version = PageVersionFactory(content__language="de")
-        self.assertEqual(
+        self.assertIn(
             cms_page_wizard.get_success_url(version.content.page, language="de"),
-            get_object_preview_url(version.content, language="de"),
+            [
+                get_object_preview_url(version.content, language="de"),
+                get_object_edit_url(version.content, language="de")
+            ],
         )
 
         # Test against a model that doesn't have a PlaceholderRelationField

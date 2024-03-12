@@ -76,3 +76,17 @@ def draft_is_locked(message: str) -> callable:
         else:
             raise ConditionFailed(message)
     return inner
+
+def user_can_publish(message: str) -> callable:
+    def inner(version, user):
+        if not version.has_publish_permission(user):
+            raise ConditionFailed(message)
+    return inner
+
+
+def user_can_change(message: str) -> callable:
+    def inner(version, user):
+        if not version.has_change_permission(user):
+            raise ConditionFailed(message)
+    return inner
+

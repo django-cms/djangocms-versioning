@@ -264,7 +264,7 @@ class TestVersionQuerySet(CMSTestCase):
 
         versions_for_grouper = Version.objects.filter_by_grouper(poll)
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versions_for_grouper,
             [versions[0].pk, versions[1].pk],
             transform=lambda o: o.pk,
@@ -281,7 +281,7 @@ class TestVersionQuerySet(CMSTestCase):
         versions_for_grouper = Version.objects.filter_by_grouper(pv.content.poll)
 
         # Only poll version included
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versions_for_grouper, [pv.pk], transform=lambda o: o.pk, ordered=False
         )
 

@@ -33,7 +33,7 @@ class VersionableItemTestCase(CMSTestCase):
             copy_function=default_copy,
         )
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(),
             [latest_poll1_version.pk, latest_poll2_version.pk],
             transform=lambda x: x.pk,
@@ -61,7 +61,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_published_filter = {"versions__state__in": [PUBLISHED]}
         # Should be one published version
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(**qs_published_filter),
             [poll1_published_version.pk],
             transform=lambda x: x.pk,
@@ -70,7 +70,7 @@ class VersionableItemTestCase(CMSTestCase):
 
         qs_archive_filter = {"versions__state__in": [ARCHIVED]}
         # Should be two archived versions
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.distinct_groupers(**qs_archive_filter),
             [poll1_archived_version.pk, poll2_archived_version.pk],
             transform=lambda x: x.pk,
@@ -91,7 +91,7 @@ class VersionableItemTestCase(CMSTestCase):
             copy_function=default_copy,
         )
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             versionable.for_grouper(self.initial_version.content.poll),
             [self.initial_version.content.pk, poll1_version2.content.pk],
             transform=lambda x: x.pk,

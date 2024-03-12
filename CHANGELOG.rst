@@ -8,6 +8,8 @@ Unreleased
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused
 * ci: Added concurrency option to cancel in progress runs when new changes occur
+* Introduced Django 4.2 support.
+* Dropped Support for Django<3.1
 
 1.2.2 (2022-07-20)
 ==================

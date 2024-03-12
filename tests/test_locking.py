@@ -276,8 +276,6 @@ class VersionLockUnlockTestCase(CMSTestCase):
         )
         with self.login_user_context(self.user_has_no_unlock_perms):
             response = self.client.post(changelist_url)
-        print()
-        print(response.content.decode("utf-8"))
         self.assertInHTML(exprected_disabled_button, response.content.decode("utf-8"))
 
     def test_unlock_link_present_for_user_with_privileges(self):

@@ -729,7 +729,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_archive_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [

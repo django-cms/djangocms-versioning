@@ -25,7 +25,6 @@ from django.utils.translation import gettext_lazy as _
 
 from . import indicators, versionables
 from .admin import VersioningAdminMixin
-from .conf import LOCK_VERSIONS
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
@@ -33,7 +32,6 @@ from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
     is_editable,
-    placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
     replace_manager,

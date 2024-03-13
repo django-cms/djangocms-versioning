@@ -160,12 +160,6 @@ class VersioningCMSExtension(CMSAppExtension):
             for key in modifier.keys():
                 self.add_to_field_extension[key] = modifier[key]
 
-    def handle_locking(self):
-        if LOCK_VERSIONS:
-            from cms.models import fields
-
-            fields.PlaceholderRelationField.default_checks += [placeholder_content_is_unlocked_for_user]
-
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)
@@ -188,7 +182,6 @@ class VersioningCMSExtension(CMSAppExtension):
             self.handle_version_admin(cms_config)
             self.handle_content_model_generic_relation(cms_config)
             self.handle_content_model_manager(cms_config)
-        self.handle_locking()
 
 
 def copy_page_content(original_content):

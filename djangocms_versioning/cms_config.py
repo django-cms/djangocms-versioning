@@ -231,7 +231,7 @@ def copy_page_content(original_content):
         if hasattr(original_content, field.name):
             extension = getattr(original_content, field.name)
             if isinstance(extension, BaseExtension):
-                extension.copy(new_content, new_content.language)
+                extension.copy(new_content)
 
     return new_content
 

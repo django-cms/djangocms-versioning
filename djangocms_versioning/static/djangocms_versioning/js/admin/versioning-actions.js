@@ -11,10 +11,11 @@
         document.querySelectorAll('form.js-close-sideframe').forEach(el => {
             el.addEventListener("submit", (ev) => {
                 ev.preventDefault();
+                ev.target.action = ev.target.action;  // save action url
                 closeSideFrame();
-                const form = window.top.document.body.appendChild(ev.target);
+                const form = window.top.document.body.appendChild(ev.target);  // move to top window
                 form.style.display = 'none';
-                form.submit();
+                form.submit();  // submit form
             });
         });
     });

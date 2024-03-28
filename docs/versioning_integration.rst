@@ -17,30 +17,13 @@ Change the model structure
 ----------------------------
 Assuming that our `blog` app has one db table:
 
-.. graphviz::
-
-     digraph ERD1 {
-      graph [   rankdir = "LR" ];
-      ranksep=2;
-
-      "Post" [ label="<Post> Post|<PK_GROUPER_ID>id \l |site \l title \l text \l " shape = "record" ];
-
-      "Post":"PK_GROUPER_ID" [arrowhead = crow];
-    }
+.. image:: /static/blog-original.jpg
+    :width: 75px
 
 This would have to change to a db structure like this:
 
-.. graphviz::
-
-     digraph ERD2 {
-      graph [   rankdir = "LR" ];
-      ranksep=2;
-
-      "Post" [ label="<Post> Post|<PK_GROUPER_ID>id \l |site \l " shape = "record" ];
-      "PostContent" [ label="<PostContent> PostContent|<PK_CONTENT_ID>id \l |<FK_POST>post \l |title \l text \l " shape = "record" ];
-
-      "Post":"PK_GROUPER_ID"->"PostContent":"FK_POST" [arrowhead = crow];
-    }
+.. image:: /static/blog-new.jpg
+    :width: 377px
 
 Or in python code, `models.py` would need to change from:
 

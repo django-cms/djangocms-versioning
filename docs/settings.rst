@@ -25,10 +25,12 @@ Settings for djangocms Versioning
 
 .. py:attribute:: DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION
 
-    Defaults to ``True``
+    Defaults to ``True`` (for django CMS <= 4.1.0) and ``False``
+    (for django CMS > 4.1.0)
 
     This settings specifies if djangocms-versioning should register its own
-    versioned CMS menu.
+    versioned CMS menu. This is necessary for CMS <= 4.1.0. For CMS > 4.1.0, the
+    django CMS core comes with a version-ready menu.
 
     The versioned CMS menu also shows draft content in edit and preview mode.
 
@@ -36,6 +38,9 @@ Settings for djangocms Versioning
 .. py:attribute:: DJANGOCMS_VERSIONING_LOCK_VERSIONS
 
     Defaults to ``False``
+
+    .. versionadded:: 2.0
+       Before version 2.0 version locking was part of a separate package.
 
     This setting controls if draft versions are locked. If they are, only the user
     who created the draft can change the draft. See
@@ -65,8 +70,7 @@ Settings for djangocms Versioning
     Defaults to ``"published"``
 
     .. versionadded:: 2.0
-
-        Before version 2.0 the behavior was always ``"versions"``.
+       Before version 2.0 the behavior was always ``"versions"``.
 
     This setting determines what happens after publication/unpublication of a
     content object. Three options exist:

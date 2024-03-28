@@ -18,6 +18,7 @@ from .conditions import (
     is_not_locked,
     user_can_change,
     user_can_publish,
+    user_can_unlock,
 )
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
@@ -492,6 +493,7 @@ class Version(models.Model):
         [
             in_state([constants.DRAFT], not_draft_error),
             draft_is_not_locked(lock_draft_error_message),
+            user_can_unlock(permission_error_message),
         ]
     )
     check_revert = Conditions(
@@ -529,6 +531,7 @@ class Version(models.Model):
         [
             in_state([constants.DRAFT, constants.PUBLISHED], not_draft_error),
             draft_is_locked(_("Draft version is not locked"))
+
         ]
     )
 

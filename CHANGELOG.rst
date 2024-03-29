@@ -18,7 +18,8 @@ Changelog
 * Chore: update ruff and pre-commit hook by @raffaellasuardini in https://github.com/django-cms/djangocms-versioning/pull/381
 * build(deps): bump actions/cache from 4.0.1 to 4.0.2 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/397
 
-## New Contributors
+New Contributors
+
 * @raffaellasuardini made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/381
 * @jrief made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/364
 

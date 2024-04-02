@@ -4,6 +4,7 @@ Changelog
 
 Unreleased
 ==========
+* feat: Provide additional information when sending publish/unpublish events (cherry-pick #348)
 * ci: Updated isort params in lint workflow to meet current requirements.
 * ci: Update actions to v3 where possible, and coverage to v2 due to v1 sunset in Feb
 * ci: Remove ``os`` from test workflow matrix because it's unused

@@ -105,7 +105,7 @@ class VersioningAdminMixin:
                 "versioning_fallback_change_form_template"
             ] = super().change_form_template
 
-        return super().render_change_form(request, context, add, change, form_url, obj)
+        return super().render_change_form(request, context, add=add, change=change, form_url=form_url, obj=obj)
 
     def has_change_permission(self, request, obj=None):
         # Add additional version checks

@@ -19,6 +19,7 @@ HELPER_SETTINGS = {
         "cms": None,
         "menus": None,
         "djangocms_versioning": None,
+        "djangocms_text_ckeditor": None,
     },
     "CMS_PERMISSION": True,
     "LANGUAGES": (

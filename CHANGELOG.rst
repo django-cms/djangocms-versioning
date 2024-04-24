@@ -2,6 +2,26 @@
 Changelog
 =========
 
+2.0.1 (2024-03-29)
+==================
+
+* feat: Add content object level publish permissions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/390
+* fix: Create missing __init__.py in management folder by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/366
+* fix #363: Better UX in versioning listview by @jrief in https://github.com/django-cms/djangocms-versioning/pull/364
+* fix: Several fixes for the versioning forms: #382, #383, #384 by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/386
+* fix: For Django CMS 4.1.1 and later do not automatically register versioned CMS Menu by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/388
+* fix: Post requests from the side frame were sent to wrong URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/396
+* fix: Consistent use of action buttons by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/392
+* fix: Avoid duplication of placeholder checks for locked versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/393
+* ci: Add testing against django main by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/353
+* ci: Improve efficiency of ruff workflow by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/378
+* Chore: update ruff and pre-commit hook by @raffaellasuardini in https://github.com/django-cms/djangocms-versioning/pull/381
+* build(deps): bump actions/cache from 4.0.1 to 4.0.2 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/397
+
+New Contributors
+
+* @raffaellasuardini made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/381
+* @jrief made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/364
 
 2.0.0 (2023-12-29)
 ==================

@@ -73,7 +73,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         version = PollVersionFactory()
         version.archive(self.get_superuser())
-        toolbar = get_toolbar(version.content, edit_mode=False)
+        toolbar = get_toolbar(version.content, edit_mode=False, user=self.get_superuser())
 
         toolbar.post_template_populate()
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)

@@ -608,6 +608,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     # def get_queryset(self, request):
     #     return super().get_queryset(request).prefetch_related('content')
 
+    class Media:
+        js = ["djangocms_versioning/js/versioning.js"]
+
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
 
@@ -682,13 +685,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             icon="archive",
             title=_("Archive"),
             name="archive",
-            disabled=not obj.can_be_archived(),
+            disabled=not obj.check_archive.as_bool(request.user),
         )
 
     def _get_publish_link(self, obj, request):
         """Helper function to get the html link to the publish action
         """
-        if not obj.check_publish.as_bool(request.user):
+        if not obj.can_be_published():
             # Don't display the link if it can't be published
             return ""
         publish_url = reverse(
@@ -701,14 +704,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             title=_("Publish"),
             name="publish",
             action="post",
-            disabled=not obj.can_be_published(),
+            disabled=not obj.check_publish.as_bool(request.user),
             keepsideframe=False,
         )
 
     def _get_unpublish_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the unpublish action
         """
-        if not obj.check_unpublish.as_bool(request.user):
+        if not obj.can_be_unpublished():
             # Don't display the link if it can't be unpublished
             return ""
         unpublish_url = reverse(
@@ -720,15 +723,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             icon="unpublish",
             title=_("Unpublish"),
             name="unpublish",
-            disabled=not obj.can_be_unpublished(),
+            disabled=not obj.check_unpublish.as_bool(request.user),
         )
 
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
-        if not obj.check_edit_redirect.as_bool(request.user):
-            return ""
-
         # Only show if no draft exists
         if obj.state == PUBLISHED:
             pks_for_grouper = obj.versionable.for_content_grouping_values(
@@ -758,14 +758,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             title=_("Edit") if icon == "pencil" else _("New Draft"),
             name="edit",
             action="post",
-            disabled=disabled,
+            disabled=not obj.check_edit_redirect.as_bool(request.user) or disabled,
             keepsideframe=keepsideframe,
         )
 
     def _get_revert_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the revert action
         """
-        if not obj.check_revert.as_bool(request.user):
+        if obj.state in (PUBLISHED, DRAFT):
             # Don't display the link if it's a draft or published
             return ""
 
@@ -778,13 +778,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             icon="undo",
             title=_("Revert"),
             name="revert",
-            disabled=disabled,
+            disabled=not obj.check_revert.as_bool(request.user) or disabled,
         )
 
     def _get_discard_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the discard action
         """
-        if not obj.check_discard.as_bool(request.user):
+        if obj.state != DRAFT:
             # Don't display the link if it's not a draft
             return ""
 
@@ -797,7 +797,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             icon="bin",
             title=_("Discard"),
             name="discard",
-            disabled=disabled,
+            disabled=not obj.check_discard.as_bool(request.user) or disabled,
         )
 
     def _get_unlock_link(self, obj, request):
@@ -808,12 +808,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if not conf.LOCK_VERSIONS or obj.state != DRAFT or not version_is_locked(obj):
             return ""
 
-        disabled = True
-        # Check whether the lock can be removed
-        # Check that the user has unlock permission
-        if request.user.has_perm("djangocms_versioning.delete_versionlock"):
-            disabled = False
-
         unlock_url = reverse(f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_unlock", args=(obj.pk,))
         return self.admin_action_button(
             unlock_url,
@@ -821,7 +815,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             title=_("Unlock"),
             name="unlock",
             action="post",
-            disabled=disabled,
+            disabled=not obj.check_unlock.as_bool(request.user),
         )
 
     def get_actions_list(self):
@@ -978,7 +972,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         # Redirect to published?
         if conf.ON_PUBLISH_REDIRECT == "published":
-            redirect_url = None
             if hasattr(version.content, "get_absolute_url"):
                 redirect_url = version.content.get_absolute_url() or redirect_url
 
@@ -1323,10 +1316,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Check if custom breadcrumb template defined, otherwise
             # fallback on default
             breadcrumb_templates = [
-                "admin/djangocms_versioning/{app_label}/{model_name}/versioning_breadcrumbs.html".format(
-                    app_label=breadcrumb_opts.app_label,
-                    model_name=breadcrumb_opts.model_name,
-                ),
+                f"admin/djangocms_versioning/{breadcrumb_opts.app_label}/{breadcrumb_opts.model_name}/versioning_breadcrumbs.html",
                 "admin/djangocms_versioning/versioning_breadcrumbs.html",
             ]
             extra_context["breadcrumb_template"] = select_template(breadcrumb_templates)

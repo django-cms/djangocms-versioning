@@ -127,8 +127,8 @@ class VersioningToolbar(PlaceholderToolbar):
         if LOCK_VERSIONS and self._is_versioned():
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
-            version = Version.objects.get_for_content(self.toolbar.obj)
-            if version.check_unlock.as_bool(self.request.user):
+            version = Version.objects.filter_by_content_grouping_values(self.toolbar.obj).filter(state=DRAFT).first()
+            if version and version.check_unlock.as_bool(self.request.user):
                 unlock_url = reverse(
                     f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",
                     args=(version.pk,),

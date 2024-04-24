@@ -3,8 +3,8 @@ from setuptools import find_packages, setup
 import djangocms_versioning
 
 INSTALL_REQUIREMENTS = [
-    "Django>=1.11",
-    "django-cms",
+    "Django>=3.2",
+    "django-cms>=4.1.1",
     "django-fsm"
 ]
 

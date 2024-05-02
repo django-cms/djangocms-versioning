@@ -394,12 +394,12 @@ class VersionLockEditActionStateTestCase(CMSTestCase):
         author_request.user = self.user_author
         otheruser_request = RequestFactory()
         otheruser_request.user = self.superuser
-        expected_disabled_state = "inactive"
+        expected_disabled_state = ""
 
         actual_disabled_state = self.version_admin._get_edit_link(version, otheruser_request)
 
         self.assertFalse(version.check_edit_redirect.as_bool(self.superuser))
-        self.assertIn(expected_disabled_state, actual_disabled_state)
+        self.assertEqual(expected_disabled_state, actual_disabled_state)
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)

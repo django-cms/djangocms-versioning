@@ -528,9 +528,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
-        ) % draft_revert_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_revert_action_link_for_draft_state(self):
@@ -599,9 +599,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-discard '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_discard_url}" '
             'title="Discard">'
-        ) % draft_discard_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_discard_action_link_for_archive_state(self):
@@ -664,11 +664,11 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
             '<span class="cms-icon cms-icon-undo"></span>'
             '</a>'
-        ) % draft_revert_url
+        )
 
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")

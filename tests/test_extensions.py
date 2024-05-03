@@ -117,7 +117,7 @@ class ExtensionTestCase(CMSTestCase):
         poll_extension = PollTitleExtensionFactory(extended_object=self.version.content)
         model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollPageContentExtension)
         test_url = admin_reverse("extended_polls_pollpagecontentextension_change", args=(poll_extension.pk,))
-        test_url += "?extended_object=%s" % self.version.content.pk
+        test_url += f"?extended_object={self.version.content.pk}"
         request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
 
@@ -137,7 +137,7 @@ class ExtensionTestCase(CMSTestCase):
         model_site = PollExtensionAdmin(admin_site=admin.AdminSite(), model=PollPageContentExtension)
         pre_changes_date_modified = Version.objects.get(id=self.version.pk).modified
         test_url = admin_reverse("extended_polls_pollpagecontentextension_change", args=(poll_extension.pk,))
-        test_url += "?extended_object=%s" % self.version.content.pk
+        test_url += f"?extended_object={self.version.content.pk}"
 
         request = RequestFactory().post(path=test_url)
         request.user = self.get_superuser()
@@ -155,7 +155,7 @@ class ExtensionTestCase(CMSTestCase):
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(
                 admin_reverse("extended_polls_pollpagecontentextension_add") +
-                "?extended_object=%s" % self.version.content.pk,
+                f"?extended_object={self.version.content.pk}",
                 follow=True
             )
             self.assertEqual(response.status_code, 200)

@@ -341,6 +341,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, edit_mode=True)
 
         toolbar.post_template_populate()
@@ -353,6 +360,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, preview_mode=True)
 
         toolbar.post_template_populate()

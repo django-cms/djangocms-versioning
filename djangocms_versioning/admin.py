@@ -491,7 +491,7 @@ class ExtendedVersionAdminMixin(
         actions = [
             self._get_preview_link,
             self._get_edit_link,
-         ]
+        ]
         if "state_indicator" not in self.versioning_list_display:
             # State indicator mixin loaded?
             actions.append(self._get_manage_versions_link)
@@ -729,6 +729,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
+
+        if not obj.check_edit_redirect.as_bool(request.user):
+            return ""
+
         # Only show if no draft exists
         if obj.state == PUBLISHED:
             pks_for_grouper = obj.versionable.for_content_grouping_values(
@@ -758,7 +762,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             title=_("Edit") if icon == "pencil" else _("New Draft"),
             name="edit",
             action="post",
-            disabled=not obj.check_edit_redirect.as_bool(request.user) or disabled,
+            disabled=disabled,
             keepsideframe=keepsideframe,
         )
 

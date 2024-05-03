@@ -7,7 +7,6 @@ from freezegun import freeze_time
 
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils import factories
-from djangocms_versioning.test_utils.factories import PageUrlFactory
 
 
 class HandlersTestCase(CMSTestCase):

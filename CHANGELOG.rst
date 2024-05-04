@@ -2,6 +2,12 @@
 Changelog
 =========
 
+2.0.2 (2024-05-03)
+==================
+
+* fix: Do not show edit action for version objects where editing is not possible by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/405
+* feat: Add Arabic locale
+
 2.0.1 (2024-03-29)
 ==================
 

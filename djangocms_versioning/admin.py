@@ -833,7 +833,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return ""
 
         content_model = obj.versionable.content_model
-        settings_url = reverse(f"admin:{content_model._meta.app_label}_{content_model._meta.model_name}_change", args=(obj.content.pk,))
+        settings_url = reverse(
+            f"admin:{content_model._meta.app_label}_{content_model._meta.model_name}_change",
+            args=(obj.content.pk,)
+        )
         return self.admin_action_button(
             settings_url,
             icon="settings",

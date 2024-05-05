@@ -1,7 +1,7 @@
 from django import template
 from django.urls import reverse
 
-from .. import versionables, constants
+from .. import constants, versionables
 from ..helpers import version_list_url
 
 register = template.Library()

@@ -15,7 +15,7 @@ def url_version_list(content):
 def url_publish_version(content, user):
     version = content.versions.first()
     if version:
-        if version.check_publish.as_bool(user):
+        if version.check_publish.as_bool(user) and version.can_be_published():
             proxy_model = versionables.for_content(content).version_model_proxy
             return reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",

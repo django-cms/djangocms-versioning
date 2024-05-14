@@ -51,6 +51,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogContentFactory,
     BlogPostFactory,
     BlogPostVersionFactory,
+    PollVersionFactory,
 )
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
@@ -3170,4 +3171,93 @@ class ListActionsTestCase(CMSTestCase):
             response = self.client.get(changelist + "?back=/hijack_url")
             self.assertNotContains(response, "hijack_url")
             self.assertContains(response, version_list_url(version.content))
+
+class VersioningAdminButtonsTestCase(CMSTestCase):
+    def _get_publish_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected publish url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, "publish", version.pk
+        )
+        return admin_url
+
+    def _get_edit_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected edit redirect url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, "edit_redirect", version.pk
+        )
+        return admin_url
+
+    def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected publish url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, "revert", version.pk
+        )
+        return admin_url
+
+    def get_change_view_url(self, content):
+        return self.get_admin_url(
+            content.__class__,
+            "change",
+            content.pk,
+        )
+
+    def test_buttons_in_draft_changeview(self):
+        """Only publish button should be visible in draft mode"""
+        version = PollVersionFactory(state=constants.DRAFT)
+        action_url = self._get_publish_url(version)
+        next_url = self.get_change_view_url(version.content)
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?next={next_url}">Publish</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "New Draft")
+
+    def test_buttons_in_published_changeview(self):
+        """Only revert button should be visible in published mode"""
+        version = PollVersionFactory(state=constants.PUBLISHED)
+        action_url = self._get_edit_url(version)
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?force_admin=1">New Draft</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_unpublished_changeview(self):
+        """Only revert button should be visible in unpublished mode"""
+        version = PollVersionFactory(state=constants.UNPUBLISHED)
+        action_url = self._get_revert_url(version)
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_archived_changeview(self):
+        """Only revert button should be visible in archived mode"""
+        version = PollVersionFactory(state=constants.ARCHIVED)
+        action_url = self._get_revert_url(version)
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
 

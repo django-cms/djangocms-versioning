@@ -5,7 +5,7 @@ Changelog
 Unreleased
 ==========
 
-1.3.0 (Unreleased)
+1.3.0 (2024-05-16)
 ==================
 * feat: Provide additional information when sending publish/unpublish events (cherry-pick #348)
 * fix:  Add keyword arguments in VersionAdminMixin render_change_form (cherry-pick #356)

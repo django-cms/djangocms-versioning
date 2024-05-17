@@ -42,7 +42,7 @@ class VersionContentRenderer(ContentRenderer):
         prefetch_versioned_related_objects(instance, self.toolbar)
         return super().render_plugin(instance, context, placeholder, editable)
 
-    if cms_version == "4.1.0" or cms_version == "4.1.1":
+    if cms_version in ("4.1.0", "4.1.1"):
         # Only needed for CMS 4.1.0 and 4.1.1 which have fix #7952 not merged
         # With #7952, page-specific rendering works well with versioning.
         def render_obj_placeholder(

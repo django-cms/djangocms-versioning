@@ -465,10 +465,26 @@ class ExtendedVersionAdminMixin(
             f"admin:{version._meta.app_label}_{version._meta.model_name}_edit_redirect",
             args=(version.pk,),
         )
+        # Only show if no draft exists
+        if version.state == PUBLISHED:
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                obj
+            ).values_list("pk", flat=True)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper,
+                content_type=version.content_type,
+                state=DRAFT,
+            )
+            if drafts.exists():
+                return ""
+            icon = "edit-new"
+        else:
+            icon = "edit"
+
         return self.admin_action_button(
             url,
-            icon="pencil",
-            title=_("Edit"),
+            icon=icon,
+            title=_("Edit") if icon == "edit" else _("New Draft"),
             name="edit",
             disabled=disabled,
             action="post",
@@ -748,7 +764,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 return ""
             icon = "edit-new"
         else:
-            icon = "pencil"
+            icon = "edit"
 
         # Don't open in the sideframe if the item is not sideframe compatible
         keepsideframe = obj.versionable.content_model_is_sideframe_editable
@@ -760,7 +776,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return self.admin_action_button(
             edit_url,
             icon=icon,
-            title=_("Edit") if icon == "pencil" else _("New Draft"),
+            title=_("Edit") if icon == "edit" else _("New Draft"),
             name="edit",
             action="post",
             disabled=disabled,

@@ -3173,27 +3173,11 @@ class ListActionsTestCase(CMSTestCase):
             self.assertContains(response, version_list_url(version.content))
 
 class VersioningAdminButtonsTestCase(CMSTestCase):
-    def _get_publish_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected publish url
+    def _get_versioning_url(self, version, action, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected action url
         """
         admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "publish", version.pk
-        )
-        return admin_url
-
-    def _get_edit_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected edit redirect url
-        """
-        admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "edit_redirect", version.pk
-        )
-        return admin_url
-
-    def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected publish url
-        """
-        admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "revert", version.pk
+            versionable.version_model_proxy, action, version.pk
         )
         return admin_url
 
@@ -3207,7 +3191,7 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
     def test_buttons_in_draft_changeview(self):
         """Only publish button should be visible in draft mode"""
         version = PollVersionFactory(state=constants.DRAFT)
-        action_url = self._get_publish_url(version)
+        action_url = self._get_versioning_url(version, "publish")
         next_url = self.get_change_view_url(version.content)
         expected_button = ('<a class="accent cms-form-post-method" '
                            f'href="{action_url}?next={next_url}">Publish</a>')
@@ -3222,7 +3206,7 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
     def test_buttons_in_published_changeview(self):
         """Only revert button should be visible in published mode"""
         version = PollVersionFactory(state=constants.PUBLISHED)
-        action_url = self._get_edit_url(version)
+        action_url = self._get_versioning_url(version, "edit_redirect")
         expected_button = ('<a class="accent cms-form-post-method" '
                            f'href="{action_url}?force_admin=1">New Draft</a>')
 
@@ -3236,7 +3220,7 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
     def test_buttons_in_unpublished_changeview(self):
         """Only revert button should be visible in unpublished mode"""
         version = PollVersionFactory(state=constants.UNPUBLISHED)
-        action_url = self._get_revert_url(version)
+        action_url = self._get_versioning_url(version, "revert")
         next_url = self.get_change_view_url(version.content)
         expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
 
@@ -3250,7 +3234,7 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
     def test_buttons_in_archived_changeview(self):
         """Only revert button should be visible in archived mode"""
         version = PollVersionFactory(state=constants.ARCHIVED)
-        action_url = self._get_revert_url(version)
+        action_url = self._get_versioning_url(version, "revert")
         next_url = self.get_change_view_url(version.content)
         expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
 

@@ -857,7 +857,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
         except Resolver404:
             return ""
-        
+
         return self.admin_action_button(
             settings_url,
             icon="settings",

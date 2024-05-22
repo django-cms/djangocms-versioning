@@ -847,13 +847,17 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         # If the content object is not registered for frontend editing no action should be present
         # Also, the content object must be registered with the admin site
         content_model = obj.versionable.content_model
-        if not is_editable_model(content_model) or not self.admin_site.is_registered(content_model):
+        if not is_editable_model(content_model):
             return ""
 
-        settings_url = reverse(
-            f"admin:{content_model._meta.app_label}_{content_model._meta.model_name}_change",
-            args=(obj.content.pk,)
-        )
+        try:
+            settings_url = reverse(
+                f"admin:{content_model._meta.app_label}_{content_model._meta.model_name}_change",
+                args=(obj.content.pk,)
+            )
+        except Resolver404:
+            return ""
+        
         return self.admin_action_button(
             settings_url,
             icon="settings",

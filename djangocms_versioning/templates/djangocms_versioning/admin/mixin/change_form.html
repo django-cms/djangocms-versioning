@@ -1,12 +1,18 @@
 {% extends versioning_fallback_change_form_template|default:"admin/change_form.html" %}
-{% load i18n admin_urls djangocms_versioning %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "djangocms_versioning/js/object-tools.js" %}"></script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "djangocms_versioning/css/object-tools.css" %}">
+{% endblock %}
 
 {% block object-tools-items %}
-    <li>
-        <a href="{{ original|url_version_list }}">
-            {% translate "Versions" %}
-        </a>
-    </li>
+    {% include "admin/djangocms_versioning/versioning_buttons.html" %}
     {{ block.super }}
 {% endblock %}
 

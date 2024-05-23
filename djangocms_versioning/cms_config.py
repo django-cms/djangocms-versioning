@@ -268,6 +268,8 @@ def on_page_content_archive(version):
 
 
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+    change_form_template = "admin/djangocms_versioning/page/change_form.html"
+
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -280,15 +282,6 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                 for f_name in ["slug", "overwrite_url"]:
                     fields.remove(f_name)
         return fields
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:
-            version = Version.objects.get_for_content(obj)
-            if not version.check_modify.as_bool(request.user):
-                for f_name in ["slug", "overwrite_url"]:
-                    form.declared_fields[f_name].widget.attrs["readonly"] = True
-        return form
 
     def get_queryset(self, request):
         urls = ("cms_pagecontent_get_tree",)

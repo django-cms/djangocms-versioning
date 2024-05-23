@@ -1,0 +1,100 @@
+{% extends "admin/cms/page/change_form.html" %}
+{% load static admin_urls admin_modify djangocms_versioning i18n cms_admin %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static "djangocms_versioning/js/object-tools.js" %}"></script>
+{% endblock %}
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "djangocms_versioning/css/object-tools.css" %}">
+{% endblock %}
+
+{% block content_title %}
+    {% if title %}<h1>{{ title }}{% if original %} - {{ original.versions.first.short_name }}{% endif %}</h1>{% endif %}
+    {% block object-tools %}
+        {% if not popup and not add %}
+             <ul class="object-tools hide-in-modal">
+                {% block object-tools-items %}
+                    {% include "admin/djangocms_versioning/versioning_buttons.html" %}
+                    <li>
+                        {% get_preview_url original as admin_url %}
+                        <a href="{{ admin_url }}" target="_parent">{% trans "Preview" %}</a>
+                    </li>
+             {% endblock %}
+            </ul>
+        {% endif %}
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+
+
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="?language={{ language }}{%if request.GET.parent_node %}&amp;parent_node={{ request.GET.parent_node }}{% endif %}{%if request.GET.source %}&amp;source={{ request.GET.source }}{% endif %}" method="post" id="{{ opts.model_name }}_form">
+{% csrf_token %}
+{% block form_top %}{% endblock %}
+
+{% if show_language_tabs and not show_permissions %}
+<div id="page_form_lang_tabs">
+    {% for lang_code, lang_name in language_tabs %}
+        <input type="button" onclick="CMS.API.changeLanguage('{% get_admin_url_for_language cms_page lang_code %}');"
+            class="language_button {% if lang_code == language %}selected{% else %}{% if not lang_code in filled_languages %} notfilled{% endif %}{% endif %}"
+            id="{{lang_code}}button" name="{{lang_code}}" value="{{lang_name}}" />
+    {% endfor %}
+    <div class="lang_tabs_line"></div>
+</div>
+{% endif %}
+
+<div id="lang_tab_content">
+{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+{% if save_on_top %}{% submit_row %}{% endif %}
+{% if errors %}
+<p class="errornote">
+{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+</p>
+<ul class="errorlist">{% for error in adminform.form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% for fieldset in adminform %}
+    {% include "admin/cms/page/includes/fieldset.html" %}
+{% endfor %}
+
+{% for inline_admin_formset in inline_admin_formsets %}
+    {% include inline_admin_formset.opts.template %}
+{% endfor %}
+
+{% if show_permissions %}
+    <div class="inline-group">
+        <div class="tabular inline-related">
+            <fieldset id="inherited_permissions" class="module aligned collapse">
+              <h2>{% trans 'All permissions' %}</h2>
+              <div class="loading" rel="../permissions/">{% trans 'Loading...' %}</div>
+            </fieldset>
+        </div>
+    </div>
+{% endif %}
+
+{% block after_related_objects %}{% endblock %}
+
+{% if add %}
+    <div class="submit-row"{% if is_popup %} style="overflow: auto;"{% endif %}>
+        <input type="submit" name="_save" class="default" value="{% trans 'Save' %}" {{ onclick_attrib }}/>
+        <input type="submit" name="_continue" value="{% trans 'Save and continue editing' %}" {{ onclick_attrib }}/>
+    </div>
+{% else %}
+    {% page_submit_row %}
+{% endif %}
+</div>
+</form>
+</div>
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+{% endblock %}
+
+{# JavaScript for prepopulated fields #}
+{% prepopulated_fields_js %}
+
+{% endblock %}

@@ -292,6 +292,9 @@ class VersioningPageToolbar(PageToolbar):
         if not language:
             language = self.current_lang
 
+        toolbar_obj = self.toolbar.get_object()
+        if toolbar_obj and toolbar_obj.language == language:
+            return self.toolbar.get_object()
         return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):

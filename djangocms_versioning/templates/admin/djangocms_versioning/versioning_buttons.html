@@ -1,0 +1,30 @@
+{% load djangocms_versioning i18n %}
+{% with url=original|url_publish_version:request.user %}
+    {% if url %}
+        <li>
+            <a class="accent cms-form-post-method" href="{{ url }}?next={{ request.path }}">{% trans "Publish" %}</a>
+        </li>
+    {% endif %}
+{% endwith %}
+{% with url=original|url_new_draft:request.user %}
+    {% if url %}
+        <li>
+            <a class="accent cms-form-post-method" href="{{ url }}?force_admin=1">{% trans "New Draft" %}</a>
+        </li>
+    {% endif %}
+{% endwith %}
+{% with url=original|url_revert_version:request.user %}
+    {% if url %}
+        <li>
+            <a href="{{ url }}?next={{ request.path }}">{% trans "Revert" %}</a>
+        </li>
+    {% endif %}
+{% endwith %}
+
+{% with url=original|url_version_list %}
+    {%  if url %}
+        <li>
+            <a href="{{ url }}">{% trans "Versions" %}</a>
+        </li>
+    {% endif %}
+{% endwith %}

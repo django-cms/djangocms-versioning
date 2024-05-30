@@ -212,7 +212,7 @@ class VersioningToolbar(PlaceholderToolbar):
 
                 url += "?" + urlencode({
                     "compare_to": version.pk,
-                    "back": self.request.get_full_path(),
+                    "back": self.toolbar.request_path,
                 })
                 versioning_menu.add_link_item(name, url=url)
                 # Discard changes menu entry (wrt to source)

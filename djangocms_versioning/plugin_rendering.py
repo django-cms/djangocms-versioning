@@ -43,8 +43,8 @@ class VersionContentRenderer(ContentRenderer):
         return super().render_plugin(instance, context, placeholder, editable)
 
     if cms_version in ("4.1.0", "4.1.1"):
-        # Only needed for CMS 4.1.0 and 4.1.1 which have fix #7952 not merged
-        # With #7952, page-specific rendering works well with versioning.
+        # Only needed for CMS 4.1.0 and 4.1.1 which have fix #7924 not merged
+        # With #7924, page-specific rendering works well with versioning.
         def render_obj_placeholder(
             self, slot, context, inherit, nodelist=None, editable=True
         ):

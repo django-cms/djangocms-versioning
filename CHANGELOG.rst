@@ -2,6 +2,16 @@
 Changelog
 =========
 
+2.1.0 (2024-07-12)
+==================
+
+* feat: Add versioning actions to settings (admin change view) of versioned objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/408
+* fix: Remove workaround for page-specific rendering by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/411
+* fix: Compare versions' back button sometimes returns to invalid URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/413
+
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.0.2...2.1.0
+
 2.0.2 (2024-05-03)
 ==================
 

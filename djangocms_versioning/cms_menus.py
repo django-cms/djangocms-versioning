@@ -2,6 +2,10 @@ from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
 from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
+try:
+    from cms.models import TreeNode
+except ImportError:
+    TreeNode = None
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
 from django.apps import apps
@@ -106,8 +110,8 @@ class CMSMenu(Menu):
             versionable_item.content_model._base_manager.filter(
                 language=language, page__in=pages_qs, versions__state__in=states
             )
-            .order_by("page__node__path", "versions__state")
-            .select_related("page", "page__node")
+            .order_by("page__node__path" if TreeNode else "page__path", "versions__state")
+            .select_related("page", "page__node" if TreeNode else "page")
             .prefetch_related("versions")
         )
         added_pages = []

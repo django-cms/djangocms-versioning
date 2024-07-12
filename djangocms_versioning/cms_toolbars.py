@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from copy import copy
+from typing import Optional
 
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
@@ -288,10 +289,17 @@ class VersioningPageToolbar(PageToolbar):
     Overriding the original Page toolbar to ensure that draft and published pages
     can be accessed and to allow full control over the Page toolbar for versioned pages.
     """
-    def get_page_content(self, language=None):
+
+    def __init__(self, *args, **kwargs):
+        self.page_content: Optional[PageContent] = None
+        super().__init__(*args, **kwargs)
+
+    def get_page_content(self, language: Optional[str] = None) -> PageContent:
         if not language:
             language = self.current_lang
 
+        if self.page_content and self.page_content.language == language:
+            return self.page_content
         toolbar_obj = self.toolbar.get_object()
         if toolbar_obj and toolbar_obj.language == language:
             return self.toolbar.get_object()
@@ -299,7 +307,7 @@ class VersioningPageToolbar(PageToolbar):
 
     def populate(self):
         self.page = self.request.current_page
-        self.title = self.get_page_content() if self.page else None
+        self.page_content = self.get_page_content() if self.page else None
         self.permissions_activated = get_cms_setting("PERMISSION")
 
         self.override_language_menu()

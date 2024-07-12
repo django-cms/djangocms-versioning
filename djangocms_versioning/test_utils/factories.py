@@ -3,6 +3,7 @@ import string
 import factory
 from cms import constants
 from cms.models import Page, PageContent, PageUrl, Placeholder
+
 try:
     from cms.models import TreeNode
 except ImportError:

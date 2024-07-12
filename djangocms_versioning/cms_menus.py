@@ -2,6 +2,7 @@ from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
 from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
+
 try:
     from cms.models import TreeNode
 except ImportError:

@@ -97,9 +97,10 @@ def content_indicator(content_obj):
         versions = Version.objects.filter_by_content_grouping_values(
             content_obj
         ).order_by("-pk")
+        version_states = dict(VERSION_STATES)
         signature = {
-            state: versions.filter(state=state)
-            for state, name in VERSION_STATES
+            version.state: version
+            for version in versions if version.state in version_states
         }
         if signature[DRAFT] and not signature[PUBLISHED]:
             content_obj._indicator_status = "draft"

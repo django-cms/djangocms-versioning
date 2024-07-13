@@ -299,13 +299,15 @@ class VersioningPageToolbar(PageToolbar):
             language = self.current_lang
 
         if self.page_content and self.page_content.language == language:
+            # Already known - no need to query it again
             return self.page_content
         toolbar_obj = self.toolbar.get_object()
         if toolbar_obj and toolbar_obj.language == language:
-            self.page_content = self.toolbar.get_object()
+            # Already in the toolbar, then use it!
+            return self.toolbar.get_object()
         else:
-            self.page_content = get_latest_admin_viewable_content(self.page, language=language)
-        return self.page_content
+            # Get it from the DB
+            return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
         self.page = self.request.current_page

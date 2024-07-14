@@ -304,7 +304,7 @@ def remove_published_where(queryset):
 
 
 def get_latest_admin_viewable_content(
-    grouper: type,
+    grouper: models.Model,
     include_unpublished_archived: bool = False,
     **extra_grouping_fields,
 ) -> models.Model:
@@ -425,15 +425,16 @@ def send_email(
 
 
 def get_latest_draft_version(version):
-    """Get latest draft version of version object
+    """Get latest draft version of version object and caches it
     """
     from djangocms_versioning.constants import DRAFT
     from djangocms_versioning.models import Version
 
-    drafts = (
-        Version.objects
-        .filter_by_content_grouping_values(version.content)
-        .filter(state=DRAFT)
-    )
-
-    return drafts.first()
+    if not hasattr(version, "_latest_draft_version"):
+        drafts = (
+            Version.objects
+            .filter_by_content_grouping_values(version.content)
+            .filter(state=DRAFT)
+        )
+        version._latest_draft_version = drafts.first()
+    return version._latest_draft_version

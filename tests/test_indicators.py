@@ -219,3 +219,13 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms.pagetree.css"),
             # JS loadeD?
             self.assertContains(response, "indicators.js")
+
+    def test_page_indicator_db_queries(self):
+        """Only one query should be executed to get the indicator"""
+        version = PageVersionFactory(
+            content__language="en",
+        )
+        with self.assertNumQueries(1):
+            from djangocms_versioning.indicators import content_indicator
+
+            content_indicator(version.content)

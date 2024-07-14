@@ -97,25 +97,26 @@ def content_indicator(content_obj):
         versions = Version.objects.filter_by_content_grouping_values(
             content_obj
         ).order_by("-pk")
+        version_states = dict(VERSION_STATES)
         signature = {
-            state: versions.filter(state=state)
-            for state, name in VERSION_STATES
+            version.state: version
+            for version in versions if version.state in version_states
         }
-        if signature[DRAFT] and not signature[PUBLISHED]:
+        if DRAFT in signature and PUBLISHED not in signature:
             content_obj._indicator_status = "draft"
-            content_obj._version = signature[DRAFT]
-        elif signature[DRAFT] and signature[PUBLISHED]:
+            content_obj._version = signature[DRAFT],
+        elif DRAFT in signature and PUBLISHED in signature:
             content_obj._indicator_status = "dirty"
-            content_obj._version = (signature[DRAFT][0], signature[PUBLISHED][0])
-        elif signature[PUBLISHED]:
+            content_obj._version = (signature[DRAFT], signature[PUBLISHED])
+        elif PUBLISHED in signature:
             content_obj._indicator_status = "published"
-            content_obj._version = signature[PUBLISHED]
+            content_obj._version = signature[PUBLISHED],
         elif versions[0].state == UNPUBLISHED:
             content_obj._indicator_status = "unpublished"
-            content_obj._version = signature[UNPUBLISHED]
+            content_obj._version = signature[UNPUBLISHED],
         elif versions[0].state == ARCHIVED:
             content_obj._indicator_status = "archived"
-            content_obj._version = signature[ARCHIVED]
+            content_obj._version = signature[ARCHIVED],
         else:  # pragma: no cover
             content_obj._indicator_status = None
             content_obj._version = [None]

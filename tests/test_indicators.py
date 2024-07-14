@@ -226,6 +226,6 @@ class TestVersionState(CMSTestCase):
             content__language="en",
         )
         with self.assertNumQueries(1):
-            from djangocms_versioning.indicators import content_indicator, content_indicator_menu
+            from djangocms_versioning.indicators import content_indicator
 
             content_indicator(version.content)

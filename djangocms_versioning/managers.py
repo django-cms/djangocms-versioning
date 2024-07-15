@@ -60,20 +60,13 @@ class AdminQuerySetMixin:
         clone._group_by_key = self._group_by_key
         return clone
 
-    def current_content_iterator(self, **kwargs):
-        """Returns generator (not a queryset) over current content versions. Current versions are either draft
-        versions or published versions (in that order)"""
-        warnings.warn("current_content_iterator is deprecated in favour of current_conent",
-                      DeprecationWarning, stacklevel=2)
-        return iter(self.current_content(**kwargs))
-
     def current_content(self, **kwargs):
         """Returns a queryset current content versions. Current versions are either draft
         versions or published versions (in that order). This optimized query assumes that
         draft versions always have a higher pk than any other version type. This is true as long as
         no other version type can be converted to draft without creating a new version."""
-        qs = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))
-        pk_filter = qs.values(*self._group_by_key)\
+        pk_filter = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
+            .values(*self._group_by_key)\
             .annotate(vers_pk=models.Max("versions__pk"))\
             .values("vers_pk")
         return self.filter(versions__pk__in=pk_filter, **kwargs)

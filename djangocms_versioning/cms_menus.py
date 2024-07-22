@@ -81,6 +81,11 @@ def _get_attrs_for_node(renderer, page_content):
 
 
 class CMSMenu(Menu):
+    """This is a legacy class used by django CMS 4.0 and django CMS 4.1.0 only. Its language
+    fallback mechanism does not comply with django CMS' core's. Also, it is by far slower
+    than django CMS core's. As of django CMS 4.1.1, this class is by default deactivated.
+
+    See https://discord.com/channels/800813886689247262/1204047551570120755 for more information."""
     def get_nodes(self, request):
         site = self.renderer.site
         language = self.renderer.request_language

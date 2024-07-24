@@ -32,7 +32,7 @@
 
 
 
-<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="?language={{ language }}{% if request.GET.parent_page %}&amp;parent_page={{ request.GET.parent_page }}{% endif %}{# parameter `parent_node` is deprecated and will be removed in version 2.2 #}{% if request.GET.parent_node %}&amp;parent_node={{ request.GET.parent_node }}{% endif %}{%if request.GET.source %}&amp;source={{ request.GET.source }}{% endif %}" method="post" id="{{ opts.model_name }}_form">
+<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="?language={{ language }}{% if request.GET.parent_page %}&amp;parent_page={{ request.GET.parent_page }}{% endif %}{# parameter `parent_node` only for django CMS 4.1 support #}{% if request.GET.parent_node %}&amp;parent_node={{ request.GET.parent_node }}{% endif %}{%if request.GET.source %}&amp;source={{ request.GET.source }}{% endif %}" method="post" id="{{ opts.model_name }}_form">
 {% csrf_token %}
 {% block form_top %}{% endblock %}
 

@@ -19,48 +19,31 @@ from djangocms_versioning.test_utils.factories import (
 class CMSVersionedMenuTestCase(CMSTestCase):
     def setUp(self):
         super().setUp()
-        self._page_1 = PageVersionFactory(
-            content__title="page_content_1",
-            content__menu_title="",
-            content__in_navigation=True,
-            content__limit_visibility_in_menu=None,
-            content__language="en",
-            content__page__node__path="0001",
-        )
-        self._page_2 = PageVersionFactory(
-            content__title="page_content_2",
-            content__menu_title="",
-            content__in_navigation=True,
-            content__limit_visibility_in_menu=None,
-            content__language="en",
-            content__page__node__path="0002",
-        )
-        self._page_2_1 = PageVersionFactory(
-            content__title="page_content_2_1",
-            content__menu_title="",
-            content__in_navigation=True,
-            content__limit_visibility_in_menu=None,
-            content__language="en",
-            content__page__node__path="00020001",
-            content__page__node__parent=self._page_2.content.page.node,
-        )
-        self._page_2_2 = PageVersionFactory(
-            content__title="page_content_2_2",
-            content__menu_title="",
-            content__in_navigation=True,
-            content__limit_visibility_in_menu=None,
-            content__language="en",
-            content__page__node__path="00020002",
-            content__page__node__parent=self._page_2.content.page.node,
-        )
-        self._page_3 = PageVersionFactory(
-            content__title="page_content_3",
-            content__menu_title="",
-            content__in_navigation=True,
-            content__limit_visibility_in_menu=None,
-            content__language="en",
-            content__page__node__path="0003",
-        )
+        from djangocms_versioning.test_utils.factories import TreeNode
+
+        def get_page(title, path, parent=None):
+            return {
+                "content__title": title,
+                "content__menu_title": "",
+                "content__in_navigation":  True,
+                "content__limit_visibility_in_menu":  None,
+                "content__language": "en",
+                "content__page__node__path" if TreeNode else "content__page__path": path,
+                "content__page__node__parent" if TreeNode else "content__page__parent": parent,
+            }
+        self._page_1 = PageVersionFactory(**get_page("page_content_1", "0001"))
+        self._page_2 = PageVersionFactory(**get_page("page_content_2", "0002"))
+        self._page_2_1 = PageVersionFactory(**get_page(
+            "page_content_2_1",
+            "00020001",
+            self._page_2.content.page.node if TreeNode else self._page_2.content.page,
+        ))
+        self._page_2_2 = PageVersionFactory(**get_page(
+            "page_content_2_2",
+            "00020002",
+            self._page_2.content.page.node if TreeNode else self._page_2.content.page,
+        ))
+        self._page_3 = PageVersionFactory(**get_page("page_content_3", "0003"))
 
     def _render_menu(self, user=None, **kwargs):
         request = RequestFactory().get("/")

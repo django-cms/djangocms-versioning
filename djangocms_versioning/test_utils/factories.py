@@ -2,7 +2,12 @@ import string
 
 import factory
 from cms import constants
-from cms.models import Page, PageContent, PageUrl, Placeholder, TreeNode
+from cms.models import Page, PageContent, PageUrl, Placeholder
+
+try:
+    from cms.models import TreeNode
+except ImportError:
+    TreeNode = None
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
@@ -170,18 +175,19 @@ class IncorrectBlogContentWithVersionFactory(IncorrectBlogContentFactory):
         IncorrectBlogPostVersionFactory(content=self, **kwargs)
 
 
-class TreeNodeFactory(factory.django.DjangoModelFactory):
-    site = factory.fuzzy.FuzzyChoice(Site.objects.all())
-    depth = 0
-    # NOTE: Generating path this way is probably not a good way of
-    # doing it, but seems to work for our present tests which only
-    # really need a tree node to exist and not throw unique constraint
-    # errors on this field. If the data in this model starts mattering
-    # in our tests then something more will need to be done here.
-    path = FuzzyText(length=8, chars=string.digits)
+if TreeNode:
+    class TreeNodeFactory(factory.django.DjangoModelFactory):
+        site = factory.fuzzy.FuzzyChoice(Site.objects.all())
+        depth = 0
+        # NOTE: Generating path this way is probably not a good way of
+        # doing it, but seems to work for our present tests which only
+        # really need a tree node to exist and not throw unique constraint
+        # errors on this field. If the data in this model starts mattering
+        # in our tests then something more will need to be done here.
+        path = FuzzyText(length=8, chars=string.digits)
 
-    class Meta:
-        model = TreeNode
+        class Meta:
+            model = TreeNode
 
 
 class PageUrlFactory(factory.django.DjangoModelFactory):
@@ -195,7 +201,12 @@ class PageUrlFactory(factory.django.DjangoModelFactory):
 
 
 class PageFactory(factory.django.DjangoModelFactory):
-    node = factory.SubFactory(TreeNodeFactory)
+    if TreeNode:
+        node = factory.SubFactory(TreeNodeFactory)
+    else:
+        site = factory.fuzzy.FuzzyChoice(Site.objects.all())
+        depth = 0
+        path = FuzzyText(length=8, chars=string.digits)
 
     class Meta:
         model = Page

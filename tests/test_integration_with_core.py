@@ -9,6 +9,7 @@ from djangocms_versioning.test_utils.factories import (
     PlaceholderFactory,
     PollVersionFactory,
     TextPluginFactory,
+    TreeNode,
 )
 
 
@@ -190,7 +191,7 @@ class PageContentTreeViewTestCase(CMSTestCase):
         language filters / additional grouping values are set
         using the default CMS PageContent view
         """
-        page = PageFactory(node__depth=1)
+        page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
         en_version1 = PageVersionFactory(
             content__page=page,
             content__language="en",

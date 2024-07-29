@@ -33,17 +33,17 @@ def get_toolbar(content_obj, user=None, **kwargs):
     toolbar.toolbar.set_object(content_obj)
     # Set the toolbar mode
     if kwargs.get("edit_mode", False):
-        toolbar.toolbar.edit_mode_active = True
-        toolbar.toolbar.preview_mode_active = False
-        toolbar.toolbar.structure_mode_active = False
+        toolbar.toolbar.__dict__["edit_mode_active"] = True
+        toolbar.toolbar.__dict__["preview_mode_active"] = False
+        toolbar.toolbar.__dict__["structure_mode_active"] = False
     elif kwargs.get("preview_mode", False):
-        toolbar.toolbar.edit_mode_active = False
-        toolbar.toolbar.preview_mode_active = True
-        toolbar.toolbar.structure_mode_active = False
+        toolbar.toolbar.__dict__["edit_mode_active"] = False
+        toolbar.toolbar.__dict__["preview_mode_active"] = True
+        toolbar.toolbar.__dict__["structure_mode_active"] = False
     elif kwargs.get("structure_mode", False):
-        toolbar.toolbar.edit_mode_active = False
-        toolbar.toolbar.preview_mode_active = False
-        toolbar.toolbar.structure_mode_active = True
+        toolbar.toolbar.__dict__["edit_mode_active"] = False
+        toolbar.toolbar.__dict__["preview_mode_active"] = False
+        toolbar.toolbar.__dict__["structure_mode_active"] = True
     toolbar.populate()
     return toolbar
 

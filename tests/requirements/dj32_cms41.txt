@@ -1,6 +1,6 @@
 -r requirements_base.txt
 
-django-cms>=4.1.0rc2
+django-cms>=4.1,<4.2
 
 Django>=3.2,<4.0
 django-classy-tags

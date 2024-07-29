@@ -57,14 +57,14 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         toolbar = CMSToolbar(request)
 
         if kwargs.get("edit_mode", False):
-            toolbar.__dict__["edit_mode_active"] = True
-            toolbar.__dict__["preview_mode_active"] = False
+            toolbar.edit_mode_active = True
+            toolbar.preview_mode_active = False
         elif kwargs.get("preview_mode", False):
-            toolbar.__dict__["edit_mode_active"] = False
-            toolbar.__dict__["preview_mode_active"] = True
+            toolbar.edit_mode_active = False
+            toolbar.preview_mode_active = True
         else:
-            toolbar.__dict__["edit_mode_active"] = False
-            toolbar.__dict__["preview_mode_active"] = False
+            toolbar.edit_mode_active = False
+            toolbar.preview_mode_active = False
 
         request.toolbar = toolbar
         context = {"request": request}

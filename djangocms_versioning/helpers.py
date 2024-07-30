@@ -387,7 +387,11 @@ def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER
     """Check if lock doesn't exist or object is locked to provided user.
     """
     try:
-        return version_is_unlocked_for_user(content.versions.first(), user)
+        if hasattr(content, "prefetched_versions"):
+            version = content.prefetched_versions[0]
+        else:
+            version = content.versions.first()
+        return version_is_unlocked_for_user(version, user)
     except AttributeError:
         return True
 
@@ -425,16 +429,16 @@ def send_email(
 
 
 def get_latest_draft_version(version):
-    """Get latest draft version of version object and caches it
-    """
+    """Get latest draft version of version object and caches it in the
+    content object"""
     from djangocms_versioning.constants import DRAFT
     from djangocms_versioning.models import Version
 
-    if not hasattr(version, "_latest_draft_version"):
+    if not hasattr(version.content, "_latest_draft_version"):
         drafts = (
             Version.objects
             .filter_by_content_grouping_values(version.content)
             .filter(state=DRAFT)
         )
-        version._latest_draft_version = drafts.first()
-    return version._latest_draft_version
+        version.content._latest_draft_version = drafts.first()
+    return version.content._latest_draft_version

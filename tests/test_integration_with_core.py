@@ -1,7 +1,12 @@
+from unittest import skipIf
+
+from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
+from django.template import Context
 
+from djangocms_versioning import constants
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
@@ -256,3 +261,43 @@ class WizzardTestCase(CMSTestCase):
             poll_wizard.get_success_url(version.content),
             version.content.get_absolute_url(),
         )
+
+
+class AdminManagerIntegrationTestCase(CMSTestCase):
+    def setUp(self):
+        self.page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
+        self.en_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="en",
+            state=constants.UNPUBLISHED,
+        )
+        self.fr_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="fr",
+            state=constants.ARCHIVED,
+        )
+        self.page.languages = "en,fr"
+        self.page.save()
+
+
+    @skipIf(cms_version < "4.1.3", "Bug only fixed in django CMS 4.1.3")
+    def test_get_admin_url_for_language(self):
+        """Regression fixed that made unpublished and archived versions invisivle to get_admin_url_for_language
+        template tag. See: https://github.com/django-cms/django-cms/pull/7967"""
+        from django.template import Template
+
+        # Test English page with unpublished version
+        context = Context({"page": self.page})
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'en' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.en_version.content.pk}/", result)
+
+        # Test French page with archived version
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'fr' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.fr_version.content.pk}/", result)
+

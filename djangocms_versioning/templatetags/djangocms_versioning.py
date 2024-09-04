@@ -13,7 +13,10 @@ def url_version_list(content):
 
 @register.filter
 def url_publish_version(content, user):
-    version = content.versions.first()
+    if hasattr(content, "prefetched_versions"):
+        version = content.prefetched_versions[0]
+    else:
+        version = content.versions.first()
     if version:
         if version.check_publish.as_bool(user) and version.can_be_published():
             proxy_model = versionables.for_content(content).version_model_proxy
@@ -25,7 +28,10 @@ def url_publish_version(content, user):
 
 @register.filter
 def url_new_draft(content, user):
-    version = content.versions.first()
+    if hasattr(content, "prefetched_versions"):
+        version = content.prefetched_versions[0]
+    else:
+        version = content.versions.first()
     if version:
         if version.state == constants.PUBLISHED:
             proxy_model = versionables.for_content(content).version_model_proxy
@@ -37,7 +43,10 @@ def url_new_draft(content, user):
 
 @register.filter
 def url_revert_version(content, user):
-    version = content.versions.first()
+    if hasattr(content, "prefetched_versions"):
+        version = content.prefetched_versions[0]
+    else:
+        version = content.versions.first()
     if version:
         if version.check_revert.as_bool(user):
             proxy_model = versionables.for_content(content).version_model_proxy

@@ -295,7 +295,7 @@ class VersioningPageToolbar(PageToolbar):
         super().__init__(*args, **kwargs)
 
     def get_page_content(self, language: Optional[str] = None) -> PageContent:
-        # This method overwrites the method in django CMS core. Not necessary 
+        # This method overwrites the method in django CMS core. Not necessary
         # for django CMS 4.2+
         if not language:
             language = self.current_lang

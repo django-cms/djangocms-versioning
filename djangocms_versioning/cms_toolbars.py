@@ -295,6 +295,8 @@ class VersioningPageToolbar(PageToolbar):
         super().__init__(*args, **kwargs)
 
     def get_page_content(self, language: Optional[str] = None) -> PageContent:
+        # This method overwrites the method in django CMS core. Not necessary 
+        # for django CMS 4.2+
         if not language:
             language = self.current_lang
 
@@ -302,9 +304,9 @@ class VersioningPageToolbar(PageToolbar):
             # Already known - no need to query it again
             return self.page_content
         toolbar_obj = self.toolbar.get_object()
-        if toolbar_obj and toolbar_obj.language == language:
+        if isinstance(toolbar_obj, PageContent) and toolbar_obj.language == language:
             # Already in the toolbar, then use it!
-            return self.toolbar.get_object()
+            return toolbar_obj
         else:
             # Get it from the DB
             return get_latest_admin_viewable_content(self.page, language=language)

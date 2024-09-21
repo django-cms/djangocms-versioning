@@ -32,7 +32,8 @@ Add ``djangocms_versioning`` to your project's ``INSTALLED_APPS``.
 
 Run::
 
-    python manage.py migrate djangocms_versioning
+    python -m manage migrate djangocms_versioning
+    python -m manage create_versions --user-id <user-id-of-migration-user> 
 
 to perform the application's database migrations.
 

@@ -18,6 +18,7 @@ jobs:
             dj40_cms41.txt,
             dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
         ]
 
     steps:
@@ -50,6 +51,7 @@ jobs:
             dj40_cms41.txt,
             dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
         ]
 
     services:
@@ -96,6 +98,7 @@ jobs:
             dj40_cms41.txt,
             dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
         ]
 
     services:

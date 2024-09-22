@@ -2,6 +2,7 @@ from collections import OrderedDict
 from copy import copy
 from typing import Optional
 
+from cms import __version__ as cms_version
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
     LANGUAGE_MENU_IDENTIFIER,
@@ -69,6 +70,8 @@ class VersioningToolbar(PlaceholderToolbar):
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
             version = Version.objects.get_for_content(self.toolbar.obj)
+            if not version.check_publish.as_bool(self.request.user):
+                return
             publish_url = reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",
                 args=(version.pk,),
@@ -294,20 +297,21 @@ class VersioningPageToolbar(PageToolbar):
         self.page_content: Optional[PageContent] = None
         super().__init__(*args, **kwargs)
 
-    def get_page_content(self, language: Optional[str] = None) -> PageContent:
-        if not language:
-            language = self.current_lang
+    if cms_version < "4.1.3":
+        def get_page_content(self, language: Optional[str] = None) -> PageContent:
+            if not language:
+                language = self.current_lang
 
-        if self.page_content and self.page_content.language == language:
-            # Already known - no need to query it again
-            return self.page_content
-        toolbar_obj = self.toolbar.get_object()
-        if toolbar_obj and toolbar_obj.language == language:
-            # Already in the toolbar, then use it!
-            return self.toolbar.get_object()
-        else:
-            # Get it from the DB
-            return get_latest_admin_viewable_content(self.page, language=language)
+            if self.page_content and self.page_content.language == language:
+                # Already known - no need to query it again
+                return self.page_content
+            toolbar_obj = self.toolbar.get_object()
+            if isinstance(toolbar_obj, PageContent) and toolbar_obj.language == language:
+                # Already in the toolbar, then use it!
+                return toolbar_obj
+            else:
+                # Get it from the DB
+                return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
         self.page = self.request.current_page

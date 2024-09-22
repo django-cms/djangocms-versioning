@@ -6,12 +6,14 @@ from django.contrib.auth.models import Permission
 from django.utils.text import slugify
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.cms_toolbars import VersioningPageToolbar
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentWithVersionFactory,
+    PageFactory,
     PageUrlFactory,
     PageVersionFactory,
     PollVersionFactory,
@@ -615,3 +617,18 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
         self.assertIsNone(language_menu)
+
+    def test_toolbar_only_catches_page_content_objects(self):
+        """Regression test to ensure that the toolbar only catches PageContent objects and not
+        other toolbar objects."""
+
+        version = PollVersionFactory()  # Not a page content model
+        page = PageFactory()  # Get a page, e.g. where an apphook is configured
+        toolbar = get_toolbar(version.content, edit_mode=True, toolbar_class=VersioningPageToolbar, current_page=page)
+
+        # Did page get detected? Otherwise, page_content never will be detected
+        self.assertIs(toolbar.page, page)
+        # Check regression does not happen
+        self.assertNotIsInstance(toolbar.page_content, version.content.__class__)
+        # Check for correct result
+        self.assertIsNone(toolbar.page_content)

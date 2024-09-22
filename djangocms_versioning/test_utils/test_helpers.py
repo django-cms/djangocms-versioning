@@ -20,7 +20,7 @@ def get_toolbar(content_obj, user=None, **kwargs):
     request = kwargs.get("request", RequestFactory().get("/"))
     request.user = user
     request.session = kwargs.get("session", {})
-    request.current_page = getattr(content_obj, "page", None)
+    request.current_page = kwargs.get("current_page", getattr(content_obj, "page", None))
     request.toolbar = CMSToolbar(request)
     # Set the toolbar class
     if kwargs.get("toolbar_class", False):

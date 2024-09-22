@@ -300,7 +300,7 @@ class VersioningPageToolbar(PageToolbar):
         if not language:
             language = self.current_lang
 
-        if self.page_content and self.page_content.language == language:
+        if isinstance(self.page_content, PageContent) and self.page_content.language == language:
             # Already known - no need to query it again
             return self.page_content
         toolbar_obj = self.toolbar.get_object()

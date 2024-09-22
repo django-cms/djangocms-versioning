@@ -624,13 +624,11 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
         version = PollVersionFactory()  # Not a page content model
         page = PageFactory()  # Get a page, e.g. where an apphook is configured
-        request_toolbar = get_toolbar(
-            version.content, edit_mode=True, toolbar_class=VersioningPageToolbar, current_page=page
-        )
+        toolbar = get_toolbar(version.content, edit_mode=True, toolbar_class=VersioningPageToolbar, current_page=page)
 
-        for toolbar in request_toolbar.toolbar.toolbars.values():
-            if hasattr(toolbar, "page_content"):
-                # Did page get detected? Otherwise, page_content never will be detected
-                self.assertIs(toolbar.page, page)
-                self.assertNotIsInstance(toolbar.page_content, version.content.__class__)  # Regression
-                self.assertIsNone(toolbar.page_content)  # Correct result
+        # Did page get detected? Otherwise, page_content never will be detected
+        self.assertIs(toolbar.page, page)
+        # Check regression does not happen
+        self.assertNotIsInstance(toolbar.page_content, version.content.__class__)
+        # Check for correct result
+        self.assertIsNone(toolbar.page_content)

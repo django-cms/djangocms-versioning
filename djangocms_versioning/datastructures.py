@@ -1,5 +1,6 @@
 from itertools import chain
 
+from cms.models import Placeholder, PlaceholderRelationField
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Max, Prefetch
 from django.utils.functional import cached_property
@@ -202,8 +203,11 @@ def default_copy(original_content):
     """Copy all fields of the original content object exactly as they are
     and return a new content object which is different only in its pk.
 
-    NOTE: This will only work for very simple content objects. This will
-    throw exceptions on one2one and m2m relationships. And it might not
+    NOTE: This will only work for very simple content objects.
+
+    It copies placeholders and their plugins.
+
+    It will throw exceptions on one2one and m2m relationships. And it might not
     be the desired behaviour for some foreign keys (in some cases we
     would expect a version to copy some of its related objects as well).
     In such cases a custom copy method must be defined and specified in
@@ -219,5 +223,31 @@ def default_copy(original_content):
         # don't copy primary key because we're creating a new obj
         if content_model._meta.pk.name != field.name
     }
-    # Use original manager to avoid creating a new draft version here!
-    return content_model._original_manager.create(**content_fields)
+    # Use original manager to not create a new Version object here
+    new_content = content_model._original_manager.create(**content_fields)
+
+    # Now copy PlaceholderRelationFields
+    for field in content_model._meta.private_fields:
+        # Copy PlaceholderRelationFields
+        if isinstance(field, PlaceholderRelationField):
+            # Copy placeholders
+            new_placeholders = []
+            for placeholder in getattr(original_content, field.name).all():
+                placeholder_fields = {
+                    field.name: getattr(placeholder, field.name)
+                    for field in Placeholder._meta.fields
+                    # don't copy primary key because we're creating a new obj
+                    # and handle the source field later
+                    if field.name not in [Placeholder._meta.pk.name, "source"]
+                }
+                if placeholder.source:
+                    placeholder_fields["source"] = new_content
+                new_placeholder = Placeholder.objects.create(**placeholder_fields)
+                # Copy plugins
+                placeholder.copy_plugins(new_placeholder)
+                new_placeholders.append(new_placeholder)
+            getattr(new_content, field.name).add(*new_placeholders)
+        if hasattr(new_content, "copy_relations"):
+            if callable(new_content.copy_relations):
+                new_content.copy_relations()
+    return new_content

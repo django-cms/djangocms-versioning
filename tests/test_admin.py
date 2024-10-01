@@ -2652,6 +2652,67 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertContains(response, "Exactly two versions need to be selected.")
 
 
+class VersionBulkDeleteViewTestCase(CMSTestCase):
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.superuser = self.get_superuser()
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_three_selected(self):
+        """
+        Query returns 1 versions when three versioning options are selected
+        to delete
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        for version in versions:
+            print(version.state)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: ["1", "2", "3"],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1)
+
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_gives_warning_when_published_selected(self):
+        """
+        Query returns 1 versions when all versioning options are selected
+        to delete as 1 of them is published
+        """
+        poll = factories.PollFactory()
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [
+                    published.pk] + [version.pk for version in versions],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1)
+
+
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_from_provided_list_display(self):

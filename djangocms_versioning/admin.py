@@ -12,6 +12,7 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, static_with_version
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin.actions import delete_selected
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
@@ -604,7 +605,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     """
 
     # register custom actions
-    actions = ["compare_versions"]
+    actions = ["compare_versions", "delete_selected"]
     list_display = (
         "number",
         "created",
@@ -916,6 +917,20 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         url += "?compare_to=%d" % queryset[1].pk
 
         return redirect(url)
+
+    @admin.action(
+        description=_("Delete versions")
+    )
+    def delete_selected(self, request, queryset):
+        """
+        Redirects to a delete versions view based on a users choice
+        """
+        if conf.ALLOW_DELETING_VERSIONS:
+            version_contents = [version.content for version in queryset]
+            delete_selected(self, request, queryset)
+            for version_content in version_contents:
+                # TODO: add a check you are not deleting the published version
+                version_content.delete()
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -1442,4 +1457,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        if not conf.ALLOW_DELETING_VERSIONS:
+            return False
+        return super().has_delete_permission(request, obj)

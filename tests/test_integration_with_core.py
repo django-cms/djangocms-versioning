@@ -280,9 +280,9 @@ class AdminManagerIntegrationTestCase(CMSTestCase):
         self.page.save()
 
 
-    @skipIf(cms_version < "4.1.3", "Bug only fixed in django CMS 4.1.3")
+    @skipIf(cms_version < "4.1.4", "Bug only fixed in django CMS 4.1.4")
     def test_get_admin_url_for_language(self):
-        """Regression fixed that made unpublished and archived versions invisivle to get_admin_url_for_language
+        """Regression fixed that made unpublished and archived versions invisible to get_admin_url_for_language
         template tag. See: https://github.com/django-cms/django-cms/pull/7967"""
         from django.template import Template
 

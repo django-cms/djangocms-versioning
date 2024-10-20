@@ -15,10 +15,15 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     steps:
     - uses: actions/checkout@v4
@@ -47,14 +52,19 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     services:
       postgres:
-        image: postgres:12
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -93,10 +103,15 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     services:
       mysql:
@@ -135,7 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.11']
-        requirements-file: ['dj42_cms41.txt']
+        requirements-file: ['dj51_cms41.txt']
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
         ]

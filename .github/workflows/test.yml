@@ -15,10 +15,15 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     steps:
     - uses: actions/checkout@v4
@@ -47,9 +52,9 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
 
     services:

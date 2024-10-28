@@ -19,7 +19,9 @@
                     {% include "admin/djangocms_versioning/versioning_buttons.html" %}
                     <li>
                         {% get_preview_url original as admin_url %}
-                        <a href="{{ admin_url }}" target="_parent">{% trans "Preview" %}</a>
+                        <a href="{{ admin_url }}" onclick="window.parent.CMS.API.Sideframe.close()" target="_parent">
+                            {% trans "Preview" %}
+                        </a>
                     </li>
              {% endblock %}
             </ul>

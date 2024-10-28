@@ -5,9 +5,20 @@ Changelog
 2.1.0 (2024-07-12)
 ==================
 
+* feat: add support for Django 5.0 and 5.1 (#429) by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/429
 * feat: Add versioning actions to settings (admin change view) of versioned objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/408
 * fix: Remove workaround for page-specific rendering by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/411
 * fix: Compare versions' back button sometimes returns to invalid URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/413
+
+
+* feat: Add versioning actions to settings (admin change view) of versioned objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/408
+* feat: Optimize db evaluation by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/416
+* feat: Prefetch page content version objects for faster page tree by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/418
+* fix: Remove workaround for page-specific rendering by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/411
+* fix: Compare versions' back button sometimes returns to invalid URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/413
+* fix: Preparation for changes in django CMS 4.2 by @jrief in https://github.com/django-cms/djangocms-versioning/pull/419
+* fix: Unnecessary complexity in ``current_content`` query set by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/417
+* fix: get_page_content retrieved non page-content objects from the toolbar by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/423
 
 
 **Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.0.2...2.1.0

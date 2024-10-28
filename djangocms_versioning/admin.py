@@ -61,9 +61,14 @@ from .versionables import _cms_extension
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
-    def get_queryset(self, request):
+    def get_queryset(self, request, exclude_parameters=None):
         """Limit the content model queryset to the latest versions only."""
-        queryset = super().get_queryset(request)
+        if exclude_parameters:
+            # Django 5.0+ (facet support)
+            queryset = super().get_queryset(request, exclude_parameters)
+        else:
+            # Django 4.2 compatible get_queryset
+            queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
 
         """Check if there is a method "self.get_<field>_from_request" for each extra grouping field.
@@ -557,7 +562,7 @@ class VersionChangeList(ChangeList):
             if value is not None:
                 yield field, value
 
-    def get_queryset(self, request):
+    def get_queryset(self, request, exclude_parameters=None):
         """Adds support for querying the version model by grouping fields.
 
         Filters by the value of grouping fields (specified in VersionableItem
@@ -567,7 +572,12 @@ class VersionChangeList(ChangeList):
         for specifying filters that work without being shown in the UI
         along with filter choices.
         """
-        queryset = super().get_queryset(request)
+        if exclude_parameters:
+            # Django 5.0+ (facet support)
+            queryset = super().get_queryset(request, exclude_parameters)
+        else:
+            # Django 4.2 compatible get_queryset
+            queryset = super().get_queryset(request)
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         filters = dict(self.get_grouping_field_filters(request))

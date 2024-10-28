@@ -226,7 +226,7 @@ class PageContentFactory(AbstractContentFactory):
     soft_root = FuzzyChoice([True, False])
     limit_visibility_in_menu = constants.VISIBILITY_USERS
     template = "page.html"
-    xframe_options = FuzzyInteger(0, 25)
+    xframe_options = FuzzyInteger(0, 3)
 
     class Meta:
         model = PageContent

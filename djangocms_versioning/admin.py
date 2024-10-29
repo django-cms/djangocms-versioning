@@ -17,7 +17,7 @@ from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Cast, Lower
@@ -928,16 +928,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         return redirect(url)
 
-    def has_delete_permission(self, request, obj=None):
-        if obj is None:
-            return conf.ALLOW_DELETING_VERSIONS and super().has_delete_permission(request, obj)
-        content_admin = self.admin_site._registry[self.model._source_model]
-        return all((
-            conf.ALLOW_DELETING_VERSIONS,
-            super().has_delete_permission(request, obj),
-            content_admin.has_delete_permission(request, obj.content),
-        ))
-
     def delete_view(self, request, object_id, extra_context=None):
         """Do not allow deleting single version objects. Use discard instead."""
         raise PermissionDenied
@@ -1492,6 +1482,11 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        if not conf.ALLOW_DELETING_VERSIONS:
-            return False
-        return super().has_delete_permission(request, obj)
+        if obj is None:
+            return conf.ALLOW_DELETING_VERSIONS and super().has_delete_permission(request, obj)
+        content_admin = self.admin_site._registry[self.model._source_model]
+        return all((
+            conf.ALLOW_DELETING_VERSIONS,
+            super().has_delete_permission(request, obj),
+            content_admin.has_delete_permission(request, obj.content),
+        ))

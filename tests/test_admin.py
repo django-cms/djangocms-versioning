@@ -2724,7 +2724,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Are you sure you want to delete the selected poll content version?")
         # Check that the poll content is contained in the confirmation
-        self.assertContains(response, str(version.content))
+        self.assertContains(response, str(version))
 
 
 class ExtendedVersionAdminTestCase(CMSTestCase):

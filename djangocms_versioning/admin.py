@@ -928,13 +928,38 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         return redirect(url)
 
+    def has_delete_permission(self, request, obj=None):
+        if obj is None:
+            return conf.ALLOW_DELETING_VERSIONS and super().has_delete_permission(request, obj)
+        content_admin = self.admin_site._registry[self.model._source_model]
+        return all((
+            conf.ALLOW_DELETING_VERSIONS,
+            super().has_delete_permission(request, obj),
+            content_admin.has_delete_permission(request, obj.content),
+        ))
+
+    def delete_view(self, request, object_id, extra_context=None):
+        """Do not allow deleting single version objects. Use discard instead."""
+        raise PermissionDenied
+
     @admin.action(
-        description=_("Delete versions")
+        permissions=["delete"],
+        description=_("Delete selected %(verbose_name_plural)s"),
     )
     def delete_selected(self, request, queryset):
         """
         Redirects to a delete versions view based on a users choice
         """
+        # Do not allow deleting single version objects. Use discard instead.
+        forbidden = queryset.filter(state__in=(PUBLISHED, DRAFT))
+        if forbidden.exists():
+            self.message_user(
+                request,
+                _("Draft or published versions cannot be deleted. First unpublish or use discard for drafts."),
+                messages.ERROR
+            )
+            return
+
         if conf.ALLOW_DELETING_VERSIONS:
             version_contents = [version.content for version in queryset]
             delete_selected(self, request, queryset)

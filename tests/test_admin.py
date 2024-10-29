@@ -2664,9 +2664,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         to delete
         """
         poll = factories.PollFactory()
-        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
-        for version in versions:
-            print(version.state)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll, state=constants.ARCHIVED)
         querystring = f"?poll={poll.pk}"
         endpoint = (
             self.get_admin_url(self.versionable.version_model_proxy, "changelist")
@@ -2676,7 +2674,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "delete_selected",
-                ACTION_CHECKBOX_NAME: ["1", "2", "3"],
+                ACTION_CHECKBOX_NAME: [str(version.pk) for version in versions[1:]],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)

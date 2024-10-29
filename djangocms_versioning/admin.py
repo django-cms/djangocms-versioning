@@ -940,7 +940,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 _("Draft or published versions cannot be deleted. First unpublish or use discard for drafts."),
                 messages.ERROR
             )
-            return
+            return None
 
         if request.POST.get("post"):
             # When the user confirms, delete the content objects

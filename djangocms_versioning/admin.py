@@ -650,14 +650,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             for field in versionable.extra_grouping_fields
         ]
 
-    def get_actions(self, request):
-        """Removes the standard django admin delete action."""
-        actions = super().get_actions(request)
-        # disable delete action
-        if "delete_selected" in actions and not conf.ALLOW_DELETING_VERSIONS:
-            del actions["delete_selected"]
-        return actions
-
     @admin.display(
         description=_("Content"),
         ordering="content",
@@ -950,12 +942,21 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
             return
 
-        if conf.ALLOW_DELETING_VERSIONS:
-            version_contents = [version.content for version in queryset]
-            delete_selected(self, request, queryset)
-            for version_content in version_contents:
-                # TODO: add a check you are not deleting the published version
-                version_content.delete()
+        if request.POST.get("post"):
+            # When the user confirms, delete the content objects
+            queryset = self.get_content_queryset(queryset)
+        return delete_selected(self, request, queryset)
+
+    def get_deleted_objects(self, objs, request):
+        """Return the content objects to be deleted"""
+        if objs.model is Version:
+            objs = self.get_content_queryset(objs)
+        return super().get_deleted_objects(objs, request)
+
+    def get_content_queryset(self, queryset):
+        return self.model._source_model._base_manager.filter(
+            pk__in=queryset.values_list("object_id", flat=True)
+        )
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object

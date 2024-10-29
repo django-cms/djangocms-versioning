@@ -21,6 +21,7 @@ class HandlersTestCase(CMSTestCase):
     def test_add_plugin(self):
         version = factories.PageVersionFactory()
         placeholder = factories.PlaceholderFactory(source=version.content)
+        placeholder.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
         poll = factories.PollFactory()
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -45,6 +46,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -61,6 +63,7 @@ class HandlersTestCase(CMSTestCase):
     def test_clear_placeholder(self):
         version = factories.PageVersionFactory()
         placeholder = factories.PlaceholderFactory(source=version.content)
+        placeholder.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -81,6 +84,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -103,6 +107,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -165,7 +170,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
-
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
             endpoint = self.get_move_plugin_uri(plugin)
@@ -197,6 +202,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):
@@ -223,6 +229,7 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             source_placeholder, "PollPlugin", version.content.language, poll=poll
         )
+        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):

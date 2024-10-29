@@ -8,14 +8,16 @@ from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModel
 from cms.models import PageContent
 from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
+from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, static_with_version
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin.actions import delete_selected
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Cast, Lower
@@ -60,9 +62,14 @@ from .versionables import _cms_extension
 class VersioningChangeListMixin:
     """Mixin used for ChangeList classes of content models."""
 
-    def get_queryset(self, request):
+    def get_queryset(self, request, exclude_parameters=None):
         """Limit the content model queryset to the latest versions only."""
-        queryset = super().get_queryset(request)
+        if exclude_parameters:
+            # Django 5.0+ (facet support)
+            queryset = super().get_queryset(request, exclude_parameters)
+        else:
+            # Django 4.2 compatible get_queryset
+            queryset = super().get_queryset(request)
         versionable = versionables.for_content(queryset.model)
 
         """Check if there is a method "self.get_<field>_from_request" for each extra grouping field.
@@ -464,10 +471,26 @@ class ExtendedVersionAdminMixin(
             f"admin:{version._meta.app_label}_{version._meta.model_name}_edit_redirect",
             args=(version.pk,),
         )
+        # Only show if no draft exists
+        if version.state == PUBLISHED:
+            pks_for_grouper = version.versionable.for_content_grouping_values(
+                obj
+            ).values_list("pk", flat=True)
+            drafts = Version.objects.filter(
+                object_id__in=pks_for_grouper,
+                content_type=version.content_type,
+                state=DRAFT,
+            )
+            if drafts.exists():
+                return ""
+            icon = "edit-new"
+        else:
+            icon = "edit"
+
         return self.admin_action_button(
             url,
-            icon="pencil",
-            title=_("Edit"),
+            icon=icon,
+            title=_("Edit") if icon == "edit" else _("New Draft"),
             name="edit",
             disabled=disabled,
             action="post",
@@ -491,7 +514,7 @@ class ExtendedVersionAdminMixin(
         actions = [
             self._get_preview_link,
             self._get_edit_link,
-         ]
+        ]
         if "state_indicator" not in self.versioning_list_display:
             # State indicator mixin loaded?
             actions.append(self._get_manage_versions_link)
@@ -540,7 +563,7 @@ class VersionChangeList(ChangeList):
             if value is not None:
                 yield field, value
 
-    def get_queryset(self, request):
+    def get_queryset(self, request, exclude_parameters=None):
         """Adds support for querying the version model by grouping fields.
 
         Filters by the value of grouping fields (specified in VersionableItem
@@ -550,7 +573,12 @@ class VersionChangeList(ChangeList):
         for specifying filters that work without being shown in the UI
         along with filter choices.
         """
-        queryset = super().get_queryset(request)
+        if exclude_parameters:
+            # Django 5.0+ (facet support)
+            queryset = super().get_queryset(request, exclude_parameters)
+        else:
+            # Django 4.2 compatible get_queryset
+            queryset = super().get_queryset(request)
         content_model = self.model_admin.model._source_model
         versionable = versionables.for_content(content_model)
         filters = dict(self.get_grouping_field_filters(request))
@@ -587,7 +615,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     """
 
     # register custom actions
-    actions = ["compare_versions"]
+    actions = ["compare_versions", "delete_selected"]
     list_display = (
         "number",
         "created",
@@ -621,14 +649,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             fake_filter_factory(versionable, field)
             for field in versionable.extra_grouping_fields
         ]
-
-    def get_actions(self, request):
-        """Removes the standard django admin delete action."""
-        actions = super().get_actions(request)
-        # disable delete action
-        if "delete_selected" in actions and not conf.ALLOW_DELETING_VERSIONS:
-            del actions["delete_selected"]
-        return actions
 
     @admin.display(
         description=_("Content"),
@@ -729,6 +749,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     def _get_edit_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the edit action
         """
+
+        if not obj.check_edit_redirect.as_bool(request.user):
+            return ""
+
         # Only show if no draft exists
         if obj.state == PUBLISHED:
             pks_for_grouper = obj.versionable.for_content_grouping_values(
@@ -743,7 +767,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 return ""
             icon = "edit-new"
         else:
-            icon = "pencil"
+            icon = "edit"
 
         # Don't open in the sideframe if the item is not sideframe compatible
         keepsideframe = obj.versionable.content_model_is_sideframe_editable
@@ -755,10 +779,10 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return self.admin_action_button(
             edit_url,
             icon=icon,
-            title=_("Edit") if icon == "pencil" else _("New Draft"),
+            title=_("Edit") if icon == "edit" else _("New Draft"),
             name="edit",
             action="post",
-            disabled=not obj.check_edit_redirect.as_bool(request.user) or disabled,
+            disabled=disabled,
             keepsideframe=keepsideframe,
         )
 
@@ -818,6 +842,32 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             disabled=not obj.check_unlock.as_bool(request.user),
         )
 
+    def _get_settings_link(self, obj, request):
+        """
+        Generate a settings button for the Versioning Admin
+        """
+
+        # If the content object is not registered for frontend editing no action should be present
+        # Also, the content object must be registered with the admin site
+        content_model = obj.versionable.content_model
+        if not is_editable_model(content_model):
+            return ""
+
+        try:
+            settings_url = reverse(
+                f"admin:{content_model._meta.app_label}_{content_model._meta.model_name}_change",
+                args=(obj.content.pk,)
+            )
+        except Resolver404:
+            return ""
+
+        return self.admin_action_button(
+            settings_url,
+            icon="settings",
+            title=_("Settings"),
+            name="settings",
+        )
+
     def get_actions_list(self):
         """Returns all action links as a list"""
         return self.get_state_actions()
@@ -844,6 +894,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self._get_revert_link,
             self._get_discard_link,
             self._get_unlock_link,
+            self._get_settings_link,
         ]
 
     @admin.action(
@@ -868,6 +919,44 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         url += "?compare_to=%d" % queryset[1].pk
 
         return redirect(url)
+
+    def delete_view(self, request, object_id, extra_context=None):
+        """Do not allow deleting single version objects. Use discard instead."""
+        raise PermissionDenied
+
+    @admin.action(
+        permissions=["delete"],
+        description=_("Delete selected %(verbose_name_plural)s"),
+    )
+    def delete_selected(self, request, queryset):
+        """
+        Redirects to a delete versions view based on a users choice
+        """
+        # Do not allow deleting single version objects. Use discard instead.
+        forbidden = queryset.filter(state__in=(PUBLISHED, DRAFT))
+        if forbidden.exists():
+            self.message_user(
+                request,
+                _("Draft or published versions cannot be deleted. First unpublish or use discard for drafts."),
+                messages.ERROR
+            )
+            return None
+
+        if request.POST.get("post"):
+            # When the user confirms, delete the content objects
+            queryset = self.get_content_queryset(queryset)
+        return delete_selected(self, request, queryset)
+
+    def get_deleted_objects(self, objs, request):
+        """Return the content objects to be deleted"""
+        if issubclass(objs.model, Version):
+            objs = self.get_content_queryset(objs)
+        return super().get_deleted_objects(objs, request)
+
+    def get_content_queryset(self, queryset):
+        return self.model._source_model._base_manager.filter(
+            pk__in=queryset.values_list("object_id", flat=True)
+        )
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -941,6 +1030,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 request, self.model._meta, object_id
             )
 
+        requested_redirect = request.GET.get("next", None)
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
             redirect_url=get_preview_url(version.content)
         else:
@@ -948,12 +1038,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
-            return redirect(redirect_url)
+            return redirect(requested_redirect or redirect_url)
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(redirect_url)
+            return redirect(requested_redirect or redirect_url)
 
         # Publish the version
         version.publish(request.user)
@@ -966,7 +1056,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             if hasattr(version.content, "get_absolute_url"):
                 redirect_url = version.content.get_absolute_url() or redirect_url
 
-        return redirect(redirect_url)
+        return redirect(requested_redirect or redirect_url)
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the
@@ -1081,7 +1171,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Redirect
-        return redirect(get_editable_url(target.content))
+        return redirect(get_editable_url(target.content, request.GET.get("force_admin")))
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""
@@ -1329,7 +1419,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                         .latest("created")
                         .content
                 )
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, KeyError):
                 pass
         return response
 
@@ -1393,4 +1483,11 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        if obj is None:
+            return conf.ALLOW_DELETING_VERSIONS and super().has_delete_permission(request, obj)
+        content_admin = self.admin_site._registry[self.model._source_model]
+        return all((
+            conf.ALLOW_DELETING_VERSIONS,
+            super().has_delete_permission(request, obj),
+            content_admin.has_delete_permission(request, obj.content),
+        ))

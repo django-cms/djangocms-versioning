@@ -233,11 +233,11 @@ def is_content_editable(placeholder, user):
     return version.state == DRAFT
 
 
-def get_editable_url(content_obj):
+def get_editable_url(content_obj, force_admin=False):
     """If the object is editable the cms editable view should be used, with the toolbar.
-       This method is provides the URL for it.
+       This method provides the URL for it.
     """
-    if is_editable_model(content_obj.__class__):
+    if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
         url = get_object_edit_url(content_obj, language)
     # Or else, the standard edit view should be used
@@ -304,7 +304,7 @@ def remove_published_where(queryset):
 
 
 def get_latest_admin_viewable_content(
-    grouper: type,
+    grouper: models.Model,
     include_unpublished_archived: bool = False,
     **extra_grouping_fields,
 ) -> models.Model:
@@ -387,7 +387,11 @@ def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER
     """Check if lock doesn't exist or object is locked to provided user.
     """
     try:
-        return version_is_unlocked_for_user(content.versions.first(), user)
+        if hasattr(content, "prefetched_versions"):
+            version = content.prefetched_versions[0]
+        else:
+            version = content.versions.first()
+        return version_is_unlocked_for_user(version, user)
     except AttributeError:
         return True
 
@@ -425,15 +429,16 @@ def send_email(
 
 
 def get_latest_draft_version(version):
-    """Get latest draft version of version object
-    """
+    """Get latest draft version of version object and caches it in the
+    content object"""
     from djangocms_versioning.constants import DRAFT
     from djangocms_versioning.models import Version
 
-    drafts = (
-        Version.objects
-        .filter_by_content_grouping_values(version.content)
-        .filter(state=DRAFT)
-    )
-
-    return drafts.first()
+    if not hasattr(version.content, "_latest_draft_version"):
+        drafts = (
+            Version.objects
+            .filter_by_content_grouping_values(version.content)
+            .filter(state=DRAFT)
+        )
+        version.content._latest_draft_version = drafts.first()
+    return version.content._latest_draft_version

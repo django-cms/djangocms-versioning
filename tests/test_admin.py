@@ -51,6 +51,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogContentFactory,
     BlogPostFactory,
     BlogPostVersionFactory,
+    PollVersionFactory,
 )
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
@@ -528,9 +529,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
-        ) % draft_revert_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_revert_action_link_for_draft_state(self):
@@ -599,9 +600,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-discard '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_discard_url}" '
             'title="Discard">'
-        ) % draft_discard_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_discard_action_link_for_archive_state(self):
@@ -664,11 +665,11 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
             '<span class="cms-icon cms-icon-undo"></span>'
             '</a>'
-        ) % draft_revert_url
+        )
 
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
@@ -2651,6 +2652,81 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertContains(response, "Exactly two versions need to be selected.")
 
 
+class VersionBulkDeleteViewTestCase(CMSTestCase):
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.superuser = self.get_superuser()
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_three_selected(self):
+        """
+        Query returns 1 versions when three versioning options are selected
+        to delete
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll, state=constants.ARCHIVED)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [str(version.pk) for version in versions[1:]],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1)
+
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_gives_warning_when_published_selected(self):
+        """
+        Nothing is deleted if a published (or draft) version is amongst the selected objects
+        """
+        poll = factories.PollFactory()
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [published.pk] + [version.pk for version in versions],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1 + 4)
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_bulk_delete_action_confirmation(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += f"?poll={version.content.poll.pk}"
+        data = {
+            "action": "delete_selected",
+            ACTION_CHECKBOX_NAME: [version.pk],
+        }
+        with self.login_user_context(self.superuser):
+            response = self.client.post(url, data, follow=True)
+
+        # Check that the confirmation page is displayed
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Are you sure you want to delete the selected poll content version?")
+        # Check that the poll content is contained in the confirmation
+        self.assertContains(response, str(version))
+
+
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_from_provided_list_display(self):
@@ -3170,4 +3246,77 @@ class ListActionsTestCase(CMSTestCase):
             response = self.client.get(changelist + "?back=/hijack_url")
             self.assertNotContains(response, "hijack_url")
             self.assertContains(response, version_list_url(version.content))
+
+class VersioningAdminButtonsTestCase(CMSTestCase):
+    def _get_versioning_url(self, version, action, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected action url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, action, version.pk
+        )
+        return admin_url
+
+    def get_change_view_url(self, content):
+        return self.get_admin_url(
+            content.__class__,
+            "change",
+            content.pk,
+        )
+
+    def test_buttons_in_draft_changeview(self):
+        """Only publish button should be visible in draft mode"""
+        version = PollVersionFactory(state=constants.DRAFT)
+        action_url = self._get_versioning_url(version, "publish")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?next={next_url}">Publish</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "New Draft")
+
+    def test_buttons_in_published_changeview(self):
+        """Only revert button should be visible in published mode"""
+        version = PollVersionFactory(state=constants.PUBLISHED)
+        action_url = self._get_versioning_url(version, "edit_redirect")
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?force_admin=1">New Draft</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_unpublished_changeview(self):
+        """Only revert button should be visible in unpublished mode"""
+        version = PollVersionFactory(state=constants.UNPUBLISHED)
+        action_url = self._get_versioning_url(version, "revert")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_archived_changeview(self):
+        """Only revert button should be visible in archived mode"""
+        version = PollVersionFactory(state=constants.ARCHIVED)
+        action_url = self._get_versioning_url(version, "revert")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
 

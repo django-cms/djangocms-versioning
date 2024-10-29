@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from copy import copy
+from typing import Optional
 
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
@@ -35,9 +36,6 @@ VERSIONING_MENU_IDENTIFIER = "version"
 
 
 class VersioningToolbar(PlaceholderToolbar):
-    class Media:
-        js = ("cms/js/admin/actions.js",)
-
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
         of the version
@@ -79,7 +77,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
+                extra_classes=["cms-btn-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -115,7 +113,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
-                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
+                extra_classes=["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -135,7 +133,6 @@ class VersioningToolbar(PlaceholderToolbar):
                 if can_unlock:
                     extra_classes = [
                         "cms-btn-action",
-                        "js-action",
                         "cms-form-post-method",
                         "cms-versioning-js-unlock-btn",
                     ]
@@ -216,7 +213,7 @@ class VersioningToolbar(PlaceholderToolbar):
 
                 url += "?" + urlencode({
                     "compare_to": version.pk,
-                    "back": self.request.get_full_path(),
+                    "back": self.toolbar.request_path,
                 })
                 versioning_menu.add_link_item(name, url=url)
                 # Discard changes menu entry (wrt to source)
@@ -292,15 +289,31 @@ class VersioningPageToolbar(PageToolbar):
     Overriding the original Page toolbar to ensure that draft and published pages
     can be accessed and to allow full control over the Page toolbar for versioned pages.
     """
-    def get_page_content(self, language=None):
+
+    def __init__(self, *args, **kwargs):
+        self.page_content: Optional[PageContent] = None
+        super().__init__(*args, **kwargs)
+
+    def get_page_content(self, language: Optional[str] = None) -> PageContent:
+        # This method overwrites the method in django CMS core. Not necessary
+        # for django CMS 4.2+
         if not language:
             language = self.current_lang
 
-        return get_latest_admin_viewable_content(self.page, language=language)
+        if isinstance(self.page_content, PageContent) and self.page_content.language == language:
+            # Already known - no need to query it again
+            return self.page_content
+        toolbar_obj = self.toolbar.get_object()
+        if isinstance(toolbar_obj, PageContent) and toolbar_obj.language == language:
+            # Already in the toolbar, then use it!
+            return toolbar_obj
+        else:
+            # Get it from the DB
+            return get_latest_admin_viewable_content(self.page, language=language)
 
     def populate(self):
         self.page = self.request.current_page
-        self.title = self.get_page_content() if self.page else None
+        self.page_content = self.get_page_content() if self.page else None
         self.permissions_activated = get_cms_setting("PERMISSION")
 
         self.override_language_menu()
@@ -316,7 +329,7 @@ class VersioningPageToolbar(PageToolbar):
         # Only override the menu if it exists and a page can be found
         language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
         if settings.USE_I18N and language_menu and self.page:
-            # remove_item uses `items` attribute so we have to copy object
+            # remove_item uses `items` attribute, so we have to copy object
             for _item in copy(language_menu.items):
                 language_menu.remove_item(item=_item)
 

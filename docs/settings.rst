@@ -25,10 +25,12 @@ Settings for djangocms Versioning
 
 .. py:attribute:: DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION
 
-    Defaults to ``True``
+    Defaults to ``True`` (for django CMS <= 4.1.0) and ``False``
+    (for django CMS > 4.1.0)
 
     This settings specifies if djangocms-versioning should register its own
-    versioned CMS menu.
+    versioned CMS menu. This is necessary for CMS <= 4.1.0. For CMS > 4.1.0, the
+    django CMS core comes with a version-ready menu.
 
     The versioned CMS menu also shows draft content in edit and preview mode.
 
@@ -36,6 +38,9 @@ Settings for djangocms Versioning
 .. py:attribute:: DJANGOCMS_VERSIONING_LOCK_VERSIONS
 
     Defaults to ``False``
+
+    .. versionadded:: 2.0
+       Before version 2.0 version locking was part of a separate package.
 
     This setting controls if draft versions are locked. If they are, only the user
     who created the draft can change the draft. See
@@ -59,4 +64,28 @@ Settings for djangocms Versioning
     used. If not set and no user is specified for the management command, it
     will fail.
 
+
+.. py:attribute:: DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT
+
+    Defaults to ``"published"``
+
+    .. versionadded:: 2.0
+       Before version 2.0 the behavior was always ``"versions"``.
+
+    This setting determines what happens after publication/unpublication of a
+    content object. Three options exist:
+
+    * ``"versions"``: The user will be redirected to a version overview of
+      the current object. This is particularly useful for advanced users who
+      need to keep a regular overview on the existing versions.
+
+    * ``"published"``: The user will be redirected to the content object on
+      the site. Its URL is determined by calling ``.get_absolute_url()`` on
+      the content object. If does not have an absolute url or the object was
+      unpublished the user is redirected to the object's preview endpoint.
+      This is particularly useful if users only want to interact with versions
+      if necessary.
+
+    * ``"preview"``: The user will be redirected to the content object's
+      preview endpoint.
 

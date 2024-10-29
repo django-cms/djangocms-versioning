@@ -1,7 +1,12 @@
+from unittest import skipIf
+
+from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
+from django.template import Context
 
+from djangocms_versioning import constants
 from djangocms_versioning.plugin_rendering import VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
@@ -9,6 +14,7 @@ from djangocms_versioning.test_utils.factories import (
     PlaceholderFactory,
     PollVersionFactory,
     TextPluginFactory,
+    TreeNode,
 )
 
 
@@ -190,7 +196,7 @@ class PageContentTreeViewTestCase(CMSTestCase):
         language filters / additional grouping values are set
         using the default CMS PageContent view
         """
-        page = PageFactory(node__depth=1)
+        page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
         en_version1 = PageVersionFactory(
             content__page=page,
             content__language="en",
@@ -221,7 +227,7 @@ class WizzardTestCase(CMSTestCase):
 
     def test_success_url_for_cms_wizard(self):
         from cms.cms_wizards import cms_page_wizard, cms_subpage_wizard
-        from cms.toolbar.utils import get_object_preview_url
+        from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 
         from djangocms_versioning.test_utils.polls.cms_wizards import (
             poll_wizard,
@@ -229,21 +235,24 @@ class WizzardTestCase(CMSTestCase):
 
         # Test against page creations in different languages.
         version = PageVersionFactory(content__language="en")
-        self.assertEqual(
+        self.assertIn(
             cms_page_wizard.get_success_url(version.content.page, language="en"),
-            get_object_preview_url(version.content),
+            [get_object_preview_url(version.content), get_object_edit_url(version.content)],
         )
 
         version = PageVersionFactory(content__language="en")
-        self.assertEqual(
+        self.assertIn(
             cms_subpage_wizard.get_success_url(version.content.page, language="en"),
-            get_object_preview_url(version.content),
+            [get_object_preview_url(version.content), get_object_edit_url(version.content)],
         )
 
         version = PageVersionFactory(content__language="de")
-        self.assertEqual(
+        self.assertIn(
             cms_page_wizard.get_success_url(version.content.page, language="de"),
-            get_object_preview_url(version.content, language="de"),
+            [
+                get_object_preview_url(version.content, language="de"),
+                get_object_edit_url(version.content, language="de")
+            ],
         )
 
         # Test against a model that doesn't have a PlaceholderRelationField
@@ -252,3 +261,43 @@ class WizzardTestCase(CMSTestCase):
             poll_wizard.get_success_url(version.content),
             version.content.get_absolute_url(),
         )
+
+
+class AdminManagerIntegrationTestCase(CMSTestCase):
+    def setUp(self):
+        self.page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
+        self.en_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="en",
+            state=constants.UNPUBLISHED,
+        )
+        self.fr_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="fr",
+            state=constants.ARCHIVED,
+        )
+        self.page.languages = "en,fr"
+        self.page.save()
+
+
+    @skipIf(cms_version < "4.1.4", "Bug only fixed in django CMS 4.1.4")
+    def test_get_admin_url_for_language(self):
+        """Regression fixed that made unpublished and archived versions invisible to get_admin_url_for_language
+        template tag. See: https://github.com/django-cms/django-cms/pull/7967"""
+        from django.template import Template
+
+        # Test English page with unpublished version
+        context = Context({"page": self.page})
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'en' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.en_version.content.pk}/", result)
+
+        # Test French page with archived version
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'fr' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.fr_version.content.pk}/", result)
+

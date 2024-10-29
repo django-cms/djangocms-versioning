@@ -15,6 +15,7 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
+from django.utils.translation import get_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
@@ -24,6 +25,13 @@ try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+
+def is_editable(content_obj, request):
+    """Check of content_obj is editable"""
+    from .models import Version
+
+    return Version.objects.get_for_content(content_obj).check_modify.as_bool(request.user)
 
 
 def versioning_admin_factory(admin_class, mixin):
@@ -147,6 +155,8 @@ def inject_generic_relation_to_version(model):
     related_query_name = f"{model._meta.app_label}_{model._meta.model_name}"
     model.add_to_class("versions", GenericRelation(
         Version, related_query_name=related_query_name))
+    if not hasattr(model, "is_editable"):
+        model.add_to_class("is_editable", is_editable)
 
 
 def _set_default_manager(model, manager):
@@ -223,11 +233,11 @@ def is_content_editable(placeholder, user):
     return version.state == DRAFT
 
 
-def get_editable_url(content_obj):
+def get_editable_url(content_obj, force_admin=False):
     """If the object is editable the cms editable view should be used, with the toolbar.
-       This method is provides the URL for it.
+       This method provides the URL for it.
     """
-    if is_editable_model(content_obj.__class__):
+    if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
         url = get_object_edit_url(content_obj, language)
     # Or else, the standard edit view should be used
@@ -263,9 +273,12 @@ def get_preview_url(content_obj: models.Model, language: typing.Union[str, None]
     if versionable.preview_url:
         return versionable.preview_url(content_obj)
     if is_editable_model(content_obj.__class__):
+        if not language:
+            # Use language field is content object has one to determine the language
+            language = getattr(content_obj, "language", get_language())
         url = get_object_preview_url(content_obj, language=language)
-        # Or else, the standard change view should be used
     else:
+        # Or else, the standard change view should be used
         url = admin_reverse(
             f"{content_obj._meta.app_label}_{content_obj._meta.model_name}_change",
             args=[content_obj.pk],
@@ -291,7 +304,7 @@ def remove_published_where(queryset):
 
 
 def get_latest_admin_viewable_content(
-    grouper: type,
+    grouper: models.Model,
     include_unpublished_archived: bool = False,
     **extra_grouping_fields,
 ) -> models.Model:
@@ -374,7 +387,11 @@ def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER
     """Check if lock doesn't exist or object is locked to provided user.
     """
     try:
-        return version_is_unlocked_for_user(content.versions.first(), user)
+        if hasattr(content, "prefetched_versions"):
+            version = content.prefetched_versions[0]
+        else:
+            version = content.versions.first()
+        return version_is_unlocked_for_user(version, user)
     except AttributeError:
         return True
 
@@ -412,15 +429,16 @@ def send_email(
 
 
 def get_latest_draft_version(version):
-    """Get latest draft version of version object
-    """
+    """Get latest draft version of version object and caches it in the
+    content object"""
     from djangocms_versioning.constants import DRAFT
     from djangocms_versioning.models import Version
 
-    drafts = (
-        Version.objects
-        .filter_by_content_grouping_values(version.content)
-        .filter(state=DRAFT)
-    )
-
-    return drafts.first()
+    if not hasattr(version.content, "_latest_draft_version"):
+        drafts = (
+            Version.objects
+            .filter_by_content_grouping_values(version.content)
+            .filter(state=DRAFT)
+        )
+        version.content._latest_draft_version = drafts.first()
+    return version.content._latest_draft_version

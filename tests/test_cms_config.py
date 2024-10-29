@@ -119,7 +119,7 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
         form = ChangePageForm(data, instance=self.content)
         form._request = request
         form._site = self.site
-        self.assertEqual(form.is_valid(), True)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
 
         form.save()
         page = Page.objects.get(pk=self.page.pk)

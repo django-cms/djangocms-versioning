@@ -16,6 +16,9 @@ from .conditions import (
     draft_is_not_locked,
     in_state,
     is_not_locked,
+    user_can_change,
+    user_can_publish,
+    user_can_unlock,
 )
 from .conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from .operations import send_post_version_operation, send_pre_version_operation
@@ -29,7 +32,7 @@ except ImportError:
 not_draft_error = _("Version is not a draft")
 lock_error_message = _("Action Denied. The latest version is locked by {user}")
 lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
-
+permission_error_message = _("You do not have permission to perform this action")
 
 def allow_deleting_versions(collector, field, sub_objs, using):
     if ALLOW_DELETING_VERSIONS:
@@ -71,8 +74,8 @@ class VersionQuerySet(models.QuerySet):
 
     def filter_by_content_grouping_values(self, content):
         """Returns a list of Version objects for grouping values taken
-       from provided content object. In other words:
-       it uses the content instance property values as filter parameters
+        from provided content object. In other words:
+        it uses the content instance property values as filter parameters
         """
         versionable = versionables.for_content(content)
         content_objects = versionable.for_content_grouping_values(content)
@@ -257,7 +260,7 @@ class Version(models.Model):
         Allows customization of how the content object will be copied
         when specified in cms_config.py
 
-        This method needs to be ran in a transaction due to the fact that if
+        This method needs to be run in a transaction due to the fact that if
         models are partially created in the copy method a version is not attached.
         It needs to be that if anything goes wrong we should roll back the entire task.
         We shouldn't leave this to package developers to know to add this feature
@@ -275,6 +278,7 @@ class Version(models.Model):
 
     check_archive = Conditions(
         [
+            user_can_change(permission_error_message),
             in_state([constants.DRAFT], _("Version is not in draft state")),
             is_not_locked(lock_error_message),
         ]
@@ -324,7 +328,10 @@ class Version(models.Model):
         pass
 
     check_publish = Conditions(
-        [in_state([constants.DRAFT], _("Version is not in draft state"))]
+        [
+            user_can_publish(permission_error_message),
+            in_state([constants.DRAFT], _("Version is not in draft state")),
+        ]
     )
 
     def can_be_published(self):
@@ -357,13 +364,16 @@ class Version(models.Model):
             content_type=self.content_type,
         )
         for version in to_unpublish:
-            version.unpublish(user)
+            version.unpublish(user, to_be_published=self)
         on_publish = self.versionable.on_publish
         if on_publish:
             on_publish(self)
         # trigger post operation signal
         send_post_version_operation(
-            constants.OPERATION_PUBLISH, version=self, token=action_token
+            constants.OPERATION_PUBLISH,
+            version=self,
+            token=action_token,
+            unpublished=list(to_unpublish),
         )
         if emit_content_change:
             emit_content_change(self.content)
@@ -384,6 +394,7 @@ class Version(models.Model):
         pass
 
     check_unpublish = Conditions([
+        user_can_publish(permission_error_message),
         in_state([constants.PUBLISHED], _("Version is not in published state")),
         draft_is_not_locked(lock_draft_error_message),
     ])
@@ -391,11 +402,11 @@ class Version(models.Model):
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)
 
-    def unpublish(self, user):
+    def unpublish(self, user, to_be_published=None):
         """Change state to UNPUBLISHED"""
         # trigger pre operation signal
         action_token = send_pre_version_operation(
-            constants.OPERATION_UNPUBLISH, version=self
+            constants.OPERATION_UNPUBLISH, version=self, to_be_published=to_be_published
         )
         self._set_unpublish(user)
         self.modified = timezone.now()
@@ -411,7 +422,10 @@ class Version(models.Model):
             on_unpublish(self)
         # trigger post operation signal
         send_post_version_operation(
-            constants.OPERATION_UNPUBLISH, version=self, token=action_token
+            constants.OPERATION_UNPUBLISH,
+            version=self,
+            token=action_token,
+            to_be_published=to_be_published,
         )
         if emit_content_change:
             emit_content_change(self.content)
@@ -431,14 +445,60 @@ class Version(models.Model):
         possible to be left with inconsistent data)"""
         pass
 
+    def has_publish_permission(self, user) -> bool:
+        """
+        Check if the given user has permission to publish.
+
+        Args:
+            user (User): The user to check for permission.
+
+        Returns:
+            bool: True if the user has publish permission, False otherwise.
+        """
+        return self._has_permission("publish", user)
+
+    def has_change_permission(self, user) -> bool:
+        """
+        Check whether the given user has permission to change the object.
+
+        Parameters:
+            user (User): The user for which permission needs to be checked.
+
+        Returns:
+            bool: True if the user has permission to change the object, False otherwise.
+        """
+        return self._has_permission("change", user)
+
+    def _has_permission(self, perm: str, user) -> bool:
+        """
+        Check if the user has the specified permission for the content by
+        checking the content's has_publish_permission, has_placeholder_change_permission,
+        or has_change_permission methods.
+
+        Falls back to Djangos change permission for the content object.
+        """
+        if perm == "publish" and hasattr(self.content, "has_publish_permission"):
+            # First try explicit publish permission
+            return self.content.has_publish_permission(user)
+        if hasattr(self.content, "has_change_permission"):
+            # First fallback: change permissions
+            return self.content.has_change_permission(user)
+        if hasattr(self.content, "has_placeholder_change_permission"):
+            # Second fallback: placeholder change permissions - works for PageContent
+            return self.content.has_placeholder_change_permission(user)
+        # final fallback: Django perms
+        return user.has_perm(f"{self.content_type.app_label}.change_{self.content_type.model}")
+
     check_modify = Conditions(
         [
             in_state([constants.DRAFT], not_draft_error),
             draft_is_not_locked(lock_draft_error_message),
+            user_can_unlock(permission_error_message),
         ]
     )
     check_revert = Conditions(
         [
+            user_can_change(permission_error_message),
             in_state(
                 [constants.ARCHIVED, constants.UNPUBLISHED],
                 _("Version is not in archived or unpublished state"),
@@ -471,6 +531,7 @@ class Version(models.Model):
         [
             in_state([constants.DRAFT, constants.PUBLISHED], not_draft_error),
             draft_is_locked(_("Draft version is not locked"))
+
         ]
     )
 

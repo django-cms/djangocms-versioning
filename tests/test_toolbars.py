@@ -6,12 +6,14 @@ from django.contrib.auth.models import Permission
 from django.utils.text import slugify
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.cms_toolbars import VersioningPageToolbar
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentWithVersionFactory,
+    PageFactory,
     PageUrlFactory,
     PageVersionFactory,
     PollVersionFactory,
@@ -65,7 +67,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
-            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
+            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
         )
 
     def test_revert_in_toolbar_in_preview_mode(self):
@@ -73,7 +75,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
         version = PollVersionFactory()
         version.archive(self.get_superuser())
-        toolbar = get_toolbar(version.content, edit_mode=False)
+        toolbar = get_toolbar(version.content, edit_mode=False, user=self.get_superuser())
 
         toolbar.post_template_populate()
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)
@@ -150,7 +152,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
             edit_button.extra_classes,
-            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
+            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
@@ -211,10 +213,11 @@ class VersioningToolbarTestCase(CMSTestCase):
         The versioning edit button is available on the toolbar
         when versioning is installed and the model is versionable.
         """
-        pagecontent = PageVersionFactory(content__template="")
-        url = get_object_preview_url(pagecontent.content, language="en")
+        page = PageVersionFactory(content__template="", content__language="en")
+        url = get_object_preview_url(page.content)
+
         edit_url = self._get_edit_url(
-            pagecontent, VersioningCMSConfig.versioning[0]
+            page, VersioningCMSConfig.versioning[0]
         )
 
         with self.login_user_context(self.get_superuser()):
@@ -340,6 +343,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, edit_mode=True)
 
         toolbar.post_template_populate()
@@ -352,6 +362,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, preview_mode=True)
 
         toolbar.post_template_populate()
@@ -600,3 +617,18 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
         self.assertIsNone(language_menu)
+
+    def test_toolbar_only_catches_page_content_objects(self):
+        """Regression test to ensure that the toolbar only catches PageContent objects and not
+        other toolbar objects."""
+
+        version = PollVersionFactory()  # Not a page content model
+        page = PageFactory()  # Get a page, e.g. where an apphook is configured
+        toolbar = get_toolbar(version.content, edit_mode=True, toolbar_class=VersioningPageToolbar, current_page=page)
+
+        # Did page get detected? Otherwise, page_content never will be detected
+        self.assertIs(toolbar.page, page)
+        # Check regression does not happen
+        self.assertNotIsInstance(toolbar.page_content, version.content.__class__)
+        # Check for correct result
+        self.assertIsNone(toolbar.page_content)

@@ -2,6 +2,11 @@ from cms import constants as cms_constants
 from cms.apphook_pool import apphook_pool
 from cms.cms_menus import CMSMenu as OriginalCMSMenu, get_visible_nodes
 from cms.models import Page
+
+try:
+    from cms.models import TreeNode
+except ImportError:
+    TreeNode = None
 from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
 from cms.utils.page import get_page_queryset
 from django.apps import apps
@@ -76,6 +81,11 @@ def _get_attrs_for_node(renderer, page_content):
 
 
 class CMSMenu(Menu):
+    """This is a legacy class used by django CMS 4.0 and django CMS 4.1.0 only. Its language
+    fallback mechanism does not comply with django CMS' core's. Also, it is by far slower
+    than django CMS core's. As of django CMS 4.1.1, this class is by default deactivated.
+
+    See https://discord.com/channels/800813886689247262/1204047551570120755 for more information."""
     def get_nodes(self, request):
         site = self.renderer.site
         language = self.renderer.request_language
@@ -94,7 +104,7 @@ class CMSMenu(Menu):
 
         # Depending on the toolbar mode, we need to get the correct version.
         # On edit or preview mode: return DRAFT,
-        # if DRAFT does not exists then return PUBLISHED.
+        # if DRAFT does not exist then return PUBLISHED.
         # On public mode: return PUBLISHED.
         if edit_or_preview:
             states = [constants.DRAFT, constants.PUBLISHED]
@@ -106,8 +116,8 @@ class CMSMenu(Menu):
             versionable_item.content_model._base_manager.filter(
                 language=language, page__in=pages_qs, versions__state__in=states
             )
-            .order_by("page__node__path", "versions__state")
-            .select_related("page", "page__node")
+            .order_by("page__node__path" if TreeNode else "page__path", "versions__state")
+            .select_related("page", "page__node" if TreeNode else "page")
             .prefetch_related("versions")
         )
         added_pages = []
@@ -117,7 +127,7 @@ class CMSMenu(Menu):
 
             if page not in visible_pages_for_user:
                 # The page is restricted for the user.
-                # Therefore we avoid adding it to the menu.
+                # Therefore, we avoid adding it to the menu.
                 continue
 
             version = page_content.versions.all()[0]

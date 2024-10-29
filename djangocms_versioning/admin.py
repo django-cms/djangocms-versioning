@@ -949,7 +949,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
     def get_deleted_objects(self, objs, request):
         """Return the content objects to be deleted"""
-        if objs.model is Version:
+        if issubclass(objs.model, Version):
             objs = self.get_content_queryset(objs)
         return super().get_deleted_objects(objs, request)
 

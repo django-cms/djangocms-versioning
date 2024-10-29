@@ -2708,6 +2708,24 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(PollContent._base_manager.all().count(), 1 + 4)
 
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_bulk_delete_action_confirmation(self):
+        version = factories.PollVersionFactory(state=ARCHIVED)
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += f"?poll={version.content.poll.pk}"
+        data = {
+            "action": "delete_selected",
+            ACTION_CHECKBOX_NAME: [version.pk],
+        }
+        with self.login_user_context(self.superuser):
+            response = self.client.post(url, data, follow=True)
+
+        # Check that the confirmation page is displayed
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Are you sure you want to delete the selected poll content?")
+        # Check that the poll content is contained in the confirmation
+        self.assertContains(response, str(version.content))
+
 
 class ExtendedVersionAdminTestCase(CMSTestCase):
 

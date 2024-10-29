@@ -2710,7 +2710,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
 
     @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
     def test_bulk_delete_action_confirmation(self):
-        version = factories.PollVersionFactory(state=ARCHIVED)
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
         url += f"?poll={version.content.poll.pk}"
         data = {

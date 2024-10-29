@@ -2686,8 +2686,7 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
     @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
     def test_change_view_action_bulk_delete_versions_gives_warning_when_published_selected(self):
         """
-        Query returns 1 versions when all versioning options are selected
-        to delete as 1 of them is published
+        Nothing is deleted if a published (or draft) version is amongst the selected objects
         """
         poll = factories.PollFactory()
         published = factories.PollVersionFactory(state=constants.PUBLISHED)
@@ -2701,14 +2700,13 @@ class VersionBulkDeleteViewTestCase(CMSTestCase):
         with self.login_user_context(self.superuser):
             data = {
                 "action": "delete_selected",
-                ACTION_CHECKBOX_NAME: [
-                    published.pk] + [version.pk for version in versions],
+                ACTION_CHECKBOX_NAME: [published.pk] + [version.pk for version in versions],
                 "post": "yes",
             }
             response = self.client.post(endpoint, data, follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(PollContent._base_manager.all().count(), 1)
+        self.assertEqual(PollContent._base_manager.all().count(), 1 + 4)
 
 
 class ExtendedVersionAdminTestCase(CMSTestCase):

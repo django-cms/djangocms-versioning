@@ -12,11 +12,12 @@ from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, static_with_version
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin.actions import delete_selected
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
 from django.db.models import OuterRef, Subquery
 from django.db.models.functions import Cast, Lower
@@ -614,7 +615,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     """
 
     # register custom actions
-    actions = ["compare_versions"]
+    actions = ["compare_versions", "delete_selected"]
     list_display = (
         "number",
         "created",
@@ -648,14 +649,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             fake_filter_factory(versionable, field)
             for field in versionable.extra_grouping_fields
         ]
-
-    def get_actions(self, request):
-        """Removes the standard django admin delete action."""
-        actions = super().get_actions(request)
-        # disable delete action
-        if "delete_selected" in actions and not conf.ALLOW_DELETING_VERSIONS:
-            del actions["delete_selected"]
-        return actions
 
     @admin.display(
         description=_("Content"),
@@ -926,6 +919,44 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         url += "?compare_to=%d" % queryset[1].pk
 
         return redirect(url)
+
+    def delete_view(self, request, object_id, extra_context=None):
+        """Do not allow deleting single version objects. Use discard instead."""
+        raise PermissionDenied
+
+    @admin.action(
+        permissions=["delete"],
+        description=_("Delete selected %(verbose_name_plural)s"),
+    )
+    def delete_selected(self, request, queryset):
+        """
+        Redirects to a delete versions view based on a users choice
+        """
+        # Do not allow deleting single version objects. Use discard instead.
+        forbidden = queryset.filter(state__in=(PUBLISHED, DRAFT))
+        if forbidden.exists():
+            self.message_user(
+                request,
+                _("Draft or published versions cannot be deleted. First unpublish or use discard for drafts."),
+                messages.ERROR
+            )
+            return None
+
+        if request.POST.get("post"):
+            # When the user confirms, delete the content objects
+            queryset = self.get_content_queryset(queryset)
+        return delete_selected(self, request, queryset)
+
+    def get_deleted_objects(self, objs, request):
+        """Return the content objects to be deleted"""
+        if issubclass(objs.model, Version):
+            objs = self.get_content_queryset(objs)
+        return super().get_deleted_objects(objs, request)
+
+    def get_content_queryset(self, queryset):
+        return self.model._source_model._base_manager.filter(
+            pk__in=queryset.values_list("object_id", flat=True)
+        )
 
     def grouper_form_view(self, request):
         """Displays an intermediary page to select a grouper object
@@ -1388,7 +1419,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                         .latest("created")
                         .content
                 )
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, KeyError):
                 pass
         return response
 
@@ -1452,4 +1483,11 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        if obj is None:
+            return conf.ALLOW_DELETING_VERSIONS and super().has_delete_permission(request, obj)
+        content_admin = self.admin_site._registry[self.model._source_model]
+        return all((
+            conf.ALLOW_DELETING_VERSIONS,
+            super().has_delete_permission(request, obj),
+            content_admin.has_delete_permission(request, obj.content),
+        ))

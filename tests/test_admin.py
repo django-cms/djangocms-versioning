@@ -2652,6 +2652,81 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertContains(response, "Exactly two versions need to be selected.")
 
 
+class VersionBulkDeleteViewTestCase(CMSTestCase):
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.superuser = self.get_superuser()
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_three_selected(self):
+        """
+        Query returns 1 versions when three versioning options are selected
+        to delete
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll, state=constants.ARCHIVED)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [str(version.pk) for version in versions[1:]],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1)
+
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_gives_warning_when_published_selected(self):
+        """
+        Nothing is deleted if a published (or draft) version is amongst the selected objects
+        """
+        poll = factories.PollFactory()
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [published.pk] + [version.pk for version in versions],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1 + 4)
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_bulk_delete_action_confirmation(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += f"?poll={version.content.poll.pk}"
+        data = {
+            "action": "delete_selected",
+            ACTION_CHECKBOX_NAME: [version.pk],
+        }
+        with self.login_user_context(self.superuser):
+            response = self.client.post(url, data, follow=True)
+
+        # Check that the confirmation page is displayed
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Are you sure you want to delete the selected poll content version?")
+        # Check that the poll content is contained in the confirmation
+        self.assertContains(response, str(version))
+
+
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_from_provided_list_display(self):

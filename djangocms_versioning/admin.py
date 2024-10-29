@@ -1419,7 +1419,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                         .latest("created")
                         .content
                 )
-            except ObjectDoesNotExist:
+            except (ObjectDoesNotExist, KeyError):
                 pass
         return response
 

@@ -5,6 +5,7 @@ from django.contrib.admin.widgets import AutocompleteSelect
 
 from . import versionables
 
+
 class VersionAutocompleteSelect(AutocompleteSelect):
     def optgroups(self, name: str, value: str, attr: dict | None = None):
         default = (None, [], 0)

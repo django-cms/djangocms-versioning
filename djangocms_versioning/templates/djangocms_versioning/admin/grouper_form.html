@@ -34,11 +34,13 @@
     {% endblock %}
     <div class="module" id="changelist">
       <form action="{% url opts|admin_urlname:"changelist" %}">
+        <fieldset class="module aligned">
           <div class="form-row">
-              <div class="flex-container">
-                  {{ form }}
-              </div>
+            <div class="flex-container">
+              {{ form }}
+            </div>
           </div>
+        </fieldset>
         <button type="submit">{% translate "Submit" %}</button>
         </form>
       </form>

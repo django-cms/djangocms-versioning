@@ -13,16 +13,18 @@ class VersionAutocompleteSelect(AutocompleteSelect):
         return [default]
 
 
-class VersionContentChoiceField(forms.ChoiceField):
+class VersionContentChoiceField(forms.ModelChoiceField):
     """Form field used to display a list of grouper instances"""
 
-    def __init__(self, *args, model=None, **kwargs):
+    def __init__(self, *args, model=None, admin_site=None, **kwargs):
         self.language = kwargs.pop("language")
         self.predefined_label_method = kwargs.pop("option_label_override")
-        kwargs.setdefault("widget", VersionAutocompleteSelect(
-            model._meta.get_field(versionables.for_content(model).grouper_field_name),
-            admin_site=kwargs.pop("admin_site"),
-        ))
+        if getattr(admin_site._registry.get(model), "search_fields", []):
+            # If the model is registered in the admin, use the autocomplete widget
+            kwargs.setdefault("widget", VersionAutocompleteSelect(
+                model._meta.get_field(versionables.for_content(model).grouper_field_name),
+                admin_site=admin_site,
+            ))
         super().__init__(*args, **kwargs)
 
     def label_from_instance(self, obj):
@@ -42,6 +44,10 @@ def grouper_form_factory(content_model, language=None, admin_site=None):
     :param content_model: Content model class
     :param language: Language
     """
+    if admin_site is None:
+        from django.contrib.admin import site
+        admin_site = site
+
     versionable = versionables.for_content(content_model)
     return type(
         content_model.__name__ + "GrouperForm",
@@ -50,6 +56,7 @@ def grouper_form_factory(content_model, language=None, admin_site=None):
             "_content_model": content_model,
             versionable.grouper_field_name: VersionContentChoiceField(
                 label=versionable.grouper_model._meta.verbose_name.capitalize(),
+                queryset=versionable.grouper_model.objects.all(),
                 option_label_override=versionable.grouper_selector_option_label,
                 admin_site=admin_site,
                 model=content_model,

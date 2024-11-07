@@ -28,6 +28,6 @@ setup(
     author_email="info@divio.ch",
     maintainer="Django CMS Association and contributors",
     maintainer_email="info@django-cms.org",
-    url="http://github.com/django-cms/djangocms-versioning",
+    url="https://github.com/django-cms/djangocms-versioning",
     license="BSD",
 )

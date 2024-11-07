@@ -155,7 +155,7 @@ jobs:
           'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
         ]
         os: [
-          ubuntu-20.04,
+          ubuntu-latest,
         ]
 
     steps:

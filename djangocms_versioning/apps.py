@@ -12,15 +12,18 @@ class VersioningConfig(AppConfig):
         from cms.models import contentmodels, fields
         from cms.signals import post_obj_operation, post_placeholder_operation
 
+        from .conf import LOCK_VERSIONS
         from .handlers import (
             update_modified_date,
             update_modified_date_for_pagecontent,
             update_modified_date_for_placeholder_source,
         )
-        from .helpers import is_content_editable
+        from .helpers import is_content_editable, placeholder_content_is_unlocked_for_user
 
         # Add check to PlaceholderRelationField
         fields.PlaceholderRelationField.default_checks += [is_content_editable]
+        if LOCK_VERSIONS:
+            fields.PlaceholderRelationField.default_checks += [placeholder_content_is_unlocked_for_user]
 
         # Remove uniqueness constraint from PageContent model to allow for different versions
         pagecontent_unique_together = tuple(

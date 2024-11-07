@@ -1,0 +1,8 @@
+.object-tools a.accent {
+    background-color: var(--accent) !important;
+}
+.object-tools a.accent:hover,
+.object-tools a.accent:active,
+.object-tools a.accent:hover:active {
+    background-color: color-mix(in srgb, var(--accent) 90%, var(--dca-black)) !important;
+}

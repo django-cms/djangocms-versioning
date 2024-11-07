@@ -68,7 +68,7 @@ class AdminManagerTestCase(CMSTestCase):
             self.create_page_content(page, "it", constants.ARCHIVED)
             self.create_page_content(page, "it", constants.PUBLISHED)
 
-    def test_current_content_iterator(self):
+    def test_current_content(self):
         # 12 PageContent versions in total
         self.assertEqual(len(list(
             PageContent.admin_manager.all()
@@ -79,11 +79,11 @@ class AdminManagerTestCase(CMSTestCase):
         self.assertEqual(len(qs), 4)
         self.assertEqual(qs._group_by_key, ["page", "language"])
         self.assertEqual(len(list(
-            PageContent.admin_manager.filter(page__in=self.pages1).current_content_iterator()
-        )), 4, f"{list(PageContent.admin_manager.filter(page__in=self.pages1).current_content_iterator())}")
+            PageContent.admin_manager.filter(page__in=self.pages1).current_content()
+        )), 4, f"{list(PageContent.admin_manager.filter(page__in=self.pages1).current_content())}")
         # 2 current PageContent versions for self.pages2
         self.assertEqual(len(list(
-            PageContent.admin_manager.filter(page__in=self.pages2).current_content_iterator()
+            PageContent.admin_manager.filter(page__in=self.pages2).current_content()
         )), 4)
 
         # Now unpublish all published in pages2
@@ -93,5 +93,5 @@ class AdminManagerTestCase(CMSTestCase):
 
         # 2 current PageContent versions for self.pages2
         self.assertEqual(len(list(
-            PageContent.admin_manager.filter(page__in=self.pages2).current_content_iterator()
+            PageContent.admin_manager.filter(page__in=self.pages2).current_content()
         )), 2)

@@ -3,7 +3,6 @@ import collections
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.extensions.models import BaseExtension
 from cms.models import PageContent, Placeholder
-from cms.utils import get_language_from_request
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
 from cms.utils.urlutils import admin_reverse
@@ -14,6 +13,7 @@ from django.core.exceptions import (
     ObjectDoesNotExist,
     PermissionDenied,
 )
+from django.db.models import Prefetch
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -23,9 +23,8 @@ from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
-from . import indicators, versionables
+from . import indicators
 from .admin import VersioningAdminMixin
-from .conf import LOCK_VERSIONS
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
@@ -33,7 +32,6 @@ from .helpers import (
     get_latest_admin_viewable_content,
     inject_generic_relation_to_version,
     is_editable,
-    placeholder_content_is_unlocked_for_user,
     register_versionadmin_proxy,
     replace_admin_for_models,
     replace_manager,
@@ -160,12 +158,6 @@ class VersioningCMSExtension(CMSAppExtension):
             for key in modifier.keys():
                 self.add_to_field_extension[key] = modifier[key]
 
-    def handle_locking(self):
-        if LOCK_VERSIONS:
-            from cms.models import fields
-
-            fields.PlaceholderRelationField.default_checks += [placeholder_content_is_unlocked_for_user]
-
     def configure_app(self, cms_config):
         if hasattr(cms_config, "extended_admin_field_modifiers"):
             self.handle_admin_field_modifiers(cms_config)
@@ -188,7 +180,6 @@ class VersioningCMSExtension(CMSAppExtension):
             self.handle_version_admin(cms_config)
             self.handle_content_model_generic_relation(cms_config)
             self.handle_content_model_manager(cms_config)
-        self.handle_locking()
 
 
 def copy_page_content(original_content):
@@ -277,6 +268,8 @@ def on_page_content_archive(version):
 
 
 class VersioningCMSPageAdminMixin(VersioningAdminMixin):
+    change_form_template = "admin/djangocms_versioning/page/change_form.html"
+
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
@@ -290,28 +283,9 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                     fields.remove(f_name)
         return fields
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:
-            version = Version.objects.get_for_content(obj)
-            if not version.check_modify.as_bool(request.user):
-                for f_name in ["slug", "overwrite_url"]:
-                    form.declared_fields[f_name].widget.attrs["readonly"] = True
-        return form
-
     def get_queryset(self, request):
-        urls = ("cms_pagecontent_get_tree",)
-        queryset = super().get_queryset(request)
-        if request.resolver_match.url_name in urls:
-            versionable = versionables.for_content(queryset.model)
-
-            # TODO: Improve the grouping filters to use anything defined in the
-            #       apps versioning config extra_grouping_fields
-            grouping_filters = {}
-            if "language" in versionable.extra_grouping_fields:
-                grouping_filters["language"] = get_language_from_request(request)
-
-            return queryset.filter(pk__in=versionable.distinct_groupers(**grouping_filters))
+        queryset = super().get_queryset(request)\
+            .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
         return queryset
 
     # CAVEAT:
@@ -377,7 +351,18 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         """Get the indicator menu for PageContent object taking into account the
         currently available versions"""
         menu_template = "admin/cms/page/tree/indicator_menu.html"
-        status = page_content.content_indicator()
+        if hasattr(page_content.page, "filtered_translations") and hasattr(page_content, "prefetched_versions"):
+            # get_tree has prefetched versions
+            versions = sorted(
+                [content.prefetched_versions[0] for content in page_content.page.filtered_translations],
+                key=lambda version: -version.pk,
+            )
+            for content in page_content.page.filtered_translations:
+                content.__dict__["content"] = content
+            status = page_content.content_indicator(versions)
+        else:
+            # No prefetched versions available, get them ourselves
+            status = page_content.content_indicator()
         if not status or status == "empty":  # pragma: no cover
             return super().get_indicator_menu(request, page_content)
         versions = page_content._version  # Cache from .content_indicator()

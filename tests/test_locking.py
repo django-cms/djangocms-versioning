@@ -270,11 +270,13 @@ class VersionLockUnlockTestCase(CMSTestCase):
             locked_by=self.user_author)
         changelist_url = version_list_url(poll_version.content)
         unlock_url = self.get_admin_url(self.versionable.version_model_proxy, "unlock", poll_version.pk)
-
+        exprected_disabled_button = (
+            f'<a class="btn cms-form-post-method cms-action-btn cms-action-unlock js-action js-keep-sideframe" '
+            f'href="{unlock_url}" title="Unlock"><span class="cms-icon cms-icon-unlock"></span></a>'
+        )
         with self.login_user_context(self.user_has_no_unlock_perms):
             response = self.client.post(changelist_url)
-
-        self.assertNotContains(response, unlock_url)
+        self.assertInHTML(exprected_disabled_button, response.content.decode("utf-8"))
 
     def test_unlock_link_present_for_user_with_privileges(self):
         poll_version = factories.PollVersionFactory(
@@ -392,11 +394,12 @@ class VersionLockEditActionStateTestCase(CMSTestCase):
         author_request.user = self.user_author
         otheruser_request = RequestFactory()
         otheruser_request.user = self.superuser
+        expected_disabled_state = ""
 
         actual_disabled_state = self.version_admin._get_edit_link(version, otheruser_request)
 
         self.assertFalse(version.check_edit_redirect.as_bool(self.superuser))
-        self.assertEqual("", actual_disabled_state)
+        self.assertEqual(expected_disabled_state, actual_disabled_state)
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)
@@ -647,7 +650,7 @@ class TestVersionsLockTestCase(CMSTestCase):
         """
         A version lock is not present when a content version is in a published or unpublished state
         """
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         poll_version = factories.PollVersionFactory(state=DRAFT, created_by=user, locked_by=user)
         publish_url = self.get_admin_url(self.versionable.version_model_proxy, "publish", poll_version.pk)
         unpublish_url = self.get_admin_url(self.versionable.version_model_proxy, "unpublish", poll_version.pk)
@@ -836,7 +839,7 @@ class VersionToolbarOverrideTestCase(CMSTestCase):
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
             edit_button.extra_classes,
-            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
+            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_lock_message_when_content_is_locked(self):

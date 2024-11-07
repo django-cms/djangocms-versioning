@@ -2,6 +2,53 @@
 Changelog
 =========
 
+2.1.0 (2024-07-12)
+==================
+
+* feat: add support for Django 5.0 and 5.1 (#429) by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/429
+* feat: Add versioning actions to settings (admin change view) of versioned objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/408
+* fix: Remove workaround for page-specific rendering by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/411
+* fix: Compare versions' back button sometimes returns to invalid URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/413
+
+
+* feat: Add versioning actions to settings (admin change view) of versioned objects by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/408
+* feat: Optimize db evaluation by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/416
+* feat: Prefetch page content version objects for faster page tree by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/418
+* fix: Remove workaround for page-specific rendering by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/411
+* fix: Compare versions' back button sometimes returns to invalid URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/413
+* fix: Preparation for changes in django CMS 4.2 by @jrief in https://github.com/django-cms/djangocms-versioning/pull/419
+* fix: Unnecessary complexity in ``current_content`` query set by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/417
+* fix: get_page_content retrieved non page-content objects from the toolbar by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/423
+
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.0.2...2.1.0
+
+2.0.2 (2024-05-03)
+==================
+
+* fix: Do not show edit action for version objects where editing is not possible by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/405
+* feat: Add Arabic locale
+
+2.0.1 (2024-03-29)
+==================
+
+* feat: Add content object level publish permissions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/390
+* fix: Create missing __init__.py in management folder by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/366
+* fix #363: Better UX in versioning listview by @jrief in https://github.com/django-cms/djangocms-versioning/pull/364
+* fix: Several fixes for the versioning forms: #382, #383, #384 by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/386
+* fix: For Django CMS 4.1.1 and later do not automatically register versioned CMS Menu by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/388
+* fix: Post requests from the side frame were sent to wrong URL by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/396
+* fix: Consistent use of action buttons by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/392
+* fix: Avoid duplication of placeholder checks for locked versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/393
+* ci: Add testing against django main by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/353
+* ci: Improve efficiency of ruff workflow by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/378
+* Chore: update ruff and pre-commit hook by @raffaellasuardini in https://github.com/django-cms/djangocms-versioning/pull/381
+* build(deps): bump actions/cache from 4.0.1 to 4.0.2 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/397
+
+New Contributors
+
+* @raffaellasuardini made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/381
+* @jrief made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/364
 
 2.0.0 (2023-12-29)
 ==================

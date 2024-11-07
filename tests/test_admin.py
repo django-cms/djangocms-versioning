@@ -51,6 +51,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogContentFactory,
     BlogPostFactory,
     BlogPostVersionFactory,
+    PollVersionFactory,
 )
 from djangocms_versioning.test_utils.incorrectly_configured_blogpost.models import (
     IncorrectBlogContent,
@@ -452,12 +453,11 @@ class VersionAdminTestCase(CMSTestCase):
         version = factories.PageVersionFactory(content__title="test5")
         with patch.object(helpers, "is_editable_model", return_value=True):
             with override(version.content.language):
+                url = get_object_preview_url(version.content, language=version.content.language)
+                label = version.content
                 self.assertEqual(
                     self.site._registry[Version].content_link(version),
-                    '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
-                        url=get_object_preview_url(version.content, language=version.content.language),
-                        label=version.content
-                    ),
+                    f'<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
                 )
 
 
@@ -516,7 +516,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The revert action is active
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
-        user = factories.UserFactory()
+        user = self.get_superuser()
         request = RequestFactory().get("/admin/polls/pollcontent/")
         version.created_by = request.user = user
         actual_enabled_control = self.version_admin._get_revert_link(version, request)
@@ -529,9 +529,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
-        ) % draft_revert_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_revert_action_link_for_draft_state(self):
@@ -569,7 +569,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
             self.versionable.version_model_proxy, "discard", version.pk
         )
         request = RequestFactory().post(draft_discard_url, {"discard": "1"})
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
 
         request.session = "session"
         messages = FallbackStorage(request)
@@ -587,7 +587,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         draft_discard_url = self.get_admin_url(
             self.versionable.version_model_proxy, "discard", version.pk
         )
@@ -600,9 +600,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-discard '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_discard_url}" '
             'title="Discard">'
-        ) % draft_discard_url
+        )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
     def test_discard_action_link_for_archive_state(self):
@@ -649,7 +649,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         The revert url should be null for unpublished state
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
-        user = factories.UserFactory()
+        user = self.get_superuser()
         archive_version = version.copy(user)
         archive_version.archive(user)
         request = RequestFactory().get("/admin/polls/pollcontent/")
@@ -665,11 +665,11 @@ class VersionAdminActionsTestCase(CMSTestCase):
             'cms-action-revert '
             'js-action '
             'js-keep-sideframe" '
-            'href="%s" '
+            f'href="{draft_revert_url}" '
             'title="Revert">'
             '<span class="cms-icon cms-icon-undo"></span>'
             '</a>'
-        ) % draft_revert_url
+        )
 
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
@@ -730,7 +730,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_archive_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -806,7 +806,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_publish_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -882,7 +882,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_unpublish_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -962,7 +962,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_draft_version(self):
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -1002,7 +1002,7 @@ class StateActionsTestCase(CMSTestCase):
     def test_edit_in_state_actions_for_published_version(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         # Get the version model proxy from the main admin site
         # Trying to test this on the plain Version model throws exceptions
         version_model_proxy = [
@@ -1129,7 +1129,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1165,7 +1165,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1288,7 +1288,7 @@ class ArchiveViewTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "archive", poll_version.pk
         )
 
-        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+        with self.login_user_context(self.get_superuser()):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1325,7 +1325,7 @@ class PublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "publish", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1350,7 +1350,7 @@ class PublishViewTestCase(BaseStateTestCase):
         from djangocms_versioning import conf
 
         original_setting = conf.ON_PUBLISH_REDIRECT
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
 
         conf.ON_PUBLISH_REDIRECT ="published"
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
@@ -1389,7 +1389,7 @@ class PublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "publish", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1549,7 +1549,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1575,7 +1575,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -1692,7 +1692,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "unpublish", poll_version.pk
         )
 
-        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+        with self.login_user_context(self.get_superuser()):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1729,7 +1729,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         }
 
         with patch.object(versioning_ext, "add_to_context", extra_context_setting):
-            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            with self.login_user_context(self.get_superuser()):
                 response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1762,7 +1762,7 @@ class UnpublishViewTestCase(BaseStateTestCase):
         versioning_ext = apps.get_app_config("djangocms_versioning").cms_extension
 
         with patch.object(versioning_ext, "add_to_context", {}):
-            with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            with self.login_user_context(self.get_superuser()):
                 response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -1815,7 +1815,7 @@ class RevertViewTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "revert", poll_version.pk
         )
-        user = self.get_staff_user_with_no_permissions()
+        user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
             user
         ):
@@ -2371,9 +2371,7 @@ class VersionChangeListViewTestCase(CMSTestCase):
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
         expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-        expected += """<a href="/en/admin/polls/pollcontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(poll_content.pk), name=str(poll_content)
-        )
+        expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
@@ -2422,12 +2420,11 @@ class VersionChangeListViewTestCase(CMSTestCase):
         breadcrumb_html = soup.find("div", class_="breadcrumbs")
         # Assert the breadcrumbs - we should have ignored the French one
         # and put the English one in the breadcrumbs
+        pk = page_content_en.pk
         expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
         expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
         expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
-        expected += """<a href="/en/admin/cms/pagecontent/{pk}/change/">{name}</a>\\n› """.format(
-            pk=str(page_content_en.pk), name=str(page_content_en)
-        )
+        expected += f"""<a href="/en/admin/cms/pagecontent/{pk}/change/">{page_content_en}</a>\\n› """
         expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
@@ -2655,6 +2652,81 @@ class VersionChangeViewTestCase(CMSTestCase):
         self.assertContains(response, "Exactly two versions need to be selected.")
 
 
+class VersionBulkDeleteViewTestCase(CMSTestCase):
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+        self.superuser = self.get_superuser()
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_three_selected(self):
+        """
+        Query returns 1 versions when three versioning options are selected
+        to delete
+        """
+        poll = factories.PollFactory()
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll, state=constants.ARCHIVED)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [str(version.pk) for version in versions[1:]],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1)
+
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_change_view_action_bulk_delete_versions_gives_warning_when_published_selected(self):
+        """
+        Nothing is deleted if a published (or draft) version is amongst the selected objects
+        """
+        poll = factories.PollFactory()
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        versions = factories.PollVersionFactory.create_batch(4, content__poll=poll)
+        querystring = f"?poll={poll.pk}"
+        endpoint = (
+            self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+            + querystring
+        )
+
+        with self.login_user_context(self.superuser):
+            data = {
+                "action": "delete_selected",
+                ACTION_CHECKBOX_NAME: [published.pk] + [version.pk for version in versions],
+                "post": "yes",
+            }
+            response = self.client.post(endpoint, data, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PollContent._base_manager.all().count(), 1 + 4)
+
+    @patch("djangocms_versioning.conf.ALLOW_DELETING_VERSIONS", True)
+    def test_bulk_delete_action_confirmation(self):
+        version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
+        url += f"?poll={version.content.poll.pk}"
+        data = {
+            "action": "delete_selected",
+            ACTION_CHECKBOX_NAME: [version.pk],
+        }
+        with self.login_user_context(self.superuser):
+            response = self.client.post(url, data, follow=True)
+
+        # Check that the confirmation page is displayed
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Are you sure you want to delete the selected poll content version?")
+        # Check that the poll content is contained in the confirmation
+        self.assertContains(response, str(version))
+
+
 class ExtendedVersionAdminTestCase(CMSTestCase):
 
     def test_extended_version_change_list_display_renders_from_provided_list_display(self):
@@ -2673,10 +2745,10 @@ class ExtendedVersionAdminTestCase(CMSTestCase):
         self.assertEqual(200, response.status_code)
 
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="/en/admin/polls/pollcontent/{}/change/">[TEST]{}</a>'.format(
-            content.id,
-            content.text
-        ))
+        self.assertContains(
+            response,
+            f'<a href="/en/admin/polls/pollcontent/{content.id}/change/">[TEST]{content.text}</a>'
+        )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
         self.assertContains(response, "cms-action-preview")
@@ -2901,10 +2973,10 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         # Check response is valid
         self.assertEqual(200, response.status_code)
         # Check list_display item is rendered
-        self.assertContains(response, '<a href="/en/admin/polls/poll/{}/change/">[TEST]{}</a>'.format(
-            content.poll.id,
-            content.text
-        ))
+        self.assertContains(
+            response,
+            f'<a href="/en/admin/polls/poll/{content.poll.id}/change/">[TEST]{content.text}</a>',
+        )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
         self.assertContains(response, "cms-action-view")
@@ -3174,4 +3246,77 @@ class ListActionsTestCase(CMSTestCase):
             response = self.client.get(changelist + "?back=/hijack_url")
             self.assertNotContains(response, "hijack_url")
             self.assertContains(response, version_list_url(version.content))
+
+class VersioningAdminButtonsTestCase(CMSTestCase):
+    def _get_versioning_url(self, version, action, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected action url
+        """
+        admin_url = self.get_admin_url(
+            versionable.version_model_proxy, action, version.pk
+        )
+        return admin_url
+
+    def get_change_view_url(self, content):
+        return self.get_admin_url(
+            content.__class__,
+            "change",
+            content.pk,
+        )
+
+    def test_buttons_in_draft_changeview(self):
+        """Only publish button should be visible in draft mode"""
+        version = PollVersionFactory(state=constants.DRAFT)
+        action_url = self._get_versioning_url(version, "publish")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?next={next_url}">Publish</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "New Draft")
+
+    def test_buttons_in_published_changeview(self):
+        """Only revert button should be visible in published mode"""
+        version = PollVersionFactory(state=constants.PUBLISHED)
+        action_url = self._get_versioning_url(version, "edit_redirect")
+        expected_button = ('<a class="accent cms-form-post-method" '
+                           f'href="{action_url}?force_admin=1">New Draft</a>')
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_unpublished_changeview(self):
+        """Only revert button should be visible in unpublished mode"""
+        version = PollVersionFactory(state=constants.UNPUBLISHED)
+        action_url = self._get_versioning_url(version, "revert")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
+
+    def test_buttons_in_archived_changeview(self):
+        """Only revert button should be visible in archived mode"""
+        version = PollVersionFactory(state=constants.ARCHIVED)
+        action_url = self._get_versioning_url(version, "revert")
+        next_url = self.get_change_view_url(version.content)
+        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_change_view_url(version.content))
+
+        self.assertContains(response, expected_button)
+        self.assertNotContains(response, "New Draft")
+        self.assertNotContains(response, "Publish")
 

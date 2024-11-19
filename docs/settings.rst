@@ -89,3 +89,13 @@ Settings for djangocms Versioning
     * ``"preview"``: The user will be redirected to the content object's
       preview endpoint.
 
+.. py:attribute:: DJANGOCMS_VERISONING_VERBOSE_UI
+
+    Defaults to ``True``
+
+    For many users it is sufficient to interact with djangocms-versioning
+    through a less verbose UI. If set to ``False``, djangocms-versioning will
+    not display the creation date in the "manage versions" view. Also, it will
+    remove its entries in the django admin overview page (index).
+    "manage versions" remains accessible trough the version menu in the CMS
+    toolbar.

@@ -41,7 +41,7 @@ from djangocms_versioning.helpers import (
     register_versionadmin_proxy,
     replace_admin_for_models,
     version_list_url,
-    versioning_admin_factory, get_preview_url,
+    versioning_admin_factory,
 )
 from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
@@ -1404,12 +1404,12 @@ class PublishViewTestCase(BaseStateTestCase):
         self.assertEqual(poll_version.content.get_absolute_url(), response.url)
 
         # when the requested url is resolvable
-        resolvable_url = url + "?next=" + get_preview_url(poll_version.content)
+        resolvable_url = url + "?next=" + helpers.get_preview_url(poll_version.content)
 
         with self.login_user_context(user):
             response = self.client.post(resolvable_url)
 
-        self.assertEqual(response.url, get_preview_url(poll_version.content))
+        self.assertEqual(response.url, helpers.get_preview_url(poll_version.content))
 
         # when the requested url is not resolvable, should default to version list url
         not_resolvable_url = url + "?next=http://example.com"

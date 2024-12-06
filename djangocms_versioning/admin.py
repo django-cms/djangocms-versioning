@@ -1033,6 +1033,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         requested_redirect = request.GET.get("next", None)
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
             redirect_url=get_preview_url(version.content)
+
+            if requested_redirect:
+                try:
+                    resolve(requested_redirect)
+                except Resolver404:
+                    requested_redirect = version_list_url(version.content)
+
         else:
             redirect_url=version_list_url(version.content)
 

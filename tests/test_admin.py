@@ -1384,6 +1384,46 @@ class PublishViewTestCase(BaseStateTestCase):
 
         conf.ON_PUBLISH_REDIRECT = original_setting
 
+
+    def test_publish_resolvable_redirect_url(self):
+        from djangocms_versioning import conf
+
+        original_setting = conf.ON_PUBLISH_REDIRECT
+        conf.ON_PUBLISH_REDIRECT = "published"
+
+        user = self.get_superuser()
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        # when there is no requested redirect
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "publish", poll_version.pk
+        )
+
+        with self.login_user_context(user):
+            response = self.client.post(url)
+
+        self.assertEqual(poll_version.content.get_absolute_url(), response.url)
+
+        # when the requested url is resolvable
+        resolvable_url = url + "?next=" + helpers.get_preview_url(poll_version.content)
+
+        with self.login_user_context(user):
+            response = self.client.post(resolvable_url)
+
+        self.assertEqual(response.url, helpers.get_preview_url(poll_version.content))
+
+        # when the requested url is not resolvable, should default to version list url
+        not_resolvable_url = url + "?next=http://example.com"
+
+        with self.login_user_context(user):
+            response = self.client.post(not_resolvable_url)
+
+        self.assertEqual(response.url, helpers.get_preview_url(poll_version.content))
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
+
+
+
     def test_published_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(

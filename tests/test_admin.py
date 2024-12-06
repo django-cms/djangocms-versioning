@@ -1418,7 +1418,7 @@ class PublishViewTestCase(BaseStateTestCase):
         with self.login_user_context(user):
             response = self.client.post(not_resolvable_url)
 
-        self.assertEqual(response.url, version_list_url(poll_version.content))
+        self.assertEqual(response.url, helpers.get_preview_url(poll_version.content))
 
         conf.ON_PUBLISH_REDIRECT = original_setting
 

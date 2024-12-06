@@ -1031,26 +1031,20 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
 
         requested_redirect = request.GET.get("next", None)
+
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
             redirect_url=get_preview_url(version.content)
-
-            if requested_redirect:
-                try:
-                    resolve(requested_redirect)
-                except Resolver404:
-                    requested_redirect = version_list_url(version.content)
-
         else:
             redirect_url=version_list_url(version.content)
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
-            return redirect(requested_redirect or redirect_url)
+            return self._internal_redirect(requested_redirect, redirect_url)
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(requested_redirect or redirect_url)
+            return self._internal_redirect(requested_redirect, redirect_url)
 
         # Publish the version
         version.publish(request.user)
@@ -1063,7 +1057,23 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             if hasattr(version.content, "get_absolute_url"):
                 redirect_url = version.content.get_absolute_url() or redirect_url
 
-        return redirect(requested_redirect or redirect_url)
+        return self._internal_redirect(requested_redirect, redirect_url)
+
+
+    def _internal_redirect(self, url, fallback):
+        """Helper function to check if the give URL is resolvable
+        If resolvable, return the URL; otherwise, returns the fallback URL.
+        """
+        if not url:
+            return redirect(fallback)
+
+        try:
+            resolve(url)
+        except Resolver404:
+            return redirect(fallback)
+
+        return redirect(url)
+
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the

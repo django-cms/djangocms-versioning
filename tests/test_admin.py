@@ -1388,6 +1388,7 @@ class PublishViewTestCase(BaseStateTestCase):
     def test_publish_resolvable_redirect_url(self):
         from djangocms_versioning import conf
 
+        original_setting = conf.ON_PUBLISH_REDIRECT
         conf.ON_PUBLISH_REDIRECT = "published"
 
         user = self.get_superuser()
@@ -1418,6 +1419,8 @@ class PublishViewTestCase(BaseStateTestCase):
             response = self.client.post(not_resolvable_url)
 
         self.assertEqual(response.url, version_list_url(poll_version.content))
+
+        conf.ON_PUBLISH_REDIRECT = original_setting
 
 
 

@@ -104,7 +104,7 @@ class PollContentWithVersionFactory(PollContentFactory):
 class AnswerFactory(factory.django.DjangoModelFactory):
     poll_content = factory.SubFactory(PollContentFactory)
     text = factory.LazyAttributeSequence(
-        lambda o, n: "Poll %s - Answer %d" % (o.poll_content.poll.name, n)
+        lambda o, n: f"Poll {o.poll_content.poll.name} - Answer {n}"
     )
 
     class Meta:

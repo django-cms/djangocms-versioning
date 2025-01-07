@@ -2156,7 +2156,7 @@ class CompareViewTestCase(CMSTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "compare", versions[0].pk
         )
-        url += "?compare_to=%d" % versions[1].pk
+        url += f"?compare_to={versions[1].pk}"
         user = self.get_staff_user_with_no_permissions()
 
         with self.login_user_context(user):

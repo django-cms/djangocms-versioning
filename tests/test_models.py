@@ -5,7 +5,6 @@ from django.apps import apps
 from django.utils.timezone import now
 from freezegun import freeze_time
 
-from djangocms_versioning import constants
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version, VersionQuerySet

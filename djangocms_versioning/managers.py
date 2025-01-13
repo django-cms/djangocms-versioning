@@ -92,7 +92,7 @@ class AdminQuerySetMixin:
                   .filter(**{key: models.OuterRef(key) for key in self._group_by_key})
                   .order_by("-hierarchy")  # Take the first in hierarchy
                   .values("vers_pk")[:1])  # Return version pk
-        return self.filter(versions__pk__in=latest, **kwargs)  # Return filter by version pk
+        return self.filter(versions__pk__in=models.Subquery(latest), **kwargs)  # Return filter by version pk
 
 
 class AdminManagerMixin:

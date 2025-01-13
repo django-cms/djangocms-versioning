@@ -916,7 +916,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_compare",
             args=(queryset[0].pk,),
         )
-        url += "?compare_to=%d" % queryset[1].pk
+        url += f"?compare_to={queryset[1].pk}"
 
         return redirect(url)
 

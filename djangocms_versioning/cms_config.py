@@ -279,7 +279,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                 if form.fieldsets:
                     fields = flatten_fieldsets(form.fieldsets)
                 fields = list(fields)
-                for f_name in ["slug", "overwrite_url"]:
+                for f_name in {"slug", "overwrite_url"}.intersection(fields):
                     fields.remove(f_name)
         return fields
 

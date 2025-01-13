@@ -42,7 +42,7 @@ jobs:
       run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   postgres:
     runs-on: ubuntu-latest
@@ -93,7 +93,7 @@ jobs:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   mysql:
     runs-on: ubuntu-latest
@@ -142,7 +142,7 @@ jobs:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   cms-develop-sqlite:
     runs-on: ${{ matrix.os }}
@@ -176,7 +176,7 @@ jobs:
       run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   sqlite-django-main:
     runs-on: ubuntu-latest
@@ -212,4 +212,4 @@ jobs:
       run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5

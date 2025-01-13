@@ -54,6 +54,11 @@ class PublishedContentManagerMixin:
 
 
 class AdminQuerySetMixin:
+    Hierarchy = models.Case(
+        models.When(versions__state__in=(constants.DRAFT, constants.PUBLISHED), then=models.Value(1)),
+        default=models.Value(0),
+    )
+
     def _chain(self):
         # Also clone group by key when chaining querysets!
         clone = super()._chain()
@@ -65,11 +70,12 @@ class AdminQuerySetMixin:
         versions or published versions (in that order). This optimized query assumes that
         draft versions always have a higher pk than any other version type. This is true as long as
         no other version type can be converted to draft without creating a new version."""
-        pk_filter = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
+        pre_filtered = self.filter(**kwargs)  # Apply first, to improve performance
+        pk_filter = pre_filtered.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
             .values(*self._group_by_key)\
             .annotate(vers_pk=models.Max("versions__pk"))\
             .values("vers_pk")
-        return self.filter(versions__pk__in=pk_filter, **kwargs)
+        return pre_filtered.filter(versions__pk__in=pk_filter)
 
     def latest_content(self, **kwargs):
         """Returns the "latest" content object which is in this order
@@ -80,15 +86,14 @@ class AdminQuerySetMixin:
         This filter assumes that there can only be one draft created and that the draft as
         the highest pk of all versions (should it exist).
         """
-        current = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
-            .values(*self._group_by_key)\
-            .annotate(vers_pk=models.Max("versions__pk"))
-        pk_current = current.values("vers_pk")
-        pk_other = self.exclude(**{key + "__in": current.values(key) for key in self._group_by_key})\
-            .values(*self._group_by_key)\
-            .annotate(vers_pk=models.Max("versions__pk"))\
-            .values("vers_pk")
-        return self.filter(versions__pk__in=pk_current | pk_other, **kwargs)
+        pre_filtered = self.filter(**kwargs)  # Apply first, to improve performance
+        latest = (pre_filtered.annotate(hierarchy=self.Hierarchy)  # Hierarchy: 1 for draft/published, 0 for others
+                  .values(*self._group_by_key, "hierarchy")  # Group by key and hierarchy
+                  .annotate(vers_pk=models.Max("versions__pk"))  # Get highest (i.e. newest) pk
+                  .filter(**{key: models.OuterRef(key) for key in self._group_by_key})
+                  .order_by("-hierarchy")  # Take the first in hierarchy
+                  .values("vers_pk")[:1])  # Return version pk
+        return pre_filtered.filter(versions__pk__in=latest)  # Return filter by version pk
 
 
 class AdminManagerMixin:

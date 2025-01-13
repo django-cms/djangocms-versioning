@@ -54,9 +54,23 @@ class PublishedContentManagerMixin:
 
 
 class AdminQuerySetMixin:
-    Hierarchy = models.Case(
-        models.When(versions__state__in=(constants.DRAFT, constants.PUBLISHED), then=models.Value(1)),
-        default=models.Value(0),
+    # Annotation for latest pk of draft or published version
+    _DraftOrPublished = models.Max(
+        models.Case(
+            models.When(versions__state__in=(constants.DRAFT, constants.PUBLISHED),
+                        then="versions__pk"),
+            default=models.Value(0),
+        )
+    )
+
+    # Annotation for latest pk of any other version
+    _AnyOther = models.Max(
+        models.Case(
+            models.When(
+                ~models.Q(versions__state__in=(constants.DRAFT, constants.PUBLISHED)),
+                then="versions__pk"),
+            default=models.Value(0),
+        )
     )
 
     def _chain(self):
@@ -86,13 +100,13 @@ class AdminQuerySetMixin:
         This filter assumes that there can only be one draft created and that the draft as
         the highest pk of all versions (should it exist).
         """
-        latest = (self.annotate(hierarchy=self.Hierarchy)  # Hierarchy: 1 for draft/published, 0 for others
-                  .values(*self._group_by_key, "hierarchy")  # Group by key and hierarchy
-                  .annotate(vers_pk=models.Max("versions__pk"))  # Get highest (i.e. newest) pk
-                  .filter(**{key: models.OuterRef(key) for key in self._group_by_key})
-                  .order_by("-hierarchy")  # Take the first in hierarchy
-                  .values("vers_pk")[:1])  # Return version pk
-        return self.filter(versions__pk__in=models.Subquery(latest), **kwargs)  # Return filter by version pk
+
+        latest = (self.values(*self._group_by_key)
+                  .annotate(h1=self._DraftOrPublished, h2=self._AnyOther)
+                  .annotate(vers_pk=models.Case(models.When(h1__gt=0, then="h1"), default="h2"))
+                  .values("vers_pk")
+                  )
+        return self.filter(versions__pk__in=latest, **kwargs)
 
 
 class AdminManagerMixin:

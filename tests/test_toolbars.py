@@ -570,7 +570,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn("Copy all plugins", language_menu_dict.keys())
             self.assertIn("Delete Translation", language_menu_dict.keys())
 
-            pattern = r'\?language=([a-z]{2})'
+            pattern = r"\?language=([a-z]{2})"
             for item in language_menu_dict["Delete Translation"]:
                 match = re.search(pattern, item.url)  # Contains "?language=<code>“？
                 self.assertTrue(bool(match))

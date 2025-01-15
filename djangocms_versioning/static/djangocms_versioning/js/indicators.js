@@ -14,7 +14,7 @@
         if (window.top.CMS.config.csrf) {
             csrfToken = window.top.CMS.config.csrf;
         } else {
-            const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/)
+            const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/);
 
             if (cookieToken && cookieToken.length > 1) {
                 csrfToken = cookieToken[1];

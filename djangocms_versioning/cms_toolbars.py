@@ -387,13 +387,13 @@ class VersioningPageToolbar(PageToolbar):
 
             if remove and ALLOW_DELETING_VERSIONS:
                 remove_plugins_menu = language_menu.get_or_create_menu(
-                    f'{LANGUAGE_MENU_IDENTIFIER}-del', _('Delete Translation')
+                    f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
                 )
                 disabled = len(remove) == 1
                 for code, name in remove:
                     pagecontent = self.page.get_admin_content(language=code)
                     if pagecontent:
-                        translation_delete_url = admin_reverse('cms_pagecontent_delete', args=(pagecontent.pk,))
+                        translation_delete_url = admin_reverse("cms_pagecontent_delete", args=(pagecontent.pk,))
                         url = add_url_parameters(translation_delete_url, language=code)
                         remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled)
 

@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/change_form.html" %}
 {% load i18n admin_urls static admin_list %}
 
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-list{% endblock %}
@@ -13,6 +13,7 @@
 {% endblock %}
 {% endif %}
 
+{% block extrastyle %}{{ block.super }}{{ form.media }}{% endblock extrastyle %}
 {% block coltype %}flex{% endblock %}
 
 {% block content %}
@@ -33,7 +34,13 @@
     {% endblock %}
     <div class="module" id="changelist">
       <form action="{% url opts|admin_urlname:"changelist" %}">
-        {{ form }}
+        <fieldset class="module aligned">
+          <div class="form-row">
+            <div class="flex-container">
+              {{ form }}
+            </div>
+          </div>
+        </fieldset>
         <button type="submit">{% translate "Submit" %}</button>
         </form>
       </form>

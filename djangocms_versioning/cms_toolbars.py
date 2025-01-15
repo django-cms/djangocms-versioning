@@ -24,7 +24,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
-from djangocms_versioning.conf import LOCK_VERSIONS
+from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
@@ -385,6 +385,18 @@ class VersioningPageToolbar(PageToolbar):
                     )
                     add_plugins_menu.add_modal_item(name, url=url)
 
+            if remove and ALLOW_DELETING_VERSIONS:
+                remove_plugins_menu = language_menu.get_or_create_menu(
+                    f'{LANGUAGE_MENU_IDENTIFIER}-del', _('Delete Translation')
+                )
+                disabled = len(remove) == 1
+                for code, name in remove:
+                    pagecontent = self.page.get_admin_content(language=code)
+                    if pagecontent:
+                        translation_delete_url = admin_reverse('cms_pagecontent_delete', args=(pagecontent.pk,))
+                        url = add_url_parameters(translation_delete_url, language=code)
+                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled)
+
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
                     f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
@@ -394,7 +406,7 @@ class VersioningPageToolbar(PageToolbar):
                 item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
-                    page_content = self.get_page_content(language=code)
+                    page_content = self.page.get_admin_content(language=code)
                     if page_content:  # Only offer to copy if content for source language exists
                         page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
                         copy_plugins_menu.add_ajax_item(

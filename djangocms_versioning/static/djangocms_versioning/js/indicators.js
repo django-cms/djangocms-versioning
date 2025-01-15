@@ -5,19 +5,27 @@
 
     function ajax_post(event) {
         event.preventDefault();
-        let element = $(this);
+        const element = $(this);
+        let csrfToken = '';
+
         if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
             return;
         }
-        let csrfToken = document.cookie.match(/csrftoken=([^;]*);?/)[1];
+        if (window.top.CMS.config.csrf) {
+            csrfToken = window.top.CMS.config.csrf;
+        } else {
+            const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/)
+
+            if (cookieToken && cookieToken.length > 1) {
+                csrfToken = cookieToken[1];
+            }
+        }
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it
-            let parent = window;
+            const parent = window.top;
 
-            if (window.parent) {
-                parent = window.parent;
-            }
+
             $('<form method="post" action="' + element.attr('href') + '">' +
                 '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '"></form>')
                 .appendTo($(parent.document.body))

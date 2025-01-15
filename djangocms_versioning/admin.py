@@ -1031,7 +1031,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
 
         requested_redirect = request.GET.get("next", None)
-
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
             redirect_url=get_preview_url(version.content)
         else:
@@ -1055,7 +1054,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         # Redirect to published?
         if conf.ON_PUBLISH_REDIRECT == "published":
             if hasattr(version.content, "get_absolute_url"):
-                redirect_url = version.content.get_absolute_url() or redirect_url
+                requested_redirect = requested_redirect or version.content.get_absolute_url()
 
         return self._internal_redirect(requested_redirect, redirect_url)
 

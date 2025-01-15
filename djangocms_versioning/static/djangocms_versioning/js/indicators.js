@@ -20,7 +20,7 @@
                 csrfToken = cookieToken[1];
             }
         }
-        csrfToken = csrfToken || $('input[name="csrfmiddlewaretoken"]').val() || 'no-token';
+        csrfToken = csrfToken || 'no-token';
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it

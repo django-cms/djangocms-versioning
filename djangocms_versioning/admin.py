@@ -618,7 +618,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     actions = ["compare_versions", "delete_selected"]
     list_display = (
         "number",
-        "created",
+    ) + (
+        ("created",) if conf.VERBOSE_UI else ()
+    ) + (
         "modified",
         "content",
         "created_by",
@@ -638,6 +640,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
     class Media:
         js = ["djangocms_versioning/js/versioning.js"]
+
+    def has_module_permission(self, request):
+        return conf.VERBOSE_UI
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
@@ -963,10 +968,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         to show versions of.
         """
         language = get_language_from_request(request)
+        versionable = versionables.for_content(self.model._source_model)
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._source_model, language)(),
+            form=grouper_form_factory(self.model._source_model, language, self.admin_site)(),
+            title=_("Select {} to view its versions").format(versionable.grouper_model._meta.verbose_name),
         )
         return render(request, "djangocms_versioning/admin/grouper_form.html", context)
 

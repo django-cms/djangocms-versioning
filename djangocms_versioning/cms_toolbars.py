@@ -309,7 +309,7 @@ class VersioningPageToolbar(PageToolbar):
             return toolbar_obj
         else:
             # Get it from the DB
-            return get_latest_admin_viewable_content(self.page, language=language)
+            return get_latest_admin_viewable_content(self.page, language=language, include_unpublished_archived=True)
 
     def populate(self):
         self.page = self.request.current_page
@@ -335,7 +335,7 @@ class VersioningPageToolbar(PageToolbar):
 
             for code, name in get_language_tuple(self.current_site.pk):
                 # Get the page content, it could be draft too!
-                page_content = self.get_page_content(language=code)
+                page_content = self.page.get_admin_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)
                     language_menu.add_link_item(name, url=url, active=self.current_lang == code)

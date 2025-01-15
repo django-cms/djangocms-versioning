@@ -31,7 +31,9 @@ def is_editable(content_obj, request):
     """Check of content_obj is editable"""
     from .models import Version
 
-    return Version.objects.get_for_content(content_obj).check_modify.as_bool(request.user)
+    return Version.objects.get_for_content(content_obj).check_modify.as_bool(
+        request.user
+    )
 
 
 def versioning_admin_factory(admin_class, mixin):
@@ -98,7 +100,7 @@ def register_versionadmin_proxy(versionable, admin_site=None):
         warnings.warn(
             f"{versionable.version_model_proxy!r} is already registered with admin.",
             UserWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         return
 
@@ -136,7 +138,9 @@ def manager_factory(manager, prefix, mixin):
 def replace_manager(model, manager, mixin, **kwargs):
     if hasattr(model, manager) and isinstance(getattr(model, manager), mixin):
         return
-    original_manager = getattr(model, manager).__class__ if hasattr(model, manager) else models.Manager
+    original_manager = (
+        getattr(model, manager).__class__ if hasattr(model, manager) else models.Manager
+    )
     manager_object = manager_factory(original_manager, "Versioned", mixin)()
     for key, value in kwargs.items():
         setattr(manager_object, key, value)
@@ -146,15 +150,19 @@ def replace_manager(model, manager, mixin, **kwargs):
     model.add_to_class(manager, manager_object)
     if manager == "objects":
         # only safe the original default manager
-        model.add_to_class(f'_original_{"manager" if manager == "objects" else manager}', original_manager())
+        model.add_to_class(
+            f'_original_{"manager" if manager == "objects" else manager}',
+            original_manager(),
+        )
 
 
 def inject_generic_relation_to_version(model):
     from .models import Version
 
     related_query_name = f"{model._meta.app_label}_{model._meta.model_name}"
-    model.add_to_class("versions", GenericRelation(
-        Version, related_query_name=related_query_name))
+    model.add_to_class(
+        "versions", GenericRelation(Version, related_query_name=related_query_name)
+    )
     if not hasattr(model, "is_editable"):
         model.add_to_class("is_editable", is_editable)
 
@@ -187,10 +195,8 @@ def nonversioned_manager(model):
 def _version_list_url(versionable, **params):
     proxy = versionable.version_model_proxy
     return add_url_parameters(
-        admin_reverse(
-            f"{proxy._meta.app_label}_{proxy._meta.model_name}_changelist"
-        ),
-        **params
+        admin_reverse(f"{proxy._meta.app_label}_{proxy._meta.model_name}_changelist"),
+        **params,
     )
 
 
@@ -198,7 +204,9 @@ def version_list_url(content):
     """Returns a URL to list of content model versions,
     filtered by `content`'s grouper
     """
-    versionable = versionables._cms_extension().versionables_by_content[content.__class__]
+    versionable = versionables._cms_extension().versionables_by_content[
+        content.__class__
+    ]
     return _version_list_url(
         versionable, **versionable.grouping_values(content, relation_suffix=False)
     )
@@ -208,7 +216,9 @@ def version_list_url_for_grouper(grouper):
     """Returns a URL to list of content model versions,
     filtered by `grouper`
     """
-    versionable = versionables._cms_extension().versionables_by_grouper[grouper.__class__]
+    versionable = versionables._cms_extension().versionables_by_grouper[
+        grouper.__class__
+    ]
     return _version_list_url(
         versionable, **{versionable.grouper_field_name: str(grouper.pk)}
     )
@@ -235,7 +245,7 @@ def is_content_editable(placeholder, user):
 
 def get_editable_url(content_obj, force_admin=False):
     """If the object is editable the cms editable view should be used, with the toolbar.
-       This method provides the URL for it.
+    This method provides the URL for it.
     """
     if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
@@ -264,10 +274,12 @@ def get_content_types_with_subclasses(models, using=None):
     return content_types
 
 
-def get_preview_url(content_obj: models.Model, language: typing.Union[str, None] = None) -> str:
+def get_preview_url(
+    content_obj: models.Model, language: typing.Union[str, None] = None
+) -> str:
     """If the object is editable the cms preview view should be used, with the toolbar.
-       This method provides the URL for it. It falls back the standard change view
-       should the object not be frontend editable.
+    This method provides the URL for it. It falls back the standard change view
+    should the object not be frontend editable.
     """
     versionable = versionables.for_content(content_obj)
     if versionable.preview_url:
@@ -300,7 +312,9 @@ def remove_published_where(queryset):
     that are published are returned. If you need to return the full queryset
     use the "admin_manager" instead of "objects"
     """
-    raise NotImplementedError("remove_published_where has been replaced by ContentObj.admin_manager")
+    raise NotImplementedError(
+        "remove_published_where has been replaced by ContentObj.admin_manager"
+    )
 
 
 def get_latest_admin_viewable_content(
@@ -314,9 +328,15 @@ def get_latest_admin_viewable_content(
     versionable = versionables.for_grouper(grouper)
 
     # Check if all required grouping fields are given to be able to select the latest admin viewable content
-    missing_fields = [field for field in versionable.extra_grouping_fields if field not in extra_grouping_fields]
+    missing_fields = [
+        field
+        for field in versionable.extra_grouping_fields
+        if field not in extra_grouping_fields
+    ]
     if missing_fields:
-        raise ValueError(f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}.")
+        raise ValueError(
+            f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}."
+        )
 
     # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
@@ -331,10 +351,15 @@ def get_latest_admin_viewable_content(
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 
-def get_latest_admin_viewable_page_content(page: Page, language: str) -> PageContent:  # pragma: no cover
-    warnings.warn("get_latst_admin_viewable_page_content has ben deprecated. "
-                  "Use get_latest_admin_viewable_content(page, language=language) instead.",
-                  DeprecationWarning, stacklevel=2)
+def get_latest_admin_viewable_page_content(
+    page: Page, language: str
+) -> PageContent:  # pragma: no cover
+    warnings.warn(
+        "get_latst_admin_viewable_page_content has ben deprecated. "
+        "Use get_latest_admin_viewable_content(page, language=language) instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return get_latest_admin_viewable_content(page, language=language)
 
 
@@ -378,14 +403,14 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
-    """Check if lock doesn't exist for a version object or is locked to provided user.
-    """
+    """Check if lock doesn't exist for a version object or is locked to provided user."""
     return version.locked_by is None or version.locked_by == user
 
 
-def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER_MODEL) -> bool:
-    """Check if lock doesn't exist or object is locked to provided user.
-    """
+def content_is_unlocked_for_user(
+    content: models.Model, user: settings.AUTH_USER_MODEL
+) -> bool:
+    """Check if lock doesn't exist or object is locked to provided user."""
     try:
         if hasattr(content, "prefetched_versions"):
             version = content.prefetched_versions[0]
@@ -396,7 +421,9 @@ def content_is_unlocked_for_user(content: models.Model, user: settings.AUTH_USER
         return True
 
 
-def placeholder_content_is_unlocked_for_user(placeholder: Placeholder, user: settings.AUTH_USER_MODEL) -> bool:
+def placeholder_content_is_unlocked_for_user(
+    placeholder: Placeholder, user: settings.AUTH_USER_MODEL
+) -> bool:
     """Check if lock doesn't exist or placeholder source object
     is locked to provided user.
     """
@@ -405,10 +432,7 @@ def placeholder_content_is_unlocked_for_user(placeholder: Placeholder, user: set
 
 
 def send_email(
-    recipients: list,
-    subject: str,
-    template: str,
-    template_context: dict
+    recipients: list, subject: str, template: str, template_context: dict
 ) -> int:
     """
     Send emails using locking templates
@@ -423,22 +447,20 @@ def send_email(
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=recipients,
     )
-    return message.send(
-        fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-    )
+    return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version):
+def get_latest_draft_version(version: models.Model) -> models.Model:
     """Get latest draft version of version object and caches it in the
     content object"""
-    from djangocms_versioning.constants import DRAFT
-    from djangocms_versioning.models import Version
+    from .models import Version
 
-    if not hasattr(version.content, "_latest_draft_version"):
-        drafts = (
-            Version.objects
-            .filter_by_content_grouping_values(version.content)
-            .filter(state=DRAFT)
-        )
+    if (
+        not hasattr(version.content, "_latest_draft_version")
+        or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT
+    ):
+        drafts = Version.objects.filter_by_content_grouping_values(
+            version.content
+        ).filter(state=DRAFT)
         version.content._latest_draft_version = drafts.first()
     return version.content._latest_draft_version

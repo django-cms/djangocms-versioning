@@ -618,7 +618,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     actions = ["compare_versions", "delete_selected"]
     list_display = (
         "number",
-        "created",
+    ) + (
+        ("created",) if conf.VERBOSE_UI else ()
+    ) + (
         "modified",
         "content",
         "created_by",
@@ -638,6 +640,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
     class Media:
         js = ["djangocms_versioning/js/versioning.js"]
+
+    def has_module_permission(self, request):
+        return conf.VERBOSE_UI
 
     def get_changelist(self, request, **kwargs):
         return VersionChangeList
@@ -916,7 +921,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_compare",
             args=(queryset[0].pk,),
         )
-        url += "?compare_to=%d" % queryset[1].pk
+        url += f"?compare_to={queryset[1].pk}"
 
         return redirect(url)
 
@@ -963,10 +968,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         to show versions of.
         """
         language = get_language_from_request(request)
+        versionable = versionables.for_content(self.model._source_model)
         context = dict(
             self.admin_site.each_context(request),
             opts=self.model._meta,
-            form=grouper_form_factory(self.model._source_model, language)(),
+            form=grouper_form_factory(self.model._source_model, language, self.admin_site)(),
+            title=_("Select {} to view its versions").format(versionable.grouper_model._meta.verbose_name),
         )
         return render(request, "djangocms_versioning/admin/grouper_form.html", context)
 
@@ -1038,12 +1045,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
-            return redirect(requested_redirect or redirect_url)
+            return self._internal_redirect(requested_redirect, redirect_url)
         try:
             version.check_publish(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
-            return redirect(requested_redirect or redirect_url)
+            return self._internal_redirect(requested_redirect, redirect_url)
 
         # Publish the version
         version.publish(request.user)
@@ -1054,9 +1061,25 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         # Redirect to published?
         if conf.ON_PUBLISH_REDIRECT == "published":
             if hasattr(version.content, "get_absolute_url"):
-                redirect_url = version.content.get_absolute_url() or redirect_url
+                requested_redirect = requested_redirect or version.content.get_absolute_url()
 
-        return redirect(requested_redirect or redirect_url)
+        return self._internal_redirect(requested_redirect, redirect_url)
+
+
+    def _internal_redirect(self, url, fallback):
+        """Helper function to check if the give URL is resolvable
+        If resolvable, return the URL; otherwise, returns the fallback URL.
+        """
+        if not url:
+            return redirect(fallback)
+
+        try:
+            resolve(url)
+        except Resolver404:
+            return redirect(fallback)
+
+        return redirect(url)
+
 
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the

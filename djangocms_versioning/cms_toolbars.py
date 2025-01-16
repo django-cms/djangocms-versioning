@@ -9,6 +9,7 @@ from cms.cms_toolbars import (
     PageToolbar,
     PlaceholderToolbar,
 )
+from cms.constants import REFRESH_PAGE
 from cms.models import PageContent
 from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
 from cms.toolbar.utils import get_object_preview_url
@@ -35,7 +36,7 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import Version
 
 VERSIONING_MENU_IDENTIFIER = "version"
-CMS_SUPPORTS_DELETING_TRANSLATIONS = version.Version(cms_version) > version.Version("4.1.4")
+CMS_SUPPORTS_DELETING_TRANSLATIONS = version.Version(cms_version) > version.Version("4.1.4") or True
 
 
 class VersioningToolbar(PlaceholderToolbar):
@@ -398,7 +399,12 @@ class VersioningPageToolbar(PageToolbar):
                     if pagecontent:
                         translation_delete_url = admin_reverse("cms_pagecontent_delete", args=(pagecontent.pk,))
                         url = add_url_parameters(translation_delete_url, language=code)
-                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled)
+                        on_close = REFRESH_PAGE
+                        if self.toolbar.get_object() == pagecontent and not disabled:
+                            other_content = next((self.page.get_admin_content(lang)for lang in self.page.get_languages()
+                                                  if lang != pagecontent.language and lang in languages), None)
+                            on_close = get_object_preview_url(other_content)
+                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
 
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(

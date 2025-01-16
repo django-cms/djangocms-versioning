@@ -121,7 +121,12 @@ Must be defined if the :ref:`extra_grouping_fields` option has been set. This wi
 grouper_selector_option_label
 ++++++++++++++++++++++++++++++
 
-If the version table link is specified without a grouper param, a form with a dropdown of grouper objects will display. This setting defines how the labels of those groupers will display on the dropdown.
+If the version table link is specified without a grouper param, a form with a dropdown of grouper objects will display. By default, if the grouper object is registered with the
+admin and has a ``search_fields`` attribute, the dropdown will be an autocomplete
+field which will display the object's ``__str__`` method. This is the recommended
+method.
+
+For models not registerd with the admin, or without search fields, this setting defines how the labels of those groupers will display on the dropdown (regular select field).
 
 
 .. code-block:: python

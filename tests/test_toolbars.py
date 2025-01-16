@@ -541,7 +541,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
 
-    @skipIf(cms_version <= Version("4.1.4"))
+    @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
     def test_change_language_menu_page_toolbar_including_delete(self):
         """Check that patched PageToolbar.change_language_menu also provides
         Delete Translation links if DJANGOCMS_ALLOW_DELETING_VERSIONS is True.
@@ -584,7 +584,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
                 pk = page.get_admin_content(code).pk  # get content object
                 self.assertIn(admin_reverse("cms_pagecontent_delete", args=(int(pk),)), item.url)  # verify url
 
-    @skipIf(cms_version > Version("4.1.4"))
+    @skipIf(cms_version > Version("4.1.4"), "Only for CMS 4.1.4 and below: No delete translation menu")
     def test_change_language_menu_page_toolbar_excluding_delete(self):
         from djangocms_versioning import cms_toolbars
 

@@ -32,7 +32,6 @@ from djangocms_versioning.test_utils.test_helpers import (
     toolbar_button_exists,
 )
 
-
 cms_version = Version(__version__)
 
 

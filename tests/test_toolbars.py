@@ -606,7 +606,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
             language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
             # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
-            self.assertEqual(language_menu.get_item_count(), 7)
+            self.assertEqual(language_menu.get_item_count(), 6)
 
     def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """

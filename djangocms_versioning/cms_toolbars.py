@@ -2,6 +2,7 @@ from collections import OrderedDict
 from copy import copy
 from typing import Optional
 
+from cms import __version__ as cms_version
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
     LANGUAGE_MENU_IDENTIFIER,
@@ -23,6 +24,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
+from packaging import version
 
 from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT, PUBLISHED
@@ -33,6 +35,7 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import Version
 
 VERSIONING_MENU_IDENTIFIER = "version"
+CMS_SUPPORTS_DELETING_TRANSLATIONS = version.Version(cms_version) > version.Version("4.1.4")
 
 
 class VersioningToolbar(PlaceholderToolbar):
@@ -385,7 +388,7 @@ class VersioningPageToolbar(PageToolbar):
                     )
                     add_plugins_menu.add_modal_item(name, url=url)
 
-            if remove and ALLOW_DELETING_VERSIONS:
+            if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:
                 remove_plugins_menu = language_menu.get_or_create_menu(
                     f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
                 )

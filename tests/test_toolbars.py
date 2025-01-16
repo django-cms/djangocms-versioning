@@ -1,12 +1,15 @@
 import re
+from unittest import skipIf
 from unittest.mock import patch
 
+from cms import __version__
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth.models import Permission
 from django.utils.text import slugify
+from packaging.version import Version
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.cms_toolbars import VersioningPageToolbar
@@ -28,6 +31,9 @@ from djangocms_versioning.test_utils.test_helpers import (
     get_toolbar,
     toolbar_button_exists,
 )
+
+
+cms_version = Version(__version__)
 
 
 class VersioningToolbarTestCase(CMSTestCase):
@@ -536,6 +542,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
 
+    @skipIf(cms_version <= Version("4.1.4"))
     def test_change_language_menu_page_toolbar_including_delete(self):
         """Check that patched PageToolbar.change_language_menu also provides
         Delete Translation links if DJANGOCMS_ALLOW_DELETING_VERSIONS is True.
@@ -577,6 +584,30 @@ class VersioningPageToolbarTestCase(CMSTestCase):
                 code = match.group(1)  # Extract code
                 pk = page.get_admin_content(code).pk  # get content object
                 self.assertIn(admin_reverse("cms_pagecontent_delete", args=(int(pk),)), item.url)  # verify url
+
+    @skipIf(cms_version > Version("4.1.4"))
+    def test_change_language_menu_page_toolbar_excluding_delete(self):
+        from djangocms_versioning import cms_toolbars
+
+        with patch.object(cms_toolbars, "ALLOW_DELETING_VERSIONS", True):
+            version = PageVersionFactory(content__language="en")
+            PageContentWithVersionFactory(page=version.content.page, language="de")
+            PageContentWithVersionFactory(page=version.content.page, language="it")
+            page = version.content.page
+            page.update_languages(["en", "de", "it"])
+
+            request = self.get_page_request(
+                page=page,
+                path=get_object_edit_url(version.content),
+                user=self.get_superuser(),
+            )
+            request.toolbar.set_object(version.content)
+            request.toolbar.populate()
+            request.toolbar.post_template_populate()
+
+            language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
+            self.assertEqual(language_menu.get_item_count(), 7)
 
     def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """

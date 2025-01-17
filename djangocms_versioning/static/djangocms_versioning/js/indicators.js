@@ -11,8 +11,9 @@
         if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
             return;
         }
-        if (window.top.CMS.config.csrf) {
-            csrfToken = window.top.CMS.config.csrf;
+        if (window.CMS?.config?.csrf) {
+            // CMS object not always availavle in the admin
+            csrfToken = window.CMS.config.csrf;
         } else {
             const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/);
 
@@ -20,12 +21,11 @@
                 csrfToken = cookieToken[1];
             }
         }
-        csrfToken = csrfToken || 'no-token';
+        csrfToken = csrfToken || $('input[name="csrfmiddlewaretoken"]').val() || 'no-token';
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it
             const parent = window.top;
-
 
             $('<form method="post" action="' + element.attr('href') + '">' +
                 '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '"></form>')

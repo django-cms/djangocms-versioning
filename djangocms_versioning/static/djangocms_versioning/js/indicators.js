@@ -73,12 +73,9 @@
             '<ul class="messagelist">' +
             '   <li class="error">' +
             '       {msg} ' +
-            '       <a href="#reload" class="cms-tree-reload"> ' +
-            reload +
-            ' </a>' +
             '   </li>' +
             '</ul>';
-        const error = window.top.CMS?.config?.lang?.error || 'Error';
+        const error = window.top.CMS?.config?.lang?.error || '';
         let msg = tpl.replace('{msg}', '<strong>' + error + '</strong> ' + message);
 
         if (messages.length) {
@@ -86,10 +83,6 @@
         } else {
             breadcrumb.after(msg);
         }
-        $("a.cms-tree-reload").click(function (e) {
-            e.preventDefault();
-            _reloadHelper();
-        });
     }
 
     function close_menu() {

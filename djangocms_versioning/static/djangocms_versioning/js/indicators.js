@@ -5,19 +5,24 @@
 
     function ajax_post(event) {
         event.preventDefault();
-        let element = $(this);
-        if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
-            return;
+        const element = $(this);
+        let csrfToken = window.CMS?.config?.csrf || $('input[name="csrfmiddlewaretoken"]').val();
+        if (!csrfToken) {
+            // Finally try cookies
+            const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/);
+
+            if (cookieToken && cookieToken.length > 1) {
+                csrfToken = cookieToken[1];
+            } else {
+                showError('CSRF token not found');
+                return;
+            }
         }
-        let csrfToken = document.cookie.match(/csrftoken=([^;]*);?/)[1];
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it
-            let parent = window;
+            const parent = window.top;
 
-            if (window.parent) {
-                parent = window.parent;
-            }
             $('<form method="post" action="' + element.attr('href') + '">' +
                 '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '"></form>')
                 .appendTo($(parent.document.body))
@@ -68,22 +73,16 @@
             '<ul class="messagelist">' +
             '   <li class="error">' +
             '       {msg} ' +
-            '       <a href="#reload" class="cms-tree-reload"> ' +
-            reload +
-            ' </a>' +
             '   </li>' +
             '</ul>';
-        let msg = tpl.replace('{msg}', '<strong>' + window.top.CMS.config.lang.error + '</strong> ' + message);
+        const error = window.top.CMS?.config?.lang?.error || '';
+        let msg = tpl.replace('{msg}', '<strong>' + error + '</strong> ' + message);
 
         if (messages.length) {
             messages.replaceWith(msg);
         } else {
             breadcrumb.after(msg);
         }
-        $("a.cms-tree-reload").click(function (e) {
-            e.preventDefault();
-            _reloadHelper();
-        });
     }
 
     function close_menu() {

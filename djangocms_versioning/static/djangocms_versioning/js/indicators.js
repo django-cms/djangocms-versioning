@@ -6,22 +6,18 @@
     function ajax_post(event) {
         event.preventDefault();
         const element = $(this);
-        let csrfToken = '';
-
-        if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
-            return;
-        }
-        if (window.CMS?.config?.csrf) {
-            // CMS object not always availavle in the admin
-            csrfToken = window.CMS.config.csrf;
-        } else {
+        let csrfToken = window.CMS?.config?.csrf || $('input[name="csrfmiddlewaretoken"]').val();
+        if (!csrfToken) {
+            // Finally try cookies
             const cookieToken = document.cookie.match(/csrftoken=([^;]*);?/);
 
             if (cookieToken && cookieToken.length > 1) {
                 csrfToken = cookieToken[1];
+            } else {
+                showError('CSRF token not found');
+                return;
             }
         }
-        csrfToken = csrfToken || $('input[name="csrfmiddlewaretoken"]').val() || 'no-token';
 
         if (element.attr('target') === '_top') {
             // Post to target="_top" requires to create a form and submit it
@@ -82,7 +78,8 @@
             ' </a>' +
             '   </li>' +
             '</ul>';
-        let msg = tpl.replace('{msg}', '<strong>' + window.top.CMS.config.lang.error + '</strong> ' + message);
+        const error = window.top.CMS?.config?.lang?.error || 'Error';
+        let msg = tpl.replace('{msg}', '<strong>' + error + '</strong> ' + message);
 
         if (messages.length) {
             messages.replaceWith(msg);

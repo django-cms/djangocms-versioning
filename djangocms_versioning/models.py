@@ -51,7 +51,7 @@ class VersionQuerySet(models.QuerySet):
         version = self.get(
             object_id=content_object.pk, content_type__in=versionable.content_types
         )
-        version._state.fields_cache['content'] = content_object
+        version._state.fields_cache["content"] = content_object
         content_object._version_cache = version
         return version
 

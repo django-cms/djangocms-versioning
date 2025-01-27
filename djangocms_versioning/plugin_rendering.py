@@ -59,6 +59,7 @@ class VersionContentRenderer(ContentRenderer):
             # the current object and render the placeholder
             rescan_placeholders_for_obj(current_obj)
             placeholder = Placeholder.objects.get_for_obj(current_obj).get(slot=slot)
+            placeholder._state.fields_cache["source"] = current_obj  # Cache reverse relation
             content = self.render_placeholder(
                 placeholder,
                 context=context,

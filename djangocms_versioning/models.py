@@ -245,11 +245,11 @@ class Version(models.Model):
         of its correct proxy model"""
 
         cache = self._state.fields_cache
-        del self._state.fields_cache  # Remove cache before creating deep copying
+        del self._state.fields_cache  # Remove cache before creating deep copy
         new_obj = copy.deepcopy(self)
-        new_obj.__class__ = self.versionable.version_model_proxy
         new_obj._state.fields_cache = cache  # Recover caches
         self._state.fields_cache = cache  # Recover caches
+        new_obj.__class__ = self.versionable.version_model_proxy
         return new_obj
 
     @property

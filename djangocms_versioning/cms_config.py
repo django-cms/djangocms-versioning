@@ -370,7 +370,8 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         versions = page_content._version  # Cache from .content_indicator()
         back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
         menu = indicators.content_indicator_menu(request, status, versions, back=back)
-        if ALLOW_DELETING_VERSIONS and (CMS_SUPPORTS_DELETING_TRANSLATIONS or True):
+        no_translations = len(page_content.page.admin_content_cache.keys())
+        if ALLOW_DELETING_VERSIONS and (CMS_SUPPORTS_DELETING_TRANSLATIONS or True) and no_translations > 1:
             menu.append(
                 (
                     _("Delete Translation..."),

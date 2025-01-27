@@ -25,6 +25,8 @@ from django.utils.translation import gettext_lazy as _
 
 from . import indicators
 from .admin import VersioningAdminMixin
+from .cms_toolbars import CMS_SUPPORTS_DELETING_TRANSLATIONS
+from .conf import ALLOW_DELETING_VERSIONS
 from .constants import INDICATOR_DESCRIPTIONS
 from .datastructures import BaseVersionableItem, VersionableItem
 from .exceptions import ConditionFailed
@@ -368,6 +370,15 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         versions = page_content._version  # Cache from .content_indicator()
         back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
         menu = indicators.content_indicator_menu(request, status, versions, back=back)
+        if ALLOW_DELETING_VERSIONS and (CMS_SUPPORTS_DELETING_TRANSLATIONS or True):
+            menu.append(
+                (
+                    _("Delete Translation..."),
+                    "cms-icon-none",
+                    admin_reverse("cms_pagecontent_delete", args=(page_content.pk, )),
+                    "",
+                )
+            )
         return menu_template if menu else "", menu
 
 

@@ -242,7 +242,7 @@ class VersioningToolbar(PlaceholderToolbar):
 
         return PageContent._original_manager.filter(
             page=self.page, language=language, versions__state=PUBLISHED
-        ).first()
+        ).select_related("page").first()
 
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar

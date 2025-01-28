@@ -5,8 +5,8 @@ from typing import Optional
 from cms import __version__ as cms_version
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
-    BasicToolbar,
     LANGUAGE_MENU_IDENTIFIER,
+    BasicToolbar,
     PageToolbar,
     PlaceholderToolbar,
 )
@@ -445,7 +445,7 @@ class VersioningBasicToolbar(BasicToolbar):
             return super().add_language_menu()
 
         language_menu = self.toolbar.get_or_create_menu(
-            LANGUAGE_MENU_IDENTIFIER, _('Language'), position=-1
+            LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1
         )
         for code, name in get_language_tuple(self.current_site.pk):
             # Get the page content, it could be draft too!

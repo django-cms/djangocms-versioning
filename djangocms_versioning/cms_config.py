@@ -1,5 +1,6 @@
 import collections
 
+from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.extensions.models import BaseExtension
 from cms.models import PageContent, Placeholder
@@ -22,6 +23,7 @@ from django.http import (
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
+from packaging.version import Version as PackageVersion
 
 from . import indicators
 from .admin import VersioningAdminMixin
@@ -393,6 +395,7 @@ class VersioningCMSConfig(CMSAppConfig):
             content_admin_mixin=VersioningCMSPageAdminMixin,
         )
     ]
-    cms_toolbar_mixin = CMSToolbarVersioningMixin
+    if PackageVersion(cms_version) < PackageVersion("4.2"):
+        cms_toolbar_mixin = CMSToolbarVersioningMixin
     PageContent.add_to_class("is_editable", is_editable)
     PageContent.add_to_class("content_indicator", indicators.content_indicator)

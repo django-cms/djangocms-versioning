@@ -5,6 +5,7 @@ from typing import Optional
 from cms import __version__ as cms_version
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
+    BasicToolbar,
     LANGUAGE_MENU_IDENTIFIER,
     PageToolbar,
     PlaceholderToolbar,
@@ -320,7 +321,6 @@ class VersioningPageToolbar(PageToolbar):
         self.page_content = self.get_page_content() if self.page else None
         self.permissions_activated = get_cms_setting("PERMISSION")
 
-        self.override_language_menu()
         self.change_admin_menu()
         self.add_page_menu()
         self.change_language_menu()
@@ -401,8 +401,9 @@ class VersioningPageToolbar(PageToolbar):
                         url = add_url_parameters(translation_delete_url, language=code)
                         on_close = REFRESH_PAGE
                         if self.toolbar.get_object() == pagecontent and not disabled:
-                            other_content = next((self.page.get_admin_content(lang)for lang in self.page.get_languages()
-                                                  if lang != pagecontent.language and lang in languages), None)
+                            other_content = next(
+                                (self.page.get_admin_content(lang) for lang in self.page.get_languages()
+                                 if lang != pagecontent.language and lang in languages), None)
                             on_close = get_object_preview_url(other_content)
                         remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
 
@@ -432,10 +433,30 @@ class VersioningPageToolbar(PageToolbar):
                         )
 
 
+class VersioningBasicToolbar(BasicToolbar):
+    def add_language_menu(self):
+        """
+        Originally did override the default language menu for pages that are versioned.
+        Now creates the menu from scratch, since VersiongBasicToolbar prevents the
+        core from creating the too generic default language menu.
+        """
+        if not settings.USE_I18N or not self.request.current_page:
+            # Only add if no page is shown
+            return super().add_language_menu()
+
+        language_menu = self.toolbar.get_or_create_menu(
+            LANGUAGE_MENU_IDENTIFIER, _('Language'), position=-1
+        )
+        for code, name in get_language_tuple(self.current_site.pk):
+            # Get the page content, it could be draft too!
+            page_content = self.page.get_admin_content(language=code)
+            if page_content:
+                url = get_object_preview_url(page_content, code)
+                language_menu.add_link_item(name, url=url, active=self.current_lang == code)
+
+
 def replace_toolbar(old, new):
-    """Replace `old` toolbar class with `new` class,
-    while keeping its position in toolbar_pool.
-    """
+    """Replace `old` toolbar class with `new` class, while keeping its position in toolbar_pool."""
     new_name = ".".join((new.__module__, new.__name__))
     old_name = ".".join((old.__module__, old.__name__))
     toolbar_pool.toolbars = OrderedDict(
@@ -446,3 +467,4 @@ def replace_toolbar(old, new):
 
 replace_toolbar(PageToolbar, VersioningPageToolbar)
 replace_toolbar(PlaceholderToolbar, VersioningToolbar)
+replace_toolbar(BasicToolbar, VersioningBasicToolbar)

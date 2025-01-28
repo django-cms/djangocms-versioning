@@ -7,7 +7,7 @@ from cms.utils.urlutils import admin_reverse
 from django.template import Context
 
 from djangocms_versioning import constants
-from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning.plugin_rendering import VersionContentRenderer, CMSToolbarVersioningMixin
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
     PageVersionFactory,
@@ -24,6 +24,7 @@ class CMSToolbarTestCase(CMSTestCase):
         is replaced with a property returning VersionContentRenderer
         """
         request = self.get_request("/")
+        self.assertIn(CMSToolbarVersioningMixin, CMSToolbar.__mro__)
         self.assertEqual(
             CMSToolbar(request).content_renderer.__class__, VersionContentRenderer
         )

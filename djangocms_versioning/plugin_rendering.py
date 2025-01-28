@@ -50,12 +50,15 @@ class VersionContentRenderer(ContentRenderer):
         ):
             # FIXME This is an ad-hoc solution for page-specific rendering
             # code, which by default doesn't work well with versioning.
+            # Remove this method once the issue is fixed.
+            from cms.models import Placeholder
 
             current_obj = self.toolbar.get_object()
 
             # Not page, therefore we will use toolbar object as
             # the current object and render the placeholder
-            placeholder = rescan_placeholders_for_obj(current_obj).get(slot)
+            rescan_placeholders_for_obj(current_obj)
+            placeholder = Placeholder.objects.get_for_obj(current_obj).get(slot=slot)
             content = self.render_placeholder(
                 placeholder,
                 context=context,

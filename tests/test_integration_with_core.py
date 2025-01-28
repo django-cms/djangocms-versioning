@@ -7,7 +7,7 @@ from cms.utils.urlutils import admin_reverse
 from django.template import Context
 
 from djangocms_versioning import constants
-from djangocms_versioning.plugin_rendering import VersionContentRenderer, CMSToolbarVersioningMixin
+from djangocms_versioning.plugin_rendering import CMSToolbarVersioningMixin, VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
     PageVersionFactory,

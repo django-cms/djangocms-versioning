@@ -223,7 +223,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 # Discard changes menu entry (wrt to source)
                 if version.check_discard.as_bool(self.request.user):  # pragma: no cover
                     versioning_menu.add_item(Break())
-                    versioning_menu.add_link_item(
+                    versioning_menu.add_modal_item(
                         _("Discard Changes"),
                         url=reverse(
                             f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard",

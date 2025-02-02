@@ -442,7 +442,8 @@ class VersioningBasicToolbar(BasicToolbar):
         """
         if not settings.USE_I18N or not self.request.current_page:
             # Only add if no page is shown
-            return super().add_language_menu()
+            super().add_language_menu()
+            return
 
         language_menu = self.toolbar.get_or_create_menu(
             LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1

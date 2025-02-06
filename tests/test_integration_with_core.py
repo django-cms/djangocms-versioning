@@ -5,9 +5,10 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
 from django.template import Context
+from packaging.version import Version as PackageVersion
 
 from djangocms_versioning import constants
-from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning.plugin_rendering import CMSToolbarVersioningMixin, VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
     PageVersionFactory,
@@ -18,12 +19,14 @@ from djangocms_versioning.test_utils.factories import (
 )
 
 
+@skipIf(PackageVersion(cms_version) >= PackageVersion("4.2"), "Toolbar integration not necessary for django CMS 4.2+")
 class CMSToolbarTestCase(CMSTestCase):
     def test_content_renderer(self):
         """Test that cms.toolbar.toolbar.CMSToolbar.content_renderer
         is replaced with a property returning VersionContentRenderer
         """
         request = self.get_request("/")
+        self.assertIn(CMSToolbarVersioningMixin, CMSToolbar.__mro__)
         self.assertEqual(
             CMSToolbar(request).content_renderer.__class__, VersionContentRenderer
         )
@@ -38,7 +41,6 @@ class CMSToolbarTestCase(CMSTestCase):
 
 
 class PageContentAdminTestCase(CMSTestCase):
-
     def test_get_admin_model_object(self):
         """
         PageContent normally won't be able to fetch objects in draft. Test if the RequestToolbarForm
@@ -70,7 +72,6 @@ class PageContentAdminTestCase(CMSTestCase):
 
 
 class PageAdminCopyLanguageTestCase(CMSTestCase):
-
     def setUp(self):
         self.user = self.get_superuser()
         page = PageFactory()
@@ -280,7 +281,8 @@ class AdminManagerIntegrationTestCase(CMSTestCase):
         self.page.save()
 
 
-    @skipIf(cms_version < "4.1.4", "Bug only fixed in django CMS 4.1.4")
+    @skipIf(PackageVersion(cms_version) < PackageVersion("4.1.4"),
+            "Bug only fixed in django CMS 4.1.4")
     def test_get_admin_url_for_language(self):
         """Regression fixed that made unpublished and archived versions invisible to get_admin_url_for_language
         template tag. See: https://github.com/django-cms/django-cms/pull/7967"""

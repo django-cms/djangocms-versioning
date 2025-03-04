@@ -277,7 +277,11 @@ class AdminManagerIntegrationTestCase(CMSTestCase):
             content__language="fr",
             state=constants.ARCHIVED,
         )
-        self.page.languages = "en,fr"
+        try:
+            self.page.languages = "en,fr"
+        except AttributeError:
+            # The property does not have a setter in django CMS 5+
+            pass
         self.page.save()
 
 

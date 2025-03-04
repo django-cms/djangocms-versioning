@@ -277,7 +277,10 @@ class AdminManagerIntegrationTestCase(CMSTestCase):
             content__language="fr",
             state=constants.ARCHIVED,
         )
-        self.page.languages = "en,fr"
+        try:
+            self.page.languages = "en,fr"
+        except AttributeError:
+            pass
         self.page.save()
 
 

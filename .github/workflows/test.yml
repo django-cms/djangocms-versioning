@@ -183,7 +183,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11" ]
+        python-version: [ "3.12" ]
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
         ]

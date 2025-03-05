@@ -1,8 +1,8 @@
-from functools import lru_cache
 
 from cms import __version__ as cms_version
 from cms.plugin_rendering import ContentRenderer, StructureRenderer
 from cms.utils.placeholder import rescan_placeholders_for_obj
+from django.utils.functional import cached_property
 
 from . import versionables
 from .constants import DRAFT, PUBLISHED
@@ -77,12 +77,10 @@ class VersionStructureRenderer(StructureRenderer):
 
 
 class CMSToolbarVersioningMixin:
-    @property
-    @lru_cache(16)
+    @cached_property
     def content_renderer(self):
         return VersionContentRenderer(request=self.request)
 
-    @property
-    @lru_cache(16)
+    @cached_property
     def structure_renderer(self):
         return VersionStructureRenderer(request=self.request)

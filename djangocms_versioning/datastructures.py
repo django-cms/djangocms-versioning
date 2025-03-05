@@ -176,8 +176,7 @@ class VersionableItem(BaseVersionableItem):
 
 
 class PolymorphicVersionableItem(VersionableItem):
-    """VersionableItem for use by base polymorphic class
-    (for example filer.File).
+    """VersionableItem for use by base polymorphic class (for example filer.File).
     """
 
     def _get_content_types(self):

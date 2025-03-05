@@ -2,6 +2,26 @@
 Changelog
 =========
 
+2.2.0 (2025-01-17)
+==================
+
+* feat: Added bulk delete to version change view by @polyccon in https://github.com/django-cms/djangocms-versioning/pull/338
+* feat: Re-introduce deleting languages of a page by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/443
+* feat: Autocomplete fields for grouper selection and option for less verbose UI by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/433
+* fix: Unpublished or archived versions not shown in language menu by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/440
+* fix: add resolvability check before redirecting to prevent insecure redirects after publishing by @theShinigami in https://github.com/django-cms/djangocms-versioning/pull/436
+* fix: test.pypi.org workflow environment name by @marksweb in https://github.com/django-cms/djangocms-versioning/pull/434
+* fix: attempt to remove missing item from list by @jrief in https://github.com/django-cms/djangocms-versioning/pull/439
+* fix: Take csrf token from CMS config if possible by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/444
+* build(deps): bump codecov/codecov-action from 4 to 5 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/435
+* build(deps): bump actions/cache from 4.0.2 to 4.1.2 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/431
+* build(deps): bump actions/cache from 4.1.2 to 4.2.0 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/438
+
+**New Contributors**
+
+* @polyccon made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/338
+* @theShinigami made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/436
+
 2.1.0 (2024-07-12)
 ==================
 

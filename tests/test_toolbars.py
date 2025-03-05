@@ -8,6 +8,7 @@ from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth.models import Permission
+from django.test import override_settings
 from django.utils.text import slugify
 from packaging.version import Version
 
@@ -669,6 +670,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(de_item.url, de_preview_url)
         self.assertEqual(it_item.url, it_preview_url)
 
+    @override_settings(USE_I18N=False)
     def test_page_toolbar_wo_language_menu(self):
         from django.utils.translation import gettext as _
 
@@ -681,13 +683,13 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             user=self.get_superuser(),
         )
         # Remove language menu from request's toolbar
-        del request.toolbar.menus[LANGUAGE_MENU_IDENTIFIER]
+        self.assertNotIn(LANGUAGE_MENU_IDENTIFIER, request.toolbar.menus)
 
-        # find VersioningPageToolbar
+        # find VersioningBasicToolbar
         for cls, toolbar in request.toolbar.toolbars.items():
-            if cls == "djangocms_versioning.cms_toolbars.VersioningPageToolbar":
+            if cls == "djangocms_versioning.cms_toolbars.VersioningBasicToolbar":
                 # and call override_language_menu
-                toolbar.override_language_menu()
+                toolbar.add_language_menu()
                 break
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))

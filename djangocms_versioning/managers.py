@@ -61,29 +61,42 @@ class PublishedContentManagerMixin:
 
 
 class AdminQuerySetMixin:
+    # Annotation for latest pk of draft or published version
+    _DraftOrPublished = models.Max(
+        models.Case(
+            models.When(versions__state__in=(constants.DRAFT, constants.PUBLISHED),
+                        then="versions__pk"),
+            default=models.Value(0),
+        )
+    )
+
+    # Annotation for latest pk of any other version
+    _AnyOther = models.Max(
+        models.Case(
+            models.When(
+                ~models.Q(versions__state__in=(constants.DRAFT, constants.PUBLISHED)),
+                then="versions__pk"),
+            default=models.Value(0),
+        )
+    )
+
     def _chain(self):
         # Also clone group by key when chaining querysets!
         clone = super()._chain()
         clone._group_by_key = self._group_by_key
         return clone
 
-    def current_content_iterator(self, **kwargs):
-        """Returns generator (not a queryset) over current content versions. Current versions are either draft
-        versions or published versions (in that order)"""
-        warnings.warn("current_content_iterator is deprecated in favour of current_conent",
-                      DeprecationWarning, stacklevel=2)
-        return iter(self.current_content(**kwargs))
-
     def current_content(self, **kwargs):
         """Returns a queryset current content versions. Current versions are either draft
         versions or published versions (in that order). This optimized query assumes that
         draft versions always have a higher pk than any other version type. This is true as long as
         no other version type can be converted to draft without creating a new version."""
-        qs = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED), **kwargs)
-        pk_filter = qs.values(*self._group_by_key)\
+
+        pk_filter = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
+            .values(*self._group_by_key)\
             .annotate(vers_pk=models.Max("versions__pk"))\
-            .values_list("vers_pk", flat=True)
-        return qs.filter(versions__pk__in=pk_filter)
+            .values("vers_pk")
+        return self.filter(versions__pk__in=pk_filter, **kwargs)
 
     def latest_content(self, **kwargs):
         """Returns the "latest" content object which is in this order
@@ -94,15 +107,13 @@ class AdminQuerySetMixin:
         This filter assumes that there can only be one draft created and that the draft as
         the highest pk of all versions (should it exist).
         """
-        current = self.filter(versions__state__in=(constants.DRAFT, constants.PUBLISHED))\
-            .values(*self._group_by_key)\
-            .annotate(vers_pk=models.Max("versions__pk"))
-        pk_current = current.values("vers_pk")
-        pk_other = self.exclude(**{key + "__in": current.values(key) for key in self._group_by_key})\
-            .values(*self._group_by_key)\
-            .annotate(vers_pk=models.Max("versions__pk"))\
-            .values("vers_pk")
-        return self.filter(versions__pk__in=pk_current | pk_other, **kwargs)
+
+        latest = (self.values(*self._group_by_key)
+                  .annotate(h1=self._DraftOrPublished, h2=self._AnyOther)
+                  .annotate(vers_pk=models.Case(models.When(h1__gt=0, then="h1"), default="h2"))
+                  .values("vers_pk")
+                  )
+        return self.filter(versions__pk__in=latest, **kwargs)
 
 
 class AdminManagerMixin:

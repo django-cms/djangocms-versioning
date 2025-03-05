@@ -11,6 +11,7 @@ from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     PageFactory,
     PageVersionFactory,
+    TreeNode,
 )
 
 
@@ -86,7 +87,7 @@ class TestLatestAdminViewable(CMSTestCase):
 class TestVersionState(CMSTestCase):
     def test_page_indicators(self):
         """The page content indicators render correctly"""
-        page = PageFactory(node__depth=1)
+        page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
         version1 = PageVersionFactory(
             content__page=page,
             content__language="en",
@@ -219,3 +220,13 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms.pagetree.css"),
             # JS loadeD?
             self.assertContains(response, "indicators.js")
+
+    def test_page_indicator_db_queries(self):
+        """Only one query should be executed to get the indicator"""
+        version = PageVersionFactory(
+            content__language="en",
+        )
+        with self.assertNumQueries(1):
+            from djangocms_versioning.indicators import content_indicator
+
+            content_indicator(version.content)

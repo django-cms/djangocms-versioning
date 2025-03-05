@@ -1,12 +1,16 @@
 from collections import OrderedDict
 from copy import copy
+from typing import Optional
 
+from cms import __version__ as cms_version
 from cms.cms_toolbars import (
     ADD_PAGE_LANGUAGE_BREAK,
     LANGUAGE_MENU_IDENTIFIER,
+    BasicToolbar,
     PageToolbar,
     PlaceholderToolbar,
 )
+from cms.constants import REFRESH_PAGE
 from cms.models import PageContent
 from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
 from cms.toolbar.utils import get_object_preview_url
@@ -24,9 +28,10 @@ from django.utils import timezone
 from django.utils.formats import localize
 from django.utils.http import urlencode
 from django.utils.translation import gettext, gettext_lazy as _
+from packaging import version
 
-from djangocms_versioning.conf import LOCK_VERSIONS
-from djangocms_versioning.constants import DRAFT
+from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
+from djangocms_versioning.constants import DRAFT, PUBLISHED
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
     version_list_url,
@@ -34,12 +39,10 @@ from djangocms_versioning.helpers import (
 from djangocms_versioning.models import Version
 
 VERSIONING_MENU_IDENTIFIER = "version"
+CMS_SUPPORTS_DELETING_TRANSLATIONS = version.Version(cms_version) > version.Version("4.1.4")
 
 
 class VersioningToolbar(PlaceholderToolbar):
-    class Media:
-        js = ("cms/js/admin/actions.js",)
-
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
         of the version
@@ -81,7 +84,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Publish"),
                 url=publish_url,
                 disabled=False,
-                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
+                extra_classes=["cms-btn-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -117,7 +120,7 @@ class VersioningToolbar(PlaceholderToolbar):
                 _("Edit") if draft_exists else _("New Draft"),
                 url=edit_url,
                 disabled=disabled,
-                extra_classes=["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
+                extra_classes=["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"],
             )
             self.toolbar.add_item(item)
 
@@ -137,7 +140,6 @@ class VersioningToolbar(PlaceholderToolbar):
                 if can_unlock:
                     extra_classes = [
                         "cms-btn-action",
-                        "js-action",
                         "cms-form-post-method",
                         "cms-versioning-js-unlock-btn",
                     ]
@@ -243,7 +245,7 @@ class VersioningToolbar(PlaceholderToolbar):
 
                 url += "?" + urlencode({
                     "compare_to": version.pk,
-                    "back": self.request.get_full_path(),
+                    "back": self.toolbar.request_path,
                 })
                 versioning_menu.add_link_item(name, url=url)
                 # Need separator?
@@ -278,7 +280,9 @@ class VersioningToolbar(PlaceholderToolbar):
         if not isinstance(self.toolbar.obj, PageContent) or not self.page:
             return
 
-        return PageContent.objects.filter(page=self.page, language=language).first()
+        return PageContent._original_manager.filter(
+            page=self.page, language=language, versions__state=PUBLISHED
+        ).select_related("page").first()
 
     def _add_view_published_button(self):
         """Helper method to add a publish button to the toolbar
@@ -329,18 +333,33 @@ class VersioningPageToolbar(PageToolbar):
     Overriding the original Page toolbar to ensure that draft and published pages
     can be accessed and to allow full control over the Page toolbar for versioned pages.
     """
-    def get_page_content(self, language=None):
+
+    def __init__(self, *args, **kwargs):
+        self.page_content: Optional[PageContent] = None
+        super().__init__(*args, **kwargs)
+
+    def get_page_content(self, language: Optional[str] = None) -> PageContent:
+        # This method overwrites the method in django CMS core. Not necessary
+        # for django CMS 4.2+
         if not language:
             language = self.current_lang
 
-        return get_latest_admin_viewable_content(self.page, language=language)
+        if isinstance(self.page_content, PageContent) and self.page_content.language == language:
+            # Already known - no need to query it again
+            return self.page_content
+        toolbar_obj = self.toolbar.get_object()
+        if isinstance(toolbar_obj, PageContent) and toolbar_obj.language == language:
+            # Already in the toolbar, then use it!
+            return toolbar_obj
+        else:
+            # Get it from the DB
+            return get_latest_admin_viewable_content(self.page, language=language, include_unpublished_archived=True)
 
     def populate(self):
         self.page = self.request.current_page
-        self.title = self.get_page_content() if self.page else None
+        self.page_content = self.get_page_content() if self.page else None
         self.permissions_activated = get_cms_setting("PERMISSION")
 
-        self.override_language_menu()
         self.change_admin_menu()
         self.add_page_menu()
         self.change_language_menu()
@@ -353,13 +372,13 @@ class VersioningPageToolbar(PageToolbar):
         # Only override the menu if it exists and a page can be found
         language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
         if settings.USE_I18N and language_menu and self.page:
-            # remove_item uses `items` attribute so we have to copy object
+            # remove_item uses `items` attribute, so we have to copy object
             for _item in copy(language_menu.items):
                 language_menu.remove_item(item=_item)
 
             for code, name in get_language_tuple(self.current_site.pk):
                 # Get the page content, it could be draft too!
-                page_content = self.get_page_content(language=code)
+                page_content = self.page.get_admin_content(language=code)
                 if page_content:
                     url = get_object_preview_url(page_content, code)
                     language_menu.add_link_item(name, url=url, active=self.current_lang == code)
@@ -409,6 +428,24 @@ class VersioningPageToolbar(PageToolbar):
                     )
                     add_plugins_menu.add_modal_item(name, url=url)
 
+            if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:
+                remove_plugins_menu = language_menu.get_or_create_menu(
+                    f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
+                )
+                disabled = len(remove) == 1
+                for code, name in remove:
+                    pagecontent = self.page.get_admin_content(language=code)
+                    if pagecontent:
+                        translation_delete_url = admin_reverse("cms_pagecontent_delete", args=(pagecontent.pk,))
+                        url = add_url_parameters(translation_delete_url, language=code)
+                        on_close = REFRESH_PAGE
+                        if self.toolbar.get_object() == pagecontent and not disabled:
+                            other_content = next(
+                                (self.page.get_admin_content(lang) for lang in self.page.get_languages()
+                                 if lang != pagecontent.language and lang in languages), None)
+                            on_close = get_object_preview_url(other_content)
+                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
+
             if copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
                     f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
@@ -418,7 +455,7 @@ class VersioningPageToolbar(PageToolbar):
                 item_added = False
                 for code, name in copy:
                     # Get the Draft or Published PageContent.
-                    page_content = self.get_page_content(language=code)
+                    page_content = self.page.get_admin_content(language=code)
                     if page_content:  # Only offer to copy if content for source language exists
                         page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
                         copy_plugins_menu.add_ajax_item(
@@ -435,10 +472,31 @@ class VersioningPageToolbar(PageToolbar):
                         )
 
 
+class VersioningBasicToolbar(BasicToolbar):
+    def add_language_menu(self):
+        """
+        Originally did override the default language menu for pages that are versioned.
+        Now creates the menu from scratch, since VersiongBasicToolbar prevents the
+        core from creating the too generic default language menu.
+        """
+        if not settings.USE_I18N or not self.request.current_page:
+            # Only add if no page is shown
+            super().add_language_menu()
+            return
+
+        language_menu = self.toolbar.get_or_create_menu(
+            LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1
+        )
+        for code, name in get_language_tuple(self.current_site.pk):
+            # Get the page content, it could be draft too!
+            page_content = self.page.get_admin_content(language=code)
+            if page_content:
+                url = get_object_preview_url(page_content, code)
+                language_menu.add_link_item(name, url=url, active=self.current_lang == code)
+
+
 def replace_toolbar(old, new):
-    """Replace `old` toolbar class with `new` class,
-    while keeping its position in toolbar_pool.
-    """
+    """Replace `old` toolbar class with `new` class, while keeping its position in toolbar_pool."""
     new_name = ".".join((new.__module__, new.__name__))
     old_name = ".".join((old.__module__, old.__name__))
     toolbar_pool.toolbars = OrderedDict(
@@ -449,3 +507,4 @@ def replace_toolbar(old, new):
 
 replace_toolbar(PageToolbar, VersioningPageToolbar)
 replace_toolbar(PlaceholderToolbar, VersioningToolbar)
+replace_toolbar(BasicToolbar, VersioningBasicToolbar)

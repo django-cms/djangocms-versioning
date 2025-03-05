@@ -33,3 +33,9 @@ ON_PUBLISH_REDIRECT = getattr(
     settings, "DJANGOCMS_VERISONING_ON_PUBLISH_REDIRECT", "published"
 )
 #: Allowed values: "versions", "published", "preview"
+
+VERBOSE_UI = getattr(
+    settings, "DJANGOCMS_VERSIONING_VERBOSE_UI", True
+)
+#: If True, the version admin will be offered in the admin index
+#: for each registered versionable model.

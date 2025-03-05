@@ -51,6 +51,7 @@ class VersionQuerySet(models.QuerySet):
         version = self.get(
             object_id=content_object.pk, content_type__in=versionable.content_types
         )
+        version._state.fields_cache["content"] = content_object
         content_object._version_cache = version
         return version
 
@@ -74,8 +75,8 @@ class VersionQuerySet(models.QuerySet):
 
     def filter_by_content_grouping_values(self, content):
         """Returns a list of Version objects for grouping values taken
-       from provided content object. In other words:
-       it uses the content instance property values as filter parameters
+        from provided content object. In other words:
+        it uses the content instance property values as filter parameters
         """
         versionable = versionables.for_content(content)
         content_objects = versionable.for_content_grouping_values(content)
@@ -264,7 +265,11 @@ class Version(models.Model):
         """Returns a copy of current Version object, but as an instance
         of its correct proxy model"""
 
+        cache = self._state.fields_cache
+        del self._state.fields_cache  # Remove cache before creating deep copy
         new_obj = copy.deepcopy(self)
+        new_obj._state.fields_cache = cache  # Recover caches
+        self._state.fields_cache = cache  # Recover caches
         new_obj.__class__ = self.versionable.version_model_proxy
         return new_obj
 

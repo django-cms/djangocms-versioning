@@ -1,17 +1,26 @@
+import re
+from unittest import skipIf
+from unittest.mock import patch
+
+from cms import __version__
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth.models import Permission
+from django.test import override_settings
 from django.utils.text import slugify
+from packaging.version import Version
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
+from djangocms_versioning.cms_toolbars import VersioningPageToolbar
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
     BlogPostVersionFactory,
     FancyPollFactory,
     PageContentWithVersionFactory,
+    PageFactory,
     PageUrlFactory,
     PageVersionFactory,
     PollVersionFactory,
@@ -23,6 +32,8 @@ from djangocms_versioning.test_utils.test_helpers import (
     get_toolbar,
     toolbar_button_exists,
 )
+
+cms_version = Version(__version__)
 
 
 class VersioningToolbarTestCase(CMSTestCase):
@@ -65,7 +76,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(publish_button.disabled)
         self.assertListEqual(
             publish_button.extra_classes,
-            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
+            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
         )
 
     def test_revert_in_toolbar_in_preview_mode(self):
@@ -150,7 +161,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
             edit_button.extra_classes,
-            ["cms-btn-action", "js-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
+            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
@@ -341,6 +352,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, edit_mode=True)
 
         toolbar.post_template_populate()
@@ -353,6 +371,13 @@ class VersioningToolbarTestCase(CMSTestCase):
         are published
         """
         published_version = PageVersionFactory(content__language="en", state=PUBLISHED)
+        # Create URL
+        PageUrlFactory(
+            page=published_version.content.page,
+            language=published_version.content.language,
+            path=slugify("test_page"),
+            slug=slugify("test_page"),
+        )
         toolbar = get_toolbar(published_version.content, preview_mode=True)
 
         toolbar.post_template_populate()
@@ -472,7 +497,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides
-        Add Translation links.
+        Add Translation links if DJANGOCMS_ALLOW_DELETING_VERSIONS is False.
         """
         version = PageVersionFactory(content__language="en")
         PageContentWithVersionFactory(page=version.content.page, language="de")
@@ -516,6 +541,73 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn(f"cms_page={page.pk}", item.url)
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
+
+    @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
+    def test_change_language_menu_page_toolbar_including_delete(self):
+        """Check that patched PageToolbar.change_language_menu also provides
+        Delete Translation links if DJANGOCMS_ALLOW_DELETING_VERSIONS is True.
+        """
+        from djangocms_versioning import cms_toolbars
+
+        with patch.object(cms_toolbars, "ALLOW_DELETING_VERSIONS", True):
+            version = PageVersionFactory(content__language="en")
+            PageContentWithVersionFactory(page=version.content.page, language="de")
+            PageContentWithVersionFactory(page=version.content.page, language="it")
+            page = version.content.page
+            page.update_languages(["en", "de", "it"])
+
+            request = self.get_page_request(
+                page=page,
+                path=get_object_edit_url(version.content),
+                user=self.get_superuser(),
+            )
+            request.toolbar.set_object(version.content)
+            request.toolbar.populate()
+            request.toolbar.post_template_populate()
+
+            language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
+            self.assertEqual(language_menu.get_item_count(), 7)
+
+            language_menu_dict = {
+                menu.name: list(menu.items)
+                for key, menu in language_menu.menus.items()
+            }
+            self.assertIn("Add Translation", language_menu_dict.keys())
+            self.assertIn("Copy all plugins", language_menu_dict.keys())
+            self.assertIn("Delete Translation", language_menu_dict.keys())
+
+            pattern = r"\?language=([a-z]{2})"
+            for item in language_menu_dict["Delete Translation"]:
+                match = re.search(pattern, item.url)  # Contains "?language=<code>“？
+                self.assertTrue(bool(match))
+                code = match.group(1)  # Extract code
+                pk = page.get_admin_content(code).pk  # get content object
+                self.assertIn(admin_reverse("cms_pagecontent_delete", args=(int(pk),)), item.url)  # verify url
+
+    @skipIf(cms_version > Version("4.1.4"), "Only for CMS 4.1.4 and below: No delete translation menu")
+    def test_change_language_menu_page_toolbar_excluding_delete(self):
+        from djangocms_versioning import cms_toolbars
+
+        with patch.object(cms_toolbars, "ALLOW_DELETING_VERSIONS", True):
+            version = PageVersionFactory(content__language="en")
+            PageContentWithVersionFactory(page=version.content.page, language="de")
+            PageContentWithVersionFactory(page=version.content.page, language="it")
+            page = version.content.page
+            page.update_languages(["en", "de", "it"])
+
+            request = self.get_page_request(
+                page=page,
+                path=get_object_edit_url(version.content),
+                user=self.get_superuser(),
+            )
+            request.toolbar.set_object(version.content)
+            request.toolbar.populate()
+            request.toolbar.post_template_populate()
+
+            language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
+            self.assertEqual(language_menu.get_item_count(), 6)
 
     def test_change_language_menu_page_toolbar_language_selector_version_link(self):
         """
@@ -578,6 +670,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(de_item.url, de_preview_url)
         self.assertEqual(it_item.url, it_preview_url)
 
+    @override_settings(USE_I18N=False)
     def test_page_toolbar_wo_language_menu(self):
         from django.utils.translation import gettext as _
 
@@ -590,14 +683,29 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             user=self.get_superuser(),
         )
         # Remove language menu from request's toolbar
-        del request.toolbar.menus[LANGUAGE_MENU_IDENTIFIER]
+        self.assertNotIn(LANGUAGE_MENU_IDENTIFIER, request.toolbar.menus)
 
-        # find VersioningPageToolbar
+        # find VersioningBasicToolbar
         for cls, toolbar in request.toolbar.toolbars.items():
-            if cls == "djangocms_versioning.cms_toolbars.VersioningPageToolbar":
+            if cls == "djangocms_versioning.cms_toolbars.VersioningBasicToolbar":
                 # and call override_language_menu
-                toolbar.override_language_menu()
+                toolbar.add_language_menu()
                 break
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER, _("Language"))
         self.assertIsNone(language_menu)
+
+    def test_toolbar_only_catches_page_content_objects(self):
+        """Regression test to ensure that the toolbar only catches PageContent objects and not
+        other toolbar objects."""
+
+        version = PollVersionFactory()  # Not a page content model
+        page = PageFactory()  # Get a page, e.g. where an apphook is configured
+        toolbar = get_toolbar(version.content, edit_mode=True, toolbar_class=VersioningPageToolbar, current_page=page)
+
+        # Did page get detected? Otherwise, page_content never will be detected
+        self.assertIs(toolbar.page, page)
+        # Check regression does not happen
+        self.assertNotIsInstance(toolbar.page_content, version.content.__class__)
+        # Check for correct result
+        self.assertIsNone(toolbar.page_content)

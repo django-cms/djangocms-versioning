@@ -3,9 +3,10 @@ from setuptools import find_packages, setup
 import djangocms_versioning
 
 INSTALL_REQUIREMENTS = [
-    "Django>=1.11",
-    "django-cms",
-    "django-fsm"
+    "Django>=3.2",
+    "django-cms>=4.1.1",
+    "django-fsm<3",
+    "packaging",
 ]
 
 setup(
@@ -28,6 +29,6 @@ setup(
     author_email="info@divio.ch",
     maintainer="Django CMS Association and contributors",
     maintainer_email="info@django-cms.org",
-    url="http://github.com/django-cms/djangocms-versioning",
+    url="https://github.com/django-cms/djangocms-versioning",
     license="BSD",
 )

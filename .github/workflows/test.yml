@@ -15,10 +15,15 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     steps:
     - uses: actions/checkout@v4
@@ -34,10 +39,10 @@ jobs:
         python setup.py install
 
     - name: Run coverage
-      run: coverage run setup.py test
+      run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   postgres:
     runs-on: ubuntu-latest
@@ -47,14 +52,19 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     services:
       postgres:
-        image: postgres:12
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -78,12 +88,12 @@ jobs:
         python setup.py install
 
     - name: Run coverage
-      run: coverage run setup.py test
+      run: coverage run ./test_settings.py
       env:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   mysql:
     runs-on: ubuntu-latest
@@ -93,10 +103,15 @@ jobs:
         python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
         requirements-file: [
             dj32_cms41.txt,
-            dj40_cms41.txt,
-            dj41_cms41.txt,
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
         ]
+        exclude:
+          - requirements-file: dj50_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj51_cms41.txt
+            python-version: 3.9
 
     services:
       mysql:
@@ -122,25 +137,25 @@ jobs:
         python setup.py install
 
     - name: Run coverage
-      run: coverage run setup.py test
+      run: coverage run ./test_settings.py
       env:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   cms-develop-sqlite:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11']
-        requirements-file: ['dj42_cms41.txt']
+        python-version: ['3.12']
+        requirements-file: ['dj51_cms41.txt']
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
         ]
         os: [
-          ubuntu-20.04,
+          ubuntu-latest,
         ]
 
     steps:
@@ -158,17 +173,17 @@ jobs:
         python setup.py install
 
     - name: Run coverage
-      run: coverage run setup.py test
+      run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
 
   sqlite-django-main:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11" ]
+        python-version: [ "3.12" ]
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
         ]
@@ -194,7 +209,7 @@ jobs:
         python setup.py install
 
     - name: Run coverage
-      run: coverage run setup.py test
+      run: coverage run ./test_settings.py
 
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5

@@ -1,23 +1,32 @@
+from unittest import skipIf
+
+from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
+from django.template import Context
+from packaging.version import Version as PackageVersion
 
-from djangocms_versioning.plugin_rendering import VersionContentRenderer
+from djangocms_versioning import constants
+from djangocms_versioning.plugin_rendering import CMSToolbarVersioningMixin, VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
     PageVersionFactory,
     PlaceholderFactory,
     PollVersionFactory,
     TextPluginFactory,
+    TreeNode,
 )
 
 
+@skipIf(PackageVersion(cms_version) >= PackageVersion("4.2"), "Toolbar integration not necessary for django CMS 4.2+")
 class CMSToolbarTestCase(CMSTestCase):
     def test_content_renderer(self):
         """Test that cms.toolbar.toolbar.CMSToolbar.content_renderer
         is replaced with a property returning VersionContentRenderer
         """
         request = self.get_request("/")
+        self.assertIn(CMSToolbarVersioningMixin, CMSToolbar.__mro__)
         self.assertEqual(
             CMSToolbar(request).content_renderer.__class__, VersionContentRenderer
         )
@@ -32,7 +41,6 @@ class CMSToolbarTestCase(CMSTestCase):
 
 
 class PageContentAdminTestCase(CMSTestCase):
-
     def test_get_admin_model_object(self):
         """
         PageContent normally won't be able to fetch objects in draft. Test if the RequestToolbarForm
@@ -64,7 +72,6 @@ class PageContentAdminTestCase(CMSTestCase):
 
 
 class PageAdminCopyLanguageTestCase(CMSTestCase):
-
     def setUp(self):
         self.user = self.get_superuser()
         page = PageFactory()
@@ -190,7 +197,7 @@ class PageContentTreeViewTestCase(CMSTestCase):
         language filters / additional grouping values are set
         using the default CMS PageContent view
         """
-        page = PageFactory(node__depth=1)
+        page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
         en_version1 = PageVersionFactory(
             content__page=page,
             content__language="en",
@@ -255,3 +262,48 @@ class WizzardTestCase(CMSTestCase):
             poll_wizard.get_success_url(version.content),
             version.content.get_absolute_url(),
         )
+
+
+class AdminManagerIntegrationTestCase(CMSTestCase):
+    def setUp(self):
+        self.page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
+        self.en_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="en",
+            state=constants.UNPUBLISHED,
+        )
+        self.fr_version = PageVersionFactory(
+            content__page=self.page,
+            content__language="fr",
+            state=constants.ARCHIVED,
+        )
+        try:
+            self.page.languages = "en,fr"
+        except AttributeError:
+            # The property does not have a setter in django CMS 5+
+            pass
+        self.page.save()
+
+
+    @skipIf(PackageVersion(cms_version) < PackageVersion("4.1.4"),
+            "Bug only fixed in django CMS 4.1.4")
+    def test_get_admin_url_for_language(self):
+        """Regression fixed that made unpublished and archived versions invisible to get_admin_url_for_language
+        template tag. See: https://github.com/django-cms/django-cms/pull/7967"""
+        from django.template import Template
+
+        # Test English page with unpublished version
+        context = Context({"page": self.page})
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'en' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.en_version.content.pk}/", result)
+
+        # Test French page with archived version
+        template = Template("{% load cms_admin %}{% get_admin_url_for_language page 'fr' %}")
+
+        result = template.render(context)
+
+        self.assertIn(f"/admin/cms/pagecontent/{self.fr_version.content.pk}/", result)
+

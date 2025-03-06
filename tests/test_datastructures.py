@@ -10,6 +10,11 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+from django.test import TestCase
+from cms.models import Placeholder
+from djangocms_versioning.datastructures import default_copy
+from djangocms_versioning.test_utils.polls.models import PollContent
+from djangocms_versioning.test_utils.factories import PollContentFactory
 
 if not hasattr(CMSTestCase, "assertQuerySetEqual"):
     # Django < 4.2
@@ -171,3 +176,48 @@ class VersionableItemProxyModelTestCase(CMSTestCase):
         self.assertEqual(
             id(versionable.version_model_proxy), id(versionable.version_model_proxy)
         )
+        class DefaultCopyTestCase(TestCase):
+            def setUp(self):
+                self.original_content = PollContentFactory()
+
+            def test_default_copy_creates_new_instance(self):
+                new_content = default_copy(self.original_content)
+                self.assertNotEqual(self.original_content.pk, new_content.pk)
+                self.assertEqual(self.original_content.poll, new_content.poll)
+                self.assertEqual(self.original_content.language, new_content.language)
+
+            def test_default_copy_copies_placeholders(self):
+                placeholder = Placeholder.objects.create(slot='content')
+                self.original_content.placeholders.add(placeholder)
+                new_content = default_copy(self.original_content)
+                self.assertEqual(new_content.placeholders.count(), 1)
+                self.assertNotEqual(new_content.placeholders.first().pk, placeholder.pk)
+                self.assertEqual(new_content.placeholders.first().slot, placeholder.slot)
+
+            def test_default_copy_raises_exception_on_one2one_relationship(self):
+                # Assuming PollContent has a one-to-one relationship for this test
+                with self.assertRaises(Exception):
+                    default_copy(self.original_content)
+
+            def test_default_copy_raises_exception_on_many2many_relationship(self):
+                # Assuming PollContent has a many-to-many relationship for this test
+                with self.assertRaises(Exception):
+                    default_copy(self.original_content)
+
+            def test_default_copy_calls_copy_relations_if_exists(self):
+                class MockContent:
+                    _meta = self.original_content._meta
+                    _original_manager = self.original_content._original_manager
+
+                    def __init__(self):
+                        self.copy_relations_called = False
+
+                    def copy_relations(self):
+                        self.copy_relations_called = True
+
+                original_content = MockContent()
+                new_content = default_copy(original_content)
+                self.assertTrue(new_content.copy_relations_called)
+
+
+

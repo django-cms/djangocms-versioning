@@ -2,6 +2,16 @@
 Changelog
 =========
 
+2.2.1 (2025-03-06)
+==================
+
+* fix: Pre-populate `version.content` cache when getting version object by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/446
+* fix: Test compatibility with django CMS 5 by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/453
+* fix: For headless mode, django CMS 5.0 adds preview buttons to all views. Do not add again. by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/455
+* ci: update ruff configuration by @earthcomfy in https://github.com/django-cms/djangocms-versioning/pull/448
+* build(deps): bump actions/cache from 4.2.0 to 4.2.2 by @dependabot in https://github.com/django-cms/djangocms-versioning/pull/452
+
+
 2.2.0 (2025-01-17)
 ==================
 

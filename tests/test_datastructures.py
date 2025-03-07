@@ -1,5 +1,6 @@
 import copy
 
+from cms import api
 from cms.models import PageContent, Placeholder
 from cms.test_utils.testcases import CMSTestCase
 from django.apps import apps
@@ -190,6 +191,42 @@ class DefaultCopyTestCase(TestCase):
         self.assertEqual(new_content.placeholders.count(), 1)
         self.assertNotEqual(new_content.placeholders.first().pk, placeholder.pk)
         self.assertEqual(new_content.placeholders.first().slot, placeholder.slot)
+
+    def test_default_copy_copies_plugins_within_placeholder(self):
+        # Create a placeholder and attach two different plugin types
+        placeholder = Placeholder.objects.create(slot="content")
+        plugin1 = api.add_plugin(
+            placeholder=placeholder,
+            plugin_type="TextPlugin",
+            language=self.original_content.language,
+            body="Sample text",
+        )
+        plugin2 = api.add_plugin(
+            placeholder=placeholder,
+            plugin_type="TextPlugin",
+            language=self.original_content.language,
+            body="Some other text",
+        )
+        self.original_content.placeholders.add(placeholder)
+
+        new_content = default_copy(self.original_content)
+        new_placeholder = new_content.placeholders.first()
+
+        # Ensure that the new placeholder has two plugins
+        self.assertEqual(new_placeholder.cmsplugin_set.count(), 2)
+
+        # Collect original and copied plugin IDs for comparison
+        original_plugin_ids = {plugin1.pk, plugin2.pk}
+        new_plugins = list(new_placeholder.cmsplugin_set.all())
+        for plugin in new_plugins:
+            self.assertNotIn(plugin.pk, original_plugin_ids)
+
+        # Verify that the copied plugins preserve type and key attributes
+        downcasted = [plugin.get_plugin_instance()[0] for plugin in new_plugins]
+        original = [plugin1, plugin2]
+        for orig_plugin, new_plugin in zip(original, downcasted):
+            self.assertEqual(orig_plugin.plugin_type, new_plugin.plugin_type)
+            self.assertEqual(orig_plugin.body, new_plugin.body)
 
     def test_default_copy_calls_copy_relations_if_exists(self):
         class MockContent(PageContent):

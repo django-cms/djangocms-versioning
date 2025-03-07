@@ -198,6 +198,19 @@ class VersionableItemAlias(BaseVersionableItem):
         return getattr(self.to, name)
 
 
+def copy_placeholder(original_placeholder, new_content):
+    placeholder_fields = {
+        field.name: getattr(original_placeholder, field.name)
+        for field in Placeholder._meta.fields
+        if field.name not in [Placeholder._meta.pk.name, "source"]
+    }
+    if original_placeholder.source:
+        placeholder_fields["source"] = new_content
+    new_placeholder = Placeholder.objects.create(**placeholder_fields)
+    original_placeholder.copy_plugins(new_placeholder)
+    return new_placeholder
+
+
 def default_copy(original_content):
     """Copy all fields of the original content object exactly as they are
     and return a new content object which is different only in its pk.
@@ -230,21 +243,8 @@ def default_copy(original_content):
         # Copy PlaceholderRelationFields
         if isinstance(field, PlaceholderRelationField):
             # Copy placeholders
-            new_placeholders = []
-            for placeholder in getattr(original_content, field.name).all():
-                placeholder_fields = {
-                    field.name: getattr(placeholder, field.name)
-                    for field in Placeholder._meta.fields
-                    # don't copy primary key because we're creating a new obj
-                    # and handle the source field later
-                    if field.name not in [Placeholder._meta.pk.name, "source"]
-                }
-                if placeholder.source:
-                    placeholder_fields["source"] = new_content
-                new_placeholder = Placeholder.objects.create(**placeholder_fields)
-                # Copy plugins
-                placeholder.copy_plugins(new_placeholder)
-                new_placeholders.append(new_placeholder)
+            original_placeholders = getattr(original_content, field.name).all()
+            new_placeholders = [copy_placeholder(ph, new_content) for ph in original_placeholders]
             getattr(new_content, field.name).add(*new_placeholders)
         if hasattr(new_content, "copy_relations"):
             if callable(new_content.copy_relations):

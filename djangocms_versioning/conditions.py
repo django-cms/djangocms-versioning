@@ -77,11 +77,13 @@ def draft_is_locked(message: str) -> callable:
             raise ConditionFailed(message)
     return inner
 
+
 def user_can_unlock(message: str) -> callable:
     def inner(version, user):
         if not user.has_perm("djangocms_versioning.delete_versionlock"):
             raise ConditionFailed(message)
     return inner
+
 
 def user_can_publish(message: str) -> callable:
     def inner(version, user):

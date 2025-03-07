@@ -3,7 +3,7 @@ import collections
 from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.extensions.models import BaseExtension
-from cms.models import PageContent, Placeholder
+from cms.models import PageContent
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
 from cms.utils.urlutils import admin_reverse
@@ -221,6 +221,7 @@ def on_page_content_publish(version):
         page._remove_title_root_path()
     page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
+
 
 def on_page_content_unpublish(version):
     """Url path and cache operations to do when a PageContent obj is unpublished"""

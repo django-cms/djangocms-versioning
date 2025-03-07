@@ -1,8 +1,9 @@
 import copy
 
-from cms.models import PageContent
+from cms.models import PageContent, Placeholder
 from cms.test_utils.testcases import CMSTestCase
 from django.apps import apps
+from django.test import TestCase
 
 from djangocms_versioning.constants import ARCHIVED, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
@@ -10,11 +11,6 @@ from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.factories import PageContentFactory, PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
-from django.test import TestCase
-from cms.models import Placeholder
-from djangocms_versioning.datastructures import default_copy
-from djangocms_versioning.test_utils.polls.models import PollContent
-from djangocms_versioning.test_utils.factories import PollContentFactory
 
 if not hasattr(CMSTestCase, "assertQuerySetEqual"):
     # Django < 4.2
@@ -188,7 +184,7 @@ class DefaultCopyTestCase(TestCase):
         self.assertEqual(self.original_content.language, new_content.language)
 
     def test_default_copy_copies_placeholders(self):
-        placeholder = Placeholder.objects.create(slot='content')
+        placeholder = Placeholder.objects.create(slot="content")
         self.original_content.placeholders.add(placeholder)
         new_content = default_copy(self.original_content)
         self.assertEqual(new_content.placeholders.count(), 1)

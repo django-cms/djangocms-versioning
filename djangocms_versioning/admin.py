@@ -1039,9 +1039,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         requested_redirect = request.GET.get("next", None)
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
-            redirect_url=get_preview_url(version.content)
+            redirect_url = get_preview_url(version.content)
         else:
-            redirect_url=version_list_url(version.content)
+            redirect_url = version_list_url(version.content)
 
         if not version.can_be_published():
             self.message_user(request, _("Version cannot be published"), messages.ERROR)
@@ -1065,7 +1065,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         return self._internal_redirect(requested_redirect, redirect_url)
 
-
     def _internal_redirect(self, url, fallback):
         """Helper function to check if the give URL is resolvable
         If resolvable, return the URL; otherwise, returns the fallback URL.
@@ -1080,7 +1079,6 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         return redirect(url)
 
-
     def unpublish_view(self, request, object_id):
         """Unpublishes the specified version and redirects back to the
         version changelist
@@ -1093,9 +1091,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
 
         if conf.ON_PUBLISH_REDIRECT in ("preview", "published"):
-            redirect_url=get_preview_url(version.content)
+            redirect_url = get_preview_url(version.content)
         else:
-            redirect_url=version_list_url(version.content)
+            redirect_url = version_list_url(version.content)
 
         if not version.can_be_unpublished():
             self.message_user(
@@ -1420,7 +1418,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Check if custom breadcrumb template defined, otherwise
             # fallback on default
             breadcrumb_templates = [
-                f"admin/djangocms_versioning/{breadcrumb_opts.app_label}/{breadcrumb_opts.model_name}/versioning_breadcrumbs.html",
+                f"admin/djangocms_versioning/{breadcrumb_opts.app_label}/"
+                f"{breadcrumb_opts.model_name}/versioning_breadcrumbs.html",
                 "admin/djangocms_versioning/versioning_breadcrumbs.html",
             ]
             extra_context["breadcrumb_template"] = select_template(breadcrumb_templates)

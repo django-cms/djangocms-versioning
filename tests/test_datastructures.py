@@ -1,13 +1,15 @@
 import copy
 
-from cms.models import PageContent
+from cms import api
+from cms.models import PageContent, Placeholder
 from cms.test_utils.testcases import CMSTestCase
 from django.apps import apps
+from django.test import TestCase
 
 from djangocms_versioning.constants import ARCHIVED, PUBLISHED
 from djangocms_versioning.datastructures import VersionableItem, default_copy
 from djangocms_versioning.models import Version
-from djangocms_versioning.test_utils.factories import PollVersionFactory
+from djangocms_versioning.test_utils.factories import PageContentFactory, PollVersionFactory
 from djangocms_versioning.test_utils.people.models import PersonContent
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
@@ -171,3 +173,85 @@ class VersionableItemProxyModelTestCase(CMSTestCase):
         self.assertEqual(
             id(versionable.version_model_proxy), id(versionable.version_model_proxy)
         )
+
+class DefaultCopyTestCase(TestCase):
+    def setUp(self):
+        self.original_content = PageContentFactory()
+
+    def test_default_copy_creates_new_instance(self):
+        new_content = default_copy(self.original_content)
+        self.assertNotEqual(self.original_content.pk, new_content.pk)
+        self.assertEqual(self.original_content.page, new_content.page)
+        self.assertEqual(self.original_content.language, new_content.language)
+
+    def test_default_copy_copies_placeholders(self):
+        placeholder = Placeholder.objects.create(slot="content")
+        self.original_content.placeholders.add(placeholder)
+        new_content = default_copy(self.original_content)
+        self.assertEqual(new_content.placeholders.count(), 1)
+        self.assertNotEqual(new_content.placeholders.first().pk, placeholder.pk)
+        self.assertEqual(new_content.placeholders.first().slot, placeholder.slot)
+
+    def test_default_copy_copies_plugins_within_placeholder(self):
+        # Create a placeholder and attach two different plugin types
+        placeholder = Placeholder.objects.create(slot="content")
+        plugin1 = api.add_plugin(
+            placeholder=placeholder,
+            plugin_type="TextPlugin",
+            language=self.original_content.language,
+            body="Sample text",
+        )
+        plugin2 = api.add_plugin(
+            placeholder=placeholder,
+            plugin_type="TextPlugin",
+            language=self.original_content.language,
+            body="Some other text",
+        )
+        self.original_content.placeholders.add(placeholder)
+
+        new_content = default_copy(self.original_content)
+        new_placeholder = new_content.placeholders.first()
+
+        # Ensure that the new placeholder has two plugins
+        self.assertEqual(new_placeholder.cmsplugin_set.count(), 2)
+
+        # Collect original and copied plugin IDs for comparison
+        original_plugin_ids = {plugin1.pk, plugin2.pk}
+        new_plugins = list(new_placeholder.cmsplugin_set.all())
+        for plugin in new_plugins:
+            self.assertNotIn(plugin.pk, original_plugin_ids)
+
+        # Verify that the copied plugins preserve type and key attributes
+        downcasted = [plugin.get_plugin_instance()[0] for plugin in new_plugins]
+        original = [plugin1, plugin2]
+        for orig_plugin, new_plugin in zip(original, downcasted):
+            self.assertEqual(orig_plugin.plugin_type, new_plugin.plugin_type)
+            self.assertEqual(orig_plugin.body, new_plugin.body)
+
+    def test_default_copy_copies_multiple_placeholders(self):
+        placeholders = [Placeholder.objects.create(slot=f"slot_{i}") for i in range(3)]
+        for placeholder in placeholders:
+            self.original_content.placeholders.add(placeholder)
+        new_content = default_copy(self.original_content)
+        self.assertEqual(new_content.placeholders.count(), len(placeholders))
+        for original in self.original_content.placeholders.all():
+            copied = new_content.placeholders.get(slot=original.slot)
+            self.assertNotEqual(copied.pk, original.pk)
+            self.assertEqual(copied.slot, original.slot)
+
+    def test_default_copy_calls_copy_relations_if_exists(self):
+        class MockContent(PageContent):
+            class Meta:
+                app_label = "cms"
+                proxy = True
+
+            def __init__(self, *args, **kwargs):
+                self.copy_relations_called = False
+                super().__init__(*args, **kwargs)
+
+            def copy_relations(self):
+                self.copy_relations_called = True
+
+        original_content = MockContent(language=self.original_content.language, page=self.original_content.page)
+        new_content = default_copy(original_content)
+        self.assertTrue(new_content.copy_relations_called)

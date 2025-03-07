@@ -11,6 +11,7 @@ register = template.Library()
 def url_version_list(content):
     return version_list_url(content)
 
+
 @register.filter
 def url_publish_version(content, user):
     if hasattr(content, "prefetched_versions"):
@@ -26,6 +27,7 @@ def url_publish_version(content, user):
             )
     return ""
 
+
 @register.filter
 def url_new_draft(content, user):
     if hasattr(content, "prefetched_versions"):
@@ -40,6 +42,7 @@ def url_new_draft(content, user):
                 args=(version.pk,),
             )
     return ""
+
 
 @register.filter
 def url_revert_version(content, user):

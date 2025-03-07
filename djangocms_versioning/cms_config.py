@@ -28,7 +28,7 @@ from packaging.version import Version as PackageVersion
 from . import indicators
 from .admin import VersioningAdminMixin
 from .constants import INDICATOR_DESCRIPTIONS
-from .datastructures import BaseVersionableItem, VersionableItem
+from .datastructures import BaseVersionableItem, VersionableItem, default_copy
 from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
@@ -188,36 +188,7 @@ def copy_page_content(original_content):
     """Copy the PageContent object and deepcopy its
     placeholders and plugins.
     """
-    # Copy content object
-    content_fields = {
-        field.name: getattr(original_content, field.name)
-        for field in PageContent._meta.fields
-        # Don't copy the pk as we're creating a new obj.
-        # The creation date should reflect the date it was copied on,
-        # so don't copy that either.
-        if field.name not in (PageContent._meta.pk.name, "creation_date")
-    }
-
-    # Use original manager to not create a new Version object here
-    new_content = PageContent._original_manager.create(**content_fields)
-
-    # Copy placeholders
-    new_placeholders = []
-    for placeholder in original_content.placeholders.all():
-        placeholder_fields = {
-            field.name: getattr(placeholder, field.name)
-            for field in Placeholder._meta.fields
-            # don't copy primary key because we're creating a new obj
-            # and handle the source field later
-            if field.name not in [Placeholder._meta.pk.name, "source"]
-        }
-        if placeholder.source:
-            placeholder_fields["source"] = new_content
-        new_placeholder = Placeholder.objects.create(**placeholder_fields)
-        # Copy plugins
-        placeholder.copy_plugins(new_placeholder)
-        new_placeholders.append(new_placeholder)
-    new_content.placeholders.add(*new_placeholders)
+    new_content = default_copy(original_content)
 
     # If pagecontent has an associated content or page extension, also copy this!
     for field in PageContent._meta.related_objects:

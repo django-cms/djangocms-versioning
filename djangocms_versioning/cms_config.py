@@ -22,6 +22,7 @@ from django.http import (
 )
 from django.utils.encoding import force_str
 from django.utils.functional import cached_property
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from packaging.version import Version as PackageVersion
 
@@ -189,6 +190,7 @@ def copy_page_content(original_content):
     placeholders and plugins.
     """
     new_content = default_copy(original_content)
+    new_content.creation_date = now()
 
     # If pagecontent has an associated content or page extension, also copy this!
     for field in PageContent._meta.related_objects:

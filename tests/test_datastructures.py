@@ -191,6 +191,17 @@ class DefaultCopyTestCase(TestCase):
         self.assertNotEqual(new_content.placeholders.first().pk, placeholder.pk)
         self.assertEqual(new_content.placeholders.first().slot, placeholder.slot)
 
+    def test_default_copy_copies_multiple_placeholders(self):
+        placeholders = [Placeholder.objects.create(slot=f"slot_{i}") for i in range(3)]
+        for placeholder in placeholders:
+            self.original_content.placeholders.add(placeholder)
+        new_content = default_copy(self.original_content)
+        self.assertEqual(new_content.placeholders.count(), len(placeholders))
+        for original in self.original_content.placeholders.all():
+            copied = new_content.placeholders.get(slot=original.slot)
+            self.assertNotEqual(copied.pk, original.pk)
+            self.assertEqual(copied.slot, original.slot)
+
     def test_default_copy_calls_copy_relations_if_exists(self):
         class MockContent(PageContent):
             class Meta:

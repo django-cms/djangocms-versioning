@@ -6,7 +6,6 @@ from cms import __version__
 from cms.cms_toolbars import LANGUAGE_MENU_IDENTIFIER, PlaceholderToolbar
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
-from cms.utils.i18n import get_language_tuple
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth.models import Permission
 from django.test import override_settings
@@ -496,7 +495,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
                 return item
         return None
 
-    @override_settings(CMS_LANGUAGES = {1: [{'code': 'en', 'name': 'English'}]})
+    @override_settings(CMS_LANGUAGES = {1: [{"code": "en", "name": "English"}]})
     def test_change_language_menu_page_toolbar_one_languages(self):
         page_content = PageContentWithVersionFactory()
         request = self.get_page_request(

@@ -446,10 +446,14 @@ class VersioningBasicToolbar(BasicToolbar):
             super().add_language_menu()
             return
 
+        languages = get_language_tuple(self.current_site.pk)
+        if len(languages) < 2:
+            return # No need to show the language menu if there is only one language
+
         language_menu = self.toolbar.get_or_create_menu(
             LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1
         )
-        for code, name in get_language_tuple(self.current_site.pk):
+        for code, name in languages:
             # Get the page content, it could be draft too!
             page_content = self.page.get_admin_content(language=code)
             if page_content:

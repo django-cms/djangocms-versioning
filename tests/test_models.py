@@ -221,7 +221,7 @@ class CopyTestCase(CMSTestCase):
         user = factories.UserFactory()
 
         with patch(
-            "djangocms_versioning.cms_config.Placeholder.copy_plugins"
+            "djangocms_versioning.datastructures.Placeholder.copy_plugins"
         ) as mocked_copy:
             new_version = original_version.copy(user)
 

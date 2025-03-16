@@ -34,6 +34,7 @@ lock_error_message = _("Action Denied. The latest version is locked by {user}")
 lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
 permission_error_message = _("You do not have permission to perform this action")
 
+
 def allow_deleting_versions(collector, field, sub_objs, using):
     if ALLOW_DELETING_VERSIONS:
         models.SET_NULL(collector, field, sub_objs, using)

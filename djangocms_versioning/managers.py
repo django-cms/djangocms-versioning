@@ -3,6 +3,8 @@ from copy import copy
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 
 from . import constants
 from .constants import PUBLISHED
@@ -19,7 +21,12 @@ class PublishedContentManagerMixin:
         queryset = super().get_queryset()
         if not self.versioning_enabled:
             return queryset
-        return queryset.filter(versions__state=PUBLISHED)
+        now = timezone.now()
+        return queryset.filter(
+            Q(versions__visibility_start=None) | Q(versions__visibility_start__lt=now),
+            Q(versions__visibility_end=None) | Q(versions__visibility_end__gt=now),
+            versions__state=PUBLISHED,
+        )
 
     def create(self, *args, **kwargs):
         obj = super().create(*args, **kwargs)

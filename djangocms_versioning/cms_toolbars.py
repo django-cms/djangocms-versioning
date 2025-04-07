@@ -24,8 +24,10 @@ from django.conf import settings
 from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import localize
 from django.utils.http import urlencode
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from packaging import version
 
 from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
@@ -196,9 +198,34 @@ class VersioningToolbar(PlaceholderToolbar):
             return
 
         version_menu_label = version.short_name()
+        if version.visibility_start or version.visibility_end:
+            # Mark time-restricted visibility in the toolbar
+            version_menu_label += "*"
+
         versioning_menu = self.toolbar.get_or_create_menu(
             VERSIONING_MENU_IDENTIFIER, version_menu_label, disabled=False
         )
+        # Inform about time restrictions
+        if version.visibility_start:
+            if version.visibility_start < timezone.now():
+                msg = gettext("Visible since %(datetime)s") % {"datetime": localize(version.visibility_start)}
+            else:
+                msg = gettext("Visible after %(datetime)s") % {"datetime": localize(version.visibility_start)}
+            versioning_menu.add_link_item(
+                msg,
+                url="",
+                disabled=True,
+            )
+        if version.visibility_end:
+            versioning_menu.add_link_item(
+                gettext("Visible until %(datetime)s") %  {"datetime": localize(version.visibility_end)},
+                url="",
+                disabled=True,
+            )
+        if version.visibility_start or version.visibility_end:
+            # Add a break if info fields on time restrictions have been added
+            versioning_menu.add_item(Break())
+
         version = version.convert_to_proxy()
         if self.request.user.has_perm(
             "{app_label}.{codename}".format(
@@ -222,10 +249,22 @@ class VersioningToolbar(PlaceholderToolbar):
                     "back": self.toolbar.request_path,
                 })
                 versioning_menu.add_link_item(name, url=url)
+                # Need separator?
+                if version.check_discard.as_bool(self.request.user) or version.check_publish.as_bool(self.request.user):
+                    versioning_menu.add_item(Break())
+                # Timed publishibng
+                if version.check_publish.as_bool(self.request.user):
+                    versioning_menu.add_modal_item(
+                        _("Publish with time limits"),
+                        url=reverse(
+                            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",
+                            args=(version.pk,)
+                        ),
+                        on_close=version_list_url(version.content)
+                    )
                 # Discard changes menu entry (wrt to source)
                 if version.check_discard.as_bool(self.request.user):  # pragma: no cover
-                    versioning_menu.add_item(Break())
-                    versioning_menu.add_link_item(
+                    versioning_menu.add_modal_item(
                         _("Discard Changes"),
                         url=reverse(
                             f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard",

@@ -4,7 +4,7 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Besnik Bleta <besnik@programeshqip.org>, 2023
+# Besnik Bleta <besnik@programeshqip.org>, 2025
 # 
 #, fuzzy
 msgid ""
@@ -13,7 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-02 09:37+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
-"Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2023\n"
+"Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2025\n"
 "Language-Team: Albanian (https://app.transifex.com/divio/teams/58664/sq/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -59,7 +59,7 @@ msgstr "Lëndë"
 
 #: admin.py:647
 msgid "locked"
-msgstr ""
+msgstr "kyçur"
 
 #: admin.py:683 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
@@ -77,7 +77,7 @@ msgstr "Hiqe nga të botuar"
 
 #: admin.py:758 cms_toolbars.py:115
 msgid "New Draft"
-msgstr ""
+msgstr "Skicë e Re"
 
 #: admin.py:779 cms_toolbars.py:177
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
@@ -90,7 +90,7 @@ msgstr "Hidhe tej"
 
 #: admin.py:821 cms_toolbars.py:145
 msgid "Unlock"
-msgstr ""
+msgstr "Shkyçe"
 
 #: admin.py:856
 msgid "Compare versions"
@@ -134,11 +134,11 @@ msgstr "Versioni i fundit është fshirë"
 
 #: admin.py:1249
 msgid "You do not have permission to remove the version lock"
-msgstr ""
+msgstr "S’keni leje për të hequr këtë kyçje versioni"
 
 #: admin.py:1254
 msgid "Version unlocked"
-msgstr ""
+msgstr "U shkyç version"
 
 #: admin.py:1303
 #, python-brace-format
@@ -172,11 +172,11 @@ msgstr "Administroni Versione"
 #: cms_toolbars.py:210
 #, python-brace-format
 msgid "Compare to {source}"
-msgstr ""
+msgstr "Krahasoje me {source}"
 
 #: cms_toolbars.py:226 indicators.py:66
 msgid "Discard Changes"
-msgstr ""
+msgstr "Hidhet Tej Ndryshimet"
 
 #: cms_toolbars.py:262
 msgid "View Published"
@@ -226,12 +226,12 @@ msgstr "I ndryshur"
 
 #: emails.py:39
 msgid "Unlocked"
-msgstr ""
+msgstr "U shkyç"
 
 #: indicators.py:28
 #, python-format
 msgid "Unlock (%(message)s)"
-msgstr ""
+msgstr "Shkyçe (%(message)s)"
 
 #: indicators.py:40
 msgid "Create new draft"
@@ -260,16 +260,16 @@ msgstr "Versioni s’është skicë"
 #: models.py:30
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
-msgstr ""
+msgstr "Veprim i Hedhur Poshtë. Versioni më i ri është kyçur nga {user}"
 
 #: models.py:31
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
-msgstr ""
+msgstr "Veprim i Hedhur Poshtë. Versioni skicë është kyçur nga {user}"
 
 #: models.py:86
 msgid "Created"
-msgstr ""
+msgstr "Krijuar më"
 
 #: models.py:89
 msgid "author"
@@ -281,7 +281,7 @@ msgstr "gjendje"
 
 #: models.py:110
 msgid "locked by"
-msgstr ""
+msgstr "kyçur nga"
 
 #: models.py:119
 msgid "source"
@@ -300,7 +300,7 @@ msgstr "Version #{number} ({state})"
 #: models.py:146
 #, python-format
 msgid "Locked by %(user)s"
-msgstr ""
+msgstr "Kyçur nga %(user)s"
 
 #: models.py:278 models.py:327
 msgid "Version is not in draft state"
@@ -320,11 +320,11 @@ msgstr "Versioni s’është nën gjendjen “skicë” ose “i botuar”"
 
 #: models.py:467
 msgid "Version is already locked"
-msgstr ""
+msgstr "Versioni është tashmë i kyçur"
 
 #: models.py:473
 msgid "Draft version is not locked"
-msgstr ""
+msgstr "Versioni skicë s’është i kyçur"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9
@@ -495,3 +495,10 @@ msgid ""
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
+"\n"
+"Versioni skicë vijues është shkyçur nga %(by_user)s për t’u përdorur.\n"
+"%(version_link)s\n"
+"\n"
+"Ju lutemi, kini parasysh se s’do të jeni në gjendje të përpunoni më tej këtë skicë. Në rast të çfarëdo shqetësimi, lidhuni me %(by_user)s.\n"
+"\n"
+"Ky është një njoftim i automatizuar prej Django CMS.\n"

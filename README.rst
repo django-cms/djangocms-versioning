@@ -99,7 +99,7 @@ To update transifex translation in this repo you need to download the
 do not forget to run the ``compilemessages`` management command.
 
 
-.. |django| image:: https://img.shields.io/badge/django-3.2%2B-blue.svg
+.. |django| image:: https://img.shields.io/badge/django-4.2%2B-blue.svg
     :target: https://www.djangoproject.com/
-.. |djangocms| image:: https://img.shields.io/badge/django%20CMS-4.1-%2B-blue.svg
+.. |djangocms| image:: https://img.shields.io/badge/django%20CMS-4.1%2B-blue.svg
     :target: https://www.django-cms.org/

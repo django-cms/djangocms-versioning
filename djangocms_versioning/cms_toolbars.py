@@ -448,7 +448,7 @@ class VersioningBasicToolbar(BasicToolbar):
 
         languages = get_language_tuple(self.current_site.pk)
         if len(languages) < 2:
-            return # No need to show the language menu if there is only one language
+            return  # No need to show the language menu if there is only one language
 
         language_menu = self.toolbar.get_or_create_menu(
             LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1

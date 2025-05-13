@@ -1,6 +1,6 @@
 name: CodeCov
 
-on: [push, pull_request]
+on: [pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,18 +12,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
         requirements-file: [
-            dj32_cms41.txt,
             dj42_cms41.txt,
             dj50_cms41.txt,
             dj51_cms41.txt,
-        ]
+            dj52_cms41.txt,
+            dj52_cms50.txt,
+          ]
         exclude:
           - requirements-file: dj50_cms41.txt
             python-version: 3.9
           - requirements-file: dj51_cms41.txt
             python-version: 3.9
+          - requirements-file: dj52_cms41.txt
+            python-version: 3.9
+          - requirements-file: dj52_cms41.txt
+            python-version: 3.10
+          - requirements-file: dj52_cms50.txt
+            python-version: 3.9
+          - requirements-file: dj52_cms50.txt
+            python-version: 3.10
 
     steps:
     - uses: actions/checkout@v4
@@ -49,22 +58,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ "3.11", "3.12", "3.13" ]
         requirements-file: [
-            dj32_cms41.txt,
             dj42_cms41.txt,
-            dj50_cms41.txt,
-            dj51_cms41.txt,
+            dj52_cms41.txt,
+            dj52_cms50.txt,
         ]
-        exclude:
-          - requirements-file: dj50_cms41.txt
-            python-version: 3.9
-          - requirements-file: dj51_cms41.txt
-            python-version: 3.9
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -100,12 +103,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]  # latest release minus two
+        python-version: [ "3.11", "3.12", "3.13" ]
         requirements-file: [
-            dj32_cms41.txt,
             dj42_cms41.txt,
-            dj50_cms41.txt,
-            dj51_cms41.txt,
+            dj52_cms41.txt,
+            dj52_cms50.txt,
         ]
         exclude:
           - requirements-file: dj50_cms41.txt
@@ -149,10 +151,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12']
-        requirements-file: ['dj51_cms41.txt']
+        python-version: ['3.13']
+        requirements-file: ['dj52_cms50.txt']
         cms-version: [
-          'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
+          'https://github.com/django-cms/django-cms/archive/main.tar.gz'
         ]
         os: [
           ubuntu-latest,
@@ -183,16 +185,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.12" ]
+        python-version: [ "3.13" ]
         cms-version: [
-          'https://github.com/django-cms/django-cms/archive/develop-4.tar.gz'
+          'https://github.com/django-cms/django-cms/archive/main.tar.gz'
         ]
         django-version: [
           'https://github.com/django/django/archive/main.tar.gz'
         ]
-        requirements-file: [
-            requirements_base.txt,
-        ]
+        requirements-file: ['dj52_cms50.txt']
 
     steps:
     - uses: actions/checkout@v4

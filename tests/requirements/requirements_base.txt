@@ -1,6 +1,6 @@
 setuptools
 beautifulsoup4
-coverage
+coverage[toml]
 django-app-helper
 factory-boy
 ruff

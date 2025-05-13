@@ -1,3 +1,46 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "djangocms-versioning"
+description = "Versioning for django CMS"  # Dies muss manuell aktualisiert werden, da pyproject.toml keine dynamische Beschreibung unterstützt
+readme = "README.rst"
+requires-python = ">=3.6"
+license = {text = "BSD License"}
+authors = [
+    {name = "Divio AG", email = "info@divio.ch"},
+]
+maintainers = [
+    {name = "Django CMS Association and contributors", email = "info@django-cms.org"},
+]
+classifiers = [
+    "Framework :: Django",
+    "Framework :: Django CMS :: 4.1",
+    "Framework :: Django CMS :: 5.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development",
+]
+dependencies = [
+    "Django>=4.2",
+    "django-cms>=4.1.1",
+    "django-fsm<3",
+    "packaging",
+]
+
+dynamic = [ "version" ]
+
+[project.urls]
+homepage = "https://github.com/django-cms/djangocms-versioning"
+
+[tool.setuptools]
+packages = ["djangocms_versioning"]
+
+[tool.setuptools.dynamic]
+version = { attr = "djangocms_versioning.__version__" }
+
 [tool.ruff]
 extend-exclude = [
   ".eggs",
@@ -58,3 +101,28 @@ known-first-party = [
   "djangocms_versioning",
 ]
 extra-standard-library = ["dataclasses"]
+
+[tool.coverage.run]
+source = ["djangocms_versioning"]
+omit = [
+    "*apps.py,",
+    "*cms_menus.py",
+    "*constants.py,",
+    "*migrations/*",
+    "*test_utils/*",
+    "*tests/*",
+    "*venv/*",
+]
+
+[tool.coverage.report]
+omit = ["djangocms_versioning/cms_menus.py"]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == .__main__.:",
+]

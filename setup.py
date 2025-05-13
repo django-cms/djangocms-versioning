@@ -18,6 +18,8 @@ setup(
     long_description=open("README.rst").read(),
     classifiers=[
         "Framework :: Django",
+        "Framework :: Django CMS :: 4.1",
+        "Framework :: Django CMS :: 5.0",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",

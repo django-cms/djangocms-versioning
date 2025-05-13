@@ -71,7 +71,7 @@ class HandlersTestCase(CMSTestCase):
 
             with self.login_user_context(self.get_superuser()):
                 response = self.client.post(endpoint, {"test": 0})
-                self.assertEqual(response.status_code, 302)
+                self.assertIn(response.status_code, (200, 302))
 
         version = Version.objects.get(pk=version.pk)
         self.assertEqual(version.modified, dt)

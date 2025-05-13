@@ -34,6 +34,9 @@ Settings for djangocms Versioning
 
     The versioned CMS menu also shows draft content in edit and preview mode.
 
+    Using the versioned CMS menu is deprecated and it is not compatible with django
+    CMS 5.1 or later.
+
 
 .. py:attribute:: DJANGOCMS_VERSIONING_LOCK_VERSIONS
 

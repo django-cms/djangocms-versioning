@@ -1,6 +1,5 @@
 from . import conf, constants
 
-
 if conf.ENABLE_MENU_REGISTRATION:
     from cms import constants as cms_constants
     from cms.apphook_pool import apphook_pool

@@ -67,7 +67,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -192,9 +192,7 @@ jobs:
         django-version: [
           'https://github.com/django/django/archive/main.tar.gz'
         ]
-        requirements-file: [
-            requirements_base.txt,
-        ]
+        requirements-file: ['dj52_cms50.txt']
 
     steps:
     - uses: actions/checkout@v4

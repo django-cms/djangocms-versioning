@@ -6,7 +6,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.test import RequestFactory
 from django.test.utils import override_settings
-from menus.menu_pool import menu_pool
 
 from djangocms_versioning.test_utils.factories import (
     PageVersionFactory,

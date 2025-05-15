@@ -2,6 +2,18 @@
 Changelog
 =========
 
+2.3.0 (2025-05-13)
+==================
+
+* feat: Improve default copy method to also copy placeholders and plugins by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/345
+* fix: Only show language menu for more than one language by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/457
+* Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in nl by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/460
+* Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in sq by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/463
+* Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in ru by @transifex-integration in https://github.com/django-cms/djangocms-versioning/pull/459
+* fix: Use consistent django colors for accent object tools by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/464
+* chore: Remove deprecated django CMS references by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/465
+
+
 2.2.1 (2025-03-06)
 ==================
 

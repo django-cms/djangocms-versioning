@@ -36,12 +36,11 @@ dynamic = [ "version" ]
 homepage = "https://github.com/django-cms/djangocms-versioning"
 
 [tool.setuptools]
-packages = [
-    "djangocms_versioning",
-    "djangocms_versioning.migrations",
-    "djangocms_versioning.templatetags",
-  ]
 package-data = { "djangocms_versioning" = ["templates/**/*", "static/**/*", "locale/**/*"] }
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+include = ["djangocms_versioning*"]  # package names should match these glob patterns (["*"] by default)
 
 [tool.setuptools.dynamic]
 version = { attr = "djangocms_versioning.__version__" }

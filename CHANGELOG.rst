@@ -2,6 +2,11 @@
 Changelog
 =========
 
+2.3.2 (2025-05-16)
+==================
+
+* fix: Add back ``create_versions`` management commmand by @fsbraun in
+
 2.3.1 (2025-05-13)
 ==================
 

@@ -40,6 +40,7 @@ packages = [
     "djangocms_versioning",
     "djangocms_versioning.migrations",
     "djangocms_versioning.templatetags",
+    "djangocms_versioning.management.commands",
   ]
 package-data = { "djangocms_versioning" = ["templates/**/*", "static/**/*", "locale/**/*"] }
 

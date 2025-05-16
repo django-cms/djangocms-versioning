@@ -2,7 +2,7 @@
 Changelog
 =========
 
-2.3.0 (2025-05-13)
+2.3.1 (2025-05-13)
 ==================
 
 * feat: Improve default copy method to also copy placeholders and plugins by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/345

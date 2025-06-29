@@ -353,7 +353,12 @@ class DefaultGrouperAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminM
                 ...,
                 "get_author",   # Adds the author column
                 "get_modified_date",  # Adds the modified column
+                "state_indicator",  # Adds the state indicator column
                 ...]
+
+    If "state_indicator" is not in `list_display`, it will be added automatically before the
+    "admin_list_actions" field, or - together with the actions - at the end of the list_display
+    if no actions are present.
     """
     def get_list_display(self, request):
         list_display = getattr(self, "list_display", ())

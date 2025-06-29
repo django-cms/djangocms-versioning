@@ -124,6 +124,12 @@ class VersioningCMSExtension(CMSAppExtension):
                 for versionable in cms_config.versioning
             ]
         )
+        replace_admin_for_models(
+            [
+                (versionable.grouper_model, versionable.grouper_admin_mixin)
+                for versionable in cms_config.versioning if versionable.grouper_admin_mixin is not None
+            ]
+        )
 
     def handle_version_admin(self, cms_config):
         """
@@ -264,13 +270,6 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
         return queryset
 
-    # CAVEAT:
-    #   - PageContent contains the template, this can differ for each language,
-    #     it is assumed that templates would be the same when copying from one language to another
-    # FIXME: The long term solution will require knowing:
-    #           - why this view is an ajax call
-    #           - where it should live going forwards (cms vs versioning)
-    #           - A better way of making the feature extensible / modifiable for versioning
     def copy_language(self, request, object_id):
         target_language = request.POST.get("target_language")
 

@@ -1,3 +1,4 @@
+import importlib
 from itertools import chain
 
 from cms.models import Placeholder, PlaceholderRelationField
@@ -5,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Max, Prefetch
 from django.utils.functional import cached_property
 
-from .admin import VersioningAdminMixin
+from .admin import DefaultGrouperAdminMixin, VersioningAdminMixin
 from .helpers import get_content_types_with_subclasses
 from .models import Version
 
@@ -33,10 +34,14 @@ class VersionableItem(BaseVersionableItem):
         on_draft_create=None,
         on_archive=None,
         grouper_selector_option_label=False,
+        grouper_admin_mixin=None,
         content_admin_mixin=None,
         preview_url=None,
     ):
         super().__init__(content_model, content_admin_mixin)
+        # Process the grouper admin mixin:
+        # For backward compatibility, we need to mark the new default (instead of just applying it)
+        self.grouper_admin_mixin = DefaultGrouperAdminMixin if grouper_admin_mixin == "__default__" else grouper_admin_mixin
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
@@ -57,6 +62,7 @@ class VersionableItem(BaseVersionableItem):
         :return: instance of a django model field
         """
         return self.content_model._meta.get_field(self.grouper_field_name)
+
 
     @cached_property
     def version_model_proxy(self):

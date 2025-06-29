@@ -261,7 +261,7 @@ def get_editable_url(content_obj, force_admin=False):
 
 # TODO Based on polymorphic.query_translate._get_mro_content_type_ids,
 # can use that when polymorphic gets a new release
-def get_content_types_with_subclasses(models, using=None):
+def get_content_types_with_subclasses(models: Iterable[Type[models.Model]], using=None) -> set[int]:
     content_types = set()
     for model in models:
         content_type = ContentType.objects.db_manager(using).get_for_model(

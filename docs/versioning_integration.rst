@@ -94,6 +94,7 @@ A very basic configuration would look like this:
                 content_model=PostContent,
                 grouper_field_name='post',
                 copy_function=default_copy,
+                grouper_admin_mixin="__default__",
             ),
         ]
 
@@ -102,6 +103,13 @@ the name of the field that is a foreign key to the :term:`grouper model <grouper
 and a :term:`copy function <copy function>`. For simple model structures, the `default_copy` function
 which we have used is sufficient, but in many cases you might need to write your own custom :term:`copy function <copy function>`
 (more on that below).
+
+.. versionadded:: 2.4.0
+
+    The `grouper_admin_mixin` parameter is optional. For backwards compatibility, it defaults to ``None``.
+    To add the default state indicators, make it ``"__default__"``. This will use the
+    :class:`~djangocms_versioning.admin.DefaultGrouperAdminMixin` which includes the state indicator, author and modified date.
+    If you want to use a different mixin, you can specify it here.
 
 Once a model is registered for versioning its behaviour changes:
 
@@ -125,8 +133,7 @@ Once a model is registered for versioning its behaviour changes:
 
             ...
 
-For more details on how `cms_config.py` integration works please check the documentation
-for django-cms>=4.0.
+For more details on how `cms_config.py` integration works please check the documentation for django-cms>=4.0.
 
 
 Accessing content model objects

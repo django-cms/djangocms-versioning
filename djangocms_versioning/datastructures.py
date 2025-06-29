@@ -1,9 +1,9 @@
-import importlib
 from itertools import chain
+from typing import Any, Iterable, Optional, Type
 
 from cms.models import Placeholder, PlaceholderRelationField
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Max, Prefetch
+from django.db import models
 from django.utils.functional import cached_property
 
 from .admin import DefaultGrouperAdminMixin, VersioningAdminMixin
@@ -14,7 +14,7 @@ from .models import Version
 class BaseVersionableItem:
     concrete = False
 
-    def __init__(self, content_model, content_admin_mixin=None):
+    def __init__(self, content_model: Type[models.Model], content_admin_mixin: Optional[type] = None):
         self.content_model = content_model
         self.content_admin_mixin = content_admin_mixin or VersioningAdminMixin
 
@@ -24,18 +24,18 @@ class VersionableItem(BaseVersionableItem):
 
     def __init__(
         self,
-        content_model,
-        grouper_field_name,
-        copy_function,
-        extra_grouping_fields=None,
-        version_list_filter_lookups=None,
+        content_model: Type[models.Model],
+        grouper_field_name: str,
+        copy_function: callable,
+        extra_grouping_fields: Optional[Iterable[str]] = None,
+        version_list_filter_lookups: Optional[dict[str, Any]] = None,
         on_publish=None,
         on_unpublish=None,
         on_draft_create=None,
         on_archive=None,
         grouper_selector_option_label=False,
-        grouper_admin_mixin=None,
-        content_admin_mixin=None,
+        grouper_admin_mixin: Optional[type] = None,
+        content_admin_mixin: Optional[type] = None,
         preview_url=None,
     ):
         super().__init__(content_model, content_admin_mixin)
@@ -56,7 +56,7 @@ class VersionableItem(BaseVersionableItem):
         self.on_archive = on_archive
         self.preview_url = preview_url
 
-    def _get_grouper_field(self):
+    def _get_grouper_field(self) -> models.field.Field[Any, Any]:
         """Get the grouper field on the content model
 
         :return: instance of a django model field
@@ -65,7 +65,7 @@ class VersionableItem(BaseVersionableItem):
 
 
     @cached_property
-    def version_model_proxy(self):
+    def version_model_proxy(self) -> Type[Version]:
         """Returns a dynamically created proxy model class to Version.
         It's used for creating separate version model classes for each
         content type.
@@ -84,12 +84,12 @@ class VersionableItem(BaseVersionableItem):
         return ProxyVersion
 
     @property
-    def grouper_model(self):
+    def grouper_model(self) -> Type[models.Model]:
         """Returns the grouper model class"""
         return self.grouper_field.remote_field.model
 
     @cached_property
-    def content_model_is_sideframe_editable(self):
+    def content_model_is_sideframe_editable(self) -> bool:
         """Determine if a content model can be opened in the sideframe or not.
 
         :return: Default True, False if the content model is not suitable for the sideframe
@@ -106,7 +106,7 @@ class VersionableItem(BaseVersionableItem):
                 return False
         return True
 
-    def distinct_groupers(self, **kwargs):
+    def distinct_groupers(self, **kwargs) -> models.QuerySet:
         """Returns a queryset of `self.content` objects with unique
         grouper objects.
 
@@ -114,32 +114,32 @@ class VersionableItem(BaseVersionableItem):
 
         :param kwargs: Optional filtering parameters for inner queryset
         """
-        queryset = self.content_model._base_manager.values(
+        queryset = self.content_model.admin_manager.values(
             self.grouper_field.name
         ).filter(**kwargs)
-        inner = queryset.annotate(Max("pk")).values("pk__max")
-        return self.content_model._base_manager.filter(id__in=inner)
+        inner = queryset.annotate(models.Max("pk")).values("pk__max")
+        return self.content_model.admin_manager.filter(id__in=inner)
 
-    def for_grouper(self, grouper):
+    def for_grouper(self, grouper: models.Model) -> models.QuerySet:
         """Returns all `Content` objects for specified grouper object."""
         return self.for_grouping_values(**{self.grouper_field.name: grouper})
 
-    def for_content_grouping_values(self, content):
+    def for_content_grouping_values(self, content: models.Model) -> models.QuerySet:
         """Returns all `Content` objects based on all grouping values
         in specified content object."""
         return self.for_grouping_values(**self.grouping_values(content))
 
-    def for_grouping_values(self, **kwargs):
+    def for_grouping_values(self, **kwargs) -> models.QuerySet:
         """Returns all `Content` objects based on all specified
         grouping values."""
-        return self.content_model._base_manager.filter(**kwargs)
+        return self.content_model.admin_manager.filter(**kwargs)
 
     @property
-    def grouping_fields(self):
+    def grouping_fields(self) -> Iterable[str]:
         """Returns an iterator for all the grouping fields"""
         return chain([self.grouper_field_name], self.extra_grouping_fields)
 
-    def grouping_values(self, content, relation_suffix=True):
+    def grouping_values(self, content: models.Model, relation_suffix: bool = True) -> dict[str, Any]:
         """Returns a dict of grouper fields as keys and values from the content instance
 
         :param content: instance of a content model
@@ -156,22 +156,22 @@ class VersionableItem(BaseVersionableItem):
             for field in self.grouping_fields
         }
 
-    def grouper_choices_queryset(self):
+    def grouper_choices_queryset(self) -> models.QuerySet:
         """Returns a queryset of all the available groupers instances of the registered type"""
         content_objects = self.content_model.admin_manager.all().latest_content()
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(
-            Prefetch(cache_name, queryset=content_objects)
+            models.Prefetch(cache_name, queryset=content_objects)
         )
 
-    def get_grouper_with_fallbacks(self, grouper_id):
+    def get_grouper_with_fallbacks(self, grouper_id) -> Optional[models.Model]:
         return self.grouper_choices_queryset().filter(pk=grouper_id).first()
 
-    def _get_content_types(self):
-        return [ContentType.objects.get_for_model(self.content_model).pk]
+    def _get_content_types(self) -> set[int]:
+        return {ContentType.objects.get_for_model(self.content_model).pk}
 
     @cached_property
-    def content_types(self):
+    def content_types(self) -> set[int]:
         """Get the primary key of the content type of the registered content model.
 
         :return:  A list with the primary keys of the content types
@@ -186,7 +186,7 @@ class PolymorphicVersionableItem(VersionableItem):
     """VersionableItem for use by base polymorphic class (for example filer.File).
     """
 
-    def _get_content_types(self):
+    def _get_content_types(self) -> set[int]:
         return get_content_types_with_subclasses([self.content_model])
 
 
@@ -196,11 +196,11 @@ class VersionableItemAlias(BaseVersionableItem):
     the other VersionableItem.
     """
 
-    def __init__(self, content_model, to, content_admin_mixin=None):
+    def __init__(self, content_model: Type[models.Model], to: BaseVersionableItem, content_admin_mixin: Optional[type]=None):
         super().__init__(content_model, content_admin_mixin)
         self.to = to
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.to, name)
 
 

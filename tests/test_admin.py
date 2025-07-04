@@ -3228,6 +3228,30 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         self.assertIn("indicator", list_display_functions)
         self.assertIn("list_actions", list_display_functions)
 
+    def test_can_change_content(self):
+        """
+        The default grouper admin should allow changing content
+        """
+        from djangocms_versioning.admin import ExtendedGrouperVersionAdminMixin
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        draft_content = factories.PollContentWithVersionFactory(language="en")
+        public_content = factories.PollContentWithVersionFactory(language="en")
+        public_content.versions.first().publish(request.user)
+
+
+        self.assertIsInstance(modeladmin, ExtendedGrouperVersionAdminMixin)
+        can_change = modeladmin.can_change_content(request, None)
+        self.assertTrue(can_change)
+        can_change = modeladmin.can_change_content(request, draft_content)
+        self.assertTrue(can_change)
+        can_change = modeladmin.can_change_content(request, public_content)
+        self.assertFalse(can_change)
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

@@ -113,8 +113,12 @@ which we have used is sufficient, but in many cases you might need to write your
 
 Once a model is registered for versioning its behaviour changes:
 
-1. It's default manager (``Model.objects``) only sees published versions of the model. See :term:``content model``.
-2. It's ``Model.objects.create`` method now will not only create the :term:`content model` but also a corresponding ``Version`` model. Since the ``Version`` model requires a ``User`` object to track who created which version the correct way of creating a versioned :term:`content model` is::
+1. It's default manager (``Model.objects``) only sees published versions of the model.
+   See :term:``content model``.
+2. It's ``Model.objects.create`` method now will not only create the :term:`content model`
+   but also a corresponding ``Version`` model. Since the ``Version`` model requires a
+   ``User`` object to track who created which version the correct way of creating a
+   versioned :term:`content model` is::
 
     Model.objects.with_user(request.user).create(...)
 

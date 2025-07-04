@@ -11,7 +11,7 @@ except ImportError:
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-from djangocms_text_ckeditor.models import Text
+from djangocms_text.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
 from ..models import Version

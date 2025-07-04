@@ -1,7 +1,8 @@
 import copy
-from typing import Iterable, Optional
 import warnings
+from collections.abc import Iterable
 from contextlib import contextmanager
+from typing import Optional
 
 from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -12,8 +13,8 @@ from django.contrib import admin
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMessage
-from django.http import HttpRequest
 from django.db import models
+from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 from django.utils.translation import get_language

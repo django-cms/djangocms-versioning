@@ -2,7 +2,6 @@ import collections
 
 from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
-from cms.extensions.models import BaseExtension
 from cms.models import PageContent
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder

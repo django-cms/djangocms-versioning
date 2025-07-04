@@ -3239,17 +3239,15 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         request = self.get_request("/")
         request.user = self.get_superuser()
 
-        draft_content = factories.PollContentWithVersionFactory(language="en")
-        public_content = factories.PollContentWithVersionFactory(language="en")
-        public_content.versions.first().publish(request.user)
-
+        draft_version = factories.PollVersionFactory(content__language="en")
+        public_version = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
 
         self.assertIsInstance(modeladmin, ExtendedGrouperVersionAdminMixin)
         can_change = modeladmin.can_change_content(request, None)
         self.assertTrue(can_change)
-        can_change = modeladmin.can_change_content(request, draft_content)
+        can_change = modeladmin.can_change_content(request, draft_version.content)
         self.assertTrue(can_change)
-        can_change = modeladmin.can_change_content(request, public_content)
+        can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
 
 

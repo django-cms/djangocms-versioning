@@ -68,3 +68,11 @@ will cause the ``DefaultGrouperVersioningAdminMixin`` to be used:
     )
 
 
+Backwards incompatible changes in 2.0.0
+=======================================
+
+CMS menu registration
+---------------------
+
+The `cms_menu.py` and its menu logic - deprecated since version 2.3 - has been removed.
+Use the CMS menu provided by django CMS 4.1 and later instead.

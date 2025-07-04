@@ -1,12 +1,13 @@
 from itertools import chain
 from typing import Any, Iterable, Optional, Type
 
+from cms.extensions.models import BaseExtension
 from cms.models import Placeholder, PlaceholderRelationField
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.functional import cached_property
 
-from .admin import DefaultGrouperAdminMixin, VersioningAdminMixin
+from .admin import DefaultGrouperVersioningAdminMixin, VersioningAdminMixin
 from .helpers import get_content_types_with_subclasses
 from .models import Version
 
@@ -41,7 +42,7 @@ class VersionableItem(BaseVersionableItem):
         super().__init__(content_model, content_admin_mixin)
         # Process the grouper admin mixin:
         # For backward compatibility, we need to mark the new default (instead of just applying it)
-        self.grouper_admin_mixin = DefaultGrouperAdminMixin if grouper_admin_mixin == "__default__" else grouper_admin_mixin
+        self.grouper_admin_mixin = DefaultGrouperVersioningAdminMixin if grouper_admin_mixin == "__default__" else grouper_admin_mixin
         # Set the grouper field
         self.grouper_field_name = grouper_field_name
         self.grouper_field = self._get_grouper_field()
@@ -56,7 +57,7 @@ class VersionableItem(BaseVersionableItem):
         self.on_archive = on_archive
         self.preview_url = preview_url
 
-    def _get_grouper_field(self) -> models.field.Field[Any, Any]:
+    def _get_grouper_field(self) -> models.Field:
         """Get the grouper field on the content model
 
         :return: instance of a django model field
@@ -204,7 +205,7 @@ class VersionableItemAlias(BaseVersionableItem):
         return getattr(self.to, name)
 
 
-def copy_placeholder(original_placeholder, new_content):
+def copy_placeholder(original_placeholder: Placeholder, new_content: models.Model) -> Placeholder:
     placeholder_fields = {
         field.name: getattr(original_placeholder, field.name)
         for field in Placeholder._meta.fields
@@ -217,13 +218,14 @@ def copy_placeholder(original_placeholder, new_content):
     return new_placeholder
 
 
-def default_copy(original_content):
+def default_copy(original_content: models.Model) -> models.Model:
     """Copy all fields of the original content object exactly as they are
     and return a new content object which is different only in its pk.
 
     NOTE: This will only work for very simple content objects.
 
-    It copies placeholders and their plugins.
+    It copies placeholders and their plugins, and any extension (subclass
+    of cms.extensions.base.BaseExtension).
 
     It will throw exceptions on one2one and m2m relationships. And it might not
     be the desired behaviour for some foreign keys (in some cases we
@@ -232,7 +234,8 @@ def default_copy(original_content):
     cms_config.py
 
     NOTE: A custom copy method will need to use the content model's
-    _original_manage to create only a content model object and not also a Version object.
+    _original_manager to create only a content model object and not
+    also a Version object.
     """
     content_model = original_content.__class__
     content_fields = {
@@ -255,4 +258,12 @@ def default_copy(original_content):
         if hasattr(new_content, "copy_relations"):
             if callable(new_content.copy_relations):
                 new_content.copy_relations()
+
+    # If pagecontent has an associated extension, also copy it!
+    for field in content_model._meta.related_objects:
+        if hasattr(original_content, field.name):
+            extension = getattr(original_content, field.name)
+            if isinstance(extension, BaseExtension):
+                extension.copy(new_content, language=getattr(new_content, "language", None))
+
     return new_content

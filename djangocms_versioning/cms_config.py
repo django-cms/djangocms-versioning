@@ -197,14 +197,6 @@ def copy_page_content(original_content):
     """
     new_content = default_copy(original_content)
     new_content.creation_date = now()
-
-    # If pagecontent has an associated content or page extension, also copy this!
-    for field in PageContent._meta.related_objects:
-        if hasattr(original_content, field.name):
-            extension = getattr(original_content, field.name)
-            if isinstance(extension, BaseExtension):
-                extension.copy(new_content, new_content.language)
-
     return new_content
 
 

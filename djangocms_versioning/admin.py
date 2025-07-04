@@ -346,12 +346,15 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
 
     def can_change_content(self, request: HttpRequest, content_obj: models.Model) -> bool:
         """Returns True if user can change content_obj"""
+        if content_obj is None:
+            # Creating an object is never restricted by versioning
+            return True
         version = Version.objects.get_for_content(content_obj)
         return version.check_modify.as_bool(request.user)
 
 
 
-class DefaultGrouperAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin):
+class DefaultGrouperVersioningAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin):
     """Default mixin for grouper model admin classes: Includes state indicator, author and modified date.
     Usage::
         class MyContentModelAdmin(DefaultGrouperAdminMixin, cms.admin.utils.GrouperModelAdmin):

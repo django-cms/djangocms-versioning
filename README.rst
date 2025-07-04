@@ -1,4 +1,4 @@
- |PyPiVersion| |DjVersion| |CmsVersion|
+|PyPiVersion| |DjVersion| |CmsVersion|
 
 *********************
 django CMS Versioning

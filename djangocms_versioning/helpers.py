@@ -49,7 +49,7 @@ def versioning_admin_factory(admin_class: type[admin.ModelAdmin], mixin: type) -
     if not issubclass(admin_class, mixin):
         # If the admin_class is not a subclass of mixin, we create a new class
         # that combines both.
-        return type("Versioned" + admin_class.__name__, (mixin, admin_class), {})
+        return type(f"Versioned{admin_class.__name__}", (mixin, admin_class), {})
     return admin_class
 
 

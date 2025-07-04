@@ -3,33 +3,39 @@ Welcome to "djangocms-versioning"'s documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Quick Start:
+   :caption: Tutorials:
 
-   basic_concepts
-   versioning_integration
-   permissions
-   version_locking
+   introduction/basic_concepts
+   introduction/versioning_integration
 
 .. toctree::
    :maxdepth: 2
-   :caption: API Reference:
+   :caption: How-To Guides:
+
+   howto/permissions
+   howto/version_locking
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference:
 
    api/advanced_configuration
    api/signals
-   api/customizing_version_list
    api/management_commands
-   settings
+   api/settings
 
 .. toctree::
    :maxdepth: 2
-   :caption: Internals:
+   :caption: Explanation:
 
-   admin_architecture
+   explanations/admin_architecture
+   explanations/customizing_version_list
 
 .. toctree::
    :maxdepth: 2
    :caption: Release notes:
 
+   upgrade/2.4.0
    upgrade/2.0.0
 
 

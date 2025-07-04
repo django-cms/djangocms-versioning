@@ -179,6 +179,45 @@ Versioning modifies how the admin of the :term:`content model <content model>` w
             ),
         ]
 
+        grouper_admin_mixin
+        ++++++++++++++++++++
+        This option allows you to customize the admin interface for the
+        :term:`grouper model <grouper model>` by providing a custom ModelAdmin mixin.
+        By default, versioning uses the standard admin, but you can override or extend
+        its behavior using this setting.
+
+        To use, define your mixin class and set it on the `VersionableItem`:
+
+        .. code-block:: python
+
+            # some_app/cms_config.py
+            from cms.app_base import CMSAppConfig
+            from djangocms_versioning.datastructures import VersionableItem
+
+            class CustomGrouperAdminMixin:
+                # Override ModelAdmin methods or attributes as needed
+                def has_delete_permission(self, request, obj=None):
+                    return False
+
+            class SomeCMSConfig(CMSAppConfig):
+                djangocms_versioning_enabled = True
+                versioning = [
+                    VersionableItem(
+                        ....,
+                        grouper_admin_mixin=CustomGrouperAdminMixin,
+                    ),
+                ]
+
+        This mixin will be applied to the admin for the grouper model registered by
+        versioning, allowing you to customize permissions, list display, or any other
+        admin behavior.
+
+        Selecting the string ``"__default__"`` will use the
+        :class:`djangocms_versioning.admin.DefaultGrouperVersioningAdminMixin`
+        which combines the functionality of the
+        :class:`djangocms_versioning.admin.StateIndicatorMixin` and the
+        :class:`djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin.
+
 extended_admin_field_modifiers
 ++++++++++++++++++++++++++++++
 These allow for the alteration of how a field is displayed, by providing a method,

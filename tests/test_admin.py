@@ -3176,6 +3176,7 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         request = RequestFactory().get("/", IS_POPUP_VAR=1)
         request.user = self.get_superuser()
         modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
         # List display must be accessed via the changelist, as the list may be incomplete when accessed from admin
         admin_field_list = modeladmin.get_changelist_instance(request).list_display
         author_index = admin_field_list.index("get_author")
@@ -3207,6 +3208,26 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         self.assertEqual(results[2].text, user_middle_lower.username)
         self.assertEqual(results[1].text, user_last.username)
         self.assertEqual(results[0].text, user_last_lower.username)
+
+
+class DefaultGrouperAdminTestCase(CMSTestCase):
+
+    def test_get_list_display(self):
+        """
+        The default grouper admin should return the default list display
+        """
+        from djangocms_versioning.admin import StateIndicatorMixin, ChangeListActionsMixin
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        list_display = modeladmin.get_list_display(request)
+        list_display_functions = [fn.__name__ for fn in list_display if callable(fn)]
+
+        self.assertIn("indicator", list_display_functions)
+        self.assertIn("list_actions", list_display_functions)
 
 
 class ListActionsTestCase(CMSTestCase):

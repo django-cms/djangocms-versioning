@@ -27,7 +27,7 @@ class PollContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(Poll)
-class PollAdmin(ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
+class PollAdmin(GrouperModelAdmin):
     list_display = ("content__text", "get_author", "get_modified_date", "get_versioning_state", "admin_list_actions")
 
 

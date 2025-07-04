@@ -3216,7 +3216,6 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         """
         The default grouper admin should return the default list display
         """
-        from djangocms_versioning.admin import StateIndicatorMixin, ChangeListActionsMixin
 
         modeladmin = admin.site._registry[Poll]
         modeladmin.language = "en"

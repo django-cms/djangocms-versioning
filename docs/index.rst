@@ -28,7 +28,7 @@ Welcome to "djangocms-versioning"'s documentation!
    :maxdepth: 2
    :caption: Explanation:
 
-   explanations/admin_architecture
+   explanations/admin_options
    explanations/customizing_version_list
 
 .. toctree::

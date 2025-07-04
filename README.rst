@@ -48,7 +48,7 @@ An example implementation can be found here:
 Testing
 =======
 
-To run all the tests the only thing you need to do is run
+To run all the tests the only thing you need to do is run::
 
     pip install -r tests/requirements.txt
     python setup.py test

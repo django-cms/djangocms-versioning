@@ -151,7 +151,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.13']
+        python-version: ['3.12']
         requirements-file: ['dj52_cms50.txt']
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/main.tar.gz'
@@ -186,7 +186,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.13" ]
+        python-version: [ "3.12" ]
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/main.tar.gz'
         ]

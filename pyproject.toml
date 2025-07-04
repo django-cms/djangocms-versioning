@@ -7,7 +7,7 @@ name = "djangocms-versioning"
 description = "Versioning for django CMS"  # Dies muss manuell aktualisiert werden, da pyproject.toml keine dynamische Beschreibung unterstützt
 readme = "README.rst"
 requires-python = ">=3.6"
-license = "BSD License"
+license = {text = "BSD License"}
 authors = [
     {name = "Divio AG", email = "info@divio.ch"},
 ]

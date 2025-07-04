@@ -163,18 +163,18 @@ Whilst simple model structures should be fine using the `default_copy` function,
 you will most likely need to implement a custom copy function if your :term:`content model <content model>`
 does any of the following:
 
-    - Contains any one2one or m2m fields.
-    - Contains a generic foreign key.
-    - Contains a foreign key that relates to an
-      object that should be considered part of the version. For example
-      if you're versioning a poll object, you might consider the answers
-      in the poll as part of a version. If so, you will need to copy
-      the answer objects, not just the poll object. On the other hand if
-      a poll has an fk to a category model, you probably wouldn't consider
-      category as part of the version. In this case the default copy function
-      will take care of this.
-    - Other models have reverse relationships to your content model and
-      should be considered part of the version
+- Contains any one2one or m2m fields (except one2one relationships through django CMS' :clas:``cms.extensions.models.BaseExtension``).
+- Contains a generic foreign key
+- Contains a foreign key that relates to an
+  object that should be considered part of the version. For example
+  if you're versioning a poll object, you might consider the answers
+  in the poll as part of a version. If so, you will need to copy
+  the answer objects, not just the poll object. On the other hand if
+  a poll has an fk to a category model, you probably wouldn't consider
+  category as part of the version. In this case the default copy function
+  will take care of this.
+- Other models have reverse relationships to your content model and
+  should be considered part of the version
 
 So let's get back to our example and complicate the model structure a little. Let's say our
 `blog` app supports the use of polls in posts and also our posts can be categorized.
@@ -215,11 +215,11 @@ Now our `blog/models.py` now looks like this:
 If we were using the `default_copy` function on this model structure, versioning wouldn't necessarily do what you expect.
 Let's take a scenario like this:
 
-    1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
-    2. We revert to `version #1` which creates a draft `version #3`.
-    3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we reverted to), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
-    4. We edit both the PostContent, Poll and Answer data on `version #3`.
-    5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
+1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
+2. We revert to `version #1` which creates a draft `version #3`.
+3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we reverted to), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
+4. We edit both the PostContent, Poll and Answer data on `version #3`.
+5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
 
 This is probably not how one would want things to work in this scenario, so to fix it, we need to implement a custom :term:`copy function <copy function>` like so:
 

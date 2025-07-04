@@ -3,7 +3,6 @@ from django.contrib import admin
 from django.urls import re_path
 
 from djangocms_versioning.admin import (
-    ExtendedGrouperVersionAdminMixin,
     ExtendedVersionAdminMixin,
 )
 

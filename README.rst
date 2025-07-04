@@ -1,4 +1,4 @@
-|django| |djangocms|
+ |PyPiVersion| |DjVersion| |CmsVersion|
 
 *********************
 django CMS Versioning
@@ -27,7 +27,7 @@ Add ``djangocms_versioning`` to your project's ``INSTALLED_APPS``.
 Run::
 
     python -m manage migrate djangocms_versioning
-    python -m manage create_versions --userid <user-id-of-migration-user> 
+    python -m manage create_versions --userid <user-id-of-migration-user>
 
 to perform the application's database migrations and (only if you have an existing database) add version objects
 needed to mark existing versions as draft.
@@ -98,8 +98,18 @@ To update transifex translation in this repo you need to download the
 ``tx pull`` from the repo's root directory. After downloading the translations
 do not forget to run the ``compilemessages`` management command.
 
+.. |PyPiVersion| image:: https://img.shields.io/pypi/v/djangocms-versioning.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/djangocms-versioning
+    :alt: Latest PyPI version
 
-.. |django| image:: https://img.shields.io/badge/django-4.2%2B-blue.svg
-    :target: https://www.djangoproject.com/
-.. |djangocms| image:: https://img.shields.io/badge/django%20CMS-4.1%2B-blue.svg
-    :target: https://www.django-cms.org/
+.. |PyVersion| image:: https://img.shields.io/pypi/pyversions/djangocms-versioning.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/djangocms-versioning
+    :alt: Python versions
+
+.. |DjVersion| image:: https://img.shields.io/pypi/frameworkversions/django/djangocms-versioning.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/djangocms-versioning
+    :alt: Django versions
+
+.. |CmsVersion| image:: https://img.shields.io/pypi/frameworkversions/django-cms/djangocms-versioning.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/djangocms-versioning
+    :alt: django CMS versions

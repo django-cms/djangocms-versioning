@@ -51,6 +51,10 @@ HELPER_SETTINGS = {
 
 def run():
     from app_helper import runner
+    from cms import __version__ as cms_version
+
+    if cms_version.startswith("5."):
+        HELPER_SETTINGS["DJANGOCMS_VERSIONING_ENABLE_MENU_REGISTRATION"] = False
 
     runner.cms("djangocms_versioning", extra_args=[])
 

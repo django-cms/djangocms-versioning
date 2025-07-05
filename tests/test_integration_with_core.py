@@ -112,8 +112,8 @@ class PageAdminCopyLanguageTestCase(CMSTestCase):
         self.assertEqual(new_plugins[0].position, original_plugins[0].position)
         self.assertEqual(new_plugins[0].plugin_type, original_plugins[0].plugin_type)
         self.assertEqual(
-            new_plugins[0].djangocms_text_ckeditor_text.body,
-            original_plugins[0].djangocms_text_ckeditor_text.body,
+            new_plugins[0].djangocms_text_text.body,
+            original_plugins[0].djangocms_text_text.body,
         )
 
     def test_copy_language_copies_source_published_placeholder_plugins(self):
@@ -138,8 +138,8 @@ class PageAdminCopyLanguageTestCase(CMSTestCase):
         self.assertEqual(new_plugins[0].position, original_plugins[0].position)
         self.assertEqual(new_plugins[0].plugin_type, original_plugins[0].plugin_type)
         self.assertEqual(
-            new_plugins[0].djangocms_text_ckeditor_text.body,
-            original_plugins[0].djangocms_text_ckeditor_text.body,
+            new_plugins[0].djangocms_text_text.body,
+            original_plugins[0].djangocms_text_text.body,
         )
 
     def test_copy_language_cannot_copy_to_published_version(self):
@@ -185,8 +185,8 @@ class PageAdminCopyLanguageTestCase(CMSTestCase):
         self.assertEqual(source_placeholder_different.count(), 1)
         self.assertEqual(target_placeholder_different.count(), 1)
         self.assertNotEqual(
-            source_placeholder_different[0].djangocms_text_ckeditor_text.body,
-            target_placeholder_different[0].djangocms_text_ckeditor_text.body
+            source_placeholder_different[0].djangocms_text_text.body,
+            target_placeholder_different[0].djangocms_text_text.body
         )
 
 

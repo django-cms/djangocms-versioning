@@ -193,8 +193,8 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(new_plugins[0].position, original_plugins[0].position)
         self.assertEqual(new_plugins[0].plugin_type, original_plugins[0].plugin_type)
         self.assertEqual(
-            new_plugins[0].djangocms_text_ckeditor_text.body,
-            original_plugins[0].djangocms_text_ckeditor_text.body,
+            new_plugins[0].djangocms_text_text.body,
+            original_plugins[0].djangocms_text_text.body,
         )
         self.assertEqual(
             new_plugins[0].creation_date, original_plugins[0].creation_date
@@ -206,8 +206,8 @@ class CopyTestCase(CMSTestCase):
         self.assertEqual(new_plugins[1].position, original_plugins[1].position)
         self.assertEqual(new_plugins[1].plugin_type, original_plugins[1].plugin_type)
         self.assertEqual(
-            new_plugins[1].djangocms_text_ckeditor_text.body,
-            original_plugins[1].djangocms_text_ckeditor_text.body,
+            new_plugins[1].djangocms_text_text.body,
+            original_plugins[1].djangocms_text_text.body,
         )
         self.assertEqual(
             new_plugins[1].creation_date, original_plugins[1].creation_date

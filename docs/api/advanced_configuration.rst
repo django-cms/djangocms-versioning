@@ -1,3 +1,5 @@
+.. _advanced_configuration:
+
 Advanced configuration
 ======================
 
@@ -15,7 +17,10 @@ with different options.
 Adding to the context of versioning admin views
 ------------------------------------------------
 
-Currently versioning supports adding context variables to the unpublish confirmation view. Wider support for adding context variables is planned, but at the moment only the unpublish confirmation view is supported. This is how one would configure this in `cms_config.py`:
+Currently versioning supports adding context variables to the unpublish confirmation
+view. Wider support for adding context variables is planned, but at the moment only
+the unpublish confirmation view is supported. This is how one would configure this
+in ```cms_config.py```:
 
 .. code-block:: python
 
@@ -35,12 +40,16 @@ Currently versioning supports adding context variables to the unpublish confirma
         }
 
 
-Any context variable added to this setting will be displayed on the unpublish confirmation page automatically, but if you wish to change where on the page it displays, you will need to override the `djangocms_versioning/admin/unpublish_confirmation.html` template.
+Any context variable added to this setting will be displayed on the unpublish confirmation
+page automatically, but if you wish to change where on the page it displays, you will
+need to override the `djangocms_versioning/admin/unpublish_confirmation.html` template.
 
 
 Additional options on the VersionableItem class
 -------------------------------------------------
-The three mandatory attributes of `VersionableItem` are described in detail on the :doc:`versioning_integration` page. Below are additional options you might want to set.
+The three mandatory attributes of :class:`~djangocms_versioning.datastructures.VersionableItem`
+are described in detail on the :doc:`versioning_integration` page. Below are additional
+options you might want to set.
 
 
 .. _preview_url:
@@ -75,7 +84,8 @@ This will define the url that will be used for each version on the version list 
 
 extra_grouping_fields
 ++++++++++++++++++++++
-Defines one or more :term:`extra grouping fields <extra grouping field>`. This will add a UI filter to the version list table enabling filtering by that field.
+Defines one or more :term:`extra grouping fields <extra grouping field>`. This will add a
+UI filter to the version list table enabling filtering by that field.
 
 .. code-block:: python
 
@@ -98,7 +108,8 @@ Defines one or more :term:`extra grouping fields <extra grouping field>`. This w
 
 version_list_filter_lookups
 ++++++++++++++++++++++++++++
-Must be defined if the :ref:`extra_grouping_fields` option has been set. This will let the UI filter know what values it should allow filtering by.
+Must be defined if the :ref:`extra_grouping_fields` option has been set. This will let the
+UI filter know what values it should allow filtering by.
 
 .. code-block:: python
 
@@ -121,12 +132,14 @@ Must be defined if the :ref:`extra_grouping_fields` option has been set. This wi
 grouper_selector_option_label
 ++++++++++++++++++++++++++++++
 
-If the version table link is specified without a grouper param, a form with a dropdown of grouper objects will display. By default, if the grouper object is registered with the
+If the version table link is specified without a grouper param, a form with a dropdown
+of grouper objects will display. By default, if the grouper object is registered with the
 admin and has a ``search_fields`` attribute, the dropdown will be an autocomplete
 field which will display the object's ``__str__`` method. This is the recommended
 method.
 
-For models not registerd with the admin, or without search fields, this setting defines how the labels of those groupers will display on the dropdown (regular select field).
+For models not registerd with the admin, or without search fields, this setting defines
+how the labels of those groupers will display on the dropdown (regular select field).
 
 
 .. code-block:: python
@@ -152,7 +165,8 @@ For models not registerd with the admin, or without search fields, this setting 
 
 content_admin_mixin
 ++++++++++++++++++++
-Versioning modifies how the admin of the :term:`content model <content model>` works with `VersioningAdminMixin`. But you can modify this mixin with this setting.
+Versioning modifies how the admin of the :term:`content model <content model>` works with
+:class:`~djangocms-versioning.admin.VersioningAdminMixin`. But you can modify this mixin with this setting.
 
 .. code-block:: python
 
@@ -178,6 +192,45 @@ Versioning modifies how the admin of the :term:`content model <content model>` w
                 content_admin_mixin=SomeContentAdminMixin,
             ),
         ]
+
+grouper_admin_mixin
+++++++++++++++++++++
+This option allows you to customize the admin interface for the
+:term:`grouper model <grouper model>` by providing a custom ModelAdmin mixin.
+By default, versioning uses the standard admin, but you can override or extend
+its behavior using this setting.
+
+To use, define your mixin class and set it on the `VersionableItem`:
+
+.. code-block:: python
+
+    # some_app/cms_config.py
+    from cms.app_base import CMSAppConfig
+    from djangocms_versioning.datastructures import VersionableItem
+
+    class CustomGrouperAdminMixin:
+        # Override ModelAdmin methods or attributes as needed
+        def has_delete_permission(self, request, obj=None):
+            return False
+
+    class SomeCMSConfig(CMSAppConfig):
+        djangocms_versioning_enabled = True
+        versioning = [
+            VersionableItem(
+                ....,
+                grouper_admin_mixin=CustomGrouperAdminMixin,
+            ),
+        ]
+
+This mixin will be applied to the admin for the grouper model registered by
+versioning, allowing you to customize permissions, list display, or any other
+admin behavior.
+
+Selecting the string ``"__default__"`` will use the
+:class:`~djangocms_versioning.admin.DefaultGrouperVersioningAdminMixin`
+which combines the functionality of the
+:class:`~djangocms_versioning.admin.StateIndicatorMixin` and the
+:class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin`.
 
 extended_admin_field_modifiers
 ++++++++++++++++++++++++++++++

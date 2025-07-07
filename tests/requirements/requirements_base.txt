@@ -14,4 +14,4 @@ mysqlclient==2.0.3
 psycopg2
 setuptools
 
-djangocms-text-ckeditor>=5.1.2
+djangocms-text

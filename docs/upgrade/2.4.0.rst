@@ -1,0 +1,78 @@
+.. _upgrade-to-2-4-0:
+
+*******************
+2.4.0 release notes
+*******************
+
+*July 2025*
+
+Welcome to django CMS versioning 2.4.0!
+
+These release notes cover the new features, as well as some backwards
+incompatible changes you’ll want to be aware of when upgrading from
+django CMS versioning 1.x.
+
+
+Django and Python compatibility
+===============================
+
+django CMS supports **Django 4.2, 5.0, 5.1, and 5.2**. We highly recommend and only
+support the latest release of each series.
+
+It supports **Python 3.9, 3.10, 3.11, and 3.12**. As for Django we highly recommend and only
+support the latest release of each series.
+
+Features
+========
+
+DefaultGrouperVersioningAdminMixin
+----------------------------------
+
+The `DefaultGrouperVersioningAdminMixin` is a mixin that combines the functionality of
+both the `StateIndicatorMixin` and the `ExtendedGrouperVersionAdminMixin` into as standard
+recommended way to add versioning UI to grouper admin classes.
+
+It also adds the versioning status indicators and the admin list actions to the grouper
+change list (if not already done).
+
+
+Automatic Mixin Integration for GrouperAdmin
+--------------------------------------------
+
+* For models using the `GrouperAdmin` of django CMS' core (since 4.1), djangocms-versioning
+  now automatically adds a mixin to the admin of versioned grouper models.
+* This eliminates the need for third-party packages to explicitly depend on
+  djangocms-versioning for mixin imports, enabling better modularity and
+  compatibility with alternative versioning solutions.
+* Inheritance checks ensure full backward compatibility.
+
+Default pattern for versioned models:
+
++---------+------------------+------------------+----------------------------------------+
+| Models  | Model example    | Admin class      | Admin mixin                            |
++=========+==================+==================+========================================+
+| Grouper | ``Alias``        | ``GrouperAdmin`` | ``DefaultGrouperVersioningAdminMixin`` |
++---------+------------------+------------------+----------------------------------------+
+| Content | ``AliasContent`` | ``ModelAdmin``   | ``VersioningAdminMixin``               |
++---------+------------------+------------------+----------------------------------------+
+
+To activate this feature, set the ``grouper_admin_mixin`` property to ``"__default__"`` which
+will cause the ``DefaultGrouperVersioningAdminMixin`` to be used:
+
+.. code-block::
+
+    VersionableItem(
+        ...,
+        grouper_admin_mixin="__default__",  # or a custom mixin class
+        ...,
+    )
+
+
+Backwards incompatible changes in 2.0.0
+=======================================
+
+CMS menu registration
+---------------------
+
+The `cms_menu.py` and its menu logic - deprecated since version 2.3 - has been removed.
+Use the CMS menu provided by django CMS 4.1 and later instead.

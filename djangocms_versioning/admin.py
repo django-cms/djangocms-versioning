@@ -344,6 +344,48 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         """
         return getattr(obj, "content_modified", None)
 
+    def can_change_content(self, request: HttpRequest, content_obj: models.Model) -> bool:
+        """Returns True if user can change content_obj"""
+        if content_obj is None:
+            # Creating an object is never restricted by versioning
+            return True
+        version = Version.objects.get_for_content(content_obj)
+        return version.check_modify.as_bool(request.user)
+
+
+
+class DefaultGrouperVersioningAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin):
+    """Default mixin for grouper model admin classes: Includes state indicator, author and modified date.
+    Usage::
+        class MyContentModelAdmin(DefaultGrouperAdminMixin, cms.admin.utils.GrouperModelAdmin):
+            list_display = [
+                ...,
+                "get_author",   # Adds the author column
+                "get_modified_date",  # Adds the modified column
+                "state_indicator",  # Adds the state indicator column
+                ...]
+
+    If "state_indicator" is not in `list_display`, it will be added automatically before the
+    "admin_list_actions" field, or - together with the actions - at the end of the list_display
+    if no actions are present.
+    """
+    def get_list_display(self, request):
+        list_display = getattr(self, "list_display", ())
+        if "state_indicator" not in list_display:
+            if "admin_list_actions" in list_display:
+                # If the admin_list_actions is present, we need to add the state_indicator
+                # to the end of the list_display, so it doesn't interfere with the actions
+                index = list_display.index("admin_list_actions")
+                self.list_display = (
+                    *list_display[:index],  # All items before admin_list_actions
+                    "state_indicator",  # Add the state indicator before admin_list_actions
+                    *list_display[index:],  # All items after admin_list_actions
+                )
+            else:
+                # Add the state indicator and admin_list_actions to the end of the list_display
+                self.list_display = (*list_display, "state_indicator", "admin_list_actions",)
+        return super().get_list_display(request)
+
 
 class ExtendedVersionAdminMixin(
     ExtendedListDisplayMixin,

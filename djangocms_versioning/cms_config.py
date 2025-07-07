@@ -2,7 +2,6 @@ import collections
 
 from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
-from cms.extensions.models import BaseExtension
 from cms.models import PageContent
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
@@ -124,6 +123,12 @@ class VersioningCMSExtension(CMSAppExtension):
                 for versionable in cms_config.versioning
             ]
         )
+        replace_admin_for_models(
+            [
+                (versionable.grouper_model, versionable.grouper_admin_mixin)
+                for versionable in cms_config.versioning if versionable.grouper_admin_mixin is not None
+            ]
+        )
 
     def handle_version_admin(self, cms_config):
         """
@@ -191,14 +196,6 @@ def copy_page_content(original_content):
     """
     new_content = default_copy(original_content)
     new_content.creation_date = now()
-
-    # If pagecontent has an associated content or page extension, also copy this!
-    for field in PageContent._meta.related_objects:
-        if hasattr(original_content, field.name):
-            extension = getattr(original_content, field.name)
-            if isinstance(extension, BaseExtension):
-                extension.copy(new_content, new_content.language)
-
     return new_content
 
 
@@ -264,13 +261,6 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
         return queryset
 
-    # CAVEAT:
-    #   - PageContent contains the template, this can differ for each language,
-    #     it is assumed that templates would be the same when copying from one language to another
-    # FIXME: The long term solution will require knowing:
-    #           - why this view is an ajax call
-    #           - where it should live going forwards (cms vs versioning)
-    #           - A better way of making the feature extensible / modifiable for versioning
     def copy_language(self, request, object_id):
         target_language = request.POST.get("target_language")
 

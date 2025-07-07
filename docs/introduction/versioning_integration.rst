@@ -94,6 +94,7 @@ A very basic configuration would look like this:
                 content_model=PostContent,
                 grouper_field_name='post',
                 copy_function=default_copy,
+                grouper_admin_mixin="__default__",
             ),
         ]
 
@@ -103,10 +104,21 @@ and a :term:`copy function <copy function>`. For simple model structures, the `d
 which we have used is sufficient, but in many cases you might need to write your own custom :term:`copy function <copy function>`
 (more on that below).
 
+.. versionadded:: 2.4.0
+
+    The `grouper_admin_mixin` parameter is optional. For backwards compatibility, it defaults to ``None``.
+    To add the default state indicators, make it ``"__default__"``. This will use the
+    :class:`~djangocms_versioning.admin.DefaultGrouperAdminMixin` which includes the state indicator, author and modified date.
+    If you want to use a different mixin, you can specify it here.
+
 Once a model is registered for versioning its behaviour changes:
 
-1. It's default manager (``Model.objects``) only sees published versions of the model. See :term:``content model``.
-2. It's ``Model.objects.create`` method now will not only create the :term:`content model` but also a corresponding ``Version`` model. Since the ``Version`` model requires a ``User`` object to track who created which version the correct way of creating a versioned :term:`content model` is::
+1. It's default manager (``Model.objects``) only sees published versions of the model.
+   See :term:``content model``.
+2. It's ``Model.objects.create`` method now will not only create the :term:`content model`
+   but also a corresponding ``Version`` model. Since the ``Version`` model requires a
+   ``User`` object to track who created which version the correct way of creating a
+   versioned :term:`content model` is::
 
     Model.objects.with_user(request.user).create(...)
 
@@ -125,8 +137,7 @@ Once a model is registered for versioning its behaviour changes:
 
             ...
 
-For more details on how `cms_config.py` integration works please check the documentation
-for django-cms>=4.0.
+For more details on how `cms_config.py` integration works please check the documentation for django-cms>=4.0.
 
 
 Accessing content model objects
@@ -152,18 +163,18 @@ Whilst simple model structures should be fine using the `default_copy` function,
 you will most likely need to implement a custom copy function if your :term:`content model <content model>`
 does any of the following:
 
-    - Contains any one2one or m2m fields.
-    - Contains a generic foreign key.
-    - Contains a foreign key that relates to an
-      object that should be considered part of the version. For example
-      if you're versioning a poll object, you might consider the answers
-      in the poll as part of a version. If so, you will need to copy
-      the answer objects, not just the poll object. On the other hand if
-      a poll has an fk to a category model, you probably wouldn't consider
-      category as part of the version. In this case the default copy function
-      will take care of this.
-    - Other models have reverse relationships to your content model and
-      should be considered part of the version
+- Contains any one2one or m2m fields (except one2one relationships through django CMS' :class:`cms.extensions.models.BaseExtension`).
+- Contains a generic foreign key
+- Contains a foreign key that relates to an
+  object that should be considered part of the version. For example
+  if you're versioning a poll object, you might consider the answers
+  in the poll as part of a version. If so, you will need to copy
+  the answer objects, not just the poll object. On the other hand if
+  a poll has an fk to a category model, you probably wouldn't consider
+  category as part of the version. In this case the default copy function
+  will take care of this.
+- Other models have reverse relationships to your content model and
+  should be considered part of the version
 
 So let's get back to our example and complicate the model structure a little. Let's say our
 `blog` app supports the use of polls in posts and also our posts can be categorized.
@@ -204,11 +215,11 @@ Now our `blog/models.py` now looks like this:
 If we were using the `default_copy` function on this model structure, versioning wouldn't necessarily do what you expect.
 Let's take a scenario like this:
 
-    1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
-    2. We revert to `version #1` which creates a draft `version #3`.
-    3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we reverted to), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
-    4. We edit both the PostContent, Poll and Answer data on `version #3`.
-    5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
+1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
+2. We revert to `version #1` which creates a draft `version #3`.
+3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we reverted to), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
+4. We edit both the PostContent, Poll and Answer data on `version #3`.
+5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
 
 This is probably not how one would want things to work in this scenario, so to fix it, we need to implement a custom :term:`copy function <copy function>` like so:
 
@@ -273,186 +284,24 @@ but also new Poll and Answer objects.
 Notice that we have not created new Category objects in this example. This is because the default behaviour actually suits Category objects fine.
 If the name of a category changed, we would not want to revert the whole site to use the old name of the category when reverting a PostContent object.
 
-Adding Versioning Entries to a Content Model Admin
---------------------------------------------------
-Versioning provides a number of actions and fields through the :term:`ExtendedVersionAdminMixin`, these function by extending the :term:`ModelAdmin` :term:`list_display`
-to add the fields:
-
-* author
-
-* modified date
-
-* versioning state
-
-* preview action
-
-* edit action
-
-* version list action
-
-
-.. code-block:: python
-
-    class PostContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
-        list_display = "title"
-
-The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`admin_field_modifiers` to a given apps :term:`cms_config`,
-in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
-
-.. code-block:: python
-
-    # cms_config.py
-    def post_modifier(obj, field):
-        return obj.get(field) + " extra field text!"
-
-    class PostCMSConfig(CMSAppConfig):
-        # Other versioning configurations...
-        admin_field_modifiers = [
-            {PostContent: {"title": post_modifier}},
-        ]
-
-Given the code sample above, "This is how we add" would be displayed as
-"this is how we add extra field text!" in the changelist of PostAdmin.
-
-Adding status indicators to a versioned content model
------------------------------------------------------
-
-djangocms-versioning provides status indicators for django CMS' content models, you may know them from the page tree in django-cms:
-
-.. image:: static/Status-indicators.png
-    :width: 50%
-
-You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:
-
-.. code-block:: python
-
-    import json
-    from djangocms_versioning.admin import StateIndicatorMixin
-
-
-    class MyContentModelAdmin(StateIndicatorMixin, admin.ModelAdmin):
-        # Adds "indicator" to the list_items
-         list_items = [..., "state_indicator", ...]
-
-.. note::
-
-    For grouper models the mixin expects that the admin instances has properties defined for each extra grouping field, e.g., ``self.language`` if language is an extra grouping field. If you derive your admin class from :class:`~cms.admin.utils.GrouperModelAdmin`, this behaviour is automatically observed.
-
-    Otherwise, this is typically set in the ``get_changelist_instance`` method, e.g., by getting the language from the request. The page tree, for example, keeps its extra grouping field (language) as a get parameter to avoid mixing language of the user interface and language that is changed.
-
-    .. code-block:: python
-
-        def get_changelist_instance(self, request):
-            """Set language property and remove language from changelist_filter_params"""
-            if request.method == "GET":
-                request.GET = request.GET.copy()
-                for field in versionables.for_grouper(self.model).extra_grouping_fields:
-                    value = request.GET.pop(field, [None])[0]
-                    # Validation is recommended: Add clean_language etc. to your Admin class!
-                    if hasattr(self, f"clean_{field}"):
-                        value = getattr(self, f"clean_{field}")(value):
-                    setattr(self, field) = value
-                # Grouping field-specific cache needs to be cleared when they are changed
-                self._content_cache = {}
-            instance = super().get_changelist_instance(request)
-            # Remove grouping fields from filters
-            if request.method == "GET":
-                for field in versionables.for_grouper(self.model).extra_grouping_fields:
-                    if field in instance.params:
-                        del instance.params[field]
-            return instance
-
-Adding Status Indicators *and* Versioning Entries to a versioned content model
-------------------------------------------------------------------------------
-
-Both mixins can be easily combined. If you want both, state indicators and the additional author, modified date, preview action, and edit action, you can simpliy use the ``ExtendedIndicatorVersionAdminMixin``:
-
-.. code-block:: python
-
-    class MyContentModelAdmin(ExtendedIndicatorVersionAdminMixin, admin.ModelAdmin):
-        ...
-
-The versioning state and version list action are replaced by the status indicator and its context menu, respectively.
-
-Add additional actions by overwriting the ``self.get_list_actions()`` method and calling ``super()``.
-
 Adding Versioning Entries to a Grouper Model Admin
 --------------------------------------------------
 
-Django CMS 4.1 and above provide the :class:`~cms.admin.utils.GrouperModelAdmin` as to creat model admins for grouper models. To add version admin fields, use the :class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin`:
+Django CMS 4.1 and above provide the :class:`~cms.admin.utils.GrouperModelAdmin` as to creat model admins for grouper models.
+To add version admin fields, use the :class:`~djangocms_versioning.admin.DefaultGrouperVersioningAdminMixin`:
 
 .. code-block:: python
 
-    class PostAdmin(ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
+    class PostAdmin(DefaultGrouperVersioningAdminMixin, GrouperModelAdmin):
         list_display = ["title", "get_author", "get_modified_date", "get_versioning_state"]
 
-:class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin` also observes the :term:`admin_field_modifiers`.
+This is done automatically by djangocms-versioning, if you set ``grouper_admin_mixin="__default__"`` in the
+model's :term:`cms_config` (see above).
 
-.. note::
-
-    Compared to the :term:`ExtendedVersionAdminMixin`, the :term:`ExtendedGrouperVersionAdminMixin` does not automatically add the new fields to the :attr:`list_display`.
-
-    The difference has compatibility reasons.
-
-To also add state indicators, just add the :class:`~djangocms_versioning.admin.StateIndicatorMixin`:
-
-.. code-block:: python
-
-    class PostAdmin(ExtendedGrouperVersionAdminMixin, StateIndicatorMixin, GrouperModelAdmin):
-        list_display = ["title", "get_author", "get_modified_date", "state_indicator"]
-
-Summary admin options
----------------------
-
-.. list-table:: Overview on versioning admin options: Grouper models
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Versioning state
-     - Grouper Model Admin
-   * - Text, no interaction
-     - .. code-block::
-
-            class GrouperAdmin(
-                ExtendedGrouperVersionAdminMixin,
-                GrouperModelAdmin
-            )
-                list_display = ...
-
-   * - Indicators, drop down menu
-     - .. code-block::
-
-            class GrouperAdmin(
-                ExtendedGrouperVersionAdminMixin,
-                StateIndicatorMixin,
-                GrouperModelAdmin
-            )
-                list_display = ...
-
-.. list-table:: Overview on versioning admin options: Content models
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Versioning state
-     - **Content Model Admin**
-   * - Text, no interaction
-     - .. code-block::
-
-            class ContentAdmin(
-                ExtendedVersionAdminMixin,
-                admin.ModelAdmin
-            )
-
-   * - Indicators, drop down menu
-     - .. code-block::
-
-            class ContentAdmin(
-                ExtendedIndicatorVersionAdminMixin,
-                admin.ModelAdmin,
-            )
-
+For more options to configure the admin of versioned models, see :ref:`alternative_admin`.
 
 Additional/advanced configuration
 ----------------------------------
 
-The above should be enough configuration for most cases, but versioning has a lot more configuration options. See the :doc:`advanced_configuration` page for details.
+The above should be enough configuration for most cases, but versioning has a lot more configuration options. See the
+:ref:`advanced_configuration` page for details.

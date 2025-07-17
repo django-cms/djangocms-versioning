@@ -5,7 +5,7 @@ Changelog
 2.4.0 (2025-07-17)
 ==================
 
-* feat: Auto-add versioning mixing to GrouperAdmin by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/472
+* feat: Auto-add versioning mixin to GrouperAdmin by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/472
 
 2.3.2 (2025-05-16)
 ==================

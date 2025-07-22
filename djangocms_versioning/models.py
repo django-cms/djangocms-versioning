@@ -128,7 +128,7 @@ class Version(models.Model):
     class Meta:
         unique_together = ("content_type", "object_id")
         permissions = (
-            ("delete_versionlock", "Can unlock verision"),
+            ("delete_versionlock", "Can unlock version"),
         )
 
     def __str__(self):

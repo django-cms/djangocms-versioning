@@ -29,7 +29,7 @@ from django.utils.translation import gettext_lazy as _
 from packaging import version
 
 from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
-from djangocms_versioning.constants import DRAFT, PUBLISHED
+from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.helpers import (
     get_latest_admin_viewable_content,
     version_list_url,
@@ -242,8 +242,8 @@ class VersioningToolbar(PlaceholderToolbar):
         if not isinstance(self.toolbar.obj, PageContent) or not self.page:
             return
 
-        return PageContent._original_manager.filter(
-            page=self.page, language=language, versions__state=PUBLISHED
+        return PageContent.objects.filter(
+            page=self.page, language=language
         ).select_related("page").first()
 
     def _add_view_published_button(self):

@@ -193,7 +193,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     request,
                     status,
                     content_obj._version,
-                    back=request.path_info + "?" + request.GET.urlencode(),
+                    back=f"{request.path_info}?{request.GET.urlencode()}",
                 )
                 if status
                 else None

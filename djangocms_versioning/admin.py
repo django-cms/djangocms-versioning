@@ -91,7 +91,11 @@ class VersioningChangeListMixin:
 
 def versioning_change_list_factory(base_changelist_cls):
     """Generate a ChangeList class to use for the content model"""
-    return type("Versioned" + base_changelist_cls.__name__, (VersioningChangeListMixin, base_changelist_cls), {})
+    return type(
+        f"Versioned{base_changelist_cls.__name__}",
+        (VersioningChangeListMixin, base_changelist_cls),
+        {},
+    )
 
 
 class VersioningAdminMixin:
@@ -189,7 +193,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     request,
                     status,
                     content_obj._version,
-                    back=request.path_info + "?" + request.GET.urlencode(),
+                    back=f"{request.path_info}?{request.GET.urlencode()}",
                 )
                 if status
                 else None

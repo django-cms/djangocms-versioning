@@ -252,8 +252,11 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         return fields
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
-        return queryset
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
+        )
 
     def copy_language(self, request, object_id):
         target_language = request.POST.get("target_language")

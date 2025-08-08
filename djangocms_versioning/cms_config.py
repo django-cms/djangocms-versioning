@@ -3,12 +3,12 @@ import collections
 from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent
-from cms.utils import get_current_site
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
 from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import (
     ImproperlyConfigured,
     ObjectDoesNotExist,

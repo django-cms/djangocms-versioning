@@ -345,7 +345,7 @@ class VersioningCMSConfig(CMSAppConfig):
             grouper_field_name="page",
             extra_grouping_fields=["language"],
             version_list_filter_lookups={
-                "language": lambda request, _: get_language_tuple(site_id=get_current_site(request).pk)
+                "language": lambda *args: get_language_tuple(site_id=get_current_site(args[0]).pk)
             },
             copy_function=copy_page_content,
             grouper_selector_option_label=label_from_instance,

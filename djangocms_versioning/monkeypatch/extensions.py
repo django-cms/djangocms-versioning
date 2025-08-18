@@ -13,7 +13,7 @@ from djangocms_versioning.handlers import _update_modified
 
 def _copy_title_extensions(self, source_page, target_page, language, clone=False):
     """
-    djangocms-cms/extensions/admin.py, last changed in: divio/django-cms@2894ae8
+    djangocms-cms/extensions/admin.py, last changed in: django-cms/django-cms@2894ae8
 
     The existing method ExtensionPool._copy_title_extensions will only ever
     get published versions, we change the queries to get the latest draft version

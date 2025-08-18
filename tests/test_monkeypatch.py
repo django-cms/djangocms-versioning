@@ -57,7 +57,7 @@ class MonkeypatchExtensionTestCase(CMSTestCase):
         )
         # No asserts, this test originally failed because the versioned manager was called
         # in copy_extensions, now we call the original manager instead
-        # https://github.com/divio/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
+        # https://github.com/django-cms/djangocms-versioning/pull/201/files#diff-fc33dd7b5aa9b1645545cf48dfc9b4ecR19
 
     def test_pagecontent_copy_method_creates_extension_title_extension_attached(self):
         """

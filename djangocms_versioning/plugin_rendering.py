@@ -1,3 +1,5 @@
+from django.db import models
+
 from cms.plugin_rendering import ContentRenderer, StructureRenderer
 from cms.utils.placeholder import rescan_placeholders_for_obj
 
@@ -11,6 +13,7 @@ def prefetch_versioned_related_objects(instance, toolbar):
     candidate_fields = [
         f for f in instance._meta.get_fields() if f.is_relation and not f.auto_created
     ]
+
     for field in candidate_fields:
         try:
             versionable = versionables.for_grouper(field.remote_field.model)
@@ -24,14 +27,35 @@ def prefetch_versioned_related_objects(instance, toolbar):
             qs = versionable.content_model.objects.all()
         related_field = getattr(instance, field.name)
         if related_field:
-            filters = {versionable.grouper_field_name: related_field}
+            is_related_manager = isinstance(related_field, models.Manager)
+
+            if is_related_manager:
+                filter_key = '{}__in'.format(versionable.grouper_field_name)
+                filter_values = related_field.get_queryset()
+                filters = {filter_key: filter_values}
+            else:
+                filters = {versionable.grouper_field_name: related_field}
             # TODO Figure out grouping values-awareness
             # for extra fields other than hardcoded 'language'
             if "language" in versionable.extra_grouping_fields:
                 filters["language"] = toolbar.request_language
-            qs = qs.filter(**filters)
-            prefetch_cache = {versionable.grouper_field.remote_field.name: qs}
-            related_field._prefetched_objects_cache = prefetch_cache
+            try:
+                qs = qs.filter(**filters).order_by(versionable.grouper_field_name).distinct(versionable.grouper_field_name)
+            except:
+                # FIXME: there will be error caused by djangocms-internalsearch
+                # Cannot use QuerySet for "content model": Use a QuerySet for "grouper model"
+                # will catch the error here to avoid page corruption.
+                pass
+
+            # TODO refine it after understand prefetch in many2many field.
+            # because if `related_field` is ManyRelatedManager, it is temporary,
+            # we can't store `_prefetched_objectes_cache` to it, so I decide to store the
+            # prefetched value to model instance.
+            if is_related_manager:
+                instance._prefetched_objects_cache = getattr(instance, '_prefetched_objects_cache', {})
+                instance._prefetched_objects_cache[field.name] = qs
+            else:
+                related_field._prefetched_objects_cache = {versionable.grouper_field.remote_field.name: qs}
 
 
 class VersionContentRenderer(ContentRenderer):

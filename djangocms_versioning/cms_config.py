@@ -8,6 +8,7 @@ from cms.utils.plugins import copy_plugins_to_placeholder
 from cms.utils.urlutils import admin_reverse
 from django.conf import settings
 from django.contrib.admin.utils import flatten_fieldsets
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import (
     ImproperlyConfigured,
     ObjectDoesNotExist,
@@ -52,13 +53,10 @@ class VersioningCMSExtension(CMSAppExtension):
     @cached_property
     def versionables_by_content(self):
         """Returns a dict of {content_model_cls: VersionableItem obj}"""
-        return {
-            versionable.content_model: versionable for versionable in self.versionables
-        }
+        return {versionable.content_model: versionable for versionable in self.versionables}
 
     def is_content_model_versioned(self, content_model):
-        """Returns if the content model is registered for versioning.
-        """
+        """Returns if the content model is registered for versioning."""
         return content_model in self.versionables_by_content
 
     @cached_property
@@ -91,9 +89,7 @@ class VersioningCMSExtension(CMSAppExtension):
             # still changing and needs to be calculated on the fly
             registered_so_far = [v.content_model for v in self.versionables]
             if versionable.content_model in registered_so_far:
-                raise ImproperlyConfigured(
-                    f"{versionable.content_model!r} has already been registered"
-                )
+                raise ImproperlyConfigured(f"{versionable.content_model!r} has already been registered")
             # Checks passed. Add versionable to our master list
             self.versionables.append(versionable)
 
@@ -118,15 +114,13 @@ class VersioningCMSExtension(CMSAppExtension):
         with an admin model class that inherits from `versionable.content_admin_mixin`.
         """
         replace_admin_for_models(
-            [
-                (versionable.content_model, versionable.content_admin_mixin)
-                for versionable in cms_config.versioning
-            ]
+            [(versionable.content_model, versionable.content_admin_mixin) for versionable in cms_config.versioning]
         )
         replace_admin_for_models(
             [
                 (versionable.grouper_model, versionable.grouper_admin_mixin)
-                for versionable in cms_config.versioning if versionable.grouper_admin_mixin is not None
+                for versionable in cms_config.versioning
+                if versionable.grouper_admin_mixin is not None
             ]
         )
 
@@ -153,12 +147,15 @@ class VersioningCMSExtension(CMSAppExtension):
         """
         for versionable in cms_config.versioning:
             replace_manager(versionable.content_model, "objects", PublishedContentManagerMixin)
-            replace_manager(versionable.content_model, "admin_manager", AdminManagerMixin,
-                            _group_by_key=list(versionable.grouping_fields))
+            replace_manager(
+                versionable.content_model,
+                "admin_manager",
+                AdminManagerMixin,
+                _group_by_key=list(versionable.grouping_fields),
+            )
 
     def handle_admin_field_modifiers(self, cms_config):
-        """Allows for the transformation of a given field in the ExtendedVersionAdminMixin
-        """
+        """Allows for the transformation of a given field in the ExtendedVersionAdminMixin"""
         extended_admin_field_modifiers = getattr(cms_config, "extended_admin_field_modifiers", None)
         if not isinstance(extended_admin_field_modifiers, list):
             raise ImproperlyConfigured("extended_admin_field_modifiers must be list of dictionaries")
@@ -171,9 +168,7 @@ class VersioningCMSExtension(CMSAppExtension):
             self.handle_admin_field_modifiers(cms_config)
         # Validation to ensure either the versioning or the
         # versioning_add_to_confirmation_context config has been defined
-        has_extra_context = hasattr(
-            cms_config, "versioning_add_to_confirmation_context"
-        )
+        has_extra_context = hasattr(cms_config, "versioning_add_to_confirmation_context")
         has_models_to_register = hasattr(cms_config, "versioning")
         if not has_extra_context and not has_models_to_register:
             raise ImproperlyConfigured(
@@ -257,9 +252,11 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         return fields
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request)\
+        return (
+            super()
+            .get_queryset(request)
             .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
-        return queryset
+        )
 
     def copy_language(self, request, object_id):
         target_language = request.POST.get("target_language")
@@ -338,18 +335,18 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
 
 class VersioningCMSConfig(CMSAppConfig):
-    """Implement versioning for core cms models
-    """
+    """Implement versioning for core cms models"""
+
     cms_enabled = True
-    djangocms_versioning_enabled = getattr(
-        settings, "VERSIONING_CMS_MODELS_ENABLED", True
-    )
+    djangocms_versioning_enabled = getattr(settings, "VERSIONING_CMS_MODELS_ENABLED", True)
     versioning = [
         VersionableItem(
             content_model=PageContent,
             grouper_field_name="page",
             extra_grouping_fields=["language"],
-            version_list_filter_lookups={"language": get_language_tuple},
+            version_list_filter_lookups={
+                "language": lambda *args: get_language_tuple(site_id=get_current_site(args[0]).pk)
+            },
             copy_function=copy_page_content,
             grouper_selector_option_label=label_from_instance,
             on_publish=on_page_content_publish,

@@ -70,9 +70,9 @@ def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, ad
     admin_site.register(modeladmin.model, new_admin_class)
 
 
-def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site: admin.AdminSite | None = None):
+def replace_admin_for_models(pairs: Iterable[tuple[type[models.Model], type]], admin_site: admin.AdminSite | None = None):
     """
-    :param models: List of (model class, admin mixin class) tuples
+    :param pairs: Iterable of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance
     """
     if admin_site is None:

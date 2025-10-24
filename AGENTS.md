@@ -92,9 +92,9 @@ python manage.py compilemessages
 - **Line length**: 120 characters
 - **Import style**: Use `isort` via ruff (combine-as-imports = true)
 - **Code quality**: Follows ruff rules including pycodestyle, pyflakes, flake8-bugbear, and pyupgrade
-- **Type hints**: Prefer modern Python type annotations
-- **Django version**: Support Django 4.2, 5.0, 5.1, 5.2
-- **Python version**: Python 3.9+
+- **Type hints**: Prefer modern Python type annotations (PEP 604 union syntax: `X | Y` instead of `Union[X, Y]`)
+- **Django version**: Support Django 4.2, 5.0, 5.1, 5.2, 6.0
+- **Python version**: Python 3.10+
 
 ### JavaScript
 - **Linter**: ESLint (configured in .eslintrc.js)
@@ -161,8 +161,8 @@ djangocms-versioning/
 
 - Tests are in the `tests/` directory
 - Use Django's test framework
-- Test against multiple Python versions (3.9, 3.10, 3.11)
-- Test against multiple Django versions (4.2, 5.0, 5.1, 5.2)
+- Test against multiple Python versions (3.10, 3.11, 3.12, 3.13, 3.14)
+- Test against multiple Django versions (4.2, 5.0, 5.1, 5.2, 6.0)
 - Example implementation in `djangocms_versioning/test_utils/polls/`
 - Coverage configured to omit migrations, test utils, and tests themselves
 

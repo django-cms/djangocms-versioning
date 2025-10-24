@@ -1,5 +1,4 @@
 import json
-import typing
 import warnings
 from collections import OrderedDict
 from urllib.parse import urlparse

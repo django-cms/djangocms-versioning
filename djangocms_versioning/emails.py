@@ -1,4 +1,3 @@
-import typing
 from urllib.parse import urljoin
 
 from cms.toolbar.utils import get_object_preview_url

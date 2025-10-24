@@ -46,15 +46,15 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        pip install -e .
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system -e .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -97,15 +97,15 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -148,15 +148,15 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -183,17 +183,17 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python -m pip uninstall -y django-cms
-        python -m pip install ${{ matrix.cms-version }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip uninstall --system django-cms
+        uv pip install --system ${{ matrix.cms-version }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -218,17 +218,17 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python -m pip uninstall -y Django django-cms
-        python -m pip install ${{ matrix.cms-version }} ${{ matrix.django-version }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip uninstall --system Django django-cms
+        uv pip install --system ${{ matrix.cms-version }} ${{ matrix.django-version }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py

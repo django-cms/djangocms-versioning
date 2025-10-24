@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from copy import copy
-from typing import Optional
 
 from cms import __version__ as cms_version
 from cms.cms_toolbars import (
@@ -297,10 +296,10 @@ class VersioningPageToolbar(PageToolbar):
     """
 
     def __init__(self, *args, **kwargs):
-        self.page_content: Optional[PageContent] = None
+        self.page_content: PageContent | None = None
         super().__init__(*args, **kwargs)
 
-    def get_page_content(self, language: Optional[str] = None) -> PageContent:
+    def get_page_content(self, language: str | None = None) -> PageContent:
         # This method overwrites the method in django CMS core. Not necessary
         # for django CMS 4.2+
         if not language:

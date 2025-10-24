@@ -13,8 +13,8 @@ django CMS Versioning is a Django package that provides versioning capabilities 
 
 ### Testing
 ```bash
-# Install test dependencies
-pip install -r tests/requirements.txt
+# Install test dependencies (using uv for faster installation)
+uv pip install -r tests/requirements.txt
 
 # Run all tests
 python setup.py test
@@ -89,6 +89,7 @@ python manage.py compilemessages
 
 ### Python
 - **Linter**: ruff (configured in pyproject.toml)
+- **Package manager**: uv (for faster dependency installation in CI and local development)
 - **Line length**: 120 characters
 - **Import style**: Use `isort` via ruff (combine-as-imports = true)
 - **Code quality**: Follows ruff rules including pycodestyle, pyflakes, flake8-bugbear, and pyupgrade

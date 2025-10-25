@@ -11,7 +11,7 @@ from djangocms_versioning import models
 from djangocms_versioning.helpers import send_email
 
 
-def get_full_url(location: str, site: typing.Union[Site, None] = None) -> str:
+def get_full_url(location: str, site: Site | None = None) -> str:
     if not site:
         site = Site.objects.get_current()
 

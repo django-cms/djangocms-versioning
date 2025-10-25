@@ -321,7 +321,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         description=_("State"),
         ordering="content_state",
     )
-    def get_versioning_state(self, obj: models.Model) -> typing.Union[str, None]:
+    def get_versioning_state(self, obj: models.Model) -> str | None:
         """Returns verbose text of objects versioning state. This is a text column without user interaction.
         Typically, either ``get_versioning_state`` or ``state_indicator`` (provided by the
         :class:`~djangocms_versioning.admin.StateIndicatorMixin`) is used. The state indicator
@@ -335,7 +335,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         description=_("Author"),
         ordering="content_created_by_sort",
     )
-    def get_author(self, obj: models.Model) -> typing.Union[str, None]:
+    def get_author(self, obj: models.Model) -> str | None:
         """
         Return the author who created a version
         :param obj: Versioned grouper model instance annotated with its author username
@@ -349,7 +349,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         description=_("Modified"),
         ordering="content_modified",
     )
-    def get_modified_date(self, obj: models.Model) -> typing.Union[str, None]:
+    def get_modified_date(self, obj: models.Model) -> str | None:
         """
         Get the last modified date of a version
         :param obj: Versioned grouper model instance annotated with its modified datetime

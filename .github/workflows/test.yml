@@ -51,6 +51,12 @@ jobs:
       uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
+        sudo apt install gettext gcc -y
+        sudo apt install gettext gcc -y
+        sudo apt install gettext gcc -y
+        python -m pip install --upgrade pip uv
+        python -m pip install --upgrade pip uv
+        python -m pip install --upgrade pip uv
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
         uv pip install --system -e .
 

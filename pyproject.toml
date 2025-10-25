@@ -34,7 +34,6 @@ classifiers = [
     "Topic :: Software Development",
 ]
 dependencies = [
-    "Django>=6.0a1,<6.1",
     "django-cms>=4.1.1",
     "django-fsm<3",
     "packaging",

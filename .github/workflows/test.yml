@@ -99,6 +99,8 @@ jobs:
             python-version: "3.14"
           - requirements-file: dj52_cms50.txt
             python-version: "3.14"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.14"
 
     services:
       postgres:
@@ -165,6 +167,8 @@ jobs:
           - requirements-file: dj52_cms41.txt
             python-version: "3.14"
           - requirements-file: dj52_cms50.txt
+            python-version: "3.14"
+          - requirements-file: dj60_cms50.txt
             python-version: "3.14"
 
     services:

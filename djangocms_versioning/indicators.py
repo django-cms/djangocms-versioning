@@ -1,4 +1,4 @@
-import typing
+from __future__ import annotations
 
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth import get_permission_codename
@@ -92,8 +92,8 @@ def content_indicator_menu(request, status, versions, back=""):
 
 def content_indicator(
     content_obj: models.Model,
-    versions: typing.Optional[list[Version]] = None
-) -> typing.Optional[str]:
+    versions: list[Version] | None = None
+) -> str | None:
     """Translates available versions into status to be reflected by the indicator.
     Function caches the result in the page_content object"""
 

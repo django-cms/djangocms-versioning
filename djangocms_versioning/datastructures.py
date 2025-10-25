@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from collections.abc import Iterable
 from itertools import chain
-from typing import Any, Optional
+from typing import Any
 
 from cms.extensions.models import BaseExtension
 from cms.models import Placeholder, PlaceholderRelationField
@@ -16,7 +18,7 @@ from .models import Version
 class BaseVersionableItem:
     concrete = False
 
-    def __init__(self, content_model: type[models.Model], content_admin_mixin: Optional[type] = None):
+    def __init__(self, content_model: type[models.Model], content_admin_mixin: type | None = None):
         self.content_model = content_model
         self.content_admin_mixin = content_admin_mixin or VersioningAdminMixin
 
@@ -29,15 +31,15 @@ class VersionableItem(BaseVersionableItem):
         content_model: type[models.Model],
         grouper_field_name: str,
         copy_function: callable,
-        extra_grouping_fields: Optional[Iterable[str]] = None,
-        version_list_filter_lookups: Optional[dict[str, Any]] = None,
+        extra_grouping_fields: Iterable[str] | None = None,
+        version_list_filter_lookups: dict[str, Any] | None = None,
         on_publish=None,
         on_unpublish=None,
         on_draft_create=None,
         on_archive=None,
         grouper_selector_option_label=False,
-        grouper_admin_mixin: Optional[type] = None,
-        content_admin_mixin: Optional[type] = None,
+        grouper_admin_mixin: type | None = None,
+        content_admin_mixin: type | None = None,
         preview_url=None,
     ):
         super().__init__(content_model, content_admin_mixin)
@@ -161,7 +163,7 @@ class VersionableItem(BaseVersionableItem):
         cache_name = self.grouper_field.remote_field.get_accessor_name()
         return self.grouper_model._base_manager.prefetch_related(models.Prefetch(cache_name, queryset=content_objects))
 
-    def get_grouper_with_fallbacks(self, grouper_id) -> Optional[models.Model]:
+    def get_grouper_with_fallbacks(self, grouper_id) -> models.Model | None:
         return self.grouper_choices_queryset().filter(pk=grouper_id).first()
 
     def _get_content_types(self) -> set[int]:
@@ -193,7 +195,7 @@ class VersionableItemAlias(BaseVersionableItem):
     """
 
     def __init__(
-        self, content_model: type[models.Model], to: BaseVersionableItem, content_admin_mixin: Optional[type] = None
+        self, content_model: type[models.Model], to: BaseVersionableItem, content_admin_mixin: type | None = None
     ):
         super().__init__(content_model, content_admin_mixin)
         self.to = to

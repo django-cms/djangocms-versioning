@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from cms.utils.urlutils import admin_reverse
 from django.contrib.auth import get_permission_codename
 from django.db import models

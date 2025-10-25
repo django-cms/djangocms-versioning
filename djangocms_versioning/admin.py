@@ -1101,9 +1101,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         self.message_user(request, _("Version published"))
 
         # Redirect to published?
-        if conf.ON_PUBLISH_REDIRECT == "published":
-            if hasattr(version.content, "get_absolute_url"):
-                requested_redirect = requested_redirect or version.content.get_absolute_url()
+        if not requested_redirect and conf.ON_PUBLISH_REDIRECT == "published":
+            if hasattr(version.content, "get_full_url"):
+                full_url = version.content.get_full_url()
+                if full_url:
+                    # Can't resolve full_url, redirect directly to it
+                    return redirect(full_url)
+            elif hasattr(version.content, "get_absolute_url"):
+                requested_redirect = version.content.get_absolute_url()
 
         return self._internal_redirect(requested_redirect, redirect_url)
 

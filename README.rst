@@ -57,7 +57,9 @@ To run all the tests the only thing you need to do is run::
 Documentation
 =============
 
-We maintain documentation under the ``docs`` folder using rst format.
+The documentation is online on `readthedocs <https://djangocms-versioning.readthedocs.io>`_.
+
+We maintain documentation in this repository under the ``docs`` folder using rst format.
 
 To generate the HTML documentation you will need to install ``sphinx`` (``pip install sphinx``) and ``graphviz`` (as per your operating system's package management system). You can then generate the docs using the following command:
 

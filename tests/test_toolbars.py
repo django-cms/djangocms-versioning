@@ -497,17 +497,25 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
     @override_settings(CMS_LANGUAGES = {1: [{"code": "en", "name": "English"}]})
     def test_change_language_menu_page_toolbar_one_languages(self):
-        page_content = PageContentWithVersionFactory()
+        page_content = PageContentWithVersionFactory(content__language="en")
+        page = page_content.page
+
+        page.update_languages(["en"])
+
         request = self.get_page_request(
-            page=page_content.page,
+            page=page,
             path=get_object_edit_url(page_content),
             user=self.get_superuser(),
         )
         request.toolbar.set_object(page_content)
         request.toolbar.populate()
         request.toolbar.post_template_populate()
+
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        self.assertIsNone(language_menu)
+        self.assertIsNone(
+            language_menu,
+            "Language menu should not be created if the page has only one language."
+        )
 
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides
@@ -556,6 +564,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
 
+    
     @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
     def test_change_language_menu_page_toolbar_including_delete(self):
         """Check that patched PageToolbar.change_language_menu also provides

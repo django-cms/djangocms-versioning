@@ -37,6 +37,7 @@ from djangocms_versioning.helpers import (
 )
 from djangocms_versioning.models import Version
 
+
 VERSIONING_MENU_IDENTIFIER = "version"
 CMS_SUPPORTS_DELETING_TRANSLATIONS = version.Version(cms_version) > version.Version("4.1.4")
 CMS_ADDS_PREVIEW_BUTTON = version.Version(cms_version) >= version.Version("4.2")
@@ -448,11 +449,15 @@ class VersioningBasicToolbar(BasicToolbar):
             return
 
         languages = get_language_tuple(self.current_site.pk)
+        page_languages = self.request.current_page.get_languages()
         if len(languages) < 2:
             return  # No need to show the language menu if there is only one language
 
+        if len(page_languages) < 2:
+            return # No need to show language menu if current page has one language
+
         language_menu = self.toolbar.get_or_create_menu(
-            LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1
+            LANGUAGE_MENU_IDENTIFIER, _("Languages"), position=-1
         )
         for code, name in languages:
             # Get the page content, it could be draft too!

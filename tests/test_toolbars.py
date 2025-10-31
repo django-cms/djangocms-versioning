@@ -497,7 +497,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
 
     @override_settings(CMS_LANGUAGES = {1: [{"code": "en", "name": "English"}]})
     def test_change_language_menu_page_toolbar_one_languages(self):
-        page_content = PageContentWithVersionFactory(content__language="en")
+        page_content = PageContentWithVersionFactory(language="en")
         page = page_content.page
 
         page.update_languages(["en"])

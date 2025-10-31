@@ -51,7 +51,7 @@ Testing
 To run all the tests the only thing you need to do is run::
 
     pip install -r tests/requirements.txt
-    python setup.py test
+    python test_settings.py
 
 
 Documentation

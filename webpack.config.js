@@ -46,6 +46,7 @@ module.exports = function(opts) {
                             loader: 'babel-loader',
                             options: {
                                 presets: ['@babel/preset-env'],
+                                plugins: process.env.COVERAGE === 'true' ? ['istanbul'] : [],
                             },
                         },
                     ],

@@ -1,6 +1,13 @@
 {
   "name": "djangoCMS",
   "private": true,
+  "scripts": {
+    "bundle": "gulp bundle",
+    "bundle:coverage": "COVERAGE=true gulp bundle",
+    "e2e": "npm run bundle:coverage && playwright test && nyc report --reporter=text-summary",
+    "e2e:headed": "npm run bundle:coverage && playwright test --headed",
+    "e2e:coverage:report": "nyc report --reporter=lcov --report-dir=coverage-e2e"
+  },
   "devDependencies": {
     "@babel/core": "^7.23.5",
     "@babel/eslint-parser": "^7.23.3",
@@ -8,6 +15,7 @@
     "@babel/preset-env": "^7.23.5",
     "autoprefixer": "^10.4.16",
     "babel-loader": "^10.0.0",
+  "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-lodash": "^3.3.4",
     "babel-plugin-rewire": "^1.2.0",
     "browserslist-saucelabs": "^0.3.0",
@@ -25,9 +33,11 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-util": "^1.0.0",
     "imports-loader": "^5.0.0",
+    "nyc": "^15.1.0",
     "minimist": "^1.2.8",
     "postcss-loader": "^8.2.0",
-    "webpack": "^5.89.0"
+    "webpack": "^5.89.0",
+    "@playwright/test": "^1.49.0"
   },
   "dependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
@@ -44,5 +54,17 @@
     "last 2 Firefox versions",
     "last 2 Safari versions",
     "last 2 Edge versions"
-  ]
+  ],
+  "nyc": {
+    "reporter": ["lcov", "text-summary"],
+    "report-dir": "coverage-e2e",
+    "exclude": [
+      "tests/**",
+      "coverage/**",
+      "coverage-e2e/**",
+      "djangocms_versioning/static/djangocms_versioning/js/dist/**",
+      "djangocms_versioning/static/djangocms_versioning/js/libs/**",
+      "djangocms_versioning/static/djangocms_versioning/js/libs/api/**"
+    ]
+  }
 }

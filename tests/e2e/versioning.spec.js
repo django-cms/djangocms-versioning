@@ -19,7 +19,21 @@ function createServer(rootDir) {
       return;
     }
     // static files
-    const filePath = path.join(rootDir, decodeURIComponent(req.url.split('?')[0]));
+    let rawPath = decodeURIComponent(req.url.split('?')[0]);
+    let resolvedPath = path.resolve(rootDir, '.' + rawPath); // prevent rootDir + "/etc/passwd"
+    let filePath;
+    try {
+      filePath = fs.realpathSync(resolvedPath);
+    } catch (e) {
+      res.writeHead(404);
+      res.end('Not Found');
+      return;
+    }
+    if (!filePath.startsWith(rootDir)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
     fs.readFile(filePath, (err, data) => {
       if (err) {
         res.writeHead(404);

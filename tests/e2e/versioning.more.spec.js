@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 function createServer(rootDir) {
+  const realRoot = fs.realpathSync(rootDir);
   const server = http.createServer((req, res) => {
     if (req.url.startsWith('/api/v1')) {
       res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -15,18 +16,30 @@ function createServer(rootDir) {
       res.end('<html><body><div id="content">Draft V2</div></body></html>');
       return;
     }
-    const filePath = path.join(rootDir, decodeURIComponent(req.url.split('?')[0]));
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end('Not Found');
+    try {
+      const requestPath = decodeURIComponent(req.url.split('?')[0]);
+      const absPath = path.resolve(realRoot, '.' + requestPath);
+      const realPath = fs.realpathSync(absPath);
+      if (!realPath.startsWith(realRoot)) {
+        res.writeHead(403);
+        res.end('Forbidden');
         return;
       }
-      const ext = path.extname(filePath);
-      const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css' };
-      res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream' });
-      res.end(data);
-    });
+      fs.readFile(realPath, (err, data) => {
+        if (err) {
+          res.writeHead(404);
+          res.end('Not Found');
+          return;
+        }
+        const ext = path.extname(realPath);
+        const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css' };
+        res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream' });
+        res.end(data);
+      });
+    } catch (e) {
+      res.writeHead(400);
+      res.end('Bad Request');
+    }
   });
   return server;
 }

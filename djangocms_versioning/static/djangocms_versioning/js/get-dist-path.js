@@ -1,16 +1,16 @@
-var getDistPath = function(scriptFileName) {
-    var fileNameReplaceRegExp = new RegExp(scriptFileName + '.*$', 'gi');
+const getDistPath = function(scriptFileName) {
+    const fileNameReplaceRegExp = new RegExp(scriptFileName + '.*$', 'gi');
 
     if (document.currentScript) {
         return document.currentScript.src.replace(fileNameReplaceRegExp, '');
     }
-    var scripts;
-    var scriptUrl;
-    var getSrc = function(listOfScripts, attr) {
-        var fileName;
-        var scriptPath;
+    let scripts;
+    let scriptUrl;
+    const getSrc = function(listOfScripts, attr) {
+        let fileName;
+        let scriptPath;
 
-        for (var i = 0; i < listOfScripts.length; i++) {
+        for (let i = 0; i < listOfScripts.length; i++) {
             scriptPath = null;
             if (listOfScripts[i].getAttribute.length !== undefined) {
                 scriptPath = listOfScripts[i].getAttribute(attr, 2);
@@ -34,4 +34,4 @@ var getDistPath = function(scriptFileName) {
     return '';
 };
 
-module.exports = getDistPath;
+export default getDistPath;

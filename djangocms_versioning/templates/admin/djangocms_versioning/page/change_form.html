@@ -13,7 +13,7 @@
 {% block content_title %}
     {% if title %}<h1>{{ title }}{% if original %} - {{ original.versions.first.short_name }}{% endif %}</h1>{% endif %}
     {% block object-tools %}
-        {% if not popup and not add %}
+        {% if not is_popup and not add %}
              <ul class="object-tools hide-in-modal">
                 {% block object-tools-items %}
                     {% include "admin/djangocms_versioning/versioning_buttons.html" %}

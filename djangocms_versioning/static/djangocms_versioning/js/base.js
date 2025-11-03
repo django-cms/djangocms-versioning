@@ -1,39 +1,39 @@
 import diff from 'htmldiff';
-import $ from 'jquery';
 import srcDoc from 'srcdoc-polyfill';
 import memoize from 'lodash.memoize';
 import { showLoader, hideLoader } from './loader';
 import { getData } from './utils';
+import getDistPath from './get-dist-path';
+import versioningCSS from '../css/versioning.css';
 
 const memoizedDiff = memoize(diff);
 
-// eslint-disable-next-line
-__webpack_public_path__ = require('./get-dist-path')('bundle.versioning');
+
+__webpack_public_path__ = getDistPath('bundle.versioning');
 
 const getCurrentMarkup = () => {
-    return $.ajax({
-        url: getData('v2_url')
-    }).then(markup => markup);
+    return fetch(getData('v2_url'))
+        .then(response => response.text());
 };
 
 const getPublishedMarkup = () => {
-    return $.ajax({
-        url: getData('v1_url')
-    }).then(markup => markup);
+    return fetch(getData('v1_url'))
+        .then(response => response.text());
 };
 
 const getOrAddFrame = () => {
-    let frame = $('.js-cms-versioning-diff-frame');
+    let frame = document.querySelector('.js-cms-versioning-diff-frame');
 
-    if (frame.length) {
-        return frame[0];
+    if (frame) {
+        return frame;
     }
 
-    frame = $('<iframe class="js-cms-versioning-diff-frame cms-versioning-diff-frame"></iframe>');
+    frame = document.createElement('iframe');
+    frame.className = 'js-cms-versioning-diff-frame cms-versioning-diff-frame';
 
-    $('#cms-top').append(frame);
+    document.getElementById('cms-top').appendChild(frame);
 
-    return frame[0];
+    return frame;
 };
 
 const switchVersion = version => {
@@ -71,7 +71,10 @@ const showVisual = () => {
 
         var newDoc = new DOMParser().parseFromString(result, 'text/html');
 
-        $(newDoc).find('body').append(`<style>${require('../css/versioning.css')}</style>`);
+        const styleElement = document.createElement('style');
+
+        styleElement.textContent = versioningCSS;
+        newDoc.body.appendChild(styleElement);
 
         srcDoc.set(frame, newDoc.documentElement.outerHTML);
     });
@@ -95,50 +98,59 @@ const showSource = () => {
 
         var newDoc = new DOMParser().parseFromString(markup, 'text/html');
 
-        $(newDoc).find('head').append(`
-            <script>
-                ${prettydiff.default.js}
-            </script>
-            <style>
-                ${prettydiff.default.styles}
-            </style>
-        `);
+        const scriptElement = document.createElement('script');
+
+        scriptElement.textContent = prettydiff.default.js;
+        newDoc.head.appendChild(scriptElement);
+
+        const styleElement = document.createElement('style');
+
+        styleElement.textContent = prettydiff.default.styles;
+        newDoc.head.appendChild(styleElement);
 
         srcDoc.set(frame, newDoc.documentElement.outerHTML);
     });
 };
 
 const initControls = () => {
-    $('.js-cms-versioning-control-visual').on('click', e => {
-        e.preventDefault();
-        const button = $(e.currentTarget);
+    document.querySelectorAll('.js-cms-versioning-control-visual').forEach(button => {
+        button.addEventListener('click', e => {
+            e.preventDefault();
 
-        if (button.is('.cms-btn-active')) {
-            return;
-        }
+            if (button.classList.contains('cms-btn-active')) {
+                return;
+            }
 
-        $('.js-cms-versioning-control').removeClass('cms-btn-active');
-        button.addClass('cms-btn-active');
+            document.querySelectorAll('.js-cms-versioning-control').forEach(el => {
+                el.classList.remove('cms-btn-active');
+            });
+            button.classList.add('cms-btn-active');
 
-        showVisual();
+            showVisual();
+        });
     });
 
-    $('.js-cms-versioning-control-source').on('click', e => {
-        e.preventDefault();
-        const button = $(e.currentTarget);
+    document.querySelectorAll('.js-cms-versioning-control-source').forEach(button => {
+        button.addEventListener('click', e => {
+            e.preventDefault();
 
-        if (button.is('.cms-btn-active')) {
-            return;
-        }
+            if (button.classList.contains('cms-btn-active')) {
+                return;
+            }
 
-        $('.js-cms-versioning-control').removeClass('cms-btn-active');
-        button.addClass('cms-btn-active');
+            document.querySelectorAll('.js-cms-versioning-control').forEach(el => {
+                el.classList.remove('cms-btn-active');
+            });
+            button.classList.add('cms-btn-active');
 
-        showSource();
+            showSource();
+        });
     });
 
-    $('.js-cms-versioning-version').on('change', e => {
-        switchVersion(e.target.value);
+    document.querySelectorAll('.js-cms-versioning-version').forEach(select => {
+        select.addEventListener('change', e => {
+            switchVersion(e.target.value);
+        });
     });
 };
 
@@ -147,7 +159,7 @@ const initControls = () => {
 const breakOutOfAnIframe = () => {
     try {
         window.top.CMS.API.Sideframe.close();
-    } catch (e) {}
+    } catch {}
     setTimeout(function () {
         if (window.parent && window.parent !== window) {
             window.top.location.href = window.location.href;
@@ -155,9 +167,15 @@ const breakOutOfAnIframe = () => {
     }, 0);
 };
 
-const showControls = () => $('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group').show();
+const showControls = () => {
+    const controlsElement = document.querySelector('.cms-versioning-controls .cms-toolbar-item-buttons .cms-btn-group');
 
-$(function() {
+    if (controlsElement) {
+        controlsElement.style.display = 'block';
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
     breakOutOfAnIframe();
     initControls();
 

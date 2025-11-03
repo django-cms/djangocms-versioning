@@ -4,7 +4,7 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var plumber = require('gulp-plumber');
 var gulpif = require('gulp-if');
-var eslint = require('gulp-eslint');
+var eslint = require('gulp-eslint-new');
 var webpack = require('webpack');
 
 var argv = require('minimist')(process.argv.slice(2)); // eslint-disable-line
@@ -34,7 +34,6 @@ var PROJECT_PATTERNS = {
     ]
 };
 
-gulp.task('lint', ['lint:javascript']);
 gulp.task('lint:javascript', function () {
     // DOCS: http://eslint.org
     return gulp.src(PROJECT_PATTERNS.js)
@@ -44,6 +43,8 @@ gulp.task('lint:javascript', function () {
         .pipe(eslint.failAfterError())
         .pipe(gulpif(!process.env.CI, plumber.stop()));
 });
+
+gulp.task('lint', gulp.series('lint:javascript'));
 
 var webpackBundle = function (opts) {
     var webpackOptions = opts || {};
@@ -56,9 +57,19 @@ var webpackBundle = function (opts) {
 
         webpack(config, function (err, stats) {
             if (err) {
-                throw new gutil.PluginError('webpack', err);
+                console.error('[webpack] Error:', err);
+                if (done) {
+                    done(err);
+                }
+                return;
             }
-            gutil.log('[webpack]', stats.toString({ maxModules: Infinity, colors: true, optimizationBailout: true }));
+            console.log('[webpack]', stats.toString({
+                colors: true,
+                modules: false,
+                children: false,
+                chunks: false,
+                chunkModules: false
+            }));
             if (typeof done !== 'undefined' && (!opts || !opts.watch)) {
                 done();
             }
@@ -68,11 +79,12 @@ var webpackBundle = function (opts) {
 
 gulp.task('bundle:watch', webpackBundle({ watch: true }));
 gulp.task('bundle', webpackBundle());
-gulp.task('build', ['bundle']);
+gulp.task('build', gulp.series('bundle'));
 
-gulp.task('watch', function () {
-    gulp.start('bundle:watch');
-    gulp.watch(PROJECT_PATTERNS.js, ['lint']);
+gulp.task('watch', function (done) {
+    gulp.series('bundle:watch')();
+    gulp.watch(PROJECT_PATTERNS.js, gulp.series('lint'));
+    done();
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', gulp.series('watch'));

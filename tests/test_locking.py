@@ -3,7 +3,7 @@ from unittest import skip
 from cms.models import PlaceholderRelationField
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.items import TemplateItem
-from cms.toolbar.utils import get_object_preview_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_current_site
 from django.contrib import admin
 from django.contrib.auth.models import Permission
@@ -129,6 +129,132 @@ class AdminPermissionTestCase(CMSTestCase):
 
         self.assertIsNotNone(version.locked_by)  # Was locked
         self.assertEqual(response.status_code, 403)
+
+    def test_editor_without_delete_versionlock_permission_can_edit_unlocked_content(self):
+        """
+        Non-superuser editors with delete_versionlock permission can access edit mode
+        of unlocked content. This test verifies the fix for the issue where editors
+        without delete_versionlock permission were unable to access edit mode even
+        with appropriate change permissions.
+        """
+        # Create an editor user with change permissions and no delete_versionlock permission
+        editor = self._create_user(
+            "editor_without_unlock",
+            is_staff=True,
+            is_superuser=False,
+            permissions=["change_pollcontentversion"],
+        )
+
+        # Create a version without a lock (unlocked)
+        version = factories.PageVersionFactory(state=DRAFT, locked_by=None)
+
+        # Editor should be able to access the edit view
+        url = get_object_edit_url(version.content)
+
+        with self.login_user_context(editor):
+            response = self.client.get(url)
+
+        # Should succeed with 200 status - this is the key test
+        # Without delete_versionlock permission, this would return 403
+        self.assertEqual(response.status_code, 200)
+
+    def test_editor_without_delete_versionlock_permission_can_edit_their_locked_content(self):
+        """
+        Non-superuser editors with delete_versionlock permission can access edit mode
+        of unlocked content. This test verifies the fix for the issue where editors
+        without delete_versionlock permission were unable to access edit mode even
+        with appropriate change permissions.
+        """
+        # Create an editor user with change permissions and no delete_versionlock permission
+        editor = self._create_user(
+            "editor_without_unlock",
+            is_staff=True,
+            is_superuser=False,
+            permissions=["change_pollcontentversion"],
+        )
+
+        # Create a version without a lock (unlocked)
+        version = factories.PageVersionFactory(state=DRAFT, locked_by=editor)
+
+        # Editor should be able to access the edit view
+        url = get_object_edit_url(version.content)
+
+        with self.login_user_context(editor):
+            response = self.client.get(url)
+
+        # Should succeed with 200 status - this is the key test
+        # Without delete_versionlock permission, this would return 403
+        self.assertEqual(response.status_code, 200)
+
+    def test_editor_without_delete_versionlock_permission_cannot_edit_others_content(self):
+        """
+        Non-superuser editors without delete_versionlock permission cannot access
+        edit mode of content locked by another user. This is the expected behavior
+        that was causing issues when users didn't have the delete_versionlock permission.
+        """
+        # Create an editor user without delete_versionlock permission
+        editor_without_unlock = self._create_user(
+            "editor_without_unlock",
+            is_staff=True,
+            is_superuser=False,
+            permissions=["change_pollcontentversion"],
+        )
+
+        # Create a version locked by another user
+        author = factories.UserFactory(is_staff=True)
+        version = factories.PageVersionFactory(
+            state=DRAFT,
+            created_by=author,
+            locked_by=author
+        )
+
+        # Editor without unlock permission should not be able to access edit view
+        url = get_object_edit_url(version.content)
+
+        with self.login_user_context(editor_without_unlock):
+            response = self.client.get(url)
+
+        # Should be denied with 302 status -> redirect to preview
+        self.assertEqual(response.status_code, 302)
+
+        # Version should still be locked by the original author
+        updated_version = Version.objects.get(pk=version.pk)
+        self.assertEqual(updated_version.locked_by, author)
+
+    def test_editor_with_delete_versionlock_permission_can_edit_others_content(self):
+        """
+        Non-superuser editors without delete_versionlock permission cannot access
+        edit mode of content locked by another user. This is the expected behavior
+        that was causing issues when users didn't have the delete_versionlock permission.
+        """
+        # Create an editor user without delete_versionlock permission
+        editor_with_unlock = self._create_user(
+            "editor_with_unlock",
+            is_staff=True,
+            is_superuser=False,
+            permissions=["delete_versionlock"],
+        )
+
+        # Create a version locked by another user
+        author = factories.UserFactory(is_staff=True)
+        version = factories.PageVersionFactory(
+            state=DRAFT,
+            created_by=author,
+            locked_by=author
+        )
+
+        # Editor without unlock permission should not be able to access edit view
+        url = get_object_edit_url(version.content)
+
+        with self.login_user_context(editor_with_unlock):
+            response = self.client.get(url)
+
+        # Should be redirected with 302 status since user first must unlock
+        self.assertEqual(response.status_code, 302)
+
+        # Version should still be locked by the original author
+        updated_version = Version.objects.get(pk=version.pk)
+        self.assertEqual(updated_version.locked_by, author)
 
 
 @override_settings(DJANGOCMS_VERSIONING_LOCK_VERSIONS=True)

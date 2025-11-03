@@ -80,7 +80,12 @@ def draft_is_locked(message: str) -> callable:
 
 def user_can_unlock(message: str) -> callable:
     def inner(version, user):
-        if not user.has_perm("djangocms_versioning.delete_versionlock"):
+        if conf.LOCK_VERSIONS:
+            if user.has_perm("djangocms_versioning.delete_versionlock"):
+                return
+            draft_version = get_latest_draft_version(version)
+            if draft_version and (draft_version.locked_by == user or draft_version.locked_by is  None):
+                return
             raise ConditionFailed(message)
     return inner
 

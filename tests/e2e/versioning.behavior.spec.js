@@ -15,14 +15,21 @@ function createServer(rootDir) {
       res.end('<html><body><div id="content">Draft V2</div></body></html>');
       return;
     }
-    const filePath = path.join(rootDir, decodeURIComponent(req.url.split('?')[0]));
-    fs.readFile(filePath, (err, data) => {
+    // Normalize and validate the file path
+    const requestedPath = decodeURIComponent(req.url.split('?')[0]);
+    const safePath = path.resolve(rootDir, "." + requestedPath); // ensure requestedPath is not absolute
+    if (!safePath.startsWith(rootDir)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    fs.readFile(safePath, (err, data) => {
       if (err) {
         res.writeHead(404);
         res.end('Not Found');
         return;
       }
-      const ext = path.extname(filePath);
+      const ext = path.extname(safePath);
       const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css' };
       res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream' });
       res.end(data);

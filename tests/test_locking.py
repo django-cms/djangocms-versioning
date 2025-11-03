@@ -154,8 +154,7 @@ class AdminPermissionTestCase(CMSTestCase):
         with self.login_user_context(editor):
             response = self.client.get(url)
 
-        # Should succeed with 200 status - this is the key test
-        # Without delete_versionlock permission, this would return 403
+        # Should succeed with 200 status
         self.assertEqual(response.status_code, 200)
 
     def test_editor_without_delete_versionlock_permission_can_edit_their_locked_content(self):

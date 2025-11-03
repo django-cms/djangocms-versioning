@@ -142,7 +142,7 @@ class AdminPermissionTestCase(CMSTestCase):
             "editor_without_unlock",
             is_staff=True,
             is_superuser=False,
-            permissions=["change_pollcontentversion"],
+            permissions=["change_page"],
         )
 
         # Create a version without a lock (unlocked)
@@ -169,7 +169,7 @@ class AdminPermissionTestCase(CMSTestCase):
             "editor_without_unlock",
             is_staff=True,
             is_superuser=False,
-            permissions=["change_pollcontentversion"],
+            permissions=["change_page"],
         )
 
         # Create a version without a lock (unlocked)
@@ -196,7 +196,7 @@ class AdminPermissionTestCase(CMSTestCase):
             "editor_without_unlock",
             is_staff=True,
             is_superuser=False,
-            permissions=["change_pollcontentversion"],
+            permissions=["change_page"],
         )
 
         # Create a version locked by another user
@@ -231,7 +231,7 @@ class AdminPermissionTestCase(CMSTestCase):
             "editor_with_unlock",
             is_staff=True,
             is_superuser=False,
-            permissions=["delete_versionlock"],
+            permissions=["delete_versionlock", "change_page"],
         )
 
         # Create a version locked by another user

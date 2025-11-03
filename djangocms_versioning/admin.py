@@ -1365,7 +1365,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             raise Http404
 
         # Check that the user has unlock permission
-        if not request.user.has_perm("djangocms_versioning.delete_versionlock"):
+        if not request.user.has_perm(f"{self.model._meta.app_label}.delete_versionlock"):
             return HttpResponseForbidden(force_str(_("You do not have permission to remove the version lock")))
 
         # Unlock the version

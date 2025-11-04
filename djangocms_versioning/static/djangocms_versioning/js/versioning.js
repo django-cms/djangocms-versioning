@@ -1,5 +1,6 @@
 (function() {
-    var firstChecked, lastChecked;
+    let firstChecked;
+    let lastChecked;
 
     function handleVersionSelection(event) {
         if (firstChecked instanceof HTMLInputElement && firstChecked.checked) {
@@ -19,19 +20,20 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function(){
-        var selectedVersions = document.querySelectorAll('#result_list input[type="checkbox"].action-select');
-        var selectElement = document.querySelector('#changelist-form select[name="action"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectedVersions = document.querySelectorAll('#result_list input[type="checkbox"].action-select');
+        const selectElement = document.querySelector('#changelist-form select[name="action"]');
+
         if (selectElement instanceof HTMLSelectElement) {
-            for (var i = 0; i < selectElement.options.length; i++) {
+            for (let i = 0; i < selectElement.options.length; i++) {
                 if (selectElement.options[i].value && selectElement.options[i].value !== 'compare_versions') {
                     // for future safety: do not restrict on two selected versions, since there might be other actions
                     return;
                 }
             }
         }
-        selectedVersions.forEach(function(selectedVersion){
+        selectedVersions.forEach(function(selectedVersion) {
             selectedVersion.addEventListener('change', handleVersionSelection);
         });
     });
- })();
+})();

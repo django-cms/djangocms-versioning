@@ -16,3 +16,7 @@ htmlcov/
 !djangocms_versioning/static/djangocms_versioning/js/dist
 docs/_build/
 node_modules
+coverage-e2e/
+.nyc_output/
+playwright-report/
+test-results/

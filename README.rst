@@ -14,6 +14,8 @@ Requirements
 
 django CMS Versioning requires that you have a django CMS 4.0 (or higher) project already running and set up.
 
+Note: This package uses `django-fsm-2 <https://github.com/django-commons/django-fsm-2>`_ (actively maintained by Django Commons) instead of the original `django-fsm <https://github.com/viewflow/django-fsm>`_ for better support and maintenance.
+
 
 To install
 ==========

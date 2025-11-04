@@ -150,6 +150,7 @@ djangocms-versioning/
 - Django >= 4.2
 - django-cms >= 4.1.1
 - django-fsm < 3
+- django-fsm-2==4.1.0
 - packaging
 
 ### JavaScript

@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 from cms.utils.urlutils import admin_reverse
-from django.contrib.auth import get_permission_codename
 from django.db import models
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -21,10 +18,13 @@ def _reverse_action(version, action, back=None):
 def content_indicator_menu(request, status, versions, back=""):
     from djangocms_versioning.helpers import version_list_url
 
+    has_change_perm =versions[0].has_change_permission(request.user)
+    delete_versionlock_perm = f"{versions[0]._meta.app_label}.delete_versionlock"
+
     menu = []
-    if request.user.has_perm(f"cms.{get_permission_codename('change', versions[0]._meta)}"):
+    if has_change_perm:
         if versions[0].check_unlock.as_bool(request.user):
-            can_unlock = request.user.has_perm("djangocms_versioning.delete_versionlock")
+            can_unlock = request.user.has_perm(delete_versionlock_perm)
             # disable if permissions are insufficient
             additional_class = "" if can_unlock else " cms-pagetree-dropdown-item-disabled"
             menu.append((

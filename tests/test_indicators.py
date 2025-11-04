@@ -1,6 +1,8 @@
+from cms.models import GlobalPagePermission, Site
 from cms.test_utils.testcases import CMSTestCase
 from cms.utils.urlutils import admin_reverse
 
+from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import get_latest_admin_viewable_content
 from djangocms_versioning.models import Version
 from djangocms_versioning.test_utils.blogpost.admin import BlogContentAdmin
@@ -88,26 +90,50 @@ class TestVersionState(CMSTestCase):
     def test_page_indicators(self):
         """The page content indicators render correctly"""
         page = PageFactory(node__depth=1) if TreeNode else PageFactory(depth=1)
+        user = self._create_user(
+            "albert",
+            is_staff=True,
+            is_superuser=False,
+            permissions=["change_version", "change_page", "publish_page"]
+        )
+        gpp = GlobalPagePermission.objects.create(
+            user=user,
+            can_add=True,
+            can_change=True,
+            can_delete=True,
+            can_publish=True,
+            can_move_page=True,
+            can_change_permissions=True,
+            can_view=True,
+        )
+        gpp.sites.set([Site.objects.get_current()])
         version1 = PageVersionFactory(
             content__page=page,
             content__language="en",
+            locked_by=None,
         )
         pk = version1.pk
 
         page_tree = admin_reverse("cms_pagecontent_get_tree")
-        with self.login_user_context(self.get_superuser()):
+        with self.login_user_context(user):
             # New page has draft version, nothing else
             response = self.client.get(page_tree, {"language": "en"})
+            # Check markers
             self.assertNotContains(response, "cms-pagetree-node-state-empty")
             self.assertContains(response, "cms-pagetree-node-state-draft")
             self.assertNotContains(response, "cms-pagetree-node-state-published")
             self.assertNotContains(response, "cms-pagetree-node-state-dirty")
             self.assertNotContains(response, "cms-pagetree-node-state-unpublished")
+            # Check actions
+            self.assertContains(response, "Manage Versions...")
+            self.assertContains(response, "Publish")
 
             # Now archive
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_archive",
                                                       args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
+            self.assertEqual(Version.objects.get(pk=pk).state, ARCHIVED)
+
             # Is archived indicator? No draft indicator
             response = self.client.get(page_tree, {"language": "en"})
             self.assertContains(response, "cms-pagetree-node-state-archived")
@@ -117,21 +143,26 @@ class TestVersionState(CMSTestCase):
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
+            pk = Version.objects.filter_by_content_grouping_values(version1.content).order_by("-pk")[0].pk
+            self.assertEqual(Version.objects.get(pk=pk).state, DRAFT)
+
             # Is draft indicator? No archived indicator
             response = self.client.get(page_tree, {"language": "en"})
             self.assertContains(response, "cms-pagetree-node-state-draft")
             self.assertNotContains(response, "cms-pagetree-node-state-archived")
             # New draft was created, get new pk
-            pk = Version.objects.filter_by_content_grouping_values(version1.content).order_by("-pk")[0].pk
 
             # Now publish
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_publish",
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
+            self.assertEqual(Version.objects.get(pk=pk).state, PUBLISHED)
             # Is published indicator? No draft indicator
             response = self.client.get(page_tree, {"language": "en"})
             self.assertContains(response, "cms-pagetree-node-state-published")
             self.assertNotContains(response, "cms-pagetree-node-state-draft")
+            # Check actions
+            self.assertContains(response, "Unpublish")
 
             # Now unpublish
             response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_unpublish",

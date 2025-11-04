@@ -1,4 +1,3 @@
-import typing
 
 from django.conf import settings
 
@@ -11,7 +10,7 @@ class Conditions(list):
     def __add__(self, other: list) -> "Conditions":
         return Conditions(super().__add__(other))
 
-    def __get__(self, instance: object, cls) -> typing.Union["Conditions", "BoundConditions"]:
+    def __get__(self, instance: object, cls) -> "Conditions | BoundConditions":
         if instance:
             return BoundConditions(self, instance)
         return self
@@ -80,7 +79,12 @@ def draft_is_locked(message: str) -> callable:
 
 def user_can_unlock(message: str) -> callable:
     def inner(version, user):
-        if not user.has_perm("djangocms_versioning.delete_versionlock"):
+        if conf.LOCK_VERSIONS:
+            if user.has_perm(f"{version._meta.app_label}.delete_versionlock"):
+                return
+            draft_version = get_latest_draft_version(version)
+            if draft_version and (draft_version.locked_by == user or draft_version.locked_by is  None):
+                return
             raise ConditionFailed(message)
     return inner
 

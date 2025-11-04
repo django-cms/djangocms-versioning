@@ -1,9 +1,7 @@
-import $ from 'jquery';
-
 let data;
 
-$(function () {
-    data = $('#cms-top').data('compare');
+document.addEventListener('DOMContentLoaded', function() {
+    data = JSON.parse(document.getElementById('cms-top').dataset.compare);
 });
 
 export const getData = prop => data && data[prop];

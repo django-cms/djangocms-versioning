@@ -12,6 +12,7 @@ module.exports = function(opts) {
     }
 
     var baseConfig = {
+        mode: debug ? 'development' : 'production',
         devtool: false,
         watch: !!opts.watch,
         entry: {
@@ -22,7 +23,11 @@ module.exports = function(opts) {
             path: PROJECT_PATH.js + '/dist/',
             filename: 'bundle.[name].min.js',
             chunkFilename: 'bundle.[name].min.js',
-            jsonpFunction: 'versioningWebpackJsonp',
+        },
+        performance: {
+            hints: false,
+            maxEntrypointSize: 512000,
+            maxAssetSize: 512000
         },
         plugins: [],
         resolve: {
@@ -40,7 +45,8 @@ module.exports = function(opts) {
                         {
                             loader: 'babel-loader',
                             options: {
-                                retainLines: true,
+                                presets: ['@babel/preset-env'],
+                                plugins: process.env.COVERAGE === 'true' ? ['istanbul'] : [],
                             },
                         },
                     ],
@@ -48,11 +54,7 @@ module.exports = function(opts) {
                 },
                 {
                     test: /(.html$|api\/dom)/,
-                    use: [
-                        {
-                            loader: 'raw-loader',
-                        },
-                    ],
+                    type: 'asset/source',
                 },
                 {
                     test: /(.css$)/,
@@ -63,25 +65,34 @@ module.exports = function(opts) {
                         {
                             loader: 'postcss-loader',
                             options: {
-                                plugins: () => [
-                                    require('autoprefixer')({
-                                        browsers: ['last 2 versions', '> 1%'],
-                                    }),
-                                    require('cssnano')(),
-                                ],
+                                postcssOptions: {
+                                    plugins: [
+                                        require('autoprefixer'),
+                                        require('cssnano')(),
+                                    ],
+                                },
                             },
                         },
                     ],
                 },
             ],
         },
-        stats: 'verbose',
+        stats: {
+            preset: 'normal',
+            reasons: false,
+            modulesSpace: 15,
+            errorDetails: true
+        },
+        optimization: {
+            concatenateModules: true,
+            providedExports: true,
+            usedExports: true
+        }
     };
 
     if (debug) {
-        baseConfig.devtool = 'cheap-module-eval-source-map';
+        baseConfig.devtool = 'cheap-module-source-map';
         baseConfig.plugins = baseConfig.plugins.concat([
-            new webpack.NoEmitOnErrorsPlugin(),
             new webpack.DefinePlugin({
                 __DEV__: 'true',
             }),
@@ -90,13 +101,6 @@ module.exports = function(opts) {
         baseConfig.plugins = baseConfig.plugins.concat([
             new webpack.DefinePlugin({
                 __DEV__: 'false',
-            }),
-            new webpack.optimize.ModuleConcatenationPlugin(),
-            new webpack.optimize.UglifyJsPlugin({
-                comments: false,
-                compressor: {
-                    drop_console: true, // eslint-disable-line
-                },
             }),
         ]);
     }

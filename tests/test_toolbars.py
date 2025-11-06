@@ -10,6 +10,7 @@ from cms.utils.urlutils import admin_reverse
 from django.contrib.auth.models import Permission
 from django.test import override_settings
 from django.utils.text import slugify
+from djangocms_versioning import cms_toolbars
 from packaging.version import Version
 
 from djangocms_versioning.cms_config import VersioningCMSConfig
@@ -527,6 +528,33 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn(f"cms_page={page.pk}", item.url)
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
+
+    @patch("cms_toolbars.ALLOW_DELETING_VERSIONS", True)
+    @patch("cms_toolbars.CMS_SUPPORTS_DELETING_TRANSLATIONS", True)
+    def test_language_menu_in_non_edit_mode(self):
+        version = PageVersionFactory(content__language="en")
+        PageContentWithVersionFactory(page=version.content.page, language="de")
+        PageContentWithVersionFactory(page=version.content.page, language="it")
+        page = version.content.page
+        page.update_languages(["en", "de", "it"])
+
+        request = self.get_page_request(
+            page=page,
+            path=get_object_preview_url(version.content),
+            user=self.get_superuser(),
+        )
+        request.toolbar.set_object(version.content)
+        request.toolbar.populate()
+        request.toolbar.post_template_populate()
+
+        language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+        # 3 out of 4 populated languages, Break, Add Translation menu, Delete Translation
+        self.assertEqual(language_menu.get_item_count(), 6)
+
+        language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
+        self.assertIn("Add Translation", language_menu_dict.keys())
+        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
+        self.assertIn("Delete Translation", language_menu_dict.keys())
 
     @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
     def test_change_language_menu_page_toolbar_including_delete(self):

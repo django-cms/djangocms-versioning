@@ -30,13 +30,14 @@ except ImportError:
     emit_content_change = None
 
 try:
-    from cms.toolbar.utils import get_object_live_url
-    from cms.utils import get_current_site
-except ImportError:  # cms < 5.1
+    # django CMS >= 5.1
+    from cms.toolbar.utils import get_object_live_url  # noqa F401
+    from cms.utils import get_current_site  # noqa F401
+except ImportError:
+    # cms < 5.1
     def get_object_live_url(obj, language=None, site=None) -> str:
         with force_language(language):
             return obj.get_absolute_url()
-        return None
 
     def get_current_site(request) -> models.Model:
         from django.contrib.sites.models import Site

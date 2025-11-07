@@ -46,8 +46,10 @@ from .helpers import (
     content_is_unlocked_for_user,
     create_version_lock,
     get_admin_url,
+    get_current_site,
     get_editable_url,
     get_latest_admin_viewable_content,
+    get_object_live_url,
     get_preview_url,
     proxy_model,
     remove_version_lock,
@@ -1102,13 +1104,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
 
         # Redirect to published?
         if not requested_redirect and conf.ON_PUBLISH_REDIRECT == "published":
-            if hasattr(version.content, "get_full_url"):
-                full_url = version.content.get_full_url()
-                if full_url:
-                    # Can't resolve full_url, redirect directly to it
-                    return redirect(full_url)
-            elif hasattr(version.content, "get_absolute_url"):
-                requested_redirect = version.content.get_absolute_url()
+            if hasattr(version.content, "get_absolute_url"):
+                requested_redirect = get_object_live_url(version.content, site=get_current_site(request))
 
         return self._internal_redirect(requested_redirect, redirect_url)
 

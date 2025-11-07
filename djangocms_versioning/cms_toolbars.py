@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from copy import copy
-from typing import Optional
 
 from cms import __version__ as cms_version
 from cms.cms_toolbars import (
@@ -31,7 +30,9 @@ from packaging import version
 from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.helpers import (
+    get_current_site,
     get_latest_admin_viewable_content,
+    get_object_live_url,
     version_list_url,
 )
 from djangocms_versioning.models import Version
@@ -258,9 +259,9 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_full_url() if hasattr(published_version, "get_full_url") else None
-        if not url and hasattr(published_version, "get_absolute_url"):
-            url = published_version.get_absolute_url()
+        url = None
+        if hasattr(published_version, "get_absolute_url"):
+            url = get_object_live_url(published_version, site=get_current_site(self.toolbar.request))
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(
@@ -299,10 +300,10 @@ class VersioningPageToolbar(PageToolbar):
     """
 
     def __init__(self, *args, **kwargs):
-        self.page_content: Optional[PageContent] = None
+        self.page_content: PageContent | None = None
         super().__init__(*args, **kwargs)
 
-    def get_page_content(self, language: Optional[str] = None) -> PageContent:
+    def get_page_content(self, language: str | None = None) -> PageContent:
         # This method overwrites the method in django CMS core. Not necessary
         # for django CMS 4.2+
         if not language:

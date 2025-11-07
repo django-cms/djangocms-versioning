@@ -2,7 +2,6 @@ import copy
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
-from typing import Optional
 
 from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -17,7 +16,7 @@ from django.db import models
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
-from django.utils.translation import get_language
+from django.utils.translation import get_language, override as force_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
@@ -27,6 +26,20 @@ try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+try:
+    from cms.toolbar.utils import get_object_live_url
+    from cms.utils import get_current_site
+except ImportError:  # cms < 5.1
+    def get_object_live_url(obj, language=None, site=None) -> str:
+        with force_language(language):
+            return obj.get_absolute_url()
+        return None
+
+    def get_current_site(request) -> models.Model:
+        from django.contrib.sites.models import Site
+
+        return Site.objects.get_current()
 
 
 def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
@@ -71,7 +84,7 @@ def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, ad
     admin_site.register(modeladmin.model, new_admin_class)
 
 
-def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site: Optional[admin.AdminSite] = None):
+def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site: admin.AdminSite | None = None):
     """
     :param models: List of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance
@@ -86,7 +99,7 @@ def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site:
         _replace_admin_for_model(modeladmin, mixin, admin_site)
 
 
-def register_versionadmin_proxy(versionable, admin_site: Optional[admin.AdminSite] = None):
+def register_versionadmin_proxy(versionable, admin_site: admin.AdminSite | None = None):
     """Creates a model admin class based on `VersionAdmin` and registers
     it with `admin_site` for `versionable.version_model_proxy`.
 
@@ -281,7 +294,7 @@ def get_content_types_with_subclasses(models: Iterable[type[models.Model]], usin
 
 
 def get_preview_url(
-    content_obj: models.Model, language: Optional[str] = None
+    content_obj: models.Model, language: str | None = None
 ) -> str:
     """If the object is editable the cms preview view should be used, with the toolbar.
     This method provides the URL for it. It falls back the standard change view

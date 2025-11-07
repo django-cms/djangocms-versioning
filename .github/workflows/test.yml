@@ -12,40 +12,53 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ 3.9, "3.10", "3.11", "3.12" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
             dj50_cms41.txt,
             dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
+            dj60_cms50.txt,
           ]
         exclude:
+          - requirements-file: dj52_cms41.txt
+            python-version: "3.10"
+          - requirements-file: dj52_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj42_cms41.txt
+            python-version: "3.14"
           - requirements-file: dj50_cms41.txt
-            python-version: 3.9
+            python-version: "3.14"
           - requirements-file: dj51_cms41.txt
-            python-version: 3.9
+            python-version: "3.14"
           - requirements-file: dj52_cms41.txt
-            python-version: 3.9
-          - requirements-file: dj52_cms41.txt
-            python-version: 3.10
+            python-version: "3.14"
           - requirements-file: dj52_cms50.txt
-            python-version: 3.9
-          - requirements-file: dj52_cms50.txt
-            python-version: 3.10
+            python-version: "3.14"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        pip install -e .
+        sudo apt install gettext gcc -y
+        sudo apt install gettext gcc -y
+        sudo apt install gettext gcc -y
+        python -m pip install --upgrade pip uv
+        python -m pip install --upgrade pip uv
+        python -m pip install --upgrade pip uv
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system -e .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -58,12 +71,36 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
-        ]
+            dj60_cms50.txt,
+          ]
+        exclude:
+          - requirements-file: dj52_cms41.txt
+            python-version: "3.10"
+          - requirements-file: dj52_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj42_cms41.txt
+            python-version: "3.14"
+          - requirements-file: dj50_cms41.txt
+            python-version: "3.14"
+          - requirements-file: dj51_cms41.txt
+            python-version: "3.14"
+          - requirements-file: dj52_cms41.txt
+            python-version: "3.14"
+          - requirements-file: dj52_cms50.txt
+            python-version: "3.14"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.14"
 
     services:
       postgres:
@@ -78,17 +115,17 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -103,17 +140,36 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
+            dj50_cms41.txt,
+            dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
-        ]
+            dj60_cms50.txt,
+          ]
         exclude:
+          - requirements-file: dj52_cms41.txt
+            python-version: "3.10"
+          - requirements-file: dj52_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj42_cms41.txt
+            python-version: "3.14"
           - requirements-file: dj50_cms41.txt
-            python-version: 3.9
+            python-version: "3.14"
           - requirements-file: dj51_cms41.txt
-            python-version: 3.9
+            python-version: "3.14"
+          - requirements-file: dj52_cms41.txt
+            python-version: "3.14"
+          - requirements-file: dj52_cms50.txt
+            python-version: "3.14"
+          - requirements-file: dj60_cms50.txt
+            python-version: "3.14"
 
     services:
       mysql:
@@ -126,17 +182,17 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -161,19 +217,19 @@ jobs:
         ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python -m pip uninstall -y django-cms
-        python -m pip install ${{ matrix.cms-version }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip uninstall --system django-cms
+        uv pip install --system ${{ matrix.cms-version }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py
@@ -186,29 +242,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.12" ]
+        python-version: [ "3.13" ]
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/main.tar.gz'
         ]
         django-version: [
           'https://github.com/django/django/archive/main.tar.gz'
         ]
-        requirements-file: ['dj52_cms50.txt']
+        requirements-file: ['dj60_cms50.txt']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r tests/requirements/${{ matrix.requirements-file }}
-        python -m pip uninstall -y Django django-cms
-        python -m pip install ${{ matrix.cms-version }} ${{ matrix.django-version }}
-        python setup.py install
+        uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
+        uv pip uninstall --system Django django-cms
+        uv pip install --system ${{ matrix.cms-version }} ${{ matrix.django-version }}
+        uv pip install --system .
 
     - name: Run coverage
       run: coverage run ./test_settings.py

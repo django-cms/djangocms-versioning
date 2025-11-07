@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from copy import copy
 
@@ -136,7 +138,7 @@ class VersioningToolbar(PlaceholderToolbar):
                     f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",
                     args=(version.pk,),
                 )
-                can_unlock = self.request.user.has_perm("djangocms_versioning.delete_versionlock")
+                can_unlock = self.request.user.has_perm(f"{version._meta.app_label}.delete_versionlock")
                 if can_unlock:
                     extra_classes = [
                         "cms-btn-action",

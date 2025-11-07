@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Versioning E2E (no matching script)</title>
+  <style>
+    .cms-toolbar { position: relative; }
+  </style>
+</head>
+<body>
+  <div id="cms-top" class="cms cms-reset" data-compare='{"v1_url":"/api/v1","v2_url":"/api/v2"}'>
+    <div class="cms-toolbar">
+      <div class="cms-versioning-controls">
+        <span class="cms-versioning-title">Comparing</span>
+        <select class="js-cms-versioning-version cms-select">
+          <option disabled selected>Pick a version to compare to</option>
+          <option value="1">Version 1</option>
+          <option value="2">Version 2</option>
+        </select>
+        <div class="cms-tooblar-item cms-toolbar-item-buttons">
+          <div class="cms-btn-group" style="display: none;">
+            <a href="#" class="cms-btn cms-btn-active js-cms-versioning-control js-cms-versioning-control-visual">Visual</a>
+            <a href="#" class="cms-btn js-cms-versioning-control js-cms-versioning-control-source">Source</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script with a completely different name that won't match bundle.versioning -->
+  <script src="/some-other-script.js"></script>
+  <script>
+    // Inline script to simulate bundle that can't find its own script tag
+    // This would be the bundle code, but for testing we just verify the fallback
+  </script>
+</body>
+</html>

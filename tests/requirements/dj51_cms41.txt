@@ -4,5 +4,5 @@ django-cms>=4.1,<4.2
 
 Django>=5.1,<5.2
 django-classy-tags
-django-fsm>=2.6,<3
+django-fsm-2==4.1.0
 django-sekizai

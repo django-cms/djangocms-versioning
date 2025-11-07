@@ -9,9 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
-    - run: python -Im pip install --user ruff
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Install ruff
+      run: uv tool install ruff
 
     - name: Run ruff
-      run: ruff check --output-format=github djangocms_versioning tests
+      run: uvx ruff check --output-format=github djangocms_versioning tests

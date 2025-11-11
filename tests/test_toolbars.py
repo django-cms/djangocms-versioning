@@ -466,22 +466,17 @@ class VersioningPageToolbarTestCase(CMSTestCase):
                 return item
         return None
 
-    @override_settings(CMS_LANGUAGES={1: [{"code": "en", "name": "English"}]})
+@override_settings(CMS_LANGUAGES = {1: [{"code": "en", "name": "English"}]})
     def test_change_language_menu_page_toolbar_one_languages(self):
-        page_content = PageContentWithVersionFactory(language="en")
-        page = page_content.page
-
-        page.update_languages(["en"])
-
+        page_content = PageContentWithVersionFactory()
         request = self.get_page_request(
-            page=page,
+            page=page_content.page,
             path=get_object_edit_url(page_content),
             user=self.get_superuser(),
         )
         request.toolbar.set_object(page_content)
         request.toolbar.populate()
         request.toolbar.post_template_populate()
-
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
         self.assertIsNone(language_menu)
 

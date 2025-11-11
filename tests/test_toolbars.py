@@ -483,7 +483,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         request.toolbar.post_template_populate()
 
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        self.assertIsNone(language_menu, "Language menu should not be created if the page has only one language.")
+        self.assertIsNone(language_menu)
 
     def test_change_language_menu_page_toolbar(self):
         """Check that patched PageToolbar.change_language_menu only provides

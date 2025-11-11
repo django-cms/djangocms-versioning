@@ -338,12 +338,12 @@ class VersioningPageToolbar(PageToolbar):
                     language_menu.add_link_item(name, url=url, active=self.current_lang == code)
 
     def change_language_menu(self):
-        if self.toolbar.edit_mode_active and self.page:
-            can_change = page_permissions.user_can_change_page(
+        can_change = (
+            self.page
+            and page_permissions.user_can_change_page(
                 user=self.request.user, page=self.page, site=self.current_site
             )
-        else:
-            can_change = False
+        )
 
         language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
         if not language_menu:
@@ -355,7 +355,9 @@ class VersioningPageToolbar(PageToolbar):
         copy = [
             (code, name) for code, name in languages.items() if code != self.current_lang and (code, name) in remove
         ]
-        if add:
+
+        # ADD TRANSLATION — only if user has change permission
+        if can_change and add:
             language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
             add_plugins_menu = language_menu.get_or_create_menu(f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation"))
@@ -365,7 +367,9 @@ class VersioningPageToolbar(PageToolbar):
             for code, name in add:
                 url = add_url_parameters(page_add_url, cms_page=self.page.pk, language=code)
                 add_plugins_menu.add_modal_item(name, url=url)
-        if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:  # fabian why?
+
+        # DELETE TRANSLATION — only if user has change permission
+        if can_change and remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:  # fabian why?
             remove_plugins_menu = language_menu.get_or_create_menu(
                 f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
             )
@@ -386,8 +390,9 @@ class VersioningPageToolbar(PageToolbar):
                             None,
                         )
                         on_close = get_object_preview_url(other_content)
-                    remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
-        if can_change and copy:
+                    remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)    
+        # COPY ALL PLUGINS — only if user can change AND in edit mode
+        if can_change and self.toolbar.edit_mode_active and copy:
             copy_plugins_menu = language_menu.get_or_create_menu(
                 f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
             )

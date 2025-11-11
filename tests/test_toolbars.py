@@ -529,32 +529,52 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
 
-    @patch("cms_toolbars.ALLOW_DELETING_VERSIONS", True)
-    @patch("cms_toolbars.CMS_SUPPORTS_DELETING_TRANSLATIONS", True)
     def test_language_menu_in_non_edit_mode(self):
-        version = PageVersionFactory(content__language="en")
-        PageContentWithVersionFactory(page=version.content.page, language="de")
-        PageContentWithVersionFactory(page=version.content.page, language="it")
-        page = version.content.page
-        page.update_languages(["en", "de", "it"])
+        with patch.object(cms_toolbars, "ALLOW_DELETING_VERSIONS", True):
+            with patch.object(cms_toolbars, "CMS_SUPPORTS_DELETING_TRANSLATIONS", True):   
+                version = PageVersionFactory(content__language="en")
+                PageContentWithVersionFactory(page=version.content.page, language="de")
+                PageContentWithVersionFactory(page=version.content.page, language="it")
+                page = version.content.page
+                page.update_languages(["en", "de", "it"])
 
+                request = self.get_page_request(
+                    page=page,
+                    path=get_object_preview_url(version.content),
+                    user=self.get_superuser(),
+                )
+                request.toolbar.set_object(version.content)
+                request.toolbar.populate()
+                request.toolbar.post_template_populate()
+
+                language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+                # 3 out of 4 populated languages, Break, Add Translation menu, Delete Translation
+                self.assertEqual(language_menu.get_item_count(), 6)
+
+                language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
+                self.assertIn("Add Translation", language_menu_dict.keys())
+                self.assertNotIn("Copy all plugins", language_menu_dict.keys())
+                self.assertIn("Delete Translation", language_menu_dict.keys())
+
+    def test_change_language_menu_page_toolbar_no_page_translations(self):
+        """ 
+        Test that when we have a page with no translations, and the user does not
+        have edit permission, then we shouln't display the language meny
+        the language menu (because it will show with only one option)
+        (Regression for: https://github.com/django-cms/djangocms-versioning/issues/469)
+        """
+        page_content = PageContentWithVersionFactory()
         request = self.get_page_request(
-            page=page,
-            path=get_object_preview_url(version.content),
-            user=self.get_superuser(),
+            page=page_content.page,
+            path=get_object_edit_url(page_content),
+            user=self.get_staff_user_with_no_permissions(),
         )
-        request.toolbar.set_object(version.content)
+        request.toolbar.set_object(page_content)
         request.toolbar.populate()
         request.toolbar.post_template_populate()
-
         language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        # 3 out of 4 populated languages, Break, Add Translation menu, Delete Translation
-        self.assertEqual(language_menu.get_item_count(), 6)
+        self.assertIsNone(language_menu)
 
-        language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
-        self.assertIn("Add Translation", language_menu_dict.keys())
-        self.assertNotIn("Copy all plugins", language_menu_dict.keys())
-        self.assertIn("Delete Translation", language_menu_dict.keys())
 
     @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
     def test_change_language_menu_page_toolbar_including_delete(self):

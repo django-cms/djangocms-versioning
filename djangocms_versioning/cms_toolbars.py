@@ -345,79 +345,80 @@ class VersioningPageToolbar(PageToolbar):
             )
         )
 
-        language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
-        if not language_menu:
-            return None
+        if can_change:
+            language_menu = self.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+            if not language_menu:
+                return None
 
-        languages = get_language_dict(self.current_site.pk)
-        remove = [(code, languages.get(code, code)) for code in self.page.get_languages() if code in languages]
-        add = [code for code in languages.items() if code not in remove]
-        copy = [
-            (code, name) for code, name in languages.items() if code != self.current_lang and (code, name) in remove
-        ]
+            languages = get_language_dict(self.current_site.pk)
+            remove = [(code, languages.get(code, code)) for code in self.page.get_languages() if code in languages]
+            add = [code for code in languages.items() if code not in remove]
+            copy = [
+                (code, name) for code, name in languages.items() if code != self.current_lang and (code, name) in remove
+            ]
 
-        # ADD TRANSLATION — only if user has change permission
-        if can_change and add:
-            language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
+            # ADD TRANSLATION — only if user has change permission
+            if add:
+                language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
-            add_plugins_menu = language_menu.get_or_create_menu(f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation"))
+                add_plugins_menu = language_menu.get_or_create_menu(f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation"))
 
-            page_add_url = admin_reverse("cms_pagecontent_add")
+                page_add_url = admin_reverse("cms_pagecontent_add")
 
-            for code, name in add:
-                url = add_url_parameters(page_add_url, cms_page=self.page.pk, language=code)
-                add_plugins_menu.add_modal_item(name, url=url)
+                for code, name in add:
+                    url = add_url_parameters(page_add_url, cms_page=self.page.pk, language=code)
+                    add_plugins_menu.add_modal_item(name, url=url)
 
-        # DELETE TRANSLATION — only if user has change permission
-        if can_change and remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:  # fabian why?
-            remove_plugins_menu = language_menu.get_or_create_menu(
-                f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
-            )
-            disabled = len(remove) == 1
-            for code, name in remove:
-                pagecontent = self.page.get_admin_content(language=code)
-                if pagecontent:
-                    translation_delete_url = admin_reverse("cms_pagecontent_delete", args=(pagecontent.pk,))
-                    url = add_url_parameters(translation_delete_url, language=code)
-                    on_close = REFRESH_PAGE
-                    if self.toolbar.get_object() == pagecontent and not disabled:
-                        other_content = next(
-                            (
-                                self.page.get_admin_content(lang)
-                                for lang in self.page.get_languages()
-                                if lang != pagecontent.language and lang in languages
-                            ),
-                            None,
+            # DELETE TRANSLATION — only if user has change permission
+            if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:  # fabian why?
+                remove_plugins_menu = language_menu.get_or_create_menu(
+                    f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
+                )
+                disabled = len(remove) == 1
+                for code, name in remove:
+                    pagecontent = self.page.get_admin_content(language=code)
+                    if pagecontent:
+                        translation_delete_url = admin_reverse("cms_pagecontent_delete", args=(pagecontent.pk,))
+                        url = add_url_parameters(translation_delete_url, language=code)
+                        on_close = REFRESH_PAGE
+                        if self.toolbar.get_object() == pagecontent and not disabled:
+                            other_content = next(
+                                (
+                                    self.page.get_admin_content(lang)
+                                    for lang in self.page.get_languages()
+                                    if lang != pagecontent.language and lang in languages
+                                ),
+                                None,
+                            )
+                            on_close = get_object_preview_url(other_content)
+                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)    
+            # COPY ALL PLUGINS — only if user can change AND in edit mode
+            if self.toolbar.edit_mode_active and copy:
+                copy_plugins_menu = language_menu.get_or_create_menu(
+                    f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
+                )
+                title = _("from %s")
+                question = _("Are you sure you want to copy all plugins from %s?")
+                item_added = False
+                for code, name in copy:
+                    # Get the Draft or Published PageContent.
+                    page_content = self.page.get_admin_content(language=code)
+                    if page_content:  # Only offer to copy if content for source language exists
+                        page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
+                        copy_plugins_menu.add_ajax_item(
+                            title % name,
+                            action=page_copy_url,
+                            data={"source_language": code, "target_language": self.current_lang},
+                            question=question % name,
+                            on_success=self.toolbar.REFRESH_PAGE,
                         )
-                        on_close = get_object_preview_url(other_content)
-                    remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)    
-        # COPY ALL PLUGINS — only if user can change AND in edit mode
-        if can_change and self.toolbar.edit_mode_active and copy:
-            copy_plugins_menu = language_menu.get_or_create_menu(
-                f"{LANGUAGE_MENU_IDENTIFIER}-copy", _("Copy all plugins")
-            )
-            title = _("from %s")
-            question = _("Are you sure you want to copy all plugins from %s?")
-            item_added = False
-            for code, name in copy:
-                # Get the Draft or Published PageContent.
-                page_content = self.page.get_admin_content(language=code)
-                if page_content:  # Only offer to copy if content for source language exists
-                    page_copy_url = admin_reverse("cms_pagecontent_copy_language", args=(page_content.pk,))
-                    copy_plugins_menu.add_ajax_item(
-                        title % name,
-                        action=page_copy_url,
-                        data={"source_language": code, "target_language": self.current_lang},
-                        question=question % name,
-                        on_success=self.toolbar.REFRESH_PAGE,
-                    )
-                    item_added = True
-                if not item_added:  # pragma: no cover
-                    copy_plugins_menu.add_link_item(
-                        _("No other language available"),
-                        url="#",
-                        disabled=True,
-                    )
+                        item_added = True
+                    if not item_added:  # pragma: no cover
+                        copy_plugins_menu.add_link_item(
+                            _("No other language available"),
+                            url="#",
+                            disabled=True,
+                        )
 
 
 class VersioningBasicToolbar(BasicToolbar):
@@ -435,6 +436,13 @@ class VersioningBasicToolbar(BasicToolbar):
         languages = get_language_tuple(self.current_site.pk)
         if len(languages) < 2:
             return  # No need to show the language menu if there is only one language
+
+        page_languages = self.request.current_page.get_languages(admin_manager=True)
+        change_permission = page_permissions.user_can_change_page(
+                user=self.request.user, page=self.page, site=self.current_site
+            )
+        if len(page_languages) < 2 and not change_permission:
+            return # No need to show language menu if current page has one language
 
         language_menu = self.toolbar.get_or_create_menu(LANGUAGE_MENU_IDENTIFIER, _("Languages"), position=-1)
         for code, name in languages:

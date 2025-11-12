@@ -361,7 +361,7 @@ class VersioningPageToolbar(PageToolbar):
             if add:
                 language_menu.add_break(ADD_PAGE_LANGUAGE_BREAK)
 
-                add_plugins_menu = language_menu.get_or_create_menu(f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation"))
+                add_plugins_menu = language_menu.get_or_create_menu(f"{LANGUAGE_MENU_IDENTIFIER}-add", _("Add Translation"))  # noqa: E501
 
                 page_add_url = admin_reverse("cms_pagecontent_add")
 
@@ -391,7 +391,7 @@ class VersioningPageToolbar(PageToolbar):
                                 None,
                             )
                             on_close = get_object_preview_url(other_content)
-                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)    
+                        remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
             # COPY ALL PLUGINS — only if user can change AND in edit mode
             if self.toolbar.edit_mode_active and copy:
                 copy_plugins_menu = language_menu.get_or_create_menu(
@@ -437,14 +437,9 @@ class VersioningBasicToolbar(BasicToolbar):
         if len(languages) < 2:
             return  # No need to show the language menu if there is only one language
 
-        page_languages = self.request.current_page.get_languages(admin_manager=True)
-        change_permission = page_permissions.user_can_change_page(
-                user=self.request.user, page=self.page, site=self.current_site
-            )
-        if len(page_languages) < 2 and not change_permission:
-            return # No need to show language menu if current page has one language
-
-        language_menu = self.toolbar.get_or_create_menu(LANGUAGE_MENU_IDENTIFIER, _("Languages"), position=-1)
+        language_menu = self.toolbar.get_or_create_menu(
+            LANGUAGE_MENU_IDENTIFIER, _("Language"), position=-1
+        )
         for code, name in languages:
             # Get the page content, it could be draft too!
             page_content = self.page.get_admin_content(language=code)

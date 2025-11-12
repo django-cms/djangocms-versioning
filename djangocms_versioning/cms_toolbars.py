@@ -370,7 +370,7 @@ class VersioningPageToolbar(PageToolbar):
                     add_plugins_menu.add_modal_item(name, url=url)
 
             # DELETE TRANSLATION — only if user has change permission
-            if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:  # fabian why?
+            if remove and ALLOW_DELETING_VERSIONS and CMS_SUPPORTS_DELETING_TRANSLATIONS:
                 remove_plugins_menu = language_menu.get_or_create_menu(
                     f"{LANGUAGE_MENU_IDENTIFIER}-del", _("Delete Translation")
                 )

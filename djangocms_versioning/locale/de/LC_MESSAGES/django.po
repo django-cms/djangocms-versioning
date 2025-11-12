@@ -4,8 +4,8 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 # Translators:
-# Fabian Braun <fsbraun@gmx.de>, 2023
-#
+# Fabian Braun <fsbraun@gmx.de>, 2025
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -13,7 +13,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-12 07:56+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
-"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2023\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: German (https://app.transifex.com/divio/teams/58664/de/)\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -117,7 +117,9 @@ msgstr "Ausgewählte %(verbose_name_plural)s löschen"
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
-msgstr "Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
+msgstr ""
+"Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben"
+" Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
 
 #: admin.py:1024
 #, python-brace-format

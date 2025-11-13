@@ -1,0 +1,17 @@
+setuptools
+beautifulsoup4
+coverage[toml]
+django-app-helper
+factory-boy
+ruff
+freezegun
+lxml
+mock
+pillow
+pyflakes>=2.1.1
+python-dateutil
+mysqlclient==2.0.3
+psycopg2
+setuptools
+
+djangocms-text

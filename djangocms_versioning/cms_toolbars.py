@@ -32,7 +32,9 @@ from packaging import version
 from djangocms_versioning.conf import ALLOW_DELETING_VERSIONS, LOCK_VERSIONS
 from djangocms_versioning.constants import DRAFT
 from djangocms_versioning.helpers import (
+    get_current_site,
     get_latest_admin_viewable_content,
+    get_object_live_url,
     version_list_url,
 )
 from djangocms_versioning.models import Version
@@ -250,7 +252,9 @@ class VersioningToolbar(PlaceholderToolbar):
         if not published_version:
             return
 
-        url = published_version.get_absolute_url() if hasattr(published_version, "get_absolute_url") else None
+        url = None
+        if hasattr(published_version, "get_absolute_url"):
+            url = get_object_live_url(published_version, site=get_current_site(self.toolbar.request))
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(

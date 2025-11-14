@@ -18,7 +18,7 @@ from django.db import models
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
-from django.utils.translation import get_language
+from django.utils.translation import get_language, override as force_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
@@ -28,6 +28,21 @@ try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+try:
+    # django CMS >= 5.1
+    from cms.toolbar.utils import get_object_live_url  # noqa F401
+    from cms.utils import get_current_site  # noqa F401
+except ImportError:
+    # cms < 5.1
+    def get_object_live_url(obj, language=None, site=None) -> str:
+        with force_language(language):
+            return obj.get_absolute_url()
+
+    def get_current_site(request) -> models.Model:
+        from django.contrib.sites.models import Site
+
+        return Site.objects.get_current()
 
 
 def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
@@ -72,9 +87,7 @@ def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, ad
     admin_site.register(modeladmin.model, new_admin_class)
 
 
-def replace_admin_for_models(
-    pairs: Iterable[tuple[type[models.Model], type]], admin_site: admin.AdminSite | None = None
-):
+def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site: admin.AdminSite | None = None):
     """
     :param pairs: Iterable of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance

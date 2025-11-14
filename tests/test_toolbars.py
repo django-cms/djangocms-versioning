@@ -12,6 +12,7 @@ from django.test import override_settings
 from django.utils.text import slugify
 from packaging.version import Version
 
+from djangocms_versioning import cms_toolbars
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.cms_toolbars import VersioningPageToolbar
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
@@ -38,27 +39,18 @@ cms_version = Version(__version__)
 
 class VersioningToolbarTestCase(CMSTestCase):
     def _get_publish_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected publish url
-        """
-        admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "publish", version.pk
-        )
+        """Helper method to return the expected publish url"""
+        admin_url = self.get_admin_url(versionable.version_model_proxy, "publish", version.pk)
         return admin_url
 
     def _get_edit_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected edit redirect url
-        """
-        admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "edit_redirect", version.pk
-        )
+        """Helper method to return the expected edit redirect url"""
+        admin_url = self.get_admin_url(versionable.version_model_proxy, "edit_redirect", version.pk)
         return admin_url
 
     def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected publish url
-        """
-        admin_url = self.get_admin_url(
-            versionable.version_model_proxy, "revert", version.pk
-        )
+        """Helper method to return the expected publish url"""
+        admin_url = self.get_admin_url(versionable.version_model_proxy, "revert", version.pk)
         return admin_url
 
     def test_publish_in_toolbar_in_edit_mode(self):
@@ -96,7 +88,9 @@ class VersioningToolbarTestCase(CMSTestCase):
         self.assertFalse(revert_button.disabled)
         self.assertListEqual(
             revert_button.extra_classes,
-            ["cms-btn-action", ],
+            [
+                "cms-btn-action",
+            ],
         )
 
     def test_publish_not_in_toolbar_in_preview_mode(self):
@@ -136,9 +130,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         # Now create a poll version - the poll content and version id
         # will be different.
         version = PollVersionFactory()
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), edit_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), edit_mode=True)
         toolbar.post_template_populate()
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
 
@@ -146,9 +138,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_edit_in_toolbar_in_preview_mode(self):
         version = PageVersionFactory(content__template="")
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), preview_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
 
         toolbar.post_template_populate()
         edit_button = find_toolbar_buttons("Edit", toolbar.toolbar)[0]
@@ -160,15 +150,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         )
         self.assertFalse(edit_button.disabled)
         self.assertListEqual(
-            edit_button.extra_classes,
-            ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
+            edit_button.extra_classes, ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-edit-btn"]
         )
 
     def test_edit_not_in_toolbar_in_edit_mode(self):
         version = PollVersionFactory()
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), edit_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), edit_mode=True)
 
         toolbar.post_template_populate()
 
@@ -176,9 +163,7 @@ class VersioningToolbarTestCase(CMSTestCase):
 
     def test_edit_not_in_toolbar_in_structure_mode(self):
         version = PollVersionFactory()
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), structure_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), structure_mode=True)
 
         toolbar.post_template_populate()
 
@@ -188,9 +173,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         # User objects are not registered with versioning, so attempting
         # to populate a user toolbar should not attempt to add a edit
         # button
-        toolbar = get_toolbar(
-            UserFactory(), user=self.get_superuser(), preview_mode=True
-        )
+        toolbar = get_toolbar(UserFactory(), user=self.get_superuser(), preview_mode=True)
 
         toolbar.post_template_populate()
 
@@ -207,9 +190,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         # Now create a page version - the page content and version id
         # will be different.
         version = PageVersionFactory(content__template="")
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), preview_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         edit_url = self._get_edit_url(version, VersioningCMSConfig.versioning[0])
 
         toolbar.post_template_populate()
@@ -225,9 +206,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         page = PageVersionFactory(content__template="", content__language="en")
         url = get_object_preview_url(page.content)
 
-        edit_url = self._get_edit_url(
-            page, VersioningCMSConfig.versioning[0]
-        )
+        edit_url = self._get_edit_url(page, VersioningCMSConfig.versioning[0])
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.post(url)
@@ -261,9 +240,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         The default toolbar Edit button exists.
         """
         pagecontent = PageVersionFactory(content__template="")
-        edit_url = self._get_edit_url(
-            pagecontent.content, VersioningCMSConfig.versioning[0]
-        )
+        edit_url = self._get_edit_url(pagecontent.content, VersioningCMSConfig.versioning[0])
 
         toolbar = get_toolbar(
             pagecontent.content,
@@ -322,23 +299,18 @@ class VersioningToolbarTestCase(CMSTestCase):
     def test_version_menu_and_url_for_version_content(self):
         # Versioned item should have versioning menu and url should be version list url
         version = PollVersionFactory()
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), preview_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
         self.assertIsNotNone(version_menu)
-        self.assertEqual(
-            version_menu.get_items()[0].url, version_list_url(version.content)
-        )
+        self.assertEqual(version_menu.get_items()[0].url, version_list_url(version.content))
 
     def test_version_menu_label(self):
         # Versioned item should have correct version menu label
         from djangocms_versioning.constants import VERSION_STATES
+
         version = PollVersionFactory()
-        toolbar = get_toolbar(
-            version.content, user=self.get_superuser(), preview_mode=True
-        )
+        toolbar = get_toolbar(version.content, user=self.get_superuser(), preview_mode=True)
         toolbar.post_template_populate()
         version_menu = toolbar.toolbar.get_menu("version")
 
@@ -488,7 +460,6 @@ class VersioningToolbarTestCase(CMSTestCase):
 
 
 class VersioningPageToolbarTestCase(CMSTestCase):
-
     def _get_toolbar_item_by_name(self, menu, name):
         for item in menu.items:
             if hasattr(item, "name") and item.name == name:
@@ -532,10 +503,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
         self.assertEqual(language_menu.get_item_count(), 6)
 
-        language_menu_dict = {
-            menu.name: list(menu.items)
-            for key, menu in language_menu.menus.items()
-        }
+        language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
         self.assertIn("Add Translation", language_menu_dict.keys())
         self.assertIn("Copy all plugins", language_menu_dict.keys())
         self.assertNotIn("Delete Translation", language_menu_dict.keys())
@@ -555,6 +523,34 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             self.assertIn(f"cms_page={page.pk}", item.url)
             lang_code = "fr" if "Française" in item.name else "it"
             self.assertIn(f"language={lang_code}", item.url)
+
+    def test_language_menu_in_non_edit_mode(self):
+        with patch.object(cms_toolbars, "ALLOW_DELETING_VERSIONS", True):
+            with patch.object(cms_toolbars, "CMS_SUPPORTS_DELETING_TRANSLATIONS", True):
+                version = PageVersionFactory(content__language="en")
+                PageContentWithVersionFactory(page=version.content.page, language="de")
+                PageContentWithVersionFactory(page=version.content.page, language="it")
+                page = version.content.page
+                page.update_languages(["en", "de", "it"])
+
+                request = self.get_page_request(
+                    page=page,
+                    path=get_object_preview_url(version.content),
+                    user=self.get_superuser(),
+                )
+                request.toolbar.set_object(version.content)
+                request.toolbar.populate()
+                request.toolbar.post_template_populate()
+
+                language_menu = request.toolbar.get_menu(LANGUAGE_MENU_IDENTIFIER)
+                # 3 out of 4 populated languages, Break, Add Translation menu, Delete Translation
+                self.assertEqual(language_menu.get_item_count(), 6)
+
+                language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
+                self.assertIn("Add Translation", language_menu_dict.keys())
+                self.assertNotIn("Copy all plugins", language_menu_dict.keys())
+                self.assertIn("Delete Translation", language_menu_dict.keys())
+
 
     @skipIf(cms_version <= Version("4.1.4"), "For CMS 4.1.5 and bove: Add delete translation menu")
     def test_change_language_menu_page_toolbar_including_delete(self):
@@ -583,10 +579,7 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             # 3 out of 4 populated languages, Break, Add Translation menu, Copy all plugins
             self.assertEqual(language_menu.get_item_count(), 7)
 
-            language_menu_dict = {
-                menu.name: list(menu.items)
-                for key, menu in language_menu.menus.items()
-            }
+            language_menu_dict = {menu.name: list(menu.items) for key, menu in language_menu.menus.items()}
             self.assertIn("Add Translation", language_menu_dict.keys())
             self.assertIn("Copy all plugins", language_menu_dict.keys())
             self.assertIn("Delete Translation", language_menu_dict.keys())

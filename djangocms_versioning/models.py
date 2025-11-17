@@ -35,8 +35,18 @@ lock_draft_error_message = _("Action Denied. The draft version is locked by {use
 permission_error_message = _("You do not have permission to perform this action")
 
 
+def PROTECT_IF_PUBLIC_VERSION(collector, field, sub_objs, using):
+    state = sub_objs[0].state  # State of the first version in sub_objs
+    if state == constants.PUBLISHED:
+        models.PROTECT(collector, field, sub_objs, using)
+    models.SET_NULL(collector, field, sub_objs, using)
+
+
 def allow_deleting_versions(collector, field, sub_objs, using):
-    if ALLOW_DELETING_VERSIONS:
+    if ALLOW_DELETING_VERSIONS == constants.DELETE_NON_PUBLIC_ONLY:
+        PROTECT_IF_PUBLIC_VERSION(collector, field, sub_objs, using)
+    elif ALLOW_DELETING_VERSIONS == constants.DELETE_ANY or ALLOW_DELETING_VERSIONS is True:
+        # Backwards compatibility: True means DELETE_ANY
         models.SET_NULL(collector, field, sub_objs, using)
     else:
         models.PROTECT(collector, field, sub_objs, using)

@@ -36,9 +36,14 @@ permission_error_message = _("You do not have permission to perform this action"
 
 
 def PROTECT_IF_PUBLIC_VERSION(collector, field, sub_objs, using):
-    state = sub_objs[0].state  # State of the first version in sub_objs
-    if state == constants.PUBLISHED:
-        models.PROTECT(collector, field, sub_objs, using)
+    public_exists = sub_objs.filter(state=constants.PUBLISHED)
+    if public_exists:
+        # Any public objects?
+        raise models.ProtectedError(
+            f"Cannot delete some instances of model '{field.remote_field.model.__name__}' because they are "
+            f"referenced through a protected foreign key: '{sub_objs[0].__class__.__name__}.{field.name}'",
+            public_exists,
+        )
     models.SET_NULL(collector, field, sub_objs, using)
 
 
@@ -142,7 +147,14 @@ class Version(models.Model):
         )
 
     def __str__(self):
-        return f"Version #{self.pk}"
+        state = dict(constants.VERSION_STATES).get(self.state, self.state)
+        if self.object_id:
+            try:
+                return f"Version #{self.pk} ({state}) of {self.content}"
+            except Exception:
+                # In case the content object cannot be stringified
+                pass
+        return f"Version #{self.pk} ({state})"
 
     def verbose_name(self):
         return _("Version #{number} ({state} {date})").format(

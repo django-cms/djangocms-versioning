@@ -238,6 +238,24 @@ class TestVersionModelProperties(CMSTestCase):
         version = factories.PollVersionFactory()
         self.assertEqual(version.grouper, version.content.poll)
 
+    def test_version_str(self):
+        version = factories.PollVersionFactory()
+        expected_str = f"Version #{version.pk} (Draft) of {version.content}"
+        self.assertEqual(str(version), expected_str)
+
+    def test_version_str_failing(self):
+        def failing_str_method(self):
+            raise Exception("Cannot stringify")
+
+        version = factories.PollVersionFactory()
+        original_str_method = version.content.__class__.__str__
+        version.content.__class__.__str__ = failing_str_method
+
+        expected_str = f"Version #{version.pk} (Draft)"
+        self.assertEqual(str(version), expected_str)
+
+        version.content.__class__.__str__ = original_str_method
+
 
 class TestVersionQuerySet(CMSTestCase):
     def test_version_uses_versionqueryset_as_manager(self):

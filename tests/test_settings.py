@@ -8,7 +8,7 @@ from djangocms_versioning.test_utils import factories
 
 
 class DeletionTestCase(CMSTestCase):
-    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=False)
+    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=constants.DELETE_NONE)
     def test_deletion_not_possible(self):
         # Since djangocms_versionings.models stores the setting, we need to update that copy
         versioning_models.ALLOW_DELETING_VERSIONS = settings.DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
@@ -32,7 +32,7 @@ class DeletionTestCase(CMSTestCase):
         self.assertRaises(models.deletion.ProtectedError,
                           versioning_models.Version.objects.get(pk=pk1).content.delete)
 
-    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=True)
+    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=constants.DELETE_ANY)
     def test_deletion_possible(self):
         # Since djangocms_versionings.models stores the setting, we need to update that copy
         versioning_models.ALLOW_DELETING_VERSIONS = settings.DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
@@ -55,3 +55,52 @@ class DeletionTestCase(CMSTestCase):
         # try deleting and see if error is raised
         versioning_models.Version.objects.get(pk=pk1).content.delete()
         self.assertIsNone(versioning_models.Version.objects.get(pk=version2.pk).source)
+
+    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=constants.DELETE_NON_PUBLIC_ONLY)
+    def test_deletion_non_public_possible(self):
+        # Since djangocms_versionings.models stores the setting, we need to update that copy
+        versioning_models.ALLOW_DELETING_VERSIONS = settings.DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
+        poll = factories.PollFactory()
+        version1 = factories.PollVersionFactory(
+            content__poll=poll,
+            content__language="en",
+        )
+        pk1 = version1.pk
+        # Now publish and then edit redirect to create a draft on top of published version
+        version1.publish(user=self.get_superuser())
+        self.assertEqual(versioning_models.Version.objects.get(pk=pk1).state, constants.PUBLISHED)
+
+        version2 = version1.copy(created_by=self.get_superuser())
+        version2.save()
+
+        # Check of source field is set
+        self.assertIsNotNone(version2.source)
+
+        # try deleting and see if error is raised
+        versioning_models.Version.objects.get(pk=pk1).content.delete()
+        self.assertIsNone(versioning_models.Version.objects.get(pk=version2.pk).source)
+
+    @override_settings(DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS=constants.DELETE_NON_PUBLIC_ONLY)
+    def test_deletion_public_not_possible(self):
+        # Since djangocms_versionings.models stores the setting, we need to update that copy
+        versioning_models.ALLOW_DELETING_VERSIONS = settings.DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
+        poll = factories.PollFactory()
+        version1 = factories.PollVersionFactory(
+            content__poll=poll,
+            content__language="en",
+        )
+        pk1 = version1.pk
+        # Now publish and then edit redirect to create a draft on top of published version
+        version1.publish(user=self.get_superuser())
+        self.assertEqual(versioning_models.Version.objects.get(pk=pk1).state, constants.PUBLISHED)
+
+        version2 = version1.copy(created_by=self.get_superuser())
+        version2.save()
+        version2.publish(user=self.get_superuser())
+
+        # Check of source field is set
+        self.assertIsNotNone(version2.source)
+
+        # try deleting and see if error is raised
+        self.assertRaises(models.deletion.ProtectedError,
+                          versioning_models.Version.objects.get(pk=pk1).content.delete)

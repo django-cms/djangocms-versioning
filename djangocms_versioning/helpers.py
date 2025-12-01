@@ -17,8 +17,9 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.http import HttpRequest
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.encoding import force_str
-from django.utils.translation import get_language
+from django.utils.translation import get_language, gettext as _
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
@@ -243,12 +244,21 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
     :return: Boolean
     """
     try:
-        versionables.for_content(placeholder.source)
+        proxy_model = versionables.for_content(placeholder.source).version_model_proxy
     except KeyError:
         return True
     from .models import Version
 
     version = Version.objects.get_for_content(placeholder.source)
+    if version.state == DRAFT:
+        return True
+    if version.check_edit_redirect.as_bool(user):
+        placeholder.new_draft = _("Create new draft to edit")
+        placeholder.new_draft_method = "cms-form-post-method"
+        placeholder.new_draft_url = reverse(
+            f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_edit_redirect",
+            args=(version.pk,),
+        )
     return version.state == DRAFT
 
 

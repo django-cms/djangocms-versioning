@@ -256,7 +256,7 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
         placeholder.new_draft = _("Create new draft to edit")
         placeholder.new_draft_method = "cms-form-post-method"
         placeholder.new_draft_url = reverse(
-            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_edit_redirect",
+            f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_edit_redirect",
             args=(version.pk,),
         )
     return version.state == DRAFT

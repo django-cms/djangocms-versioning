@@ -1,6 +1,7 @@
 from cms.models import CMSPlugin
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import override
 
 
 class Poll(models.Model):
@@ -19,7 +20,8 @@ class PollContent(models.Model):
         return self.text
 
     def get_absolute_url(self):
-        return reverse("admin:polls_pollcontent_changelist")
+        with override(self.language):
+            return reverse("admin:polls_pollcontent_changelist")
 
     def get_preview_url(self):
         return reverse("admin:polls_pollcontent_preview", args=[self.id])

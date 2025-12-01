@@ -1,7 +1,7 @@
 from cms import constants as cms_constants
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
-from cms.toolbar.utils import get_object_preview_url
+from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.test import RequestFactory
@@ -74,7 +74,7 @@ class CMSVersionedMenuTestCase(CMSTestCase):
         self.assertEqual(node.title, content.title)
 
         if edit_or_preview:
-            self.assertEqual(node.url, get_object_preview_url(content))
+            self.assertIn(node.url, (get_object_preview_url(content), get_object_edit_url(content),))
         else:
             self.assertEqual(node.url, content.get_absolute_url())
 

@@ -2,6 +2,24 @@
 Changelog
 =========
 
+2.5.0 (2025-11-14)
+==================
+
+* feat: Language menu allows creating new translations from preview mode by @va-lang in https://github.com/django-cms/djangocms-versioning/pull/491
+* feat: Modernize Python and Django support: Drop Python 3.9, add Python 3.14 and Django 6.0 by @vinitkumar in https://github.com/django-cms/djangocms-versioning/pull/489
+* feat: Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in de by @transifex-integration[bot] in https://github.com/django-cms/djangocms-versioning/pull/496
+* chore: Swap django-fsm with django-fsm-2
+* fix: Typo in permission name by @stefan6419846 in https://github.com/django-cms/djangocms-versioning/pull/476
+* fix: Remove unnecessary `_original_manager` usage from toolbar by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/477
+* fix: Respect site-specific language configurations by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/480
+* fix: Respect permissions for indicator menus and version locking by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/493
+
+**New Contributors**
+
+* @stefan6419846 made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/476
+* @vinitkumar made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/489
+* @va-lang made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/491
+
 2.4.0 (2025-07-17)
 ==================
 

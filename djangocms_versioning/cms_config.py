@@ -328,7 +328,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
             status = page_content.content_indicator()
         if not status or status == "empty":  # pragma: no cover
             return super().get_indicator_menu(request, page_content)
-        versions = page_content._version  # Cache from .content_indicator()
+        versions = page_content._versions  # Cache from .content_indicator()
         back = admin_reverse("cms_pagecontent_changelist") + f"?language={request.GET.get('language')}"
         menu = indicators.content_indicator_menu(request, status, versions, back=back)
         return menu_template if menu else "", menu

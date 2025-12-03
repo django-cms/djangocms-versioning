@@ -112,20 +112,20 @@ def content_indicator(
         }
         if DRAFT in signature and PUBLISHED not in signature:
             content_obj._indicator_status = "draft"
-            content_obj._version = signature[DRAFT],
+            content_obj._versions = signature[DRAFT],
         elif DRAFT in signature and PUBLISHED in signature:
             content_obj._indicator_status = "dirty"
-            content_obj._version = (signature[DRAFT], signature[PUBLISHED])
+            content_obj._versions = (signature[DRAFT], signature[PUBLISHED])
         elif PUBLISHED in signature:
             content_obj._indicator_status = "published"
-            content_obj._version = signature[PUBLISHED],
+            content_obj._versions = signature[PUBLISHED],
         elif versions[0].state == UNPUBLISHED:
             content_obj._indicator_status = "unpublished"
-            content_obj._version = signature[UNPUBLISHED],
+            content_obj._versions = signature[UNPUBLISHED],
         elif versions[0].state == ARCHIVED:
             content_obj._indicator_status = "archived"
-            content_obj._version = signature[ARCHIVED],
+            content_obj._versions = signature[ARCHIVED],
         else:  # pragma: no cover
             content_obj._indicator_status = None
-            content_obj._version = [None]
+            content_obj._versions = [None]
     return content_obj._indicator_status

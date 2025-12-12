@@ -18,7 +18,8 @@ from django.core.mail import EmailMessage
 from django.db import models
 from django.http import HttpRequest
 from django.template.loader import render_to_string
-from django.urls import URLResolver, get_resolver
+from django.urls import URLResolver
+from django.urls.resolvers import RegexPattern
 from django.utils.encoding import force_str
 from django.utils.translation import get_language, override as force_language
 
@@ -58,7 +59,7 @@ def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
 
 @cache
 def get_admin_sites():
-    resolver = get_resolver()
+    resolver = URLResolver(RegexPattern(r"^/"), settings.ROOT_URLCONF)
 
     def find_admin_sites(patterns):
         for pattern in patterns:
@@ -110,14 +111,14 @@ def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site:
     :param admin_site: AdminSite instance
     """
     if admin_site is None:
-        admin_sites = get_admin_sites() or [admin.site]
+        admin_sites = [admin.site]
     else:
         admin_sites = [admin_site]
 
     for _admin in admin_sites:
         for model, mixin in pairs:
             try:
-                modeladmin = admin_site._registry[model]
+                modeladmin = _admin._registry[model]
             except KeyError:
                 continue
             _replace_admin_for_model(modeladmin, mixin, _admin)

@@ -3433,6 +3433,7 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         # Create request
         factory = RequestFactory()
         request = factory.get("/admin/polls/poll/")
+        request.session = {}
         request.user = self.get_superuser()
 
         # Pin the number of queries
@@ -3467,6 +3468,7 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         factory = RequestFactory()
         request = factory.get("/admin/polls/poll/")
         request.user = self.get_superuser()
+        request.session = {}
 
         # Query count should remain the same regardless of version count
         # because of prefetch optimization

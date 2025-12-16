@@ -113,6 +113,9 @@ class VersioningCMSExtension(CMSAppExtension):
         """Replaces admin model classes for all registered content types
         with an admin model class that inherits from `versionable.content_admin_mixin`.
         """
+        from django.contrib.admin import autodiscover
+
+        autodiscover()
         replace_admin_for_models(
             [(versionable.content_model, versionable.content_admin_mixin) for versionable in cms_config.versioning]
         )

@@ -69,7 +69,7 @@ def versioning_admin_factory(admin_class: type[admin.ModelAdmin], mixin: type) -
     return admin_class
 
 
-def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, admin_site: admin.AdminSite):
+def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type):
     """Replaces existing admin class registered for `modeladmin.model` with
     a subclass that includes versioning functionality.
 
@@ -81,7 +81,9 @@ def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, ad
     :param admin_site: AdminSite instance
     """
     if isinstance(modeladmin, mixin):
+        # Do not add more than once
         return
+    admin_site = modeladmin.admin_site
     new_admin_class = versioning_admin_factory(modeladmin.__class__, mixin)
     admin_site.unregister(modeladmin.model)
     admin_site.register(modeladmin.model, new_admin_class)
@@ -92,14 +94,14 @@ def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site:
     :param pairs: Iterable of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance
     """
-    if admin_site is None:
-        admin_site = admin.site
-    for model, mixin in pairs:
-        try:
-            modeladmin = admin_site._registry[model]
-        except KeyError:
-            continue
-        _replace_admin_for_model(modeladmin, mixin, admin_site)
+    available_sites = admin.sites.all_sites if admin_site is None else {admin_site}
+    for admin_site in available_sites:
+        for model, mixin in pairs:
+            try:
+                modeladmin = admin_site._registry[model]
+            except KeyError:
+                continue
+            _replace_admin_for_model(modeladmin, mixin)
 
 
 def register_versionadmin_proxy(versionable, admin_site: admin.AdminSite | None = None):

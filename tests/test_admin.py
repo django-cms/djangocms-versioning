@@ -143,7 +143,7 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         ) as mock:
             replace_admin_for_models([(PollContent, mixin)])
 
-        mock.assert_called_with(admin.site._registry[PollContent], mixin, admin.site)
+        mock.assert_called_with(admin.site._registry[PollContent], mixin)
 
     def test_replace_admin_on_registered_models(self):
         self.site.register(self.model, self.admin_class)

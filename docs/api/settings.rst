@@ -12,7 +12,7 @@ Settings for djangocms Versioning
     This implies that the corresponding content and grouper objects cannot be
     deleted either.
 
-    This is to protect the record of how different versions have come about.
+    This is to protect the history of how different versions have come about.
 
     If set to ``True`` users can delete version objects if the have the appropriate
     rights. Set this to ``True`` if you want users to be able to delete versioned

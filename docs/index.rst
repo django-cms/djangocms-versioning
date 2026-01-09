@@ -19,6 +19,8 @@ Welcome to "djangocms-versioning"'s documentation!
    :maxdepth: 2
    :caption: Reference:
 
+   api/models
+   api/managers
    api/advanced_configuration
    api/signals
    api/management_commands

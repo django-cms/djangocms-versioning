@@ -35,7 +35,7 @@ try:
     from cms.utils import get_current_site  # noqa F401
 except ImportError:
     # cms < 5.1
-    def get_object_live_url(obj, language=None, site=None) -> str:
+    def get_object_live_url(obj, language=None, site=None, params=None) -> str:
         with force_language(language):
             return obj.get_absolute_url()
 

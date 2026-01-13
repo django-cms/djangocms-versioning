@@ -106,7 +106,7 @@ class VersioningToolbar(PlaceholderToolbar):
             edit_url = reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_edit_redirect",
                 args=(version.pk,),
-            )
+            ) + "?" + self.request.GET.urlencode()
             pks_for_grouper = version.versionable.for_content_grouping_values(version.content).values_list(
                 "pk", flat=True
             )

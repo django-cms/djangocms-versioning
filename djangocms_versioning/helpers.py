@@ -265,13 +265,13 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
     return version.state == DRAFT
 
 
-def get_editable_url(content_obj, force_admin=False):
+def get_editable_url(content_obj, force_admin=False, params=None):
     """If the object is editable the cms editable view should be used, with the toolbar.
     This method provides the URL for it.
     """
     if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
-        url = get_object_edit_url(content_obj, language)
+        url = get_object_edit_url(content_obj, language, params=params)
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(

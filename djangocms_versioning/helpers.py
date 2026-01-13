@@ -271,7 +271,9 @@ def get_editable_url(content_obj, force_admin=False, params=None):
     """
     if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
-        url = get_object_edit_url(content_obj, language, params=params)
+        url = get_object_edit_url(content_obj, language)
+        if params:
+            url += "?" + params.urlencode()
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(

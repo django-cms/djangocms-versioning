@@ -9,7 +9,8 @@ for page contents and other models within four categories: **published**,
 Version states
 --------------
 
-Each versioned object carries a version number, creation date, modification date, a reference to the user who created the version, and **version state**. The states are:
+Each versioned object carries a version number, creation date, modification date, +
+a reference to the user who created the version, and **version state**. The states are:
 
   * **draft**: This is the version which currently can be edited. Only draft versions can
     be edited and only one draft version per language is allowed. Changes made to draft
@@ -29,7 +30,18 @@ Each new draft version will generate a new version number.
      :align: center
      :alt: Version states
 
-When an object is published, it changes state to **published** and thereby becomes publicly visible. All other version states are invisible to the public.
+When an object is published, it changes state to **published** and thereby becomes publicly visible.
+All other version states are invisible to the public.
+
+When unpublished, the versioned object will not be visible outside the Django admin, or
+django CMS preview and editing endpoints. Unpublished objects document the content history.
+That's why they cannot be edited or "republished" - rather you have to create a new draft and publish that (with or
+without changes).
+
+To preserve the content history, by default versioned objects cannot be deleted. If you need
+the ability to delete a versioned object, you will need to set :attr:`DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS`
+to ``True`` in your settings. Doing so will result in a potentially incomplete content history.
+
 
 Effect on the model's manager
 -----------------------------

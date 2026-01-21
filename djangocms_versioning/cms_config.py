@@ -50,6 +50,8 @@ class VersioningCMSExtension(CMSAppExtension):
         self.add_to_context = {}
         self.add_to_field_extension = {}
 
+    contract = "djangocms_versioning", VersionableItem
+
     @cached_property
     def versionables_by_content(self):
         """Returns a dict of {content_model_cls: VersionableItem obj}"""

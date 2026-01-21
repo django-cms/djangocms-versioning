@@ -93,8 +93,8 @@ Example:
     class PostContentAdmin(ExtendedVersionAdminMixin, admin.ModelAdmin):
         list_display = ["title"]
 
-The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`admin_field_modifiers` to a given apps :term:`cms_config`,
-in the form of a dictionary of {model_name: {field: method}}, the admin for the model, will alter the field, using the method provided.
+The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`extended_admin_field_modifiers` to a given app's :term:`cms_config`,
+in the form of a dictionary of {model_name: {field: method}}, the admin for the model will alter the field using the method provided.
 
 .. code-block:: python
 
@@ -116,7 +116,7 @@ Adding State Indicators
 
 djangocms-versioning provides status indicators for django CMS' content models, you may know them from the page tree in django-cms:
 
-.. image:: static/Status-indicators.png
+.. image:: /static/Status-indicators.png
     :width: 50%
 
 You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:

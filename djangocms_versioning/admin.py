@@ -20,7 +20,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Prefetch, Subquery
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
 from django.http import (
@@ -50,6 +50,7 @@ from .helpers import (
     get_current_site,
     get_editable_url,
     get_latest_admin_viewable_content,
+    get_latest_content_from_cache,
     get_object_live_url,
     get_preview_url,
     proxy_model,
@@ -182,20 +183,29 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     def get_indicator_column(self, request):
         def indicator(obj):
+            versions = None
             if self._extra_grouping_fields is not None:  # Grouper Model
                 content_obj = get_latest_admin_viewable_content(
                     obj,
                     include_unpublished_archived=True,
                     **{field: getattr(self, field) for field in self._extra_grouping_fields},
                 )
+                for prefetched in getattr(obj, "_prefetched_contents", []):
+                    prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
+                versions = (
+                    [content._prefetched_versions[0] for content in obj._prefetched_contents]
+                    if hasattr(obj, "_prefetched_contents")
+                    else None
+                )
             else:  # Content Model
                 content_obj = obj
-            status = content_indicator(content_obj)
+
+            status = content_indicator(content_obj, versions)
             menu = (
                 content_indicator_menu(
                     request,
                     status,
-                    content_obj._version,
+                    content_obj._versions,
                     back=f"{request.path_info}?{request.GET.urlencode()}",
                 )
                 if status
@@ -318,7 +328,36 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             # cast is necessary for mysql
             content_modified=Cast(Subquery(contents.values("content_modified")[:1]), models.DateTimeField()),
         )
+        # Prefetching is not implemented here; you may want to use Prefetch for related objects if needed.
+        # To get the reverse name for self.grouper_field_name:
+        # It's usually: <related_model>_set or the related_name defined on the ForeignKey.
+        # For a ForeignKey field, you can get the reverse accessor name like this:
+        reverse_name = self.content_model._meta.get_field(self.grouper_field_name).remote_field.get_accessor_name()
+        qs = qs.prefetch_related(
+            Prefetch(
+                reverse_name,
+                to_attr="_prefetched_contents",  # Needed for state indicators
+                queryset=self.content_model.admin_manager.filter(**self.current_content_filters)
+                .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
+                .order_by("-pk"),
+            )
+        )
+        qs = qs.prefetch_related(
+            Prefetch(
+                reverse_name,
+                to_attr="_current_contents",  # Service for get_content_obj
+                queryset=self.content_model.admin_manager.current_content(**self.current_content_filters)
+                .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
+                .order_by("-pk"),
+            )
+        )
         return qs
+
+    def get_content_obj(self, obj: models.Model) -> models.Model:
+        """Returns the latest content object for the given grouper object."""
+        if obj is None or self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
+            return super().get_content_obj(obj)
+        return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
     @admin.display(
         description=_("State"),

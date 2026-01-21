@@ -22,7 +22,7 @@ from django.utils.translation import get_language, override as force_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -360,6 +360,11 @@ def get_latest_admin_viewable_content(
             f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}."
         )
 
+    if hasattr(grouper, "_prefetched_contents"):
+        return get_latest_content_from_cache(
+            grouper._prefetched_contents, include_unpublished_archived
+        )
+
     # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
 
@@ -371,6 +376,20 @@ def get_latest_admin_viewable_content(
         return qs.filter(**extra_grouping_fields).latest_content().first()
     # Return only active versions, e.g., for copying
     return qs.filter(**extra_grouping_fields).current_content().first()
+
+
+def get_latest_content_from_cache(cache, include_unpublished_archived: bool = False) -> models.Model | None:
+    # Evaluate prefetched contents in python
+    for content in cache:
+        if content._prefetched_versions[0].state == DRAFT:
+            return content
+    for content in cache:
+        if content._prefetched_versions[0].state == PUBLISHED:
+            return content
+    if include_unpublished_archived:
+        order_by_date = sorted(cache, key=lambda v: v._prefetched_versions[0].created, reverse=True)
+        return order_by_date[0] if order_by_date else None
+    return None
 
 
 def get_latest_admin_viewable_page_content(

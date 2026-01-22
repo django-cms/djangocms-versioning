@@ -14,7 +14,7 @@ from packaging.version import Version
 
 from djangocms_versioning import cms_toolbars
 from djangocms_versioning.cms_config import VersioningCMSConfig
-from djangocms_versioning.cms_toolbars import VersioningPageToolbar
+from djangocms_versioning.cms_toolbars import VersioningPageToolbar, VersioningToolbar
 from djangocms_versioning.constants import ARCHIVED, DRAFT, PUBLISHED
 from djangocms_versioning.helpers import version_list_url
 from djangocms_versioning.test_utils.factories import (
@@ -254,6 +254,42 @@ class VersioningToolbarTestCase(CMSTestCase):
         # The only edit button that exists is the default cms button and not the versioning edit button
         self.assertEqual(len(found_button_list), 1)
         self.assertNotEqual(found_button_list[0].url, edit_url)
+
+    def test_edit_button_preserves_get_params(self):
+        """
+        The edit button URL should contain all GET parameters from the request
+        """
+        from cms.toolbar.toolbar import CMSToolbar
+        from django.test import RequestFactory
+
+        version = PageVersionFactory(content__template="")
+        # Create a request with GET parameters
+        request = RequestFactory().get("/?foo=bar&baz=qux")
+        request.user = self.get_superuser()
+        request.session = {}
+        request.current_page = version.content.page
+        request.toolbar = CMSToolbar(request)
+
+        toolbar = VersioningToolbar(
+            request, toolbar=request.toolbar, is_current_app=True, app_path="/"
+        )
+        toolbar.toolbar.set_object(version.content)
+        toolbar.toolbar.edit_mode_active = False
+        toolbar.toolbar.preview_mode_active = True
+        toolbar.toolbar.structure_mode_active = False
+        toolbar.populate()
+        toolbar.post_template_populate()
+
+        edit_buttons = find_toolbar_buttons("Edit", toolbar.toolbar)
+        self.assertTrue(len(edit_buttons) > 0, "Edit button should be present in toolbar")
+        edit_button = edit_buttons[0]
+
+        # The edit button URL should include the GET parameters
+        self.assertIn("foo=bar", edit_button.url)
+        self.assertIn("baz=qux", edit_button.url)
+        # The base URL should still be the edit redirect URL
+        base_url = self._get_edit_url(version, VersioningCMSConfig.versioning[0])
+        self.assertIn(base_url, edit_button.url)
 
     def test_version_menu_for_non_version_content(self):
         # User objects are not registered with versioning, so attempting

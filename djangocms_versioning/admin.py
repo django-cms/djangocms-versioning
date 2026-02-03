@@ -47,8 +47,10 @@ from .helpers import (
     content_is_unlocked_for_user,
     create_version_lock,
     get_admin_url,
+    get_current_site,
     get_editable_url,
     get_latest_admin_viewable_content,
+    get_object_live_url,
     get_preview_url,
     proxy_model,
     remove_version_lock,
@@ -1097,9 +1099,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         self.message_user(request, _("Version published"))
 
         # Redirect to published?
-        if conf.ON_PUBLISH_REDIRECT == "published":
+        if not requested_redirect and conf.ON_PUBLISH_REDIRECT == "published":
             if hasattr(version.content, "get_absolute_url"):
-                requested_redirect = requested_redirect or version.content.get_absolute_url()
+                redirect_url = get_object_live_url(version.content, site=get_current_site(request)) or redirect_url
 
         return self._internal_redirect(requested_redirect, redirect_url)
 
@@ -1220,7 +1222,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin")))
+        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

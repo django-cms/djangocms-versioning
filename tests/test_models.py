@@ -249,12 +249,13 @@ class TestVersionModelProperties(CMSTestCase):
 
         version = factories.PollVersionFactory()
         original_str_method = version.content.__class__.__str__
-        version.content.__class__.__str__ = failing_str_method
+        try:
+            version.content.__class__.__str__ = failing_str_method
 
-        expected_str = f"Version #{version.pk} (Draft)"
-        self.assertEqual(str(version), expected_str)
-
-        version.content.__class__.__str__ = original_str_method
+            expected_str = f"Version #{version.pk} (Draft)"
+            self.assertEqual(str(version), expected_str)
+        finally:
+            version.content.__class__.__str__ = original_str_method
 
 
 class TestVersionQuerySet(CMSTestCase):

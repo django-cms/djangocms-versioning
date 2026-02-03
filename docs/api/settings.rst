@@ -6,11 +6,7 @@ All Django CMS Versioning settings are optional and have sensible defaults. Add 
 
 .. py:attribute:: DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
 
-    **Default**: ``False``
-
-    **Type**: boolean
-
-    Controls whether users can delete version objects.
+    Defaults to ``False`` (``constants.DELETE_NONE``)
 
     When ``False`` (default):
         - Version objects that are the source of another version are protected from deletion
@@ -22,7 +18,17 @@ All Django CMS Versioning settings are optional and have sensible defaults. Add 
         - Set this only if you don't need a full version history
         - Use with caution as it can break the version chain
 
-    **Example**::
+    If set to ``constants.DELETE_ANY`` (``"any"``) users can delete version objects
+    if the have the appropriate rights. Set this to ``"any"`` if you want users to be
+    able to delete versioned objects and you do not need a full history of versions,
+    e.g. for documentation purposes.
+
+    If set to ``constants.DELETE_NON_PUBLIC_ONLY`` (``"non-public only"``) users can
+    delete version objects which are not published and which are not a source for
+    another version object. This allows users to delete draft, unpublished, or archived
+    versions, but protects published versions from deletion. This is particularly
+    useful if you want to allow users to clean up their version history, but still want to
+    ensure that published content remains documented and is not deleted accidentally.
 
         # settings.py
         DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = True

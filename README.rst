@@ -1,4 +1,4 @@
-|PyPiVersion| |DjVersion| |CmsVersion|
+|PyPiVersion| |PyVersion| |DjVersion| |CmsVersion| |Coverage|
 
 *********************
 django CMS Versioning
@@ -117,3 +117,6 @@ do not forget to run the ``compilemessages`` management command.
 .. |CmsVersion| image:: https://img.shields.io/pypi/frameworkversions/django-cms/djangocms-versioning.svg?style=flat-square
     :target: https://pypi.python.org/pypi/djangocms-versioning
     :alt: django CMS versions
+
+.. |Coverage| image:: https://codecov.io/gh/django-cms/djangocms-versioning/graph/badge.svg?token=Jyx7Ilpibf
+ :target: https://codecov.io/gh/django-cms/djangocms-versioning

@@ -14,7 +14,7 @@ Settings for djangocms Versioning
 
     This is to protect the record of how different versions have come about.
 
-    If set to ``constants.DELETE_ANY`` (``"any"``)) users can delete version objects
+    If set to ``constants.DELETE_ANY`` (``"any"``) users can delete version objects
     if the have the appropriate rights. Set this to ``"any"`` if you want users to be
     able to delete versioned objects and you do not need a full history of versions,
     e.g. for documentation purposes.

@@ -36,7 +36,7 @@ permission_error_message = _("You do not have permission to perform this action"
 
 
 def PROTECT_IF_PUBLIC_VERSION(collector, field, sub_objs, using):
-    public_exists = sub_objs.filter(state=constants.PUBLISHED)
+    public_exists = sub_objs.filter(state=constants.PUBLISHED).exists()
     if public_exists:
         # Any public objects?
         raise models.ProtectedError(

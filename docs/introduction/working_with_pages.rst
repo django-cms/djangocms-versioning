@@ -217,7 +217,7 @@ Get the published version of a draft
 Iterate over all pages with their current content
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Remember using the correct manager when using, e.g. `prefetch_related` or reverse relations
+Remember to use the correct manager when using, e.g., `prefetch_related` or reverse relations.
 
 .. code-block:: python
 

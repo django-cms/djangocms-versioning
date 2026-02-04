@@ -2074,6 +2074,40 @@ class EditRedirectTestCase(BaseStateTestCase):
 
         self.assertRedirects(response, target_url, target_status_code=302)
 
+    def test_edit_redirect_view_preserves_get_params_for_editable_target(self):
+        page_versionable = VersioningCMSConfig.versioning[0]
+        page_version = factories.PageVersionFactory(content__language="en")
+        url = self.get_admin_url(
+            page_versionable.version_model_proxy, "edit_redirect", page_version.pk
+        )
+        params = {"foo": "bar", "next": "/return/"}
+
+        with self.login_user_context(self.superuser):
+            response = self.client.post(f"{url}?{urlencode(params)}")
+
+        parsed = urlparse(response.url)
+        self.assertEqual(
+            parsed.path, get_object_edit_url(page_version.content, language="en")
+        )
+        self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "next": ["/return/"]})
+
+    def test_edit_redirect_view_drops_get_params_for_admin_redirect(self):
+        draft_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", draft_version.pk
+        )
+        params = {"force_admin": "1", "next": "/return/"}
+
+        with self.login_user_context(self.superuser):
+            response = self.client.post(f"{url}?{urlencode(params)}")
+
+        parsed = urlparse(response.url)
+        self.assertEqual(
+            parsed.path,
+            self.get_admin_url(PollContent, "change", draft_version.content.pk),
+        )
+        self.assertEqual(parse_qs(parsed.query), {})
+
     @patch("django.contrib.messages.add_message")
     def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):
         url = self.get_admin_url(

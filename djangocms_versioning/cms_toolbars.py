@@ -107,6 +107,8 @@ class VersioningToolbar(PlaceholderToolbar):
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_edit_redirect",
                 args=(version.pk,),
             )
+            if self.request.GET:
+                edit_url += "?" + self.request.GET.urlencode()
             pks_for_grouper = version.versionable.for_content_grouping_values(version.content).values_list(
                 "pk", flat=True
             )
@@ -254,7 +256,8 @@ class VersioningToolbar(PlaceholderToolbar):
 
         url = None
         if hasattr(published_version, "get_absolute_url"):
-            url = get_object_live_url(published_version, site=get_current_site(self.toolbar.request))
+            request = self.toolbar.request
+            url = get_object_live_url(published_version, site=get_current_site(request), params=request.GET)
         if url and (self.toolbar.edit_mode_active or self.toolbar.preview_mode_active):
             item = ButtonList(side=self.toolbar.RIGHT)
             item.add_button(

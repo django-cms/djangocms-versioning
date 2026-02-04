@@ -2,11 +2,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # Translators:
 # François Palmier <fp@kapt.mobi>, 2023
 # Frédéric Roland, 2023
-#
+# Corentin Bettiol, 2026
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -14,14 +15,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-12 07:56+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
-"Last-Translator: Frédéric Roland, 2023\n"
+"Last-Translator: Corentin Bettiol, 2026\n"
 "Language-Team: French (https://app.transifex.com/divio/teams/58664/fr/)\n"
-"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % "
-"1000000 == 0 ? 1 : 2;\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #: admin.py:174 admin.py:324 admin.py:446
 msgid "State"
@@ -100,7 +100,7 @@ msgstr "Déverrouiller"
 
 #: admin.py:920
 msgid "Settings"
-msgstr ""
+msgstr "Paramètres"
 
 #: admin.py:957
 msgid "Compare versions"
@@ -113,18 +113,21 @@ msgstr "Il faut sélectionner exactement deux versions."
 #: admin.py:984
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
-msgstr ""
+msgstr "Supprimer les %(verbose_name_plural)s sélectionnés"
 
 #: admin.py:995
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
+"Les versions provisoires ou publiées ne peuvent pas être supprimées. "
+"Commencez par retirer la publication ou utilisez la fonction « Supprimer » "
+"pour les versions provisoires."
 
 #: admin.py:1024
 #, python-brace-format
 msgid "Select {} to view its versions"
-msgstr ""
+msgstr "Sélectionnez {} pour afficher ses versions."
 
 #: admin.py:1039
 msgid "Version cannot be archived"
@@ -217,10 +220,8 @@ msgid "Add Translation"
 msgstr "Ajouter une traduction"
 
 #: cms_toolbars.py:400
-#, fuzzy
-#| msgid "Add Translation"
 msgid "Delete Translation"
-msgstr "Ajouter une traduction"
+msgstr "Supprimer la traduction"
 
 #: cms_toolbars.py:418
 msgid "Copy all plugins"
@@ -300,10 +301,8 @@ msgid "Action Denied. The draft version is locked by {user}"
 msgstr "Action Refusée. Le brouillon est verrouillé par {user}"
 
 #: models.py:35
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have permission to perform this action"
-msgstr "Vous n'avez pas la permission de copier ces plugins."
+msgstr "Vous n'avez pas l'autorisation d'effectuer cette action."
 
 #: models.py:91
 msgid "Created"
@@ -367,27 +366,25 @@ msgstr "Le brouillon n'est pas verrouillé"
 #: templates/admin/djangocms_versioning/page/change_form.html:58
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Veuillez corriger l'erreur ci-dessous."
+msgstr[1] "Veuillez corriger les erreurs ci-dessous."
+msgstr[2] "Veuillez corriger les erreurs ci-dessous."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:75
-#, fuzzy
-#| msgid "Versions"
 msgid "All permissions"
-msgstr "Versions"
+msgstr "Toutes les permissions"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:76
 msgid "Loading..."
-msgstr ""
+msgstr "Chargement..."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:86
 msgid "Save"
-msgstr ""
+msgstr "Enregistrer"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:87
 msgid "Save and continue editing"
-msgstr ""
+msgstr "Enregistrer et continuer de modifier"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9
@@ -554,8 +551,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -563,7 +559,6 @@ msgstr ""
 "Le brouillon suivant a été déverrouillé par %(by_user)s pour son usage.\n"
 "%(version_link)s\n"
 "\n"
-"Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes "
-"prié de contacter %(by_user)s en cas de soucis.\n"
+"Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes prié de contacter %(by_user)s en cas de soucis.\n"
 "\n"
 "C'est une notification automatique de Django CMS.\n"

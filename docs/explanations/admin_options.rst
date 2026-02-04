@@ -119,7 +119,7 @@ djangocms-versioning provides status indicators for django CMS' content models, 
 .. image:: /static/Status-indicators.png
     :width: 50%
 
-You can use these on your content model's changelist view admin by adding the following fixin to the model's Admin class:
+You can use these on your content model's changelist view admin by adding the following mixin to the model's Admin class:
 
 .. code-block:: python
 

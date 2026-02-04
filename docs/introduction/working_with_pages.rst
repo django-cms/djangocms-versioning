@@ -3,7 +3,7 @@ Working with versioned Pages
 
 When djangocms-versioning is installed, django CMS pages become versioned. While this
 does not change how you interact with ``Page`` and most importantly ``PageContent``
-objects in your code, it is important to understand how djangocms-verisoning changes the
+objects in your code, it is important to understand how djangocms-versioning changes the
 result of querying ``PageContent`` objects.
 
 Understanding the Page/PageContent relationship

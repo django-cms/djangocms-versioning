@@ -83,7 +83,7 @@ def user_can_unlock(message: str) -> callable:
             if user.has_perm(f"{version._meta.app_label}.delete_versionlock"):
                 return
             draft_version = get_latest_draft_version(version)
-            if draft_version and (draft_version.locked_by == user or draft_version.locked_by is  None):
+            if draft_version and (draft_version.locked_by_id is  None or draft_version.locked_by_id == user.pk):
                 return
             raise ConditionFailed(message)
     return inner

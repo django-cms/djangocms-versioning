@@ -447,7 +447,7 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by is None or version.locked_by == user
+    return version.locked_by_id is None or version.locked_by_id == user.pk
 
 
 def content_is_unlocked_for_user(

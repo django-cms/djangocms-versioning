@@ -345,13 +345,13 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         qs = qs.prefetch_related(
             Prefetch(
                 reverse_name,
-                to_attr="_current_contents",  # Service for get_content_obj
-                queryset=self.content_model.admin_manager.current_content(**self.current_content_filters)
+                to_attr="_latest_contents",  # Service for get_content_obj
+                queryset=self.content_model.admin_manager.latest_content(**self.current_content_filters)
                 .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
                 .order_by("-pk"),
             )
         )
-        return qs
+        return qs 
 
     def get_content_obj(self, obj: models.Model) -> models.Model:
         """Returns the latest content object for the given grouper object."""

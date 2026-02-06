@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
@@ -23,6 +24,10 @@ from django.utils.translation import get_language, override as force_language
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
+
+if TYPE_CHECKING:
+    from .models import Version
+
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -493,11 +498,14 @@ def send_email(
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version: models.Model) -> models.Model:
+def get_latest_draft_version(version: Version) -> Version:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version
 
+    if getattr(version.content, "content_is_latest", False):
+        return version if version.state == DRAFT else None
+    
     if (
         not hasattr(version.content, "_latest_draft_version")
         or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT

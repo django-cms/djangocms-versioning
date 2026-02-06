@@ -26,7 +26,7 @@ from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
 
 if TYPE_CHECKING:
-    from .models import Version
+    from . import models as version_models
 
 
 try:
@@ -498,7 +498,7 @@ def send_email(
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version: Version) -> Version:
+def get_latest_draft_version(version: version_models.Version) -> version_models.Version:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version

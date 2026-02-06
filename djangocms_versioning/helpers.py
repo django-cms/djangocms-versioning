@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
@@ -22,7 +23,11 @@ from django.utils.translation import get_language, override as force_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
+
+if TYPE_CHECKING:
+    from . import models as version_models
+
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -362,6 +367,11 @@ def get_latest_admin_viewable_content(
             f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}."
         )
 
+    if hasattr(grouper, "_prefetched_contents"):
+        return get_latest_content_from_cache(
+            grouper._prefetched_contents, include_unpublished_archived
+        )
+
     # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
 
@@ -373,6 +383,20 @@ def get_latest_admin_viewable_content(
         return qs.filter(**extra_grouping_fields).latest_content().first()
     # Return only active versions, e.g., for copying
     return qs.filter(**extra_grouping_fields).current_content().first()
+
+
+def get_latest_content_from_cache(cache, include_unpublished_archived: bool = False) -> models.Model | None:
+    # Evaluate prefetched contents in python
+    for content in cache:
+        if content._prefetched_versions[0].state == DRAFT:
+            return content
+    for content in cache:
+        if content._prefetched_versions[0].state == PUBLISHED:
+            return content
+    if include_unpublished_archived:
+        order_by_date = sorted(cache, key=lambda v: v._prefetched_versions[0].created, reverse=True)
+        return order_by_date[0] if order_by_date else None
+    return None
 
 
 def get_latest_admin_viewable_page_content(
@@ -428,7 +452,7 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by is None or version.locked_by == user
+    return version.locked_by_id is None or version.locked_by_id == user.pk
 
 
 def content_is_unlocked_for_user(
@@ -474,11 +498,14 @@ def send_email(
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version: models.Model) -> models.Model:
+def get_latest_draft_version(version: version_models.Version) -> version_models.Version:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version
 
+    if getattr(version.content, "content_is_latest", False):
+        return version if version.state == DRAFT else None
+    
     if (
         not hasattr(version.content, "_latest_draft_version")
         or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT

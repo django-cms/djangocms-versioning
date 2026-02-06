@@ -493,7 +493,7 @@ class Version(models.Model):
             # Second fallback: placeholder change permissions - works for PageContent
             return self.content.has_placeholder_change_permission(user)
         # final fallback: Django perms
-        return user.has_perm(f"{self.content_type.app_label}.change_{self.content_type.model}")
+        return user.has_perm(f"{self.content._meta.app_label}.change_{self.content._meta.model_name}")
 
     check_modify = Conditions(
         [

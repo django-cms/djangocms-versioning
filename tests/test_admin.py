@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
+from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
@@ -143,7 +144,7 @@ class AdminReplaceVersioningTestCase(CMSTestCase):
         ) as mock:
             replace_admin_for_models([(PollContent, mixin)])
 
-        mock.assert_called_with(admin.site._registry[PollContent], mixin, admin.site)
+        mock.assert_called_with(admin.site._registry[PollContent], mixin)
 
     def test_replace_admin_on_registered_models(self):
         self.site.register(self.model, self.admin_class)
@@ -3053,7 +3054,13 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
-        self.assertContains(response, "cms-action-view")
+        if cms_version < "5.1":
+            # Before django CMS 5.1, preview action was added
+            self.assertContains(response, "cms-action-view")
+        else:
+            # Since django CMS 5.1, edit actions are added but only if the model is frontend-editable
+            # Poll is not, and does not add the action itself.
+            self.assertNotContains(response, "cms-action-view")
         self.assertContains(response, "cms-action-settings")
         self.assertContains(response, "js-action")
 
@@ -3436,3 +3443,76 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
         self.assertNotContains(response, "New Draft")
         self.assertNotContains(response, "Publish")
 
+
+class GrouperAdminPerformanceTestCase(CMSTestCase):
+    """Test to ensure Poll GrouperAdmin changelist_view queries are optimized"""
+
+    def setUp(self):
+        super().setUp()
+        # Pre-cache site to get consistent query counts across tests
+        from django.contrib.sites.models import Site
+        Site.objects.get_current()
+
+    def test_poll_grouper_changelist_queries_are_optimized(self):
+        """Pin the number of queries for Poll GrouperAdmin changelist to prevent regressions"""
+        # Create test data: 5 polls with 2 versions each (draft + published)
+        for _i in range(5):
+            # Create published version
+            published = PollVersionFactory(state=constants.PUBLISHED)
+            # Create draft version for same poll
+            PollVersionFactory(
+                content__poll=published.content.poll,
+                content__language=published.content.language,
+                state=constants.DRAFT,
+            )
+
+        from djangocms_versioning.test_utils.polls.admin import PollAdmin
+        from djangocms_versioning.test_utils.polls.models import Poll
+
+        poll_admin = PollAdmin(Poll, admin.site)
+
+        # Create request
+        factory = RequestFactory()
+        request = factory.get("/admin/polls/poll/")
+        request.session = {}
+        request.user = self.get_superuser()
+
+        # Pin the number of queries
+        # Expected queries should remain constant due to prefetch optimization
+        # 1. Count query for pagination
+        # 2. Count query (duplicate from admin)
+        # 3. Main queryset with subqueries for content annotations
+        with self.assertNumQueries(3):
+            response = poll_admin.changelist_view(request)
+            # Force evaluation of queryset
+            list(response.context_data["cl"].result_list)
+
+    def test_poll_changelist_with_many_versions_scales_well(self):
+        """Ensure query count doesn't increase with more versions per poll"""
+        # Create 1 poll with many versions
+        poll_version = PollVersionFactory(state=constants.PUBLISHED)
+        poll = poll_version.content.poll
+
+        # Add 10 more versions (archived)
+        for _ in range(10):
+            PollVersionFactory(
+                content__poll=poll,
+                content__language=poll_version.content.language,
+                state=constants.ARCHIVED,
+            )
+
+        from djangocms_versioning.test_utils.polls.admin import PollAdmin
+        from djangocms_versioning.test_utils.polls.models import Poll
+
+        poll_admin = PollAdmin(Poll, admin.site)
+
+        factory = RequestFactory()
+        request = factory.get("/admin/polls/poll/")
+        request.user = self.get_superuser()
+        request.session = {}
+
+        # Query count should remain the same regardless of version count
+        # because of prefetch optimization
+        with self.assertNumQueries(3):
+            response = poll_admin.changelist_view(request)
+            list(response.context_data["cl"].result_list)

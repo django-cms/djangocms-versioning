@@ -42,7 +42,7 @@ Both signals emit the following keyword arguments:
    * - ``sender``
      - The content model class (e.g., PostContent, PageContent)
      - Model class
-   * - ``version``
+   * - ``obj``
      - The Version instance being operated on
      - Version
    * - ``operation``
@@ -94,15 +94,15 @@ Each signal emission includes a unique ``token`` parameter that ties related pre
     signal_state = {}
 
     @receiver(pre_version_operation)
-    def before_version_change(sender, version, operation, token, **kwargs):
+    def before_version_change(sender, obj, operation, token, **kwargs):
         signal_state[token] = {
             'start_time': timezone.now(),
             'operation': operation,
-            'version_id': version.pk,
+            'version_id': obj.pk,
         }
 
     @receiver(post_version_operation)
-    def after_version_change(sender, version, operation, token, **kwargs):
+    def after_version_change(sender, obj, operation, token, **kwargs):
         state = signal_state.pop(token, {})
         duration = timezone.now() - state.get('start_time', timezone.now())
         print(f"Operation {operation} took {duration.total_seconds()}s")
@@ -122,9 +122,9 @@ Invalidating a Cache
     from blog.models import PostContent
 
     @receiver(post_version_operation, sender=PostContent)
-    def invalidate_post_cache(sender, version, operation, **kwargs):
+    def invalidate_post_cache(sender, obj, operation, **kwargs):
         """Invalidate cache whenever a post version changes"""
-        content = version.content
+        content = obj.content
         cache_key = f"post_{content.pk}"
         cache.delete(cache_key)
 
@@ -140,21 +140,21 @@ Updating a Search Index
     from blog.models import PostContent
 
     @receiver(post_version_operation, sender=PostContent)
-    def update_search_index(sender, version, operation, unpublished=None, **kwargs):
+    def update_search_index(sender, obj, operation, unpublished=None, **kwargs):
         """Update search index when posts are published/unpublished"""
 
         if operation == constants.OPERATION_PUBLISH:
             # New content is now public
             if unpublished:
                 # This is an update of existing content
-                index.update_document(version.content)
+                index.update_document(obj.content)
             else:
                 # This is a new publication
-                index.add_document(version.content)
+                index.add_document(obj.content)
 
         elif operation == constants.OPERATION_UNPUBLISH:
             # Content was removed from public
-            index.remove_document(version.content)
+            index.remove_document(obj.content)
 
 
 Sending Notifications
@@ -169,16 +169,16 @@ Sending Notifications
     from blog.models import PostContent
 
     @receiver(post_version_operation, sender=PostContent)
-    def notify_on_publish(sender, version, operation, **kwargs):
+    def notify_on_publish(sender, obj, operation, **kwargs):
         """Send email notification when post is published"""
 
         if operation == constants.OPERATION_PUBLISH:
-            content = version.content
+            content = obj.content
             send_mail(
                 subject=f"Post Published: {content.title}",
                 message=f"Your post '{content.title}' has been published.",
                 from_email='noreply@example.com',
-                recipient_list=[version.created_by.email],
+                recipient_list=[obj.created_by.email],
                 fail_silently=True,
             )
 
@@ -197,17 +197,17 @@ Logging Version Changes
     logger = logging.getLogger(__name__)
 
     @receiver(pre_version_operation, sender=PostContent)
-    def log_version_change_start(sender, version, operation, token, **kwargs):
+    def log_version_change_start(sender, obj, operation, token, **kwargs):
         logger.info(
-            f"Starting {operation} for {sender.__name__} #{version.pk}",
-            extra={'token': token, 'version_id': version.pk}
+            f"Starting {operation} for {sender.__name__} #{obj.pk}",
+            extra={'token': token, 'version_id': obj.pk}
         )
 
     @receiver(post_version_operation, sender=PostContent)
-    def log_version_change_complete(sender, version, operation, token, **kwargs):
+    def log_version_change_complete(sender, obj, operation, token, **kwargs):
         logger.info(
-            f"Completed {operation} for {sender.__name__} #{version.pk}",
-            extra={'token': token, 'version_id': version.pk}
+            f"Completed {operation} for {sender.__name__} #{obj.pk}",
+            extra={'token': token, 'version_id': obj.pk}
         )
 
 
@@ -224,7 +224,7 @@ When you publish a version, the old published version(s) are automatically unpub
     from cms.models import PageContent
 
     @receiver(post_version_operation, sender=PageContent)
-    def handle_publish_scenario(sender, version, operation,
+    def handle_publish_scenario(sender, obj, operation,
                                 unpublished=None, to_be_published=None, **kwargs):
         """
         Handle different publish/unpublish scenarios
@@ -264,17 +264,17 @@ The CMS used to provide page publish and unpublish signals which were removed in
     from djangocms_versioning.signals import post_version_operation
 
     @receiver(post_version_operation, sender=PageContent)
-    def on_page_publish_unpublish(sender, version, operation, **kwargs):
+    def on_page_publish_unpublish(sender, obj, operation, **kwargs):
         """React to page publish/unpublish operations"""
 
         if operation == constants.OPERATION_PUBLISH:
             # Page has been published
-            page = version.content.page
+            page = obj.content.page
             print(f"Page published: {page.get_title()}")
 
         elif operation == constants.OPERATION_UNPUBLISH:
             # Page has been unpublished
-            page = version.content.page
+            page = obj.content.page
             print(f"Page unpublished: {page.get_title()}")
 
 
@@ -302,7 +302,7 @@ Best Practices
    .. code-block:: python
 
        @receiver(post_version_operation, sender=PostContent)
-       def my_signal_handler(sender, version, operation, **kwargs):
+       def my_signal_handler(sender, obj, operation, **kwargs):
            try:
                # Do something risky
                risky_operation()

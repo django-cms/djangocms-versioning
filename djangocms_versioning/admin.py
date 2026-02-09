@@ -20,7 +20,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
-from django.db.models import OuterRef, Prefetch, Subquery
+from django.db.models import OuterRef, Prefetch, Subquery, Value
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
 from django.http import (
@@ -339,20 +339,12 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
                 to_attr="_prefetched_contents",  # Needed for state indicators
                 queryset=self.content_model.admin_manager.filter(**self.current_content_filters)
                 .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
-                .order_by("-pk"),
-            )
-        )
-        qs = qs.prefetch_related(
-            Prefetch(
-                reverse_name,
-                to_attr="_current_contents",  # Service for get_content_obj
-                queryset=self.content_model.admin_manager.current_content(**self.current_content_filters)
-                .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
+                .annotate(content_is_latest=Value(True))  # We're only looking at the latest content in the qs
                 .order_by("-pk"),
             )
         )
         return qs
-
+ 
     def get_content_obj(self, obj: models.Model) -> models.Model:
         """Returns the latest content object for the given grouper object."""
         if obj is None or self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
@@ -1261,7 +1253,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin")))
+        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

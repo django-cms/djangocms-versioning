@@ -76,40 +76,50 @@ assumes that the site can be changed and those changes should be versioned, we w
 Register the model for versioning
 ----------------------------------
 
-Now we need to make versioning aware of these models. So we have to register them in the `cms_config.py` file.
-A very basic configuration would look like this:
+Now we need to make versioning aware of these models. So we have to register them in the
+``cms_config.py`` file. A basic configuration looks like this:
 
 .. code-block:: python
 
     # blog/cms_config.py
     from cms.app_base import CMSAppConfig
-    from djangocms_versioning.datastructures import VersionableItem, default_copy
     from .models import PostContent
 
 
-     class BlogCMSConfig(CMSAppConfig):
+    class BlogCMSConfig(CMSAppConfig):
         djangocms_versioning_enabled = True
-        versioning = [
-            VersionableItem(
-                content_model=PostContent,
-                grouper_field_name='post',
-                copy_function=default_copy,
-                grouper_admin_mixin="__default__",
-            ),
-        ]
 
-In this configuration we must specify the :term:`content model <content model>` (`PostContent`),
-the name of the field that is a foreign key to the :term:`grouper model <grouper model>` (`post`)
-and a :term:`copy function <copy function>`. For simple model structures, the `default_copy` function
-which we have used is sufficient, but in many cases you might need to write your own custom :term:`copy function <copy function>`
-(more on that below).
+        def __init__(self, app):
+            super().__init__(app)
+
+            # Discover the VersionableItem class from the installed versioning package
+            VersionableItem = self.get_contract("djangocms_versioning")
+
+            self.versioning = [
+                VersionableItem(
+                    content_model=PostContent,
+                    grouper_field_name='post',
+                    grouper_admin_mixin="__default__",
+                ),
+            ]
+
+In this configuration we must specify the :term:`content model <content model>` (``PostContent``)
+and the name of the field that is a foreign key to the :term:`grouper model <grouper model>`
+(``post``).
+
+.. note::
+
+    **Best practice:** Always use ``self.get_contract("djangocms_versioning")`` to obtain
+    the ``VersionableItem`` class rather than importing directly from djangocms-versioning.
+    This ensures your code works with any versioning package that implements the
+    ``djangocms_versioning`` contract. See :ref:`versioning_contract` for details.
 
 .. versionadded:: 2.4.0
 
-    The `grouper_admin_mixin` parameter is optional. For backwards compatibility, it defaults to ``None``.
-    To add the default state indicators, make it ``"__default__"``. This will use the
-    :class:`~djangocms_versioning.admin.DefaultGrouperAdminMixin` which includes the state indicator, author and modified date.
-    If you want to use a different mixin, you can specify it here.
+    The ``grouper_admin_mixin`` parameter is optional. For backwards compatibility, it
+    defaults to ``None``. To add the default state indicators, set it to ``"__default__"``.
+    This will use the :class:`~djangocms_versioning.admin.DefaultGrouperAdminMixin` which
+    includes the state indicator, author and modified date.
 
 Once a model is registered for versioning its behaviour changes:
 
@@ -227,7 +237,6 @@ This is probably not how one would want things to work in this scenario, so to f
 
     # blog/cms_config.py
     from cms.app_base import CMSAppConfig
-    from djangocms_versioning.datastructures import VersionableItem
     from .models import PostContent, Poll, Answer
 
 
@@ -263,15 +272,20 @@ This is probably not how one would want things to work in this scenario, so to f
         return new_content
 
 
-     class BlogCMSConfig(CMSAppConfig):
+    class BlogCMSConfig(CMSAppConfig):
         djangocms_versioning_enabled = True
-        versioning = [
-            VersionableItem(
-                content_model=PostContent,
-                grouper_field_name='post',
-                copy_function=custom_copy,
-            ),
-        ]
+
+        def __init__(self, app):
+            super().__init__(app)
+            VersionableItem = self.get_contract("djangocms_versioning")
+
+            self.versioning = [
+                VersionableItem(
+                    content_model=PostContent,
+                    grouper_field_name='post',
+                    copy_function=custom_copy,
+                ),
+            ]
 
 As you can see from the example above the :term:`copy function <copy function>` takes one param (the content object of the version we're copying)
 and returns the copied content object. We have customized it to create not just a new PostContent object (which `default_copy` would have done),

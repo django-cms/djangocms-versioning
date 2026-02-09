@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
@@ -24,6 +25,10 @@ from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
 
+if TYPE_CHECKING:
+    from . import models as version_models
+
+
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
@@ -35,7 +40,7 @@ try:
     from cms.utils import get_current_site  # noqa F401
 except ImportError:
     # cms < 5.1
-    def get_object_live_url(obj, language=None, site=None) -> str:
+    def get_object_live_url(obj, language=None, site=None, params=None) -> str:
         with force_language(language):
             return obj.get_absolute_url()
 
@@ -267,13 +272,15 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
     return version.state == DRAFT
 
 
-def get_editable_url(content_obj, force_admin=False):
+def get_editable_url(content_obj, force_admin=False, params=None):
     """If the object is editable the cms editable view should be used, with the toolbar.
     This method provides the URL for it.
     """
     if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
         url = get_object_edit_url(content_obj, language)
+        if params:
+            url += "?" + params.urlencode()
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(
@@ -447,7 +454,7 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by is None or version.locked_by == user
+    return version.locked_by_id is None or version.locked_by_id == user.pk
 
 
 def content_is_unlocked_for_user(
@@ -493,11 +500,14 @@ def send_email(
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version: models.Model) -> models.Model:
+def get_latest_draft_version(version: version_models.Version) -> version_models.Version:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version
 
+    if getattr(version.content, "content_is_latest", False):
+        return version if version.state == DRAFT else None
+    
     if (
         not hasattr(version.content, "_latest_draft_version")
         or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT

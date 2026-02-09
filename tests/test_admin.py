@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
+from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
@@ -3053,7 +3054,13 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
-        self.assertContains(response, "cms-action-view")
+        if cms_version < "5.1":
+            # Before django CMS 5.1, preview action was added
+            self.assertContains(response, "cms-action-view")
+        else:
+            # Since django CMS 5.1, edit actions are added but only if the model is frontend-editable
+            # Poll is not, and does not add the action itself.
+            self.assertNotContains(response, "cms-action-view")
         self.assertContains(response, "cms-action-settings")
         self.assertContains(response, "js-action")
 

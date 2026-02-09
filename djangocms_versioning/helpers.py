@@ -4,7 +4,6 @@ import copy
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
 
 from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -24,10 +23,6 @@ from django.utils.translation import get_language, override as force_language
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
-
-if TYPE_CHECKING:
-    from . import models as version_models
-
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -510,7 +505,7 @@ def send_email(
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
 
-def get_latest_draft_version(version: version_models.Version) -> version_models.Version:
+def get_latest_draft_version(version: models.Model) -> models.Model:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version

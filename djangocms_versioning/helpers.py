@@ -371,7 +371,7 @@ def get_latest_admin_viewable_content(
 
     if hasattr(grouper, "_prefetched_contents"):
         return get_latest_content_from_cache(
-            grouper._prefetched_contents, include_unpublished_archived
+            grouper._prefetched_contents, include_unpublished_archived, **extra_grouping_fields
         )
 
     # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
@@ -387,16 +387,26 @@ def get_latest_admin_viewable_content(
     return qs.filter(**extra_grouping_fields).current_content().first()
 
 
-def get_latest_content_from_cache(cache, include_unpublished_archived: bool = False) -> models.Model | None:
+def get_latest_content_from_cache(
+    cache, include_unpublished_archived: bool = False, **extra_grouping_fields
+) -> models.Model | None:
+    # Helper to filter cache by extra grouping fields (e.g., language)
+    def matches_filters(content):
+        return all(getattr(content, field, None) == value for field, value in extra_grouping_fields.items())
+
     # Evaluate prefetched contents in python
-    for content in cache:
-        if content._prefetched_versions[0].state == DRAFT:
+    drafts = (content for content in cache if content._prefetched_versions[0].state == DRAFT)
+    for content in drafts:
+        if matches_filters(content):
             return content
-    for content in cache:
-        if content._prefetched_versions[0].state == PUBLISHED:
+
+    published = (content for content in cache if content._prefetched_versions[0].state == PUBLISHED)
+    for content in published:
+        if matches_filters(content):
             return content
     if include_unpublished_archived:
-        order_by_date = sorted(cache, key=lambda v: v._prefetched_versions[0].created, reverse=True)
+        filtered = (content for content in cache if matches_filters(content))
+        order_by_date = sorted(filtered, key=lambda v: v._prefetched_versions[0].created, reverse=True)
         return order_by_date[0] if order_by_date else None
     return None
 

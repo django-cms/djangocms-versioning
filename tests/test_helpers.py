@@ -55,3 +55,71 @@ class HelperUrlFunctionsTestCase(CMSTestCase):
         parsed = urlparse(url)
         self.assertEqual(parsed.path, poll_version.content.get_absolute_url())
         self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "baz": ["2"]})
+
+
+class TestGetLatestAdminViewableContent(CMSTestCase):
+    def setUp(self) -> None:
+        """Creates a page, page content and a version object for the following tests"""
+        self.page = factories.PageFactory()
+        self.version = factories.PageVersionFactory(
+            content__page=self.page,
+            content__language="en",
+        )
+
+    def test_extra_grouping_fields_respects_language_with_prefetch(self):
+        """Test that extra_grouping_fields (language) is respected when _prefetched_contents is present"""
+        # Create content for two different languages
+        en_version = self.version
+        de_version = factories.PageVersionFactory(
+            content__page=self.page,
+            content__language="de",
+        )
+
+        # Get the actual PageContent objects from the versions
+
+        en_content_obj = en_version.content
+        de_content_obj = de_version.content
+
+        # Simulate the admin prefetch pattern by manually setting up _prefetched_contents
+        # with the versions prefetched
+        en_content_obj._prefetched_versions = [en_version]
+        de_content_obj._prefetched_versions = [de_version]
+
+        # Set the _prefetched_contents on the page
+        self.page._prefetched_contents = [de_content_obj, en_content_obj]  # order_by("-pk")
+
+        # Now when calling get_latest_admin_viewable_content with language="en",
+        # it should return only the English version, not the German version
+        en_content = helpers.get_latest_admin_viewable_content(self.page, language="en")
+        self.assertEqual(en_content.language, "en")
+        self.assertEqual(en_content.versions.first(), en_version)
+
+        # When calling with language="de", it should return the German version
+        de_content = helpers.get_latest_admin_viewable_content(self.page, language="de")
+        self.assertEqual(de_content.language, "de")
+        self.assertEqual(de_content.versions.first(), de_version)
+
+    def test_extra_grouping_fields_respects_language_without_prefetch(self):
+        """Test that extra_grouping_fields (language) is respected when _prefetched_contents is not present"""
+        # Create content for two different languages
+        en_version = self.version
+        de_version = factories.PageVersionFactory(
+            content__page=self.page,
+            content__language="de",
+        )
+
+        # Ensure _prefetched_contents is not present
+        if hasattr(self.page, "_prefetched_contents"):
+            delattr(self.page, "_prefetched_contents")
+
+        # When calling get_latest_admin_viewable_content with language="en",
+        # it should return only the English version
+        en_content = helpers.get_latest_admin_viewable_content(self.page, language="en")
+        self.assertEqual(en_content.language, "en")
+        self.assertEqual(en_content.versions.first(), en_version)
+
+        # When calling with language="de", it should return the German version
+        de_content = helpers.get_latest_admin_viewable_content(self.page, language="de")
+        self.assertEqual(de_content.language, "de")
+        self.assertEqual(de_content.versions.first(), de_version)
+

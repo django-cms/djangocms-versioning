@@ -17,6 +17,7 @@ from django.contrib.admin.actions import delete_selected
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
+from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
@@ -525,7 +526,7 @@ class ExtendedVersionAdminMixin(
             # Don't display the link if it can't be edited
             return ""
 
-        if not request.user.has_perm(f"{obj._meta.app_label}.{obj._meta.model_name}"):
+        if not request.user.has_perm(f"{obj._meta.app_label}.{get_permission_codename('change', obj._meta)}"):
             # Grey out if user has not sufficient right to edit
             disabled = True
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -100,10 +100,10 @@ def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site:
     :param admin_site: AdminSite instance
     """
     available_sites = admin.sites.all_sites if admin_site is None else {admin_site}
-    for admin_site in available_sites:
+    for site in available_sites:
         for model, mixin in pairs:
             try:
-                modeladmin = admin_site._registry[model]
+                modeladmin = site._registry[model]
             except KeyError:
                 continue
             _replace_admin_for_model(modeladmin, mixin)
@@ -507,7 +507,7 @@ def get_latest_draft_version(version: version_models.Version) -> version_models.
 
     if getattr(version.content, "content_is_latest", False):
         return version if version.state == DRAFT else None
-    
+
     if (
         not hasattr(version.content, "_latest_draft_version")
         or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT

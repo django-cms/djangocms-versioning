@@ -344,7 +344,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             )
         )
         return qs
- 
+
     def get_content_obj(self, obj: models.Model) -> models.Model:
         """Returns the latest content object for the given grouper object."""
         if obj is None or self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):

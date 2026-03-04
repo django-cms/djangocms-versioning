@@ -32,7 +32,9 @@ EMAIL_NOTIFICATIONS_FAIL_SILENTLY = getattr(
 )
 
 ON_PUBLISH_REDIRECT = getattr(
-    settings, "DJANGOCMS_VERISONING_ON_PUBLISH_REDIRECT", "published"
+    settings, 
+    "DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT", 
+    getattr(settings, "DJANGOCMS_VERISONING_ON_PUBLISH_REDIRECT", "published")  # Released typo (VERISONING instead VERSIONING)
 )
 #: Allowed values: "versions", "published", "preview"
 

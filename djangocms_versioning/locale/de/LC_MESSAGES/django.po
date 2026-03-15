@@ -5,13 +5,13 @@
 #
 # Translators:
 # Fabian Braun <fsbraun@gmx.de>, 2025
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 07:56+0100\n"
+"POT-Creation-Date: 2026-03-15 22:13+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: German (https://app.transifex.com/divio/teams/58664/de/)\n"
@@ -21,152 +21,152 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:174 admin.py:324 admin.py:446
+#: admin.py:176 admin.py:356 admin.py:478
 msgid "State"
 msgstr "Status"
 
-#: admin.py:208 constants.py:27
+#: admin.py:219 constants.py:27
 msgid "Empty"
 msgstr "Leer"
 
-#: admin.py:338 admin.py:456
+#: admin.py:370 admin.py:488
 msgid "Author"
 msgstr "Autor"
 
-#: admin.py:352 admin.py:470 models.py:92
+#: admin.py:384 admin.py:502 models.py:92
 msgid "Modified"
 msgstr "Geändert"
 
-#: admin.py:506 admin.py:752
+#: admin.py:538 admin.py:784
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Vorschau"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Neuer Entwurf"
 
-#: admin.py:565
+#: admin.py:597
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Versionen verwalten"
 
-#: admin.py:718
+#: admin.py:750
 msgid "Content"
 msgstr "Inhalt"
 
-#: admin.py:733
+#: admin.py:765
 msgid "locked"
 msgstr "gesperrt"
 
-#: admin.py:767 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Archivieren"
 
-#: admin.py:784 cms_toolbars.py:86 indicators.py:37
+#: admin.py:816 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Veröffentlichen"
 
-#: admin.py:803 indicators.py:57 indicators.py:63
+#: admin.py:835 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Veröffentlichung aufheben"
 
-#: admin.py:858 cms_toolbars.py:183
+#: admin.py:890 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Zurückholen"
 
-#: admin.py:876 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Verwerfen"
 
-#: admin.py:893 cms_toolbars.py:151
+#: admin.py:925 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Entsperren"
 
-#: admin.py:920
+#: admin.py:952
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: admin.py:957
+#: admin.py:989
 msgid "Compare versions"
 msgstr "Versionen vergleichen"
 
-#: admin.py:966
+#: admin.py:998
 msgid "Exactly two versions need to be selected."
 msgstr "Genau zwei Versionen müssen ausgewählt werden."
 
-#: admin.py:984
+#: admin.py:1016
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Ausgewählte %(verbose_name_plural)s löschen"
 
-#: admin.py:995
+#: admin.py:1027
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
-"Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben"
-" Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
+"Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben "
+"Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
 
-#: admin.py:1024
+#: admin.py:1056
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Wählen Sie ein Objekt ({}) aus, um dessen Versionen anzuzeigen"
 
-#: admin.py:1039
+#: admin.py:1071
 msgid "Version cannot be archived"
 msgstr "Version kann nicht archiviert werden"
 
-#: admin.py:1063
+#: admin.py:1095
 msgid "Version archived"
 msgstr "Version archiviert"
 
-#: admin.py:1073 admin.py:1211 admin.py:1360
+#: admin.py:1105 admin.py:1243 admin.py:1392
 msgid "This view only supports POST method."
 msgstr "Dieser View unterstützt nur die POST-Methode."
 
-#: admin.py:1087
+#: admin.py:1119
 msgid "Version cannot be published"
 msgstr "Version kann nicht veröffentlicht werden"
 
-#: admin.py:1099
+#: admin.py:1131
 msgid "Version published"
 msgstr "Version veröffentlicht"
 
-#: admin.py:1137
+#: admin.py:1169
 msgid "Version cannot be unpublished"
 msgstr "Die Veröffentlichung kann nicht aufgehoben werden"
 
-#: admin.py:1172
+#: admin.py:1204
 msgid "Version unpublished"
 msgstr "Veröffentlichung aufgehoben"
 
-#: admin.py:1307
+#: admin.py:1339
 msgid "The last version has been deleted"
 msgstr "Die letzte Version wurde gelöscht"
 
-#: admin.py:1373
+#: admin.py:1405
 msgid "You do not have permission to remove the version lock"
 msgstr "Keine Berechtigung vorhanden, um die Sperrung der Version aufzuheben."
 
-#: admin.py:1378
+#: admin.py:1410
 msgid "Version unlocked"
 msgstr "Version entsperrt"
 
-#: admin.py:1423
+#: admin.py:1455
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Zeige Versionen von \"{grouper}\""
@@ -175,66 +175,66 @@ msgstr "Zeige Versionen von \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "django CMS Versioning"
 
-#: cms_config.py:201
+#: cms_config.py:206
 msgid "No available title"
 msgstr "Kein Titel verfügbar"
 
-#: cms_config.py:203 constants.py:12 constants.py:25
+#: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "Veröffentlichung aufgehoben"
 
-#: cms_config.py:275
+#: cms_config.py:280
 msgid "Language must be set to a supported language!"
 msgstr "Eine unterstützte Sprache muss ausgewählt sein!"
 
-#: cms_config.py:293
+#: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
 msgstr "Keine Erlaubnis, diese Plugins zu kopieren."
 
-#: cms_toolbars.py:213
+#: cms_toolbars.py:208
 msgid "Manage Versions"
 msgstr "Versionen verwalten"
 
-#: cms_toolbars.py:216
+#: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Mit {source} vergleichen"
 
-#: cms_toolbars.py:232 indicators.py:69
+#: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
 msgstr "Änderungen verwerfen"
 
-#: cms_toolbars.py:270
+#: cms_toolbars.py:264
 msgid "View Published"
 msgstr "Veröffentlichung ansehen"
 
-#: cms_toolbars.py:340 cms_toolbars.py:459
+#: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
 msgstr "Sprache"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:371
 msgid "Add Translation"
 msgstr "Übersetzung hinzufügen"
 
-#: cms_toolbars.py:400
+#: cms_toolbars.py:382
 msgid "Delete Translation"
 msgstr "Übersetzung löschen"
 
-#: cms_toolbars.py:418
+#: cms_toolbars.py:405
 msgid "Copy all plugins"
 msgstr "Alle Plugins kopieren"
 
-#: cms_toolbars.py:420
+#: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
 msgstr "von %s"
 
-#: cms_toolbars.py:421
+#: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Sind Sie sicher, dass Sie alle Plugins von %s kopieren möchten?"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:425
 msgid "No other language available"
 msgstr "Keine andere Sprache verfügbar"
 
@@ -555,6 +555,7 @@ msgstr ""
 "Der folgende Entwurf wurde von %(by_user)s entsperrt.\n"
 "%(version_link)s\n"
 "\n"
-"Bitte beachten Sie, dass Sie diesen Entwurf nicht weiter bearbeiten können. Bitte kontaktieren Sie %(by_user)s bei Rückfragen.\n"
+"Bitte beachten Sie, dass Sie diesen Entwurf nicht weiter bearbeiten können. "
+"Bitte kontaktieren Sie %(by_user)s bei Rückfragen.\n"
 "\n"
 "Dies ist eine automatisierte Nachricht von Django CMS.\n"

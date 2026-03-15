@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 07:56+0100\n"
+"POT-Creation-Date: 2026-03-15 22:13+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Mohammad Alsakhawy, 2024\n"
 "Language-Team: Arabic (https://app.transifex.com/divio/teams/58664/ar/)\n"
@@ -24,150 +24,152 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: admin.py:174 admin.py:324 admin.py:446
+#: admin.py:176 admin.py:356 admin.py:478
 msgid "State"
 msgstr "الحالة"
 
-#: admin.py:208 constants.py:27
+#: admin.py:219 constants.py:27
 msgid "Empty"
 msgstr "فارغ"
 
-#: admin.py:338 admin.py:456
+#: admin.py:370 admin.py:488
 msgid "Author"
 msgstr "المؤلف"
 
-#: admin.py:352 admin.py:470 models.py:92
+#: admin.py:384 admin.py:502 models.py:92
 msgid "Modified"
 msgstr "تعديل"
 
-#: admin.py:506 admin.py:752
+#: admin.py:538 admin.py:784
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "معاينة"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "تحرير"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "مسودة جديدة "
 
-#: admin.py:565
+#: admin.py:597
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "إدارة الإصدارات "
 
-#: admin.py:718
+#: admin.py:750
 msgid "Content"
 msgstr "المحتوى"
 
-#: admin.py:733
+#: admin.py:765
 msgid "locked"
 msgstr "مقفول"
 
-#: admin.py:767 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "أرشيف"
 
-#: admin.py:784 cms_toolbars.py:86 indicators.py:37
+#: admin.py:816 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "نشر"
 
-#: admin.py:803 indicators.py:57 indicators.py:63
+#: admin.py:835 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "الغاء النشر "
 
-#: admin.py:858 cms_toolbars.py:183
+#: admin.py:890 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "استرجاع"
 
-#: admin.py:876 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "تجاهل"
 
-#: admin.py:893 cms_toolbars.py:151
+#: admin.py:925 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "إلغاء القفل "
 
-#: admin.py:920
+#: admin.py:952
 msgid "Settings"
-msgstr ""
+msgstr "الإعدادات"
 
-#: admin.py:957
+#: admin.py:989
 msgid "Compare versions"
 msgstr "مقارنة الإصدارات "
 
-#: admin.py:966
+#: admin.py:998
 msgid "Exactly two versions need to be selected."
 msgstr "يجب تحديد إثنين من الإصدارات بالضبط"
 
-#: admin.py:984
+#: admin.py:1016
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
-msgstr ""
+msgstr "حذف %(verbose_name_plural)s المحددة"
 
-#: admin.py:995
+#: admin.py:1027
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
+"لا يمكن حذف المسودات أو الإصدارات المنشورة. قم أولاً بإلغاء النشر أو "
+"استخدم التجاهل للمسودات."
 
-#: admin.py:1024
+#: admin.py:1056
 #, python-brace-format
 msgid "Select {} to view its versions"
-msgstr ""
+msgstr "حدد {} لعرض إصداراته"
 
-#: admin.py:1039
+#: admin.py:1071
 msgid "Version cannot be archived"
 msgstr "لا يمكن أرشفة الإصدار "
 
-#: admin.py:1063
+#: admin.py:1095
 msgid "Version archived"
 msgstr "تمت أرشفة الإصدار "
 
-#: admin.py:1073 admin.py:1211 admin.py:1360
+#: admin.py:1105 admin.py:1243 admin.py:1392
 msgid "This view only supports POST method."
 msgstr "هذا العرض يدعم فقط طريقة POST"
 
-#: admin.py:1087
+#: admin.py:1119
 msgid "Version cannot be published"
 msgstr "لا يمكن نشر الإصدار "
 
-#: admin.py:1099
+#: admin.py:1131
 msgid "Version published"
 msgstr "تم نشر الإصدار "
 
-#: admin.py:1137
+#: admin.py:1169
 msgid "Version cannot be unpublished"
 msgstr "لا يمكن إلغاء نشر الإصدار"
 
-#: admin.py:1172
+#: admin.py:1204
 msgid "Version unpublished"
 msgstr "تم إلغاء نشر الإصدار"
 
-#: admin.py:1307
+#: admin.py:1339
 msgid "The last version has been deleted"
 msgstr "تم حذف الإصدار السابق"
 
-#: admin.py:1373
+#: admin.py:1405
 msgid "You do not have permission to remove the version lock"
 msgstr "ليس لديك صلاحيات لحذف قفل الإصدار"
 
-#: admin.py:1378
+#: admin.py:1410
 msgid "Version unlocked"
 msgstr "تم إلغاء قفل الإصدار"
 
-#: admin.py:1423
+#: admin.py:1455
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "عرض إصدارات \"{grouper}\""
@@ -176,68 +178,66 @@ msgstr "عرض إصدارات \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "إصدارات ن.إ.م. چانجو"
 
-#: cms_config.py:201
+#: cms_config.py:206
 msgid "No available title"
 msgstr "بدون عنوان"
 
-#: cms_config.py:203 constants.py:12 constants.py:25
+#: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "غير منشور"
 
-#: cms_config.py:275
+#: cms_config.py:280
 msgid "Language must be set to a supported language!"
 msgstr "يجب تحديد لغة ضمن اللغات المدعومة!"
 
-#: cms_config.py:293
+#: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
 msgstr "ليس لديك صلاحيات لنسخ هذه الملحقات."
 
-#: cms_toolbars.py:213
+#: cms_toolbars.py:208
 msgid "Manage Versions"
 msgstr "إدارة الإصدارات"
 
-#: cms_toolbars.py:216
+#: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "قارن ب {source}"
 
-#: cms_toolbars.py:232 indicators.py:69
+#: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
 msgstr " تجاهل التغييرات"
 
-#: cms_toolbars.py:270
+#: cms_toolbars.py:264
 msgid "View Published"
 msgstr "عرض المنشور"
 
-#: cms_toolbars.py:340 cms_toolbars.py:459
+#: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
 msgstr "اللغة"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:371
 msgid "Add Translation"
 msgstr "إضافة ترجمة"
 
-#: cms_toolbars.py:400
-#, fuzzy
-#| msgid "Add Translation"
+#: cms_toolbars.py:382
 msgid "Delete Translation"
-msgstr "إضافة ترجمة"
+msgstr "حذف الترجمة"
 
-#: cms_toolbars.py:418
+#: cms_toolbars.py:405
 msgid "Copy all plugins"
 msgstr "نسخ كل الملحقات"
 
-#: cms_toolbars.py:420
+#: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
 msgstr "من %s"
 
-#: cms_toolbars.py:421
+#: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "هل أنت متأكد من أنك تريد نسخ كل الملحقات من %s؟"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:425
 msgid "No other language available"
 msgstr "لا توجد لغة أخرى متوفرة"
 
@@ -301,10 +301,8 @@ msgid "Action Denied. The draft version is locked by {user}"
 msgstr "تم رفض الإجراء. إصدار المسودة مقفول بواسطة {user}"
 
 #: models.py:35
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have permission to perform this action"
-msgstr "ليس لديك صلاحيات لنسخ هذه الملحقات."
+msgstr "ليس لديك صلاحيات للقيام بهذا الإجراء"
 
 #: models.py:91
 msgid "Created"
@@ -368,30 +366,28 @@ msgstr "إصدار المسودة غير مقفول"
 #: templates/admin/djangocms_versioning/page/change_form.html:58
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
-msgstr[4] ""
-msgstr[5] ""
+msgstr[0] "يرجى تصحيح الخطأ أدناه."
+msgstr[1] "يرجى تصحيح الخطأ أدناه."
+msgstr[2] "يرجى تصحيح الخطأين أدناه."
+msgstr[3] "يرجى تصحيح الأخطاء أدناه."
+msgstr[4] "يرجى تصحيح الأخطاء أدناه."
+msgstr[5] "يرجى تصحيح الأخطاء أدناه."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:75
-#, fuzzy
-#| msgid "Versions"
 msgid "All permissions"
-msgstr "الإصدارات"
+msgstr "كل الصلاحيات"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:76
 msgid "Loading..."
-msgstr ""
+msgstr "جاري التحميل..."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:86
 msgid "Save"
-msgstr ""
+msgstr "حفظ"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:87
 msgid "Save and continue editing"
-msgstr ""
+msgstr "حفظ ومتابعة التحرير"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9

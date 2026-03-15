@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 07:56+0100\n"
+"POT-Creation-Date: 2026-03-15 22:13+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2025\n"
 "Language-Team: Albanian (https://app.transifex.com/divio/teams/58664/sq/)\n"
@@ -21,150 +21,152 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:174 admin.py:324 admin.py:446
+#: admin.py:176 admin.py:356 admin.py:478
 msgid "State"
 msgstr "Gjendje"
 
-#: admin.py:208 constants.py:27
+#: admin.py:219 constants.py:27
 msgid "Empty"
 msgstr "I zbrazët"
 
-#: admin.py:338 admin.py:456
+#: admin.py:370 admin.py:488
 msgid "Author"
 msgstr "Autor"
 
-#: admin.py:352 admin.py:470 models.py:92
+#: admin.py:384 admin.py:502 models.py:92
 msgid "Modified"
 msgstr "E ndryshuar"
 
-#: admin.py:506 admin.py:752
+#: admin.py:538 admin.py:784
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Paraparje"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Përpunojeni"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Skicë e Re"
 
-#: admin.py:565
+#: admin.py:597
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Administroni versione"
 
-#: admin.py:718
+#: admin.py:750
 msgid "Content"
 msgstr "Lëndë"
 
-#: admin.py:733
+#: admin.py:765
 msgid "locked"
 msgstr "kyçur"
 
-#: admin.py:767 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Arkiv"
 
-#: admin.py:784 cms_toolbars.py:86 indicators.py:37
+#: admin.py:816 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Botoje"
 
-#: admin.py:803 indicators.py:57 indicators.py:63
+#: admin.py:835 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Hiqe nga të botuar"
 
-#: admin.py:858 cms_toolbars.py:183
+#: admin.py:890 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Riktheje"
 
-#: admin.py:876 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Hidhe tej"
 
-#: admin.py:893 cms_toolbars.py:151
+#: admin.py:925 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Shkyçe"
 
-#: admin.py:920
+#: admin.py:952
 msgid "Settings"
-msgstr ""
+msgstr "Rregullime"
 
-#: admin.py:957
+#: admin.py:989
 msgid "Compare versions"
 msgstr "Krahasoni versione"
 
-#: admin.py:966
+#: admin.py:998
 msgid "Exactly two versions need to be selected."
 msgstr "Lypset të përzgjidhen saktësisht dy versione."
 
-#: admin.py:984
+#: admin.py:1016
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
-msgstr ""
+msgstr "Fshi %(verbose_name_plural)s e përzgjedhura"
 
-#: admin.py:995
+#: admin.py:1027
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
+"Versionet skicë ose të botuara s'mund të fshihen. Së pari hiqni nga botimi "
+"ose përdorni hedhjen tej për skicat."
 
-#: admin.py:1024
+#: admin.py:1056
 #, python-brace-format
 msgid "Select {} to view its versions"
-msgstr ""
+msgstr "Përzgjidhni {} që të shihni versionet e tij"
 
-#: admin.py:1039
+#: admin.py:1071
 msgid "Version cannot be archived"
 msgstr "Versioni s’mund të arkivohet"
 
-#: admin.py:1063
+#: admin.py:1095
 msgid "Version archived"
 msgstr "Versioni u arkivua"
 
-#: admin.py:1073 admin.py:1211 admin.py:1360
+#: admin.py:1105 admin.py:1243 admin.py:1392
 msgid "This view only supports POST method."
 msgstr "Kjo pamje mbulon vetëm metodën POST."
 
-#: admin.py:1087
+#: admin.py:1119
 msgid "Version cannot be published"
 msgstr "Versioni s’mund të botohet"
 
-#: admin.py:1099
+#: admin.py:1131
 msgid "Version published"
 msgstr "Versioni u botua"
 
-#: admin.py:1137
+#: admin.py:1169
 msgid "Version cannot be unpublished"
 msgstr "Versioni s’mund të shbotohet"
 
-#: admin.py:1172
+#: admin.py:1204
 msgid "Version unpublished"
 msgstr "Versioni u shbotua"
 
-#: admin.py:1307
+#: admin.py:1339
 msgid "The last version has been deleted"
 msgstr "Versioni i fundit është fshirë"
 
-#: admin.py:1373
+#: admin.py:1405
 msgid "You do not have permission to remove the version lock"
 msgstr "S’keni leje për të hequr këtë kyçje versioni"
 
-#: admin.py:1378
+#: admin.py:1410
 msgid "Version unlocked"
 msgstr "U shkyç version"
 
-#: admin.py:1423
+#: admin.py:1455
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Po shfaqen versione të “{grouper}”"
@@ -173,68 +175,66 @@ msgstr "Po shfaqen versione të “{grouper}”"
 msgid "django CMS Versioning"
 msgstr "Versione në django CMS"
 
-#: cms_config.py:201
+#: cms_config.py:206
 msgid "No available title"
 msgstr "S’ka titull"
 
-#: cms_config.py:203 constants.py:12 constants.py:25
+#: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "I pabotuar"
 
-#: cms_config.py:275
+#: cms_config.py:280
 msgid "Language must be set to a supported language!"
 msgstr "Si gjuhë duhet të caktoni një gjuhë të mbuluar!"
 
-#: cms_config.py:293
+#: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
 msgstr "S’keni leje të kopjoni këto shtojca."
 
-#: cms_toolbars.py:213
+#: cms_toolbars.py:208
 msgid "Manage Versions"
 msgstr "Administroni Versione"
 
-#: cms_toolbars.py:216
+#: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Krahasoje me {source}"
 
-#: cms_toolbars.py:232 indicators.py:69
+#: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
 msgstr "Hidhet Tej Ndryshimet"
 
-#: cms_toolbars.py:270
+#: cms_toolbars.py:264
 msgid "View Published"
 msgstr "Shihni të Botuarin"
 
-#: cms_toolbars.py:340 cms_toolbars.py:459
+#: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
 msgstr "Gjuhë"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:371
 msgid "Add Translation"
 msgstr "Shtoni Përkthim"
 
-#: cms_toolbars.py:400
-#, fuzzy
-#| msgid "Add Translation"
+#: cms_toolbars.py:382
 msgid "Delete Translation"
-msgstr "Shtoni Përkthim"
+msgstr "Fshini Përkthimin"
 
-#: cms_toolbars.py:418
+#: cms_toolbars.py:405
 msgid "Copy all plugins"
 msgstr "Kopjo krejt shtojcat"
 
-#: cms_toolbars.py:420
+#: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
 msgstr "prej %s"
 
-#: cms_toolbars.py:421
+#: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Jeni i sigurt se doni të kopjohen krejt shtojcat prej %s?"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:425
 msgid "No other language available"
 msgstr "S’ka gjuhë të tjera"
 
@@ -298,10 +298,8 @@ msgid "Action Denied. The draft version is locked by {user}"
 msgstr "Veprim i Hedhur Poshtë. Versioni skicë është kyçur nga {user}"
 
 #: models.py:35
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have permission to perform this action"
-msgstr "S’keni leje të kopjoni këto shtojca."
+msgstr "S’keni leje për të kryer këtë veprim"
 
 #: models.py:91
 msgid "Created"
@@ -365,26 +363,24 @@ msgstr "Versioni skicë s’është i kyçur"
 #: templates/admin/djangocms_versioning/page/change_form.html:58
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ju lutemi, ndreqni gabimin më poshtë."
+msgstr[1] "Ju lutemi, ndreqni gabimet më poshtë."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:75
-#, fuzzy
-#| msgid "Versions"
 msgid "All permissions"
-msgstr "Versione"
+msgstr "Krejt lejet"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:76
 msgid "Loading..."
-msgstr ""
+msgstr "Po ngarkohet..."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:86
 msgid "Save"
-msgstr ""
+msgstr "Ruaje"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:87
 msgid "Save and continue editing"
-msgstr ""
+msgstr "Ruaje dhe vazhdo përpunimin"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
 #: templates/djangocms_versioning/admin/grouper_form.html:9

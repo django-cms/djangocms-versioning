@@ -2,118 +2,118 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 # Translators:
 # Teemu Gratschev <teemu.gratschev@gmail.com>, 2026
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 07:56+0100\n"
+"POT-Creation-Date: 2026-03-15 22:13+0100\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Teemu Gratschev <teemu.gratschev@gmail.com>, 2026\n"
 "Language-Team: Finnish (https://app.transifex.com/divio/teams/58664/fi/)\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: fi\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:174 admin.py:324 admin.py:446
+#: admin.py:176 admin.py:356 admin.py:478
 msgid "State"
 msgstr "Tila"
 
-#: admin.py:208 constants.py:27
+#: admin.py:219 constants.py:27
 msgid "Empty"
 msgstr "Tyhjä"
 
-#: admin.py:338 admin.py:456
+#: admin.py:370 admin.py:488
 msgid "Author"
 msgstr "Tekijä"
 
-#: admin.py:352 admin.py:470 models.py:92
+#: admin.py:384 admin.py:502 models.py:92
 msgid "Modified"
 msgstr "Muokattu"
 
-#: admin.py:506 admin.py:752
+#: admin.py:538 admin.py:784
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Esikatsele"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: admin.py:553 admin.py:838 cms_toolbars.py:122
+#: admin.py:585 admin.py:870 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Uusi luonnos"
 
-#: admin.py:565
+#: admin.py:597
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Hallitse versioita"
 
-#: admin.py:718
+#: admin.py:750
 msgid "Content"
 msgstr "Sisältö"
 
-#: admin.py:733
+#: admin.py:765
 msgid "locked"
 msgstr "lukittu"
 
-#: admin.py:767 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Arkistoi"
 
-#: admin.py:784 cms_toolbars.py:86 indicators.py:37
+#: admin.py:816 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Julkaise"
 
-#: admin.py:803 indicators.py:57 indicators.py:63
+#: admin.py:835 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Peru julkaisu"
 
-#: admin.py:858 cms_toolbars.py:183
+#: admin.py:890 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Palauta"
 
-#: admin.py:876 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Hylkää"
 
-#: admin.py:893 cms_toolbars.py:151
+#: admin.py:925 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Poista lukitus"
 
-#: admin.py:920
+#: admin.py:952
 msgid "Settings"
 msgstr "Asetukset"
 
-#: admin.py:957
+#: admin.py:989
 msgid "Compare versions"
 msgstr "Vertaa versioita"
 
-#: admin.py:966
+#: admin.py:998
 msgid "Exactly two versions need to be selected."
 msgstr "Valitse tasan kaksi versiota."
 
-#: admin.py:984
+#: admin.py:1016
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Poista valitut %(verbose_name_plural)s"
 
-#: admin.py:995
+#: admin.py:1027
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
@@ -121,52 +121,52 @@ msgstr ""
 "Luonnoksia tai julkaistuja versioita ei voi poistaa. Peru julkaisu tai "
 "hylkää luonnos ennen poistamista."
 
-#: admin.py:1024
+#: admin.py:1056
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Valitse {} nähdäksesi sen versiot"
 
-#: admin.py:1039
+#: admin.py:1071
 msgid "Version cannot be archived"
 msgstr "Versiota ei voi arkistoida"
 
-#: admin.py:1063
+#: admin.py:1095
 msgid "Version archived"
 msgstr "Versio arkistoitu"
 
-#: admin.py:1073 admin.py:1211 admin.py:1360
+#: admin.py:1105 admin.py:1243 admin.py:1392
 msgid "This view only supports POST method."
 msgstr "Tämä näkymä hyväksyy vain POST-pyynnöt."
 
-#: admin.py:1087
+#: admin.py:1119
 msgid "Version cannot be published"
 msgstr "Versiota ei voi julkaista"
 
-#: admin.py:1099
+#: admin.py:1131
 msgid "Version published"
 msgstr "Versio julkaistu"
 
-#: admin.py:1137
+#: admin.py:1169
 msgid "Version cannot be unpublished"
 msgstr "Version julkaisua ei voi perua"
 
-#: admin.py:1172
+#: admin.py:1204
 msgid "Version unpublished"
 msgstr "Version julkaisu on peruttu"
 
-#: admin.py:1307
+#: admin.py:1339
 msgid "The last version has been deleted"
 msgstr "Viimeisin versio on poistettu"
 
-#: admin.py:1373
+#: admin.py:1405
 msgid "You do not have permission to remove the version lock"
 msgstr "Sinulla ei ole oikeutta poistaa version lukitusta"
 
-#: admin.py:1378
+#: admin.py:1410
 msgid "Version unlocked"
 msgstr "Version lukitus poistettu"
 
-#: admin.py:1423
+#: admin.py:1455
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Näytetään kohteen \"{grouper}\" versiot"
@@ -175,66 +175,66 @@ msgstr "Näytetään kohteen \"{grouper}\" versiot"
 msgid "django CMS Versioning"
 msgstr "django CMS -versiointi"
 
-#: cms_config.py:201
+#: cms_config.py:206
 msgid "No available title"
 msgstr "Otsikko puuttuu"
 
-#: cms_config.py:203 constants.py:12 constants.py:25
+#: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "Julkaisematon"
 
-#: cms_config.py:275
+#: cms_config.py:280
 msgid "Language must be set to a supported language!"
 msgstr "Valitun kielen on oltava tuettu!"
 
-#: cms_config.py:293
+#: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
 msgstr "Sinulla ei ole oikeutta kopioida näitä lisäosia."
 
-#: cms_toolbars.py:213
+#: cms_toolbars.py:208
 msgid "Manage Versions"
 msgstr "Hallitse versioita"
 
-#: cms_toolbars.py:216
+#: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Vertaa versioon {source}"
 
-#: cms_toolbars.py:232 indicators.py:69
+#: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
 msgstr "Peru muutokset"
 
-#: cms_toolbars.py:270
+#: cms_toolbars.py:264
 msgid "View Published"
 msgstr "Näytä julkaistu"
 
-#: cms_toolbars.py:340 cms_toolbars.py:459
+#: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
 msgstr "Kieli"
 
-#: cms_toolbars.py:387
+#: cms_toolbars.py:371
 msgid "Add Translation"
 msgstr "Lisää käännös"
 
-#: cms_toolbars.py:400
+#: cms_toolbars.py:382
 msgid "Delete Translation"
 msgstr "Poista käännös"
 
-#: cms_toolbars.py:418
+#: cms_toolbars.py:405
 msgid "Copy all plugins"
 msgstr "Kopioi kaikki lisäosat"
 
-#: cms_toolbars.py:420
+#: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
 msgstr "kohteesta %s"
 
-#: cms_toolbars.py:421
+#: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Haluatko varmasti kopioida kaikki lisäosat kohteesta %s?"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:425
 msgid "No other language available"
 msgstr "Muita kieliä ei ole saatavilla"
 
@@ -547,14 +547,17 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach "
+"out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
 "\n"
-"Seuraavan luonnosversion on avannut lukituksesta käyttäjä %(by_user)s omaa käyttöään varten.\n"
+"Seuraavan luonnosversion on avannut lukituksesta käyttäjä %(by_user)s omaa "
+"käyttöään varten.\n"
 "%(version_link)s\n"
 "\n"
-"Huomioithan, että et voi enää muokata tätä luonnosta. Ota yhteyttä käyttäjään %(by_user)s, mikäli sinulla on kysyttävää.\n"
+"Huomioithan, että et voi enää muokata tätä luonnosta. Ota yhteyttä "
+"käyttäjään %(by_user)s, mikäli sinulla on kysyttävää.\n"
 "\n"
 "Tämä on automaattinen ilmoitus Django CMS:ltä.\n"

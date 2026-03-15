@@ -1,3 +1,4 @@
 -r requirements_dev.txt
 mysqlclient>=2.2.1
 psycopg2
+django-treebeard<5

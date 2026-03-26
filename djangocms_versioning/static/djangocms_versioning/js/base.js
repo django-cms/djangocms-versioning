@@ -50,15 +50,24 @@ const switchVersion = version => {
 
 let p;
 
+const stripToolbar = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const toolbar = doc.getElementById('cms-top');
+    if (toolbar) {
+        toolbar.remove();
+    }
+    return doc.documentElement.outerHTML;
+};
+
 const loadMarkup = () => {
     if (!p) {
         showLoader();
         p = Promise.all([
             getCurrentMarkup(),
             getPublishedMarkup(),
-        ]).then(r => {
+        ]).then(([current, published]) => {
             hideLoader();
-            return r;
+            return [stripToolbar(current), stripToolbar(published)];
         });
     }
     return p;

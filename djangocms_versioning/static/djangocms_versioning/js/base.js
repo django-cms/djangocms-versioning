@@ -50,9 +50,10 @@ const switchVersion = version => {
 
 let p;
 
-const stripToolbar = (html) => {
+const stripToolbar = html => {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const toolbar = doc.getElementById('cms-top');
+
     if (toolbar) {
         toolbar.remove();
     }

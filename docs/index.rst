@@ -6,6 +6,7 @@ Welcome to "djangocms-versioning"'s documentation!
    :caption: Tutorials:
 
    introduction/basic_concepts
+   introduction/working_with_pages
    introduction/versioning_integration
 
 .. toctree::
@@ -24,6 +25,7 @@ Welcome to "djangocms-versioning"'s documentation!
    api/advanced_configuration
    api/signals
    api/management_commands
+   api/contract
    api/settings
 
 .. toctree::
@@ -79,3 +81,19 @@ Glossary
         existing version. By default it will copy the current published version,
         but when reverting to an old version, a specific unpublished or archived version
         will be used. A customizable copy function is used for this.
+
+    cms_config
+        The ``cms_config.py`` file in a Django app that defines how the app
+        integrates with django CMS and djangocms-versioning. It contains a
+        ``CMSAppConfig`` subclass with versioning settings.
+
+    ExtendedVersionAdminMixin
+        A mixin class for Django admin that adds versioning-related fields and
+        actions to the admin interface, including author, modified date,
+        versioning state, and version management actions.
+
+    extended_admin_field_modifiers
+        A configuration option in :term:`cms_config` that allows customizing
+        how fields are displayed in admin views that use the
+        :term:`ExtendedVersionAdminMixin`. Defined as a dictionary mapping
+        models to field transformation functions.

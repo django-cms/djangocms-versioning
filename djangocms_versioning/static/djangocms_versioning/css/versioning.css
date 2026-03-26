@@ -122,7 +122,7 @@ ins.cms-diff img {
     position: relative;
     top: 3px;
 }
-.cms-versioning-controls .cms-btn:not(:last-child) {
+.cms-versioning-controls .cms-btn-group .cms-btn:not(:last-child) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
 }

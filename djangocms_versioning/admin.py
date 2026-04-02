@@ -400,6 +400,24 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         version = Version.objects.get_for_content(content_obj)
         return version.check_modify.as_bool(request.user)
 
+    def get_prepopulated_fields(self, request: HttpRequest, obj=None) -> dict:
+        """Exclude prepopulated fields that are readonly.
+
+        Django clears all prepopulated_fields when the user lacks change permission entirely,
+        but when only content fields are made readonly (by can_change_content returning False),
+        Django's guard doesn't trigger. This override filters out any prepopulated fields
+        whose target key is in the readonly field list, preventing a KeyError in AdminForm.
+        """
+        prepopulated_fields = super().get_prepopulated_fields(request, obj)
+        if not prepopulated_fields:
+            return prepopulated_fields
+        readonly_fields = self.get_readonly_fields(request, obj)
+        return {
+            key: value
+            for key, value in prepopulated_fields.items()
+            if key not in readonly_fields
+        }
+
 
 class DefaultGrouperVersioningAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin):
     """Default mixin for grouper model admin classes: Includes state indicator, author and modified date.

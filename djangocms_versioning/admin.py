@@ -348,7 +348,11 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
 
     def get_content_obj(self, obj: models.Model) -> models.Model:
         """Returns the latest content object for the given grouper object."""
-        if obj is None or self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
+        if obj is None or obj.pk is None:
+            # Unsaved grouper instances (e.g. on the admin add view) have no content object
+            # and are unhashable, so they must not reach the instance-keyed cache in the super().
+            return None
+        if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
             return super().get_content_obj(obj)
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
@@ -408,8 +412,13 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         Django's guard doesn't trigger. This override filters out any prepopulated fields
         whose target key is in the readonly field list, preventing a KeyError in AdminForm.
         """
+        # ModelAdmin is a process-wide singleton and _content_obj_cache lives on it. Upstream
+        # only clears it from get_grouping_from_request, which isn't hit on every request path
+        # (e.g. the add view), so trigger a per-request clear here explicitly.
+        self.get_grouping_from_request(request)
         prepopulated_fields = super().get_prepopulated_fields(request, obj)
-        if not prepopulated_fields:
+        if not prepopulated_fields or obj is None or obj.pk is None:
+            # On the add view there is no content object yet, so nothing can be readonly.
             return prepopulated_fields
         readonly_fields = self.get_readonly_fields(request, obj)
         return {

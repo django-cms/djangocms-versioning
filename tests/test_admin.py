@@ -3291,6 +3291,38 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
 
+    def test_prepopulated_fields_excluded_when_readonly(self):
+        """Prepopulated fields referencing readonly content fields must be
+        excluded to avoid a KeyError in Django's AdminForm. See #532."""
+        from cms.admin.utils import CONTENT_PREFIX
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        # Simulate prepopulated_fields on the admin class
+        original = modeladmin.__class__.prepopulated_fields
+        modeladmin.__class__.prepopulated_fields = {
+            CONTENT_PREFIX + "text": [CONTENT_PREFIX + "language"],
+        }
+        try:
+            # Draft version: content is editable, prepopulated_fields should be kept
+            draft_version = factories.PollVersionFactory(content__language="en")
+            prepopulated = modeladmin.get_prepopulated_fields(
+                request, draft_version.content.poll
+            )
+            self.assertIn(CONTENT_PREFIX + "text", prepopulated)
+
+            # Published version: content is readonly, prepopulated_fields should be removed
+            public_version = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+            prepopulated = modeladmin.get_prepopulated_fields(
+                request, public_version.content.poll
+            )
+            self.assertNotIn(CONTENT_PREFIX + "text", prepopulated)
+        finally:
+            modeladmin.__class__.prepopulated_fields = original
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

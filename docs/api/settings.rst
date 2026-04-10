@@ -19,7 +19,7 @@ All Django CMS Versioning settings are optional and have sensible defaults. Add 
         - Use with caution as it can break the version chain
 
     If set to ``constants.DELETE_ANY`` (``"any"``) users can delete version objects
-    if the have the appropriate rights. Set this to ``"any"`` if you want users to be
+    if they have the appropriate rights. Set this to ``"any"`` if you want users to be
     able to delete versioned objects and you do not need a full history of versions,
     e.g. for documentation purposes.
 

@@ -3323,6 +3323,91 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         finally:
             modeladmin.__class__.prepopulated_fields = original
 
+    def test_prepopulated_fields_add_change_add_sequence(self):
+        """Reproduces the flow from issue #532: after visiting the change view
+        of a published version the subsequent add view must still render, and
+        the prepopulated fields must resolve to real form fields on add and to
+        readonly on the published change view."""
+        from cms.admin.utils import CONTENT_PREFIX
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+
+        original_prep = modeladmin.__class__.prepopulated_fields
+        # "name" (grouper) is prepopulated from "content__text" (content field).
+        modeladmin.__class__.prepopulated_fields = {
+            "name": (CONTENT_PREFIX + "text",),
+        }
+        add_url = reverse("admin:polls_poll_add") + "?language=en"
+
+        try:
+            with self.login_user_context(self.get_superuser()):
+                # 1. Add view creates a draft version.
+                response = self.client.post(
+                    add_url,
+                    data={
+                        "name": "first-poll",
+                        CONTENT_PREFIX + "poll": "",
+                        CONTENT_PREFIX + "language": "en",
+                        CONTENT_PREFIX + "text": "First poll text",
+                    },
+                )
+                self.assertEqual(response.status_code, 302)
+                poll = Poll.objects.get(name="first-poll")
+                version = poll.pollcontent_set(manager="admin_manager").first().versions.first()
+                self.assertEqual(version.state, constants.DRAFT)
+
+                # 2. Publish the draft.
+                version.publish(self.get_superuser())
+                self.assertEqual(version.state, constants.PUBLISHED)
+
+                # 3. Change view of the published version renders. The
+                # prepopulated key "name" is a grouper field (still editable),
+                # but its dependency "content__text" is readonly on a published
+                # version, so the entry must be dropped from prepopulated_fields.
+                change_url = reverse(
+                    "admin:polls_poll_change", args=(poll.pk,)
+                ) + "?language=en"
+                response = self.client.get(change_url)
+                self.assertEqual(response.status_code, 200)
+                adminform = response.context["adminform"]
+                self.assertNotIn(
+                    CONTENT_PREFIX + "text",
+                    adminform.form.fields,
+                    "Readonly content field must not be in the rendered form",
+                )
+                self.assertIn(CONTENT_PREFIX + "text", adminform.readonly_fields)
+                prepopulated_keys = [
+                    entry["field"].name for entry in adminform.prepopulated_fields
+                ]
+                self.assertEqual(
+                    prepopulated_keys,
+                    [],
+                    "prepopulated_fields with a readonly dependency must be dropped",
+                )
+
+                # 4. Add view after the change view renders, and the
+                # prepopulated entry still resolves to real form fields.
+                response = self.client.get(add_url)
+                self.assertEqual(response.status_code, 200)
+                adminform = response.context["adminform"]
+                self.assertIn("name", adminform.form.fields)
+                self.assertIn(CONTENT_PREFIX + "text", adminform.form.fields)
+                self.assertNotIn("name", adminform.readonly_fields)
+                self.assertNotIn(CONTENT_PREFIX + "text", adminform.readonly_fields)
+                prepopulated_keys = [
+                    entry["field"].name for entry in adminform.prepopulated_fields
+                ]
+                self.assertEqual(prepopulated_keys, ["name"])
+                dependency_names = [
+                    dep.name
+                    for entry in adminform.prepopulated_fields
+                    for dep in entry["dependencies"]
+                ]
+                self.assertEqual(dependency_names, [CONTENT_PREFIX + "text"])
+        finally:
+            modeladmin.__class__.prepopulated_fields = original_prep
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

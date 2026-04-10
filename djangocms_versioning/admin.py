@@ -405,26 +405,27 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         return version.check_modify.as_bool(request.user)
 
     def get_prepopulated_fields(self, request: HttpRequest, obj=None) -> dict:
-        """Exclude prepopulated fields that are readonly.
+        """Drop prepopulated fields whose key or any dependency is not in the rendered form.
 
         Django clears all prepopulated_fields when the user lacks change permission entirely,
         but when only content fields are made readonly (by can_change_content returning False),
-        Django's guard doesn't trigger. This override filters out any prepopulated fields
-        whose target key is in the readonly field list, preventing a KeyError in AdminForm.
+        Django's guard doesn't trigger. Readonly fields are shadowed out of the form by
+        Django's ``ModelAdmin.get_form``, so any prepopulated entry that references them
+        would raise a KeyError in ``AdminForm.__init__``. Filter against the actual form
+        fields so both the key and every dependency are guaranteed to resolve.
         """
         # ModelAdmin is a process-wide singleton and _content_obj_cache lives on it. Upstream
         # only clears it from get_grouping_from_request, which isn't hit on every request path
         # (e.g. the add view), so trigger a per-request clear here explicitly.
         self.get_grouping_from_request(request)
         prepopulated_fields = super().get_prepopulated_fields(request, obj)
-        if not prepopulated_fields or obj is None or obj.pk is None:
-            # On the add view there is no content object yet, so nothing can be readonly.
+        if not prepopulated_fields:
             return prepopulated_fields
-        readonly_fields = self.get_readonly_fields(request, obj)
+        form_fields = self.get_form(request, obj, change=obj is not None).base_fields
         return {
             key: value
             for key, value in prepopulated_fields.items()
-            if key not in readonly_fields
+            if key in form_fields and all(dep in form_fields for dep in value)
         }
 
 

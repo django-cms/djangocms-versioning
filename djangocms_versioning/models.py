@@ -36,13 +36,12 @@ permission_error_message = _("You do not have permission to perform this action"
 
 
 def PROTECT_IF_PUBLIC_VERSION(collector, field, sub_objs, using):
-    public_exists = sub_objs.filter(state=constants.PUBLISHED).exists()
-    if public_exists:
-        # Any public objects?
+    public_objs = sub_objs.filter(state=constants.PUBLISHED)
+    if public_objs.exists():
         raise models.ProtectedError(
             f"Cannot delete some instances of model '{field.remote_field.model.__name__}' because they are "
             f"referenced through a protected foreign key: '{sub_objs[0].__class__.__name__}.{field.name}'",
-            public_exists,
+            public_objs,
         )
     models.SET_NULL(collector, field, sub_objs, using)
 

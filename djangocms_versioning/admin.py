@@ -356,6 +356,14 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             return super().get_content_obj(obj)
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
+    def get_grouping_from_request(self, request: HttpRequest) -> None:
+        # Work-around for an issue in django CMS core wrt the invalidation on ``hash(request)``
+        # (i.e. ``id(request)``). ModelAdmin is a process-wide singleton while request objects
+        # are short-lived, so a new request can land at the same memory address as the previous
+        # one and skip the invalidation, leaking a stale ``{grouper: content}`` entry into the next view.
+        self.clear_content_cache()
+        return super().get_grouping_from_request(request)
+
     @admin.display(
         description=_("State"),
         ordering="content_state",
@@ -414,9 +422,9 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         would raise a KeyError in ``AdminForm.__init__``. Filter against the actual form
         fields so both the key and every dependency are guaranteed to resolve.
         """
-        # ModelAdmin is a process-wide singleton and _content_obj_cache lives on it. Upstream
-        # only clears it from get_grouping_from_request, which isn't hit on every request path
-        # (e.g. the add view), so trigger a per-request clear here explicitly.
+        # Ensure the per-request content cache is refreshed before get_form() queries
+        # readonly state. changeform_view() calls this too, but direct callers (and tests)
+        # exercise get_prepopulated_fields in isolation.
         self.get_grouping_from_request(request)
         prepopulated_fields = super().get_prepopulated_fields(request, obj)
         if not prepopulated_fields:

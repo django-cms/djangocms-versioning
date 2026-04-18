@@ -17,10 +17,11 @@ from django.contrib.admin.actions import delete_selected
 from django.contrib.admin.options import IncorrectLookupParameters
 from django.contrib.admin.utils import unquote
 from django.contrib.admin.views.main import ChangeList
+from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.db import models
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Prefetch, Subquery, Value
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
 from django.http import (
@@ -47,8 +48,11 @@ from .helpers import (
     content_is_unlocked_for_user,
     create_version_lock,
     get_admin_url,
+    get_current_site,
     get_editable_url,
     get_latest_admin_viewable_content,
+    get_latest_content_from_cache,
+    get_object_live_url,
     get_preview_url,
     proxy_model,
     remove_version_lock,
@@ -180,20 +184,29 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     def get_indicator_column(self, request):
         def indicator(obj):
+            versions = None
             if self._extra_grouping_fields is not None:  # Grouper Model
                 content_obj = get_latest_admin_viewable_content(
                     obj,
                     include_unpublished_archived=True,
                     **{field: getattr(self, field) for field in self._extra_grouping_fields},
                 )
+                for prefetched in getattr(obj, "_prefetched_contents", []):
+                    prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
+                versions = (
+                    [content._prefetched_versions[0] for content in obj._prefetched_contents]
+                    if hasattr(obj, "_prefetched_contents")
+                    else None
+                )
             else:  # Content Model
                 content_obj = obj
-            status = content_indicator(content_obj)
+
+            status = content_indicator(content_obj, versions)
             menu = (
                 content_indicator_menu(
                     request,
                     status,
-                    content_obj._version,
+                    content_obj._versions,
                     back=f"{request.path_info}?{request.GET.urlencode()}",
                 )
                 if status
@@ -316,7 +329,32 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             # cast is necessary for mysql
             content_modified=Cast(Subquery(contents.values("content_modified")[:1]), models.DateTimeField()),
         )
+        # Prefetching is not implemented here; you may want to use Prefetch for related objects if needed.
+        # To get the reverse name for self.grouper_field_name:
+        # It's usually: <related_model>_set or the related_name defined on the ForeignKey.
+        # For a ForeignKey field, you can get the reverse accessor name like this:
+        reverse_name = self.content_model._meta.get_field(self.grouper_field_name).remote_field.get_accessor_name()
+        qs = qs.prefetch_related(
+            Prefetch(
+                reverse_name,
+                to_attr="_prefetched_contents",  # Needed for state indicators
+                queryset=self.content_model.admin_manager.filter(**self.current_content_filters)
+                .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
+                .annotate(content_is_latest=Value(True))  # We're only looking at the latest content in the qs
+                .order_by("-pk"),
+            )
+        )
         return qs
+
+    def get_content_obj(self, obj: models.Model) -> models.Model:
+        """Returns the latest content object for the given grouper object."""
+        if obj is None or obj.pk is None:
+            # Unsaved grouper instances (e.g. on the admin add view) have no content object
+            # and are unhashable, so they must not reach the instance-keyed cache in the super().
+            return None
+        if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
+            return super().get_content_obj(obj)
+        return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
     @admin.display(
         description=_("State"),
@@ -365,6 +403,29 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             return True
         version = Version.objects.get_for_content(content_obj)
         return version.check_modify.as_bool(request.user)
+
+    def get_prepopulated_fields(self, request: HttpRequest, obj=None) -> dict:
+        """Exclude prepopulated fields that are readonly.
+
+        Django clears all prepopulated_fields when the user lacks change permission entirely,
+        but when only content fields are made readonly (by can_change_content returning False),
+        Django's guard doesn't trigger. This override filters out any prepopulated fields
+        whose target key is in the readonly field list, preventing a KeyError in AdminForm.
+        """
+        # ModelAdmin is a process-wide singleton and _content_obj_cache lives on it. Upstream
+        # only clears it from get_grouping_from_request, which isn't hit on every request path
+        # (e.g. the add view), so trigger a per-request clear here explicitly.
+        self.get_grouping_from_request(request)
+        prepopulated_fields = super().get_prepopulated_fields(request, obj)
+        if not prepopulated_fields or obj is None or obj.pk is None:
+            # On the add view there is no content object yet, so nothing can be readonly.
+            return prepopulated_fields
+        readonly_fields = self.get_readonly_fields(request, obj)
+        return {
+            key: value
+            for key, value in prepopulated_fields.items()
+            if key not in readonly_fields
+        }
 
 
 class DefaultGrouperVersioningAdminMixin(StateIndicatorMixin, ExtendedGrouperVersionAdminMixin):
@@ -523,7 +584,7 @@ class ExtendedVersionAdminMixin(
             # Don't display the link if it can't be edited
             return ""
 
-        if not request.user.has_perm(f"{obj._meta.app_label}.{obj._meta.model_name}"):
+        if not request.user.has_perm(f"{obj._meta.app_label}.{get_permission_codename('change', obj._meta)}"):
             # Grey out if user has not sufficient right to edit
             disabled = True
 
@@ -1097,9 +1158,9 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         self.message_user(request, _("Version published"))
 
         # Redirect to published?
-        if conf.ON_PUBLISH_REDIRECT == "published":
+        if not requested_redirect and conf.ON_PUBLISH_REDIRECT == "published":
             if hasattr(version.content, "get_absolute_url"):
-                requested_redirect = requested_redirect or version.content.get_absolute_url()
+                redirect_url = get_object_live_url(version.content, site=get_current_site(request)) or redirect_url
 
         return self._internal_redirect(requested_redirect, redirect_url)
 
@@ -1220,7 +1281,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin")))
+        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

@@ -46,7 +46,6 @@ class HandlersTestCase(CMSTestCase):
         plugin = add_plugin(
             placeholder, "PollPlugin", version.content.language, poll=poll
         )
-        plugin.page.get_absolute_url = lambda *args, **kwargs: "/test_page/"  # Fake URL needed for URI
 
         dt = datetime(2016, 6, 6)
         with freeze_time(dt):

@@ -19,16 +19,31 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.encoding import force_str
-from django.utils.translation import get_language, gettext as _
+from django.utils.translation import get_language, gettext as _, override as force_language
 
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
-from .constants import DRAFT
+from .constants import DRAFT, PUBLISHED
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
 except ImportError:
     emit_content_change = None
+
+try:
+    # django CMS >= 5.1
+    from cms.toolbar.utils import get_object_live_url  # noqa F401
+    from cms.utils import get_current_site  # noqa F401
+except ImportError:
+    # cms < 5.1
+    def get_object_live_url(obj, language=None, site=None, params=None) -> str:
+        with force_language(language):
+            return obj.get_absolute_url()
+
+    def get_current_site(request) -> models.Model:
+        from django.contrib.sites.models import Site
+
+        return Site.objects.get_current()
 
 
 def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
@@ -55,7 +70,7 @@ def versioning_admin_factory(admin_class: type[admin.ModelAdmin], mixin: type) -
     return admin_class
 
 
-def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, admin_site: admin.AdminSite):
+def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type):
     """Replaces existing admin class registered for `modeladmin.model` with
     a subclass that includes versioning functionality.
 
@@ -67,27 +82,27 @@ def _replace_admin_for_model(modeladmin: type[admin.ModelAdmin], mixin: type, ad
     :param admin_site: AdminSite instance
     """
     if isinstance(modeladmin, mixin):
+        # Do not add more than once
         return
+    admin_site = modeladmin.admin_site
     new_admin_class = versioning_admin_factory(modeladmin.__class__, mixin)
     admin_site.unregister(modeladmin.model)
     admin_site.register(modeladmin.model, new_admin_class)
 
 
-def replace_admin_for_models(
-    pairs: Iterable[tuple[type[models.Model], type]], admin_site: admin.AdminSite | None = None
-):
+def replace_admin_for_models(pairs: tuple[type[models.Model], type], admin_site: admin.AdminSite | None = None):
     """
     :param pairs: Iterable of (model class, admin mixin class) tuples
     :param admin_site: AdminSite instance
     """
-    if admin_site is None:
-        admin_site = admin.site
-    for model, mixin in pairs:
-        try:
-            modeladmin = admin_site._registry[model]
-        except KeyError:
-            continue
-        _replace_admin_for_model(modeladmin, mixin, admin_site)
+    available_sites = admin.sites.all_sites if admin_site is None else {admin_site}
+    for site in available_sites:
+        for model, mixin in pairs:
+            try:
+                modeladmin = site._registry[model]
+            except KeyError:
+                continue
+            _replace_admin_for_model(modeladmin, mixin)
 
 
 def register_versionadmin_proxy(versionable, admin_site: admin.AdminSite | None = None):
@@ -262,13 +277,15 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
     return version.state == DRAFT
 
 
-def get_editable_url(content_obj, force_admin=False):
+def get_editable_url(content_obj, force_admin=False, params=None):
     """If the object is editable the cms editable view should be used, with the toolbar.
     This method provides the URL for it.
     """
     if is_editable_model(content_obj.__class__) and not force_admin:
         language = getattr(content_obj, "language", None)
         url = get_object_edit_url(content_obj, language)
+        if params:
+            url += "?" + params.urlencode()
     # Or else, the standard edit view should be used
     else:
         url = admin_reverse(
@@ -357,6 +374,11 @@ def get_latest_admin_viewable_content(
             f"Grouping field(s) {missing_fields} required for {versionable.grouper_model}."
         )
 
+    if hasattr(grouper, "_prefetched_contents"):
+        return get_latest_content_from_cache(
+            grouper._prefetched_contents, include_unpublished_archived, **extra_grouping_fields
+        )
+
     # Get the name of the content_set (e.g., "pagecontent_set") from the versionable
     content_set = versionable.grouper_field.remote_field.get_accessor_name()
 
@@ -368,6 +390,30 @@ def get_latest_admin_viewable_content(
         return qs.filter(**extra_grouping_fields).latest_content().first()
     # Return only active versions, e.g., for copying
     return qs.filter(**extra_grouping_fields).current_content().first()
+
+
+def get_latest_content_from_cache(
+    cache, include_unpublished_archived: bool = False, **extra_grouping_fields
+) -> models.Model | None:
+    # Helper to filter cache by extra grouping fields (e.g., language)
+    def matches_filters(content):
+        return all(getattr(content, field, None) == value for field, value in extra_grouping_fields.items())
+
+    # Evaluate prefetched contents in python
+    drafts = (content for content in cache if content._prefetched_versions[0].state == DRAFT)
+    for content in drafts:
+        if matches_filters(content):
+            return content
+
+    published = (content for content in cache if content._prefetched_versions[0].state == PUBLISHED)
+    for content in published:
+        if matches_filters(content):
+            return content
+    if include_unpublished_archived:
+        filtered = (content for content in cache if matches_filters(content))
+        order_by_date = sorted(filtered, key=lambda v: v._prefetched_versions[0].created, reverse=True)
+        return order_by_date[0] if order_by_date else None
+    return None
 
 
 def get_latest_admin_viewable_page_content(
@@ -423,7 +469,7 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
     """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by is None or version.locked_by == user
+    return version.locked_by_id is None or version.locked_by_id == user.pk
 
 
 def content_is_unlocked_for_user(
@@ -473,6 +519,9 @@ def get_latest_draft_version(version: models.Model) -> models.Model:
     """Get latest draft version of version object and caches it in the
     content object"""
     from .models import Version
+
+    if getattr(version.content, "content_is_latest", False):
+        return version if version.state == DRAFT else None
 
     if (
         not hasattr(version.content, "_latest_draft_version")

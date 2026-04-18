@@ -30,7 +30,7 @@ class VersionableItem(BaseVersionableItem):
         self,
         content_model: type[models.Model],
         grouper_field_name: str,
-        copy_function: callable,
+        copy_function: callable | None = None,
         extra_grouping_fields: Iterable[str] | None = None,
         version_list_filter_lookups: dict[str, Any] | None = None,
         on_publish=None,
@@ -55,7 +55,7 @@ class VersionableItem(BaseVersionableItem):
         # Set the grouper selector label
         self.grouper_selector_option_label = grouper_selector_option_label
         self.version_list_filter_lookups = version_list_filter_lookups or {}
-        self.copy_function = copy_function
+        self.copy_function = copy_function or default_copy
         self.on_publish = on_publish
         self.on_unpublish = on_unpublish
         self.on_draft_create = on_draft_create

@@ -2,6 +2,24 @@
 Changelog
 =========
 
+2.5.1 (2026-02-09)
+==================
+
+* feat: Allow "View on Site" for objects not on the current site by @stefanw in https://github.com/django-cms/djangocms-versioning/pull/479
+* feat: Preserve GET params for "View published" button by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/509
+* feat: Changelist performance improvement by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/505
+* fix: Make copy_function optional by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/515
+* fix: Invalid permission checking in ExtendedVersionAdminMixin by @pierreben in https://github.com/django-cms/djangocms-versioning/pull/519
+* docs: Update api reference by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/508
+* docs: Update docs to explain the djangocms_versioning contract by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/511
+* docs: update signal parameters documentation by @nstuardod in https://github.com/django-cms/djangocms-versioning/pull/517
+* locale: Updates for file djangocms_versioning/locale/en/LC_MESSAGES/django.po in fr by @transifex-integration[bot] in https://github.com/django-cms/djangocms-versioning/pull/513
+
+**New Contributors**
+
+* @nstuardod made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/517
+* @pierreben made their first contribution in https://github.com/django-cms/djangocms-versioning/pull/519
+
 2.5.0 (2025-11-14)
 ==================
 

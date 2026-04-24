@@ -3315,6 +3315,9 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
 class DefaultGrouperAdminTestCase(CMSTestCase):
 
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
     def test_get_list_display(self):
         """
         The default grouper admin should return the default list display
@@ -3352,6 +3355,64 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         self.assertTrue(can_change)
         can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
+
+    def test_change_form_renders_new_draft_for_published_grouper(self):
+        """The grouper admin change view exposes the versioning object-tools,
+        including a 'New Draft' button, when the current content is published.
+        """
+        published = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", published.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ">New Draft</a>")
+        # The link targets the version proxy's edit_redirect URL with ?next=
+        edit_redirect_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+        self.assertContains(response, f'href="{edit_redirect_url}?next=')
+
+    def test_change_form_no_new_draft_for_draft_grouper(self):
+        """The 'New Draft' button is hidden when the current content is a
+        draft (the action is only offered to branch off a published version).
+        """
+        draft = factories.PollVersionFactory(
+            state=constants.DRAFT, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", draft.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, ">New Draft</a>")
+
+    def test_change_form_exposes_versioning_content_obj(self):
+        """The grouper admin pushes the resolved content object into the
+        template context so the versioning buttons partial can reach it.
+        """
+        version = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", version.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["versioning_content_obj"].pk, version.content.pk
+        )
 
     def test_prepopulated_fields_excluded_when_readonly(self):
         """Prepopulated fields referencing readonly content fields must be

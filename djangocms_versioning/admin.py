@@ -309,6 +309,21 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
 
     """
 
+    change_form_template = "djangocms_versioning/admin/grouper/change_form.html"
+
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        """Expose the current content object to the change form so the
+        versioning object-tools buttons (Publish / New Draft / Revert /
+        Versions) can be rendered for grouper admins.
+        """
+        if "versioning_fallback_change_form_template" not in context:
+            context["versioning_fallback_change_form_template"] = super().change_form_template
+        if obj is not None:
+            context["versioning_content_obj"] = self.get_content_obj(obj)
+        return super().render_change_form(
+            request, context, add=add, change=change, form_url=form_url, obj=obj
+        )
+
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
         """Annotates the username of the ``created_by`` field, the ``modified`` field (date time),
         and the ``state`` field of the version object to the grouper queryset."""

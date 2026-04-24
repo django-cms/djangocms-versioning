@@ -182,6 +182,12 @@ For grouper models, use the :class:`~djangocms_versioning.admin.ExtendedGrouperV
     class PostAdmin(ExtendedGrouperVersionAdminMixin, GrouperModelAdmin):
         list_display = ["title", "get_author", "get_modified_date", "get_versioning_state"]
 
+In addition to the changelist fields, the mixin renders versioning object-tools buttons
+on the grouper admin change form — Publish, New Draft, Revert and Versions — mirroring
+those offered on content model admins. Each button is shown only when the underlying
+action is available for the current content object (for example, *New Draft* is only
+offered when the current version is published).
+
 To also add state indicators, include the :class:`~djangocms_versioning.admin.StateIndicatorMixin`:
 
 .. code-block:: python

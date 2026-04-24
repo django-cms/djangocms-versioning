@@ -1280,8 +1280,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
-        # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
+        # Honour ?next= when it resolves to a known admin URL; otherwise
+        # fall back to the default editable URL. Matches the convention
+        # used by publish/revert/archive/discard/unpublish views.
+        requested_redirect = request.GET.get("next")
+        fallback = get_editable_url(
+            target.content, request.GET.get("force_admin"), request.GET
+        )
+        return self._internal_redirect(requested_redirect, fallback)
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

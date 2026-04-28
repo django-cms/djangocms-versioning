@@ -356,14 +356,6 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             return super().get_content_obj(obj)
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
-    def get_grouping_from_request(self, request: HttpRequest) -> None:
-        # Work-around for an issue in django CMS core wrt the invalidation on ``hash(request)``
-        # (i.e. ``id(request)``). ModelAdmin is a process-wide singleton while request objects
-        # are short-lived, so a new request can land at the same memory address as the previous
-        # one and skip the invalidation, leaking a stale ``{grouper: content}`` entry into the next view.
-        self.clear_content_cache()
-        return super().get_grouping_from_request(request)
-
     @admin.display(
         description=_("State"),
         ordering="content_state",

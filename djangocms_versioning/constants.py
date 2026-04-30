@@ -26,3 +26,7 @@ INDICATOR_DESCRIPTIONS = {
     "archived": _("Archived"),
     "empty": _("Empty"),
 }
+
+DELETE_NON_PUBLIC_ONLY = "non-public only"
+DELETE_ANY = "any"
+DELETE_NONE = "none"

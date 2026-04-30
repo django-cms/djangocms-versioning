@@ -2081,7 +2081,7 @@ class EditRedirectTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             page_versionable.version_model_proxy, "edit_redirect", page_version.pk
         )
-        params = {"foo": "bar", "next": "/return/"}
+        params = {"foo": "bar", "baz": "qux"}
 
         with self.login_user_context(self.superuser):
             response = self.client.post(f"{url}?{urlencode(params)}")
@@ -2090,14 +2090,14 @@ class EditRedirectTestCase(BaseStateTestCase):
         self.assertEqual(
             parsed.path, get_object_edit_url(page_version.content, language="en")
         )
-        self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "next": ["/return/"]})
+        self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "baz": ["qux"]})
 
     def test_edit_redirect_view_drops_get_params_for_admin_redirect(self):
         draft_version = factories.PollVersionFactory(state=constants.DRAFT)
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "edit_redirect", draft_version.pk
         )
-        params = {"force_admin": "1", "next": "/return/"}
+        params = {"force_admin": "1", "foo": "bar"}
 
         with self.login_user_context(self.superuser):
             response = self.client.post(f"{url}?{urlencode(params)}")
@@ -2141,6 +2141,68 @@ class EditRedirectTestCase(BaseStateTestCase):
 
         # no draft was created
         self.assertFalse(Version.objects.filter(state=constants.DRAFT).exists())
+
+    def test_edit_redirect_view_honours_resolvable_next(self):
+        """?next= pointing at a resolvable admin URL takes precedence over
+        the default editable redirect; the draft is still created.
+        """
+        published = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+        next_url = self.get_admin_url(PollContent, "changelist")
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(f"{url}?{urlencode({'next': next_url})}")
+
+        self.assertRedirects(response, next_url, fetch_redirect_response=False)
+        # Draft was still created
+        self.assertTrue(
+            Version.objects.filter(state=constants.DRAFT).exclude(pk=published.pk).exists()
+        )
+
+    def test_edit_redirect_view_next_honoured_when_draft_exists(self):
+        """?next= is honoured even when a draft already exists; no
+        duplicate draft is created.
+        """
+        published = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__language="en"
+        )
+        draft = factories.PollVersionFactory(
+            state=constants.DRAFT,
+            content__poll=published.content.poll,
+            content__language="en",
+        )
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+        next_url = self.get_admin_url(PollContent, "changelist")
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(f"{url}?{urlencode({'next': next_url})}")
+
+        self.assertRedirects(response, next_url, fetch_redirect_response=False)
+        # No extra draft created
+        self.assertFalse(
+            Version.objects.exclude(pk=draft.pk).filter(state=constants.DRAFT).exists()
+        )
+
+    def test_edit_redirect_view_falls_back_when_next_not_resolvable(self):
+        """A ?next= that doesn't resolve to a known view is ignored in
+        favour of the default editable redirect.
+        """
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", poll_version.pk
+        )
+
+        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+            response = self.client.post(f"{url}?next=http://example.com")
+
+        # Fell back to the content admin change view for non-editable content
+        draft = Version.objects.get(state=constants.DRAFT)
+        expected = self.get_admin_url(PollContent, "change", draft.content.pk)
+        self.assertRedirects(response, expected, target_status_code=302)
 
 
 class CompareViewTestCase(CMSTestCase):
@@ -3253,6 +3315,9 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
 
 class DefaultGrouperAdminTestCase(CMSTestCase):
 
+    def setUp(self):
+        self.versionable = PollsCMSConfig.versioning[0]
+
     def test_get_list_display(self):
         """
         The default grouper admin should return the default list display
@@ -3290,6 +3355,64 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         self.assertTrue(can_change)
         can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
+
+    def test_change_form_renders_new_draft_for_published_grouper(self):
+        """The grouper admin change view exposes the versioning object-tools,
+        including a 'New Draft' button, when the current content is published.
+        """
+        published = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", published.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, ">New Draft</a>")
+        # The link targets the version proxy's edit_redirect URL with ?next=
+        edit_redirect_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+        self.assertContains(response, f'href="{edit_redirect_url}?next=')
+
+    def test_change_form_no_new_draft_for_draft_grouper(self):
+        """The 'New Draft' button is hidden when the current content is a
+        draft (the action is only offered to branch off a published version).
+        """
+        draft = factories.PollVersionFactory(
+            state=constants.DRAFT, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", draft.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, ">New Draft</a>")
+
+    def test_change_form_exposes_versioning_content_obj(self):
+        """The grouper admin pushes the resolved content object into the
+        template context so the versioning buttons partial can reach it.
+        """
+        version = factories.PollVersionFactory(
+            state=constants.PUBLISHED, content__language="en"
+        )
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        url = self.get_admin_url(Poll, "change", version.content.poll.pk)
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["versioning_content_obj"].pk, version.content.pk
+        )
 
     def test_prepopulated_fields_excluded_when_readonly(self):
         """Prepopulated fields referencing readonly content fields must be

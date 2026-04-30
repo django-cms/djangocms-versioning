@@ -309,6 +309,21 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
 
     """
 
+    change_form_template = "djangocms_versioning/admin/grouper/change_form.html"
+
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        """Expose the current content object to the change form so the
+        versioning object-tools buttons (Publish / New Draft / Revert /
+        Versions) can be rendered for grouper admins.
+        """
+        if "versioning_fallback_change_form_template" not in context:
+            context["versioning_fallback_change_form_template"] = super().change_form_template
+        if obj is not None:
+            context["versioning_content_obj"] = self.get_content_obj(obj)
+        return super().render_change_form(
+            request, context, add=add, change=change, form_url=form_url, obj=obj
+        )
+
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
         """Annotates the username of the ``created_by`` field, the ``modified`` field (date time),
         and the ``state`` field of the version object to the grouper queryset."""
@@ -1280,8 +1295,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
 
-        # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
+        # Honour ?next= when it resolves to a known admin URL; otherwise
+        # fall back to the default editable URL. Matches the convention
+        # used by publish/revert/archive/discard/unpublish views.
+        requested_redirect = request.GET.get("next")
+        fallback = get_editable_url(
+            target.content, request.GET.get("force_admin"), request.GET
+        )
+        return self._internal_redirect(requested_redirect, fallback)
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

@@ -2432,6 +2432,8 @@ class VersionChangeListViewTestCase(CMSTestCase):
         self.assertEqual(fr_version1.content, fr_response.context["cl"].queryset.first().content)
 
     def test_changelist_view_displays_correct_breadcrumbs(self):
+        from django import VERSION as DJANGO_VERSION
+
         poll_content = factories.PollContentWithVersionFactory()
         url = self.get_admin_url(self.versionable.version_model_proxy, "changelist")
         url += "?poll=" + str(poll_content.poll_id)
@@ -2441,18 +2443,28 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         # Traverse the returned html to find the breadcrumbs
         soup = BeautifulSoup(str(response.content), features="lxml")
-        breadcrumb_html = soup.find("div", class_="breadcrumbs")
+        if DJANGO_VERSION >= (6, 1):
+            breadcrumb_html = soup.find("ol", class_="breadcrumbs")
+            expected = """<ol class="breadcrumbs">\\n    <li><a href="/en/admin/">Home</a></li>\\n"""
+            expected += """    <li><a href="/en/admin/polls/">Polls</a></li>\\n"""
+            expected += """    <li><a href="/en/admin/polls/pollcontent/">Poll contents</a></li>\\n"""
+            expected += f"""    <li><a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a></li>\\n"""
+            expected += """    <li aria-current="page">Versions</li>\\n</ol>"""            
+        else:
+            breadcrumb_html = soup.find("div", class_="breadcrumbs")
+            expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+            expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
+            expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
+            expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
+            expected += """Versions\\n</div>"""
         # Assert the breadcrumbs
-        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
-        expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
-        expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-        expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
-        expected += """Versions\\n</div>"""
         self.assertEqual(str(breadcrumb_html), expected)
 
     def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(
         self
     ):
+        from django import VERSION as DJANGO_VERSION
+
         # The blogpost test app defines a breadcrumb template in
         # templates/admin/djangocms_versioning/blogpost/blogcontent/versioning_breadcrumbs.html
         # This test checks that template gets used.
@@ -2463,17 +2475,15 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         with self.login_user_context(self.superuser):
             response = self.client.get(url)
-
-        # Traverse the returned html to find the breadcrumbs
-        soup = BeautifulSoup(str(response.content), features="lxml")
-        breadcrumb_html = soup.find("div", class_="breadcrumbs")
         # Assert the breadcrumbs
         expected = """<div class="breadcrumbs">Blog post breadcrumbs bla bla</div>"""
-        self.assertEqual(str(breadcrumb_html), expected)
+        self.assertContains(response, expected)
 
     def test_changelist_view_displays_correct_breadcrumbs_for_extra_grouping_values(
         self
     ):
+        from django import VERSION as DJANGO_VERSION
+
         with freeze_time("1999-09-09"):
             # Make sure the English version is older than the French
             # So that the French one is in fact the latest one
@@ -2492,15 +2502,24 @@ class VersionChangeListViewTestCase(CMSTestCase):
 
         # Traverse the returned html to find the breadcrumbs
         soup = BeautifulSoup(str(response.content), features="lxml")
-        breadcrumb_html = soup.find("div", class_="breadcrumbs")
         # Assert the breadcrumbs - we should have ignored the French one
         # and put the English one in the breadcrumbs
         pk = page_content_en.pk
-        expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
-        expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
-        expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
-        expected += f"""<a href="/en/admin/cms/pagecontent/{pk}/change/">{page_content_en}</a>\\n› """
-        expected += """Versions\\n</div>"""
+        if DJANGO_VERSION >= (6, 1):
+            breadcrumb_html = soup.find("ol", class_="breadcrumbs")
+            expected = """<ol class="breadcrumbs">\\n    <li><a href="/en/admin/">Home</a></li>\\n"""
+            expected += """    <li><a href="/en/admin/cms/">django CMS</a></li>\\n"""
+            expected += """    <li><a href="/en/admin/cms/pagecontent/">Page contents</a></li>\\n"""
+            expected += f"""    <li><a href="/en/admin/cms/pagecontent/{pk}/change/">{page_content_en}</a></li>\\n"""
+            expected += """    <li aria-current="page">Versions</li>\\n</ol>"""
+        else:
+            breadcrumb_html = soup.find("div", class_="breadcrumbs")
+            expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
+            expected += """<a href="/en/admin/cms/">django CMS</a>\\n› """
+            expected += """<a href="/en/admin/cms/pagecontent/">Page contents</a>\\n› """
+            expected += f"""<a href="/en/admin/cms/pagecontent/{pk}/change/">{page_content_en}</a>\\n› """
+            expected += """Versions\\n</div>"""
+
         self.assertEqual(str(breadcrumb_html), expected)
 
     def test_changelist_view_redirects_on_url_params_that_arent_grouping_params(self):

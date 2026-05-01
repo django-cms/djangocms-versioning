@@ -27,6 +27,9 @@
     {% csrf_token %}
     <div class="submit-row">
         {% if draft_version %}
+        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" style="margin-inline-start: auto" role="button" style="margin-left: auto">
+            {% translate 'No, take me back' %}
+        </a>
         <input  class="button revert-button confirm-link"
                 type="submit"
                 name="discard"
@@ -36,14 +39,11 @@
                 type="submit"
                 value="{% translate 'Archive existing draft and Revert' %}">
         {% else %}
-        <input  class="button revert-button confirm-link"
+        <input  class="button revert-button confirm-link default"
                 type="submit"
                 name="revert"
                 value="{% translate "Yes, I'm sure" %}">
         {% endif %}
-        <a href="{{ back_url }}" class="cancel-link js-versioning-keep-sideframe" role="button">
-            {% translate 'No, take me back' %}
-        </a>
     </div>
 </form>
 {% endblock %}

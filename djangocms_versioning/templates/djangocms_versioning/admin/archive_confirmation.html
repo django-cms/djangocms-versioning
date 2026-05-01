@@ -18,15 +18,13 @@
 <h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
 <form action="" method="POST" class="js-close-sideframe">
     {% csrf_token %}
-    <div>
-        <input  class="button confirm-link"
+    <div class="submit-row">
+        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" role="button" style="margin-inline-start: auto">
+            {% translate 'No, take me back' %}
+        </a>
+        <input  class="button confirm-link default"
                 type="submit"
                 value="{% translate "Yes, I'm sure" %}">
-        <a href="{{ back_url }}">
-            <input type="button"
-                   class="button cancel-link js-versioning-keep-sideframe"
-                   value="{% translate 'No, take me back' %}">
-        </a>
     </div>
 </form>
 {% endblock %}

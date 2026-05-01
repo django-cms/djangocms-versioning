@@ -3566,6 +3566,6 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
         # Query count should remain the same regardless of version count
         # because of prefetch optimization
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(3 if cms_version < "5.1" else 4):
             response = poll_admin.changelist_view(request)
             list(response.context_data["cl"].result_list)

@@ -3506,6 +3506,8 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
     def test_poll_grouper_changelist_queries_are_optimized(self):
         """Pin the number of queries for Poll GrouperAdmin changelist to prevent regressions"""
+        from djangocms_versioning import __version__ as cms_version
+
         # Create test data: 5 polls with 2 versions each (draft + published)
         for _i in range(5):
             # Create published version
@@ -3533,7 +3535,8 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         # 1. Count query for pagination
         # 2. Count query (duplicate from admin)
         # 3. Main queryset with subqueries for content annotations
-        with self.assertNumQueries(3):
+        # 4. django CMS 5.1+: Prefetch content
+        with self.assertNumQueries(3 if cms_version < "5.1" else 4):
             response = poll_admin.changelist_view(request)
             # Force evaluation of queryset
             list(response.context_data["cl"].result_list)

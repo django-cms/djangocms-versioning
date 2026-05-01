@@ -26,10 +26,10 @@
 <form action="" method="POST" class="js-close-sideframe">
     {% csrf_token %}
     <div class="submit-row">
-        {% if draft_version %}
-        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" style="margin-inline-start: auto" role="button" style="margin-left: auto">
+        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" style="margin-inline-start: auto" role="button">
             {% translate 'No, take me back' %}
         </a>
+        {% if draft_version %}
         <input  class="button revert-button confirm-link"
                 type="submit"
                 name="discard"

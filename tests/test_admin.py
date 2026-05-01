@@ -2448,14 +2448,16 @@ class VersionChangeListViewTestCase(CMSTestCase):
             expected = """<ol class="breadcrumbs">\\n    <li><a href="/en/admin/">Home</a></li>\\n"""
             expected += """    <li><a href="/en/admin/polls/">Polls</a></li>\\n"""
             expected += """    <li><a href="/en/admin/polls/pollcontent/">Poll contents</a></li>\\n"""
-            expected += f"""    <li><a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a></li>\\n"""
-            expected += """    <li aria-current="page">Versions</li>\\n</ol>"""            
+            expected += f"""    <li><a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">"""
+            expected += f"""{str(poll_content)}</a></li>\\n"""
+            expected += """    <li aria-current="page">Versions</li>\\n</ol>"""
         else:
             breadcrumb_html = soup.find("div", class_="breadcrumbs")
             expected = """<div class="breadcrumbs">\\n<a href="/en/admin/">Home</a>\\n› """
             expected += """<a href="/en/admin/polls/">Polls</a>\\n› """
             expected += """<a href="/en/admin/polls/pollcontent/">Poll contents</a>\\n› """
-            expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">{str(poll_content)}</a>\\n› """
+            expected += f"""<a href="/en/admin/polls/pollcontent/{poll_content.pk}/change/">"""
+            expected += f"""{str(poll_content)}</a>\\n› """
             expected += """Versions\\n</div>"""
         # Assert the breadcrumbs
         self.assertEqual(str(breadcrumb_html), expected)
@@ -2463,7 +2465,6 @@ class VersionChangeListViewTestCase(CMSTestCase):
     def test_changelist_view_displays_correct_breadcrumbs_when_app_defines_breadcrumbs(
         self
     ):
-        from django import VERSION as DJANGO_VERSION
 
         # The blogpost test app defines a breadcrumb template in
         # templates/admin/djangocms_versioning/blogpost/blogcontent/versioning_breadcrumbs.html
@@ -3506,8 +3507,6 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
     def test_poll_grouper_changelist_queries_are_optimized(self):
         """Pin the number of queries for Poll GrouperAdmin changelist to prevent regressions"""
-        from djangocms_versioning import __version__ as cms_version
-
         # Create test data: 5 polls with 2 versions each (draft + published)
         for _i in range(5):
             # Create published version

@@ -11,6 +11,7 @@ from cms.utils import get_language_from_request
 from cms.utils.conf import get_cms_setting
 from cms.utils.helpers import is_editable_model
 from cms.utils.urlutils import add_url_parameters, static_with_version
+from django import VERSION as django_VERSION
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.actions import delete_selected
@@ -1483,6 +1484,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             )
             breadcrumb_opts = self.model._source_model._meta
             extra_context["breadcrumb_opts"] = breadcrumb_opts
+            extra_context["new_breadcrumbs"] = django_VERSION >= (6, 1)
             # Check if custom breadcrumb template defined, otherwise
             # fallback on default
             breadcrumb_templates = [

@@ -12,7 +12,7 @@
 {% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
 
 {% block content %}
-<h1>{% block title %}{% translate "Revert Confirmation" %}{% endblock %}</h1>
+<h1>{% block title %}{% translate "Unpublish Confirmation" %}{% endblock %}</h1>
 <p>{% translate "Unpublishing will remove this version from live. Are you sure you want to unpublish?" %}</p>
 <h3>{{ object_name }}</h3>
 <h4>{% blocktrans %} Version number: {{ version_number }}{% endblocktrans %}</h4>
@@ -24,14 +24,12 @@
 <form action="" method="POST" class="js-close-sideframe">
     {% csrf_token %}
     <div class="submit-row">
-        <input  class="button confirm-link"
+        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" role="button" style="margin-inline-start: auto">
+            {% translate 'No, take me back' %}
+        </a>
+        <input  class="button confirm-link default"
                 type="submit"
                 value="{% translate "Yes, I'm sure" %}">
-        <a href="{{ back_url }}">
-            <input type="button"
-                   class="button js-versioning-keep-sideframe"
-                   value="{% translate 'No, take me back' %}">
-        </a>
     </div>
 </form>
 {% endblock %}

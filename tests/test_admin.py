@@ -3074,11 +3074,11 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         )
         # Check list_action links are rendered
         self.assertContains(response, "cms-action-btn")
-        if cms_version < "5.1":
-            # Before django CMS 5.1, preview action was added
+        if cms_version < "5.0":
+            # Before django CMS 5.0, preview action was added
             self.assertContains(response, "cms-action-view")
         else:
-            # Since django CMS 5.1, edit actions are added but only if the model is frontend-editable
+            # Since django CMS 5.0, edit actions are added but only if the model is frontend-editable
             # Poll is not, and does not add the action itself.
             self.assertNotContains(response, "cms-action-view")
         self.assertContains(response, "cms-action-settings")
@@ -3619,8 +3619,8 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         # 1. Count query for pagination
         # 2. Count query (duplicate from admin)
         # 3. Main queryset with subqueries for content annotations
-        # 4. django CMS 5.1+: Prefetch content
-        with self.assertNumQueries(3 if cms_version < "5.1" else 4):
+        # 4. django CMS 5.0+: Prefetch content
+        with self.assertNumQueries(3 if cms_version < "5.0" else 4):
             response = poll_admin.changelist_view(request)
             # Force evaluation of queryset
             list(response.context_data["cl"].result_list)
@@ -3651,6 +3651,6 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
         # Query count should remain the same regardless of version count
         # because of prefetch optimization
-        with self.assertNumQueries(3 if cms_version < "5.1" else 4):
+        with self.assertNumQueries(3 if cms_version < "5.0" else 4):
             response = poll_admin.changelist_view(request)
             list(response.context_data["cl"].result_list)

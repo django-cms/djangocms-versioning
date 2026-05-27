@@ -56,6 +56,28 @@ To run all the tests the only thing you need to do is run::
     python test_settings.py
 
 
+Frontend assets
+===============
+
+The JavaScript bundles in ``djangocms_versioning/static/`` are built with webpack
+and managed via npm scripts. Node.js 24 is required (see ``.nvmrc``).
+
+Install dependencies::
+
+    npm install
+
+Common commands::
+
+    npm run build       # production build
+    npm run build:dev   # development build (sourcemaps, no minification)
+    npm run watch       # rebuild on file change
+    npm run lint        # ESLint over the project's JS sources
+
+End-to-end tests with Playwright::
+
+    npm run e2e         # runs the build with coverage instrumentation, then Playwright
+
+
 Documentation
 =============
 

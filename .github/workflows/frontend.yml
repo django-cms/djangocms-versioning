@@ -31,7 +31,7 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Run linter
-      run: npx gulp lint
+      run: npm run lint
 
     - name: Run E2E tests with coverage
       run: |

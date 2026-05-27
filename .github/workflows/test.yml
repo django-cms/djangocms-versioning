@@ -20,6 +20,7 @@ jobs:
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
+            dj61_cms50.txt,
           ]
         exclude:
           - requirements-file: dj52_cms41.txt
@@ -75,6 +76,7 @@ jobs:
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
+            dj61_cms50.txt,
           ]
         exclude:
           - requirements-file: dj52_cms41.txt
@@ -144,6 +146,7 @@ jobs:
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
+            dj61_cms50.txt,
           ]
         exclude:
           - requirements-file: dj52_cms41.txt

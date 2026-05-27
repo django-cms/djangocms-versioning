@@ -15,8 +15,6 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
-            dj50_cms41.txt,
-            dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
@@ -30,6 +28,10 @@ jobs:
           - requirements-file: dj60_cms50.txt
             python-version: "3.10"
           - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj61_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj61_cms50.txt
             python-version: "3.11"
           - requirements-file: dj42_cms41.txt
             python-version: "3.14"
@@ -71,8 +73,6 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
-            dj50_cms41.txt,
-            dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
@@ -86,6 +86,10 @@ jobs:
           - requirements-file: dj60_cms50.txt
             python-version: "3.10"
           - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj61_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj61_cms50.txt
             python-version: "3.11"
           - requirements-file: dj42_cms41.txt
             python-version: "3.14"
@@ -141,8 +145,6 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
         requirements-file: [
             dj42_cms41.txt,
-            dj50_cms41.txt,
-            dj51_cms41.txt,
             dj52_cms41.txt,
             dj52_cms50.txt,
             dj60_cms50.txt,
@@ -156,6 +158,10 @@ jobs:
           - requirements-file: dj60_cms50.txt
             python-version: "3.10"
           - requirements-file: dj60_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj61_cms50.txt
+            python-version: "3.10"
+          - requirements-file: dj61_cms50.txt
             python-version: "3.11"
           - requirements-file: dj42_cms41.txt
             python-version: "3.14"

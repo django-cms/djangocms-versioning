@@ -3343,6 +3343,31 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         finally:
             modeladmin.__class__.prepopulated_fields = original
 
+    def test_object_tools_render_on_grouper_change_view(self):
+        """The versioning object-tools buttons render on the grouper admin
+        change form, driven by the ``content_instance`` exposed by the grouper
+        admin. For published content the 'New Draft' button is shown."""
+        version = factories.PollVersionFactory(
+            content__language="en", state=constants.PUBLISHED
+        )
+        poll = version.content.poll
+        action_url = self.get_admin_url(
+            PollsCMSConfig.versioning[0].version_model_proxy, "edit_redirect", version.pk
+        )
+        new_draft_button = (
+            '<a class="accent cms-form-post-method" '
+            f'href="{action_url}?force_admin=1">New Draft</a>'
+        )
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(Poll, "change", poll.pk))
+
+        self.assertEqual(200, response.status_code)
+        self.assertContains(response, new_draft_button)
+        # Other versioning object-tools are not applicable for published content
+        self.assertNotContains(response, ">Publish</a>")
+        self.assertNotContains(response, ">Revert</a>")
+
 
 class ListActionsTestCase(CMSTestCase):
     def setUp(self):

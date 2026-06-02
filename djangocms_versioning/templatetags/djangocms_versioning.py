@@ -1,3 +1,4 @@
+import django
 from django import template
 from django.urls import reverse
 
@@ -5,6 +6,15 @@ from .. import constants, versionables
 from ..helpers import version_list_url
 
 register = template.Library()
+
+
+@register.simple_tag
+def object_tools_outside_content():
+    """Whether the admin ``object-tools`` block is rendered outside the
+    ``content`` block. Django moved it out of ``content`` in 6.1 (see Django
+    ticket #36331), so templates that override ``content`` must render their
+    tools in a different slot depending on the Django version."""
+    return django.VERSION >= (6, 1)
 
 
 @register.filter

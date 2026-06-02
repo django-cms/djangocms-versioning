@@ -10,29 +10,24 @@
     <link rel="stylesheet" href="{% static "djangocms_versioning/css/object-tools.css" %}">
 {% endblock %}
 
+{% block object-tools %}
+    {% object_tools_outside_content as tools_outside_content %}
+    {% if tools_outside_content %}
+        {% include "admin/djangocms_versioning/object_tools.html" %}
+    {% endif %}
+{% endblock %}
+
 {% block content_title %}
     {% if title %}<h1>{{ title }}{% if original %} - {{ original.versions.first.short_name }}{% endif %}</h1>{% endif %}
-    {% block object-tools %}
-        {% if not is_popup and not add %}
-             <ul class="object-tools hide-in-modal">
-                {% block object-tools-items %}
-                    {% include "admin/djangocms_versioning/versioning_buttons.html" %}
-                    <li>
-                        {% get_preview_url original as admin_url %}
-                        <a href="{{ admin_url }}" onclick="window.parent.CMS.API.Sideframe.close()" target="_parent">
-                            {% trans "Preview" %}
-                        </a>
-                    </li>
-             {% endblock %}
-            </ul>
-        {% endif %}
-    {% endblock %}
 {% endblock %}
 
 {% block content %}
 <div id="content-main">
 
-
+{% object_tools_outside_content as tools_outside_content %}
+{% if not tools_outside_content %}
+    {% include "admin/djangocms_versioning/object_tools.html" %}
+{% endif %}
 
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="?language={{ language }}{% if request.GET.site %}&amp;site={{ request.GET.site }}{% endif %}{% if request.GET.parent_page %}&amp;parent_page={{ request.GET.parent_page }}{% endif %}{# parameter `parent_node` only for django CMS 4.1 support #}{% if request.GET.parent_node %}&amp;parent_node={{ request.GET.parent_node }}{% endif %}{%if request.GET.source %}&amp;source={{ request.GET.source }}{% endif %}" method="post" id="{{ opts.model_name }}_form">
 {% csrf_token %}

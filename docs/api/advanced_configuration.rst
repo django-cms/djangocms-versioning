@@ -231,6 +231,8 @@ Selecting the string ``"__default__"`` will use the
 which combines the functionality of the
 :class:`~djangocms_versioning.admin.StateIndicatorMixin` and the
 :class:`~djangocms_versioning.admin.ExtendedGrouperVersionAdminMixin`.
+This also wires versioning object-tools (Publish / New Draft / Revert /
+Versions) onto the grouper admin change form.
 
 extended_admin_field_modifiers
 ++++++++++++++++++++++++++++++

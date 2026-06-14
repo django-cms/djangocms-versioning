@@ -29,9 +29,9 @@ except ImportError:
     emit_content_change = None
 
 
-not_draft_error = _("Version is not a draft")
-lock_error_message = _("Action Denied. The latest version is locked by {user}")
-lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
+not_draft_error = _("Version is not a draft. To make changes create a new draft")
+lock_error_message = _("The latest version is locked by {user}")
+lock_draft_error_message = _("The draft version is locked by {user}")
 permission_error_message = _("You do not have permission to perform this action")
 
 

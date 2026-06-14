@@ -31,7 +31,7 @@ class Conditions(list):
         for func in self:
             func(instance, user)
 
-    def as_bool(self, instance: object, user: settings.AUTH_USER_MODEL) -> bool:
+    def as_bool(self, instance: object, user: settings.AUTH_USER_MODEL) -> bool | ReasonedBool:
         try:
             self(instance, user)
         except ConditionFailed as e:

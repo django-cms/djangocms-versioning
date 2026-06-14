@@ -162,9 +162,7 @@ class CheckConditionReasonIntegrationTestCase(CMSTestCase):
         result = version.check_publish.as_bool(user)
 
         self.assertFalse(result)
-        self.assertEqual(
-            str(result), "You do not have permission to perform this action"
-        )
+        self.assertEqual(str(result), "You do not have publish permissions")
 
     def test_in_state_condition_reason_directly(self):
         version = factories.PollVersionFactory(state=constants.PUBLISHED)

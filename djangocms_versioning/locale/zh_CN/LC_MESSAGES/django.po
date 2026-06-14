@@ -1,164 +1,170 @@
-# Chinese (Simplified) translations for djangocms-versioning (zn_CN)
-# This file mirrors zh_CN translations for consistency with django CMS and Django zh_Hans.
-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# Fabian Braun <fsbraun@gmx.de>, 2026
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: djangocms-versioning\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 22:13+0100\n"
-"PO-Revision-Date: 2025-11-12 00:00+0000\n"
-"Last-Translator: \n"
-"Language-Team: Chinese (Simplified)\n"
-"Language: zh_Hans\n"
+"POT-Creation-Date: 2026-06-14 18:37+0200\n"
+"PO-Revision-Date: 2023-01-10 15:29+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2026\n"
+"Language-Team: Chinese (China) (https://app.transifex.com/divio/teams/58664/zh_CN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: admin.py:176 admin.py:356 admin.py:478
+#: admin.py:177 admin.py:361 admin.py:507
 msgid "State"
 msgstr "状态"
 
-#: admin.py:219 constants.py:27
+#: admin.py:220 constants.py:27
 msgid "Empty"
 msgstr "空"
 
-#: admin.py:370 admin.py:488
+#: admin.py:375 admin.py:517
 msgid "Author"
 msgstr "作者"
 
-#: admin.py:384 admin.py:502 models.py:92
+#: admin.py:389 admin.py:531 models.py:106
 msgid "Modified"
 msgstr "修改时间"
 
-#: admin.py:538 admin.py:784
+#: admin.py:567 admin.py:813
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "预览"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "编辑"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "新建草稿"
 
-#: admin.py:597
+#: admin.py:626
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "管理版本"
 
-#: admin.py:750
+#: admin.py:779
 msgid "Content"
 msgstr "内容"
 
-#: admin.py:765
+#: admin.py:794
 msgid "locked"
 msgstr "已锁定"
 
-#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "归档"
 
-#: admin.py:816 cms_toolbars.py:83 indicators.py:37
+#: admin.py:845 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "发布"
 
-#: admin.py:835 indicators.py:57 indicators.py:63
+#: admin.py:864 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "取消发布"
 
-#: admin.py:890 cms_toolbars.py:179
+#: admin.py:919 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "还原"
 
-#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "丢弃"
 
-#: admin.py:925 cms_toolbars.py:148
+#: admin.py:954 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "解锁"
 
-#: admin.py:952
+#: admin.py:981
 msgid "Settings"
 msgstr "设置"
 
-#: admin.py:989
+#: admin.py:1018
 msgid "Compare versions"
 msgstr "比较版本"
 
-#: admin.py:998
+#: admin.py:1027
 msgid "Exactly two versions need to be selected."
 msgstr "必须选择恰好两个版本。"
 
-#: admin.py:1016
+#: admin.py:1045
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "删除所选 %(verbose_name_plural)s"
 
-#: admin.py:1027
+#: admin.py:1056
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr "草稿或已发布的版本不能删除。请先取消发布或对草稿使用丢弃。"
 
-#: admin.py:1056
+#: admin.py:1085
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "选择{}以查看其版本"
 
-#: admin.py:1071
+#: admin.py:1100
 msgid "Version cannot be archived"
 msgstr "无法归档该版本"
 
-#: admin.py:1095
+#: admin.py:1124
 msgid "Version archived"
 msgstr "版本已归档"
 
-#: admin.py:1105 admin.py:1243 admin.py:1392
+#: admin.py:1134 admin.py:1272 admin.py:1421
 msgid "This view only supports POST method."
 msgstr "此视图仅支持 POST 方法。"
 
-#: admin.py:1119
+#: admin.py:1148
 msgid "Version cannot be published"
 msgstr "无法发布该版本"
 
-#: admin.py:1131
+#: admin.py:1160
 msgid "Version published"
 msgstr "版本已发布"
 
-#: admin.py:1169
+#: admin.py:1198
 msgid "Version cannot be unpublished"
 msgstr "无法取消发布该版本"
 
-#: admin.py:1204
+#: admin.py:1233
 msgid "Version unpublished"
 msgstr "版本已取消发布"
 
-#: admin.py:1339
+#: admin.py:1368
 msgid "The last version has been deleted"
 msgstr "最后一个版本已被删除"
 
-#: admin.py:1405
+#: admin.py:1434
 msgid "You do not have permission to remove the version lock"
 msgstr "您无权移除版本锁定"
 
-#: admin.py:1410
+#: admin.py:1439
 msgid "Version unlocked"
 msgstr "版本已解锁"
 
-#: admin.py:1455
+#: admin.py:1484
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "正在显示“{grouper}”的版本"
@@ -276,79 +282,95 @@ msgid "Manage Versions..."
 msgstr "管理版本..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "版本不是草稿"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "此版本不是草稿：如需更改，请创建一个新草稿"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "操作被拒绝。最新版本被 {user} 锁定"
+msgid "The latest version is locked by {user}"
+msgstr "最新版本被 {user} 锁定"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "操作被拒绝。草稿版本被 {user} 锁定"
+msgid "The draft version is locked by {user}"
+msgstr "草稿版本被 {user} 锁定"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
 msgstr "您无权执行此操作"
 
-#: models.py:91
+#: models.py:105
 msgid "Created"
 msgstr "创建时间"
 
-#: models.py:94
+#: models.py:108
 msgid "author"
 msgstr "作者"
 
-#: models.py:107
+#: models.py:121
 msgid "status"
 msgstr "状态"
 
-#: models.py:115
+#: models.py:129
 msgid "locked by"
 msgstr "锁定者"
 
-#: models.py:124
+#: models.py:138
 msgid "source"
 msgstr "来源"
 
-#: models.py:138
+#: models.py:159
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
 msgstr "版本 #{number}（{state} {date}）"
 
-#: models.py:145
+#: models.py:166
 #, python-brace-format
 msgid "Version #{number} ({state})"
 msgstr "版本 #{number}（{state}）"
 
-#: models.py:151
+#: models.py:172
 #, python-format
 msgid "Locked by %(user)s"
 msgstr "由 %(user)s 锁定"
 
-#: models.py:288 models.py:339
+#: models.py:308 models.py:528
+msgid "You do not have change permissions"
+msgstr "您无权更改"
+
+#: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "版本不处于草稿状态"
 
-#: models.py:404
+#: models.py:359
+msgid "You do not have publish permissions"
+msgstr "您无权发布"
+
+#: models.py:424
+msgid "You do not have unpublish permissions"
+msgstr "您无权取消发布"
+
+#: models.py:425
 msgid "Version is not in published state"
 msgstr "版本不处于已发布状态"
 
-#: models.py:510
+#: models.py:523
+msgid "You do not have unlock permissions"
+msgstr "您无权解锁"
+
+#: models.py:531
 msgid "Version is not in archived or unpublished state"
 msgstr "版本不处于已归档或未发布状态"
 
-#: models.py:525
+#: models.py:546
 msgid "Version is not in draft or published state"
 msgstr "版本不处于草稿或已发布状态"
 
-#: models.py:533
+#: models.py:554
 msgid "Version is already locked"
 msgstr "版本已被锁定"
 
-#: models.py:539
+#: models.py:560
 msgid "Draft version is not locked"
 msgstr "草稿版本未被锁定"
 
@@ -356,7 +378,6 @@ msgstr "草稿版本未被锁定"
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] "请修正下列错误。"
-msgstr[1] "请修正下列错误。"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:75
 msgid "All permissions"
@@ -374,12 +395,14 @@ msgstr "保存"
 msgid "Save and continue editing"
 msgstr "保存并继续编辑"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
 #: templates/djangocms_versioning/admin/grouper_form.html:9
 msgid "Home"
 msgstr "首页"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:7
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
 #: templates/admin/djangocms_versioning/versioning_buttons.html:27
 msgid "Versions"
 msgstr "版本"
@@ -398,19 +421,19 @@ msgstr "您确定要归档以下版本吗？"
 msgid " Version number: %(version_number)s"
 msgstr " 版本号：%(version_number)s"
 
-#: templates/djangocms_versioning/admin/archive_confirmation.html:24
-#: templates/djangocms_versioning/admin/discard_confirmation.html:24
-#: templates/djangocms_versioning/admin/revert_confirmation.html:42
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:29
-msgid "Yes, I'm sure"
-msgstr "是的，我确定"
-
-#: templates/djangocms_versioning/admin/archive_confirmation.html:28
-#: templates/djangocms_versioning/admin/discard_confirmation.html:26
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:33
+#: templates/djangocms_versioning/admin/archive_confirmation.html:23
+#: templates/djangocms_versioning/admin/discard_confirmation.html:22
+#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "不，带我返回"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:27
+#: templates/djangocms_versioning/admin/discard_confirmation.html:27
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
+msgid "Yes, I'm sure"
+msgstr "是的，我确定"
 
 #: templates/djangocms_versioning/admin/compare.html:8
 #, python-format
@@ -500,7 +523,6 @@ msgid "View on site"
 msgstr "在站点上查看"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:16
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Revert Confirmation"
 msgstr "还原确认"
 
@@ -514,13 +536,17 @@ msgstr "还原到此版本可能导致现有草稿版本丢失。请选择一个
 msgid "Are you sure you want to revert to the following version?"
 msgstr "您确定要还原到以下版本吗？"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:33
+#: templates/djangocms_versioning/admin/revert_confirmation.html:36
 msgid "Discard existing draft and Revert"
 msgstr "丢弃现有草稿并还原"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:37
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
 msgid "Archive existing draft and Revert"
 msgstr "归档现有草稿并还原"
+
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+msgid "Unpublish Confirmation"
+msgstr "取消发布确认"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
@@ -535,8 +561,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""

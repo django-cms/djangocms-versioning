@@ -31,7 +31,7 @@ from django.http import (
     HttpResponseForbidden,
     HttpResponseNotAllowed,
 )
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.template.loader import render_to_string, select_template
 from django.template.response import TemplateResponse
 from django.urls import Resolver404, path, resolve, reverse
@@ -307,7 +307,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
 
     """
 
-    change_form_template = "djangocms_versioning/admin/grouper/change_form.html"
+    change_form_template = "admin/djangocms_versioning/grouper/change_form.html"
 
     def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
         """Render the grouper change form with the versioning object-tools
@@ -1094,7 +1094,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             title=_("Select {} to view its versions").format(versionable.grouper_model._meta.verbose_name),
             new_breadcrumbs=django_VERSION >= (6, 1),
         )
-        return render(request, "djangocms_versioning/admin/grouper_form.html", context)
+        return TemplateResponse(request, "admin/djangocms_versioning/grouper_form.html", context)
 
     def archive_view(self, request, object_id):
         """Archives the specified version and redirects back to the
@@ -1126,7 +1126,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 ),
                 "back_url": self.back_link(request, version),
             }
-            return render(request, "djangocms_versioning/admin/archive_confirmation.html", context)
+            return TemplateResponse(request, "djangocms_versioning/admin/archive_confirmation.html", context)
         else:
             # Archive the version
             version.archive(request.user)
@@ -1231,7 +1231,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 ]
             )
             context.update({"extra_context": extra_context})
-            return render(
+            return TemplateResponse(
                 request,
                 "djangocms_versioning/admin/unpublish_confirmation.html",
                 context,
@@ -1361,7 +1361,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 ),
                 "back_url": self.back_link(request, version),
             }
-            return render(request, "djangocms_versioning/admin/revert_confirmation.html", context)
+            return TemplateResponse(request, "djangocms_versioning/admin/revert_confirmation.html", context)
         else:
             if draft_version and request.POST.get("archive"):
                 draft_version.archive(request.user)
@@ -1397,7 +1397,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 ),
                 "back_url": self.back_link(request, version),
             }
-            return render(request, "djangocms_versioning/admin/discard_confirmation.html", context)
+            return TemplateResponse(request, "djangocms_versioning/admin/discard_confirmation.html", context)
 
         version_url = version_list_url(version.content)
         if request.POST.get("discard"):

@@ -2093,9 +2093,13 @@ class EditRedirectTestCase(BaseStateTestCase):
         self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "next": ["/return/"]})
 
     def test_edit_redirect_view_drops_get_params_for_admin_redirect(self):
-        draft_version = factories.PollVersionFactory(state=constants.DRAFT)
+        """When the grouper is not managed by a versioning grouper admin,
+        force_admin redirects to the content change view and incoming GET
+        params are dropped."""
+        page_versionable = VersioningCMSConfig.versioning[0]
+        draft_version = factories.PageVersionFactory(content__language="en")
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "edit_redirect", draft_version.pk
+            page_versionable.version_model_proxy, "edit_redirect", draft_version.pk
         )
         params = {"force_admin": "1", "next": "/return/"}
 
@@ -2105,9 +2109,31 @@ class EditRedirectTestCase(BaseStateTestCase):
         parsed = urlparse(response.url)
         self.assertEqual(
             parsed.path,
-            self.get_admin_url(PollContent, "change", draft_version.content.pk),
+            self.get_admin_url(
+                draft_version.content.__class__, "change", draft_version.content.pk
+            ),
         )
         self.assertEqual(parse_qs(parsed.query), {})
+
+    def test_edit_redirect_view_redirects_to_grouper_change_view(self):
+        """When the content's grouper is managed by a versioning grouper admin
+        (using ``ExtendedGrouperVersionAdminMixin``), force_admin redirects to
+        the grouper change view - with the content's grouping fields as query
+        params - so both grouper and content fields are visible."""
+        published = factories.PollVersionFactory(
+            content__language="en", state=constants.PUBLISHED
+        )
+        poll = published.content.poll
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+
+        with self.login_user_context(self.superuser):
+            response = self.client.post(f"{url}?force_admin=1")
+
+        parsed = urlparse(response.url)
+        self.assertEqual(parsed.path, self.get_admin_url(Poll, "change", poll.pk))
+        self.assertEqual(parse_qs(parsed.query), {"language": ["en"]})
 
     @patch("django.contrib.messages.add_message")
     def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):

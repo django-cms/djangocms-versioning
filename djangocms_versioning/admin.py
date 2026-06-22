@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import warnings
 from collections import OrderedDict
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
 from cms.models import PageContent
@@ -165,10 +165,7 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
 
     class Media:
         # js for the context menu
-        js = (
-            "admin/js/jquery.init.js",
-            "djangocms_versioning/js/indicators.js",
-        )
+        js = ("djangocms_versioning/js/admin/versioning.js",)
         # css for indicators and context menu
         css = {
             "all": (static_with_version("cms/css/cms.pagetree.css"),),
@@ -774,7 +771,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
     #     return super().get_queryset(request).prefetch_related('content')
 
     class Media:
-        js = ["djangocms_versioning/js/versioning.js"]
+        js = ["djangocms_versioning/js/admin/versioning.js"]
 
     def has_module_permission(self, request):
         return conf.VERBOSE_UI
@@ -1276,6 +1273,36 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Return current version as it is a draft
             return version
 
+    def _get_edit_redirect_url(self, content, request):
+        """Return the URL the edit redirect view should send the user to.
+
+        When ``force_admin`` is requested and the content's grouper is managed by
+        an admin using :class:`ExtendedGrouperVersionAdminMixin`, redirect to the
+        grouper change view so both grouper and content fields are visible.
+        Otherwise fall back to the content object's editable URL.
+        """
+        force_admin = request.GET.get("force_admin")
+        if force_admin:
+            versionable = versionables.for_content(content)
+            grouper_model = versionable.grouper_model
+            grouper_admin = admin.site._registry.get(grouper_model)
+            if grouper_admin and issubclass(
+                grouper_admin.__class__, ExtendedGrouperVersionAdminMixin
+            ):
+                grouper = getattr(content, versionable.grouper_field_name)
+                url = reverse(
+                    f"admin:{grouper_model._meta.app_label}_{grouper_model._meta.model_name}_change",
+                    args=(grouper.pk,),
+                )
+                grouping_params = {
+                    field: getattr(content, field)
+                    for field in versionable.extra_grouping_fields
+                }
+                if grouping_params:
+                    url += "?" + urlencode(grouping_params)
+                return url
+        return get_editable_url(content, force_admin, request.GET)
+
     def edit_redirect_view(self, request, object_id):
         """Redirects to the admin change view and creates a draft version
         if no draft exists yet.
@@ -1296,7 +1323,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return redirect(version_list_url(version.content))
 
         # Redirect
-        return redirect(get_editable_url(target.content, request.GET.get("force_admin"), request.GET))
+        return redirect(self._get_edit_redirect_url(target.content, request))
 
     def revert_view(self, request, object_id):
         """Reverts to the specified version i.e. creates a draft from it."""

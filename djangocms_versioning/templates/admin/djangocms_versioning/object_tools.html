@@ -5,7 +5,7 @@
             {% include "admin/djangocms_versioning/versioning_buttons.html" with original=content_object %}
             {% get_preview_url content_object as admin_url %}
             {% if admin_url %}
-                <li><a href="{{ admin_url }}" class="viewsitelink">{% trans "Preview" %}</a></li>
+                <li><a href="{{ admin_url }}" class="viewsitelink js-close-sideframe" target="_parent">{% trans "Preview" %}</a></li>
             {% endif %}
         </ul>
     {% endif %}

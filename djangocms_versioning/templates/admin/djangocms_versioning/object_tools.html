@@ -1,12 +1,15 @@
-{% load djangocms_versioning i18n cms_admin %}
+{% load djangocms_versioning i18n cms_admin %}{% comment %}
+Versioning object-tools as bare <li> items (versioning buttons + Preview link).
+It must be rendered inside an <ul class="object-tools"> — either Django admin's
+own object-tools list (via the "object-tools-items" block) or a list provided by
+a custom change form. Do not wrap it in its own <ul>.
+{% endcomment %}
 {% with content_object=content_instance|default:original %}
     {% if content_object and not is_popup and not add %}
-        <ul class="object-tools hide-in-modal">
-            {% include "admin/djangocms_versioning/versioning_buttons.html" with original=content_object %}
-            {% get_preview_url content_object as admin_url %}
-            {% if admin_url %}
-                <li><a href="{{ admin_url }}" class="viewsitelink js-close-sideframe" target="_parent">{% trans "Preview" %}</a></li>
-            {% endif %}
-        </ul>
+        {% include "admin/djangocms_versioning/versioning_buttons.html" with original=content_object %}
+        {% get_preview_url content_object as admin_url %}
+        {% if admin_url %}
+            <li><a href="{{ admin_url }}" class="viewsitelink js-close-sideframe" target="_parent">{% trans "Preview" %}</a></li>
+        {% endif %}
     {% endif %}
 {% endwith %}

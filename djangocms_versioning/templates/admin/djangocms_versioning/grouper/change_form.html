@@ -13,7 +13,7 @@
 
 {% block object-tools-items %}
     {% if content_instance %}
-        {% include "admin/djangocms_versioning/versioning_buttons.html" with original=content_instance %}
+        {% include "admin/djangocms_versioning/object_tools.html" %}
     {% endif %}
     {{ block.super }}
 {% endblock %}

@@ -13,7 +13,9 @@
 {% block object-tools %}
     {% object_tools_outside_content as tools_outside_content %}
     {% if tools_outside_content %}
-        {% include "admin/djangocms_versioning/object_tools.html" %}
+        <ul class="object-tools hide-in-modal">
+            {% include "admin/djangocms_versioning/object_tools.html" %}
+        </ul>
     {% endif %}
 {% endblock %}
 
@@ -26,7 +28,9 @@
 
 {% object_tools_outside_content as tools_outside_content %}
 {% if not tools_outside_content %}
-    {% include "admin/djangocms_versioning/object_tools.html" %}
+    <ul class="object-tools hide-in-modal">
+        {% include "admin/djangocms_versioning/object_tools.html" %}
+    </ul>
 {% endif %}
 
 <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="?language={{ language }}{% if request.GET.site %}&amp;site={{ request.GET.site }}{% endif %}{% if request.GET.parent_page %}&amp;parent_page={{ request.GET.parent_page }}{% endif %}{# parameter `parent_node` only for django CMS 4.1 support #}{% if request.GET.parent_node %}&amp;parent_node={{ request.GET.parent_node }}{% endif %}{%if request.GET.source %}&amp;source={{ request.GET.source }}{% endif %}" method="post" id="{{ opts.model_name }}_form">

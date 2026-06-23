@@ -60,7 +60,7 @@ jobs:
         uv pip install --system -e .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7
@@ -130,7 +130,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
       env:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
@@ -200,7 +200,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
       env:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
@@ -237,7 +237,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7
@@ -272,7 +272,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7

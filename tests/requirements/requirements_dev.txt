@@ -1,7 +1,8 @@
 setuptools
 beautifulsoup4
 coverage[toml]
-django-app-helper
+dj-database-url
+djangocms-admin-style
 factory-boy
 ruff
 freezegun
@@ -9,6 +10,8 @@ lxml
 mock
 pillow
 pyflakes>=2.1.1
+pytest
+pytest-django
 python-dateutil
 setuptools
 

@@ -53,7 +53,7 @@ Testing
 To run all the tests the only thing you need to do is run::
 
     pip install -r tests/requirements/requirements_dev.txt
-    python test_settings.py
+    pytest
 
 
 Frontend assets

@@ -115,6 +115,13 @@ known-first-party = [
 ]
 extra-standard-library = ["dataclasses"]
 
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+# Skip the e2e (playwright) suite, which is run separately.
+addopts = "--ignore=tests/e2e"
+
 [tool.coverage.run]
 source = ["djangocms_versioning"]
 omit = [

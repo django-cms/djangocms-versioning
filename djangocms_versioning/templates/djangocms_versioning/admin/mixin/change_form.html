@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block object-tools-items %}
-    {% include "admin/djangocms_versioning/object_tools.html" %}
+    {% include "admin/djangocms_versioning/object_tools.html" with content_instance=original %}
     {{ block.super }}
 {% endblock %}
 

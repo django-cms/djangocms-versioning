@@ -3373,8 +3373,9 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         """The versioning object-tools render on the grouper admin change form,
         driven by the ``content_instance`` exposed by the grouper admin, via the
         shared ``object_tools.html`` partial. For published content the 'New
-        Draft' button and the 'Preview' link are shown, each as a list item of
-        the object-tools list."""
+        Draft' button is shown as a list item of the object-tools list. The
+        'Preview' link is page-specific and is therefore not rendered on the
+        grouper change form."""
         version = factories.PollVersionFactory(
             content__language="en", state=constants.PUBLISHED
         )
@@ -3400,8 +3401,8 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         }
         self.assertIn("New Draft", tool_links)
         self.assertEqual(tool_links["New Draft"]["href"], new_draft_url)
-        self.assertIn("Preview", tool_links)
-        self.assertTrue(tool_links["Preview"]["href"])
+        # The Preview link is page-specific and must not appear on the grouper
+        self.assertNotIn("Preview", tool_links)
         # Other versioning object-tools are not applicable for published content
         self.assertNotIn("Publish", tool_links)
         self.assertNotIn("Revert", tool_links)
@@ -3642,6 +3643,55 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
         self.assertContains(response, expected_button)
         self.assertNotContains(response, "New Draft")
         self.assertNotContains(response, "Publish")
+
+    def test_object_tools_render_on_page_change_view(self):
+        """Regression test: the versioning object-tools must render on the
+        ``cms.PageContent`` admin change form.
+
+        The page admin exposes the edited content object as ``original`` (it does
+        not set ``content_instance``), so the page change form has to pass it to
+        the shared ``object_tools.html`` partial for the versioning buttons to
+        appear. On top of the buttons, the page-specific 'Preview' link is
+        rendered with the sideframe-closing behaviour (``js-close-sideframe`` and
+        ``target="_parent"``). Without the change form passing ``original`` the
+        object-tools list comes up empty.
+        """
+        from cms.api import create_page
+
+        superuser = self.get_superuser()
+        page = create_page("regression", "page.html", "en", created_by=superuser)
+        content = page.pagecontent_set(manager="admin_manager").current_content().first()
+        version = content.versions.first()
+        publish_url = self.get_admin_url(
+            VersioningCMSConfig.versioning[0].version_model_proxy, "publish", version.pk
+        )
+
+        with self.login_user_context(superuser):
+            response = self.client.get(
+                self.get_admin_url(content.__class__, "change", content.pk)
+            )
+
+        self.assertEqual(200, response.status_code)
+        soup = BeautifulSoup(response.content, "html.parser")
+        tool_links = {
+            a.get_text(strip=True): a
+            for ul in soup.select("ul.object-tools")
+            for li in ul.find_all("li", recursive=False)
+            for a in li.find_all("a", recursive=False)
+        }
+        # Versioning buttons render for the draft page content (driven by ``original``)
+        self.assertIn("Publish", tool_links)
+        self.assertEqual(tool_links["Publish"]["href"].split("?")[0], publish_url)
+        self.assertIn("Versions", tool_links)
+        # The page-specific Preview link is present and closes the sideframe
+        self.assertIn("Preview", tool_links)
+        preview = tool_links["Preview"]
+        self.assertTrue(preview["href"])
+        self.assertIn("js-close-sideframe", preview.get("class", []))
+        self.assertEqual(preview.get("target"), "_parent")
+        # Buttons not applicable to a draft version must be absent
+        self.assertNotIn("New Draft", tool_links)
+        self.assertNotIn("Revert", tool_links)
 
 
 class GrouperAdminPerformanceTestCase(CMSTestCase):

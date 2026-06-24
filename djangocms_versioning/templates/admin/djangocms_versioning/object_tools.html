@@ -1,0 +1,4 @@
+{% load djangocms_versioning i18n cms_admin %}
+{% if content_instance and not is_popup and not add %}
+    {% include "admin/djangocms_versioning/versioning_buttons.html" with original=content_instance %}
+{% endif %}

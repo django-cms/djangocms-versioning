@@ -2093,9 +2093,13 @@ class EditRedirectTestCase(BaseStateTestCase):
         self.assertEqual(parse_qs(parsed.query), {"foo": ["bar"], "next": ["/return/"]})
 
     def test_edit_redirect_view_drops_get_params_for_admin_redirect(self):
-        draft_version = factories.PollVersionFactory(state=constants.DRAFT)
+        """When the grouper is not managed by a versioning grouper admin,
+        force_admin redirects to the content change view and incoming GET
+        params are dropped."""
+        page_versionable = VersioningCMSConfig.versioning[0]
+        draft_version = factories.PageVersionFactory(content__language="en")
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "edit_redirect", draft_version.pk
+            page_versionable.version_model_proxy, "edit_redirect", draft_version.pk
         )
         params = {"force_admin": "1", "next": "/return/"}
 
@@ -2105,9 +2109,31 @@ class EditRedirectTestCase(BaseStateTestCase):
         parsed = urlparse(response.url)
         self.assertEqual(
             parsed.path,
-            self.get_admin_url(PollContent, "change", draft_version.content.pk),
+            self.get_admin_url(
+                draft_version.content.__class__, "change", draft_version.content.pk
+            ),
         )
         self.assertEqual(parse_qs(parsed.query), {})
+
+    def test_edit_redirect_view_redirects_to_grouper_change_view(self):
+        """When the content's grouper is managed by a versioning grouper admin
+        (using ``ExtendedGrouperVersionAdminMixin``), force_admin redirects to
+        the grouper change view - with the content's grouping fields as query
+        params - so both grouper and content fields are visible."""
+        published = factories.PollVersionFactory(
+            content__language="en", state=constants.PUBLISHED
+        )
+        poll = published.content.poll
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", published.pk
+        )
+
+        with self.login_user_context(self.superuser):
+            response = self.client.post(f"{url}?force_admin=1")
+
+        parsed = urlparse(response.url)
+        self.assertEqual(parsed.path, self.get_admin_url(Poll, "change", poll.pk))
+        self.assertEqual(parse_qs(parsed.query), {"language": ["en"]})
 
     @patch("django.contrib.messages.add_message")
     def test_edit_redirect_view_handles_nonexistent_version(self, mocked_messages):
@@ -3343,6 +3369,44 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         finally:
             modeladmin.__class__.prepopulated_fields = original
 
+    def test_object_tools_render_on_grouper_change_view(self):
+        """The versioning object-tools render on the grouper admin change form,
+        driven by the ``content_instance`` exposed by the grouper admin, via the
+        shared ``object_tools.html`` partial. For published content the 'New
+        Draft' button is shown as a list item of the object-tools list. The
+        'Preview' link is page-specific and is therefore not rendered on the
+        grouper change form."""
+        version = factories.PollVersionFactory(
+            content__language="en", state=constants.PUBLISHED
+        )
+        poll = version.content.poll
+        action_url = self.get_admin_url(
+            PollsCMSConfig.versioning[0].version_model_proxy, "edit_redirect", version.pk
+        )
+        new_draft_url = f"{action_url}?force_admin=1"
+
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(self.get_admin_url(Poll, "change", poll.pk))
+
+        self.assertEqual(200, response.status_code)
+        soup = BeautifulSoup(response.content, "html.parser")
+        object_tools = soup.select_one("ul.object-tools")
+        self.assertIsNotNone(object_tools)
+        # Every versioning tool must be rendered as a list item of the
+        # object-tools list (not loose markup inside a nested element).
+        tool_links = {
+            a.get_text(strip=True): a
+            for li in object_tools.find_all("li", recursive=False)
+            for a in li.find_all("a", recursive=False)
+        }
+        self.assertIn("New Draft", tool_links)
+        self.assertEqual(tool_links["New Draft"]["href"], new_draft_url)
+        # The Preview link is page-specific and must not appear on the grouper
+        self.assertNotIn("Preview", tool_links)
+        # Other versioning object-tools are not applicable for published content
+        self.assertNotIn("Publish", tool_links)
+        self.assertNotIn("Revert", tool_links)
+
     def test_prepopulated_fields_add_change_add_sequence(self):
         """Reproduces the flow from issue #532: after visiting the change view
         of a published version the subsequent add view must still render, and
@@ -3579,6 +3643,55 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
         self.assertContains(response, expected_button)
         self.assertNotContains(response, "New Draft")
         self.assertNotContains(response, "Publish")
+
+    def test_object_tools_render_on_page_change_view(self):
+        """Regression test: the versioning object-tools must render on the
+        ``cms.PageContent`` admin change form.
+
+        The page admin exposes the edited content object as ``original`` (it does
+        not set ``content_instance``), so the page change form has to pass it to
+        the shared ``object_tools.html`` partial for the versioning buttons to
+        appear. On top of the buttons, the page-specific 'Preview' link is
+        rendered with the sideframe-closing behaviour (``js-close-sideframe`` and
+        ``target="_parent"``). Without the change form passing ``original`` the
+        object-tools list comes up empty.
+        """
+        from cms.api import create_page
+
+        superuser = self.get_superuser()
+        page = create_page("regression", "page.html", "en", created_by=superuser)
+        content = page.pagecontent_set(manager="admin_manager").current_content().first()
+        version = content.versions.first()
+        publish_url = self.get_admin_url(
+            VersioningCMSConfig.versioning[0].version_model_proxy, "publish", version.pk
+        )
+
+        with self.login_user_context(superuser):
+            response = self.client.get(
+                self.get_admin_url(content.__class__, "change", content.pk)
+            )
+
+        self.assertEqual(200, response.status_code)
+        soup = BeautifulSoup(response.content, "html.parser")
+        tool_links = {
+            a.get_text(strip=True): a
+            for ul in soup.select("ul.object-tools")
+            for li in ul.find_all("li", recursive=False)
+            for a in li.find_all("a", recursive=False)
+        }
+        # Versioning buttons render for the draft page content (driven by ``original``)
+        self.assertIn("Publish", tool_links)
+        self.assertEqual(tool_links["Publish"]["href"].split("?")[0], publish_url)
+        self.assertIn("Versions", tool_links)
+        # The page-specific Preview link is present and closes the sideframe
+        self.assertIn("Preview", tool_links)
+        preview = tool_links["Preview"]
+        self.assertTrue(preview["href"])
+        self.assertIn("js-close-sideframe", preview.get("class", []))
+        self.assertEqual(preview.get("target"), "_parent")
+        # Buttons not applicable to a draft version must be absent
+        self.assertNotIn("New Draft", tool_links)
+        self.assertNotIn("Revert", tool_links)
 
 
 class GrouperAdminPerformanceTestCase(CMSTestCase):

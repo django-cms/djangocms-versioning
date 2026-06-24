@@ -227,7 +227,7 @@ class TestVersionState(CMSTestCase):
 
         admin = BlogContentAdmin(BlogContent, admin.site)
         self.assertIn("cms.pagetree.css", str(admin.media))
-        self.assertIn("indicators.js", str(admin.media))
+        self.assertIn("js/admin/versioning.js", str(admin.media))
 
     def test_mixin_factory(self):
         """The IndicatorMixin causes the indicators to be rendered"""
@@ -250,7 +250,7 @@ class TestVersionState(CMSTestCase):
             # CSS loaded?
             self.assertContains(response, "cms.pagetree.css"),
             # JS loadeD?
-            self.assertContains(response, "indicators.js")
+            self.assertContains(response, "js/admin/versioning.js")
 
     def test_page_indicator_db_queries(self):
         """Only one query should be executed to get the indicator"""

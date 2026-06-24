@@ -224,17 +224,16 @@ def _version_list_url(versionable, **params):
     )
 
 
-def version_list_url(content: models.Model):
+def version_list_url(content: models.Model) -> str | None:
     """Returns a URL to list of content model versions,
     filtered by `content`'s grouper
     """
-    versionable = versionables._cms_extension().versionables_by_content[
-        content.__class__
-    ]
-    return _version_list_url(
-        versionable, **versionable.grouping_values(content, relation_suffix=False)
-    )
-
+    versionable = versionables._cms_extension().versionables_by_content.get(content.__class__)
+    if versionable:
+        return _version_list_url(
+            versionable, **versionable.grouping_values(content, relation_suffix=False)
+        )
+    return None
 
 def version_list_url_for_grouper(grouper: models.Model):
     """Returns a URL to list of content model versions,

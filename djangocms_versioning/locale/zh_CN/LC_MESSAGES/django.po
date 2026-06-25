@@ -572,3 +572,6 @@ msgstr ""
 "请注意，您将无法继续编辑此草稿。如有任何问题，请联系 %(by_user)s。\n"
 "\n"
 "这是一封来自 Django CMS 的自动通知。\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "版本不是草稿"

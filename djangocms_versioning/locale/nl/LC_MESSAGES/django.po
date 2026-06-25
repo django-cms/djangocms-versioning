@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 22:13+0100\n"
+"POT-Creation-Date: 2026-06-14 18:37+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: Dutch (https://app.transifex.com/divio/teams/58664/nl/)\n"
@@ -22,99 +22,99 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:176 admin.py:356 admin.py:478
+#: admin.py:177 admin.py:361 admin.py:507
 msgid "State"
 msgstr "Status"
 
-#: admin.py:219 constants.py:27
+#: admin.py:220 constants.py:27
 msgid "Empty"
 msgstr "Leeg"
 
-#: admin.py:370 admin.py:488
+#: admin.py:375 admin.py:517
 msgid "Author"
 msgstr "Auteur"
 
-#: admin.py:384 admin.py:502 models.py:92
+#: admin.py:389 admin.py:531 models.py:106
 msgid "Modified"
 msgstr "Gewijzigd"
 
-#: admin.py:538 admin.py:784
+#: admin.py:567 admin.py:813
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Voorbeeld"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Bewerk"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Nieuw concept"
 
-#: admin.py:597
+#: admin.py:626
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Beheer versies"
 
-#: admin.py:750
+#: admin.py:779
 msgid "Content"
 msgstr "Content"
 
-#: admin.py:765
+#: admin.py:794
 msgid "locked"
 msgstr "gesloten"
 
-#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Archiveer"
 
-#: admin.py:816 cms_toolbars.py:83 indicators.py:37
+#: admin.py:845 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Publiceer"
 
-#: admin.py:835 indicators.py:57 indicators.py:63
+#: admin.py:864 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Gedepubliceerd"
 
-#: admin.py:890 cms_toolbars.py:179
+#: admin.py:919 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Terugdraaien"
 
-#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Annuleer"
 
-#: admin.py:925 cms_toolbars.py:148
+#: admin.py:954 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Ongesloten"
 
-#: admin.py:952
+#: admin.py:981
 msgid "Settings"
 msgstr "Instellingen"
 
-#: admin.py:989
+#: admin.py:1018
 msgid "Compare versions"
 msgstr "Vergelijk versies"
 
-#: admin.py:998
+#: admin.py:1027
 msgid "Exactly two versions need to be selected."
 msgstr "Precies twee versies moeten zijn geselecteerd."
 
-#: admin.py:1016
+#: admin.py:1045
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Verwijder geselecteerde %(verbose_name_plural)s"
 
-#: admin.py:1027
+#: admin.py:1056
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
@@ -122,52 +122,52 @@ msgstr ""
 "Concept- of gepubliceerde versies kunnen niet worden verwijderd. Maak eerst "
 "de publicatie ongedaan of gebruik annuleer voor concepten."
 
-#: admin.py:1056
+#: admin.py:1085
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Selecteer {} om de versies te bekijken"
 
-#: admin.py:1071
+#: admin.py:1100
 msgid "Version cannot be archived"
 msgstr "Versie kan niet worden gearchiveerd"
 
-#: admin.py:1095
+#: admin.py:1124
 msgid "Version archived"
 msgstr "Versie gearchiveerd"
 
-#: admin.py:1105 admin.py:1243 admin.py:1392
+#: admin.py:1134 admin.py:1272 admin.py:1421
 msgid "This view only supports POST method."
 msgstr "Deze weergave ondersteunt alleen de POST methode"
 
-#: admin.py:1119
+#: admin.py:1148
 msgid "Version cannot be published"
 msgstr "Versie kan niet worden gepubliceerd"
 
-#: admin.py:1131
+#: admin.py:1160
 msgid "Version published"
 msgstr "Versie gepubliceerd"
 
-#: admin.py:1169
+#: admin.py:1198
 msgid "Version cannot be unpublished"
 msgstr "Versie kan niet worden gedepubliceerd"
 
-#: admin.py:1204
+#: admin.py:1233
 msgid "Version unpublished"
 msgstr "Versie ongepubliceerd"
 
-#: admin.py:1339
+#: admin.py:1368
 msgid "The last version has been deleted"
 msgstr "De laatste versie is verwijderd"
 
-#: admin.py:1405
+#: admin.py:1434
 msgid "You do not have permission to remove the version lock"
 msgstr "Je hebt geen rechten om de versie van t slot te halen"
 
-#: admin.py:1410
+#: admin.py:1439
 msgid "Version unlocked"
 msgstr "Versie ongesloten"
 
-#: admin.py:1455
+#: admin.py:1484
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Weergave versies van \"{grouper}\""
@@ -285,79 +285,95 @@ msgid "Manage Versions..."
 msgstr "Beheer versies..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Versie is niet een concept"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Deze versie is geen concept: maak een nieuw concept om wijzigingen aan te brengen"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Actie niet geldig. De laatste versie is gesloten door {user}"
+msgid "The latest version is locked by {user}"
+msgstr "De laatste versie is gesloten door {user}"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Actie niet geldig. De concept versie is gesloten door {user}"
+msgid "The draft version is locked by {user}"
+msgstr "De concept versie is gesloten door {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
 msgstr "Je hebt geen rechten om deze actie uit te voeren"
 
-#: models.py:91
+#: models.py:105
 msgid "Created"
 msgstr "Aangemaakt"
 
-#: models.py:94
+#: models.py:108
 msgid "author"
 msgstr "auteur"
 
-#: models.py:107
+#: models.py:121
 msgid "status"
 msgstr "status"
 
-#: models.py:115
+#: models.py:129
 msgid "locked by"
 msgstr "gesloten door"
 
-#: models.py:124
+#: models.py:138
 msgid "source"
 msgstr "bron"
 
-#: models.py:138
+#: models.py:159
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
 msgstr "Versie #{number} ({state} {date})"
 
-#: models.py:145
+#: models.py:166
 #, python-brace-format
 msgid "Version #{number} ({state})"
 msgstr "Versie #{number} ({state})"
 
-#: models.py:151
+#: models.py:172
 #, python-format
 msgid "Locked by %(user)s"
 msgstr "Gesloten door %(user)s"
 
-#: models.py:288 models.py:339
+#: models.py:308 models.py:528
+msgid "You do not have change permissions"
+msgstr "Je hebt geen rechten om te wijzigen"
+
+#: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "Versie is niet in concept staat"
 
-#: models.py:404
+#: models.py:359
+msgid "You do not have publish permissions"
+msgstr "Je hebt geen rechten om te publiceren"
+
+#: models.py:424
+msgid "You do not have unpublish permissions"
+msgstr "Je hebt geen rechten om te depubliceren"
+
+#: models.py:425
 msgid "Version is not in published state"
 msgstr "Versie is niet in gepubliceerde staat"
 
-#: models.py:510
+#: models.py:523
+msgid "You do not have unlock permissions"
+msgstr "Je hebt geen rechten om te ontgrendelen"
+
+#: models.py:531
 msgid "Version is not in archived or unpublished state"
 msgstr "Versie is niet gearchiveerd en niet gepubliceerd"
 
-#: models.py:525
+#: models.py:546
 msgid "Version is not in draft or published state"
 msgstr "Versie is niet een concept of gepubliceerde staat"
 
-#: models.py:533
+#: models.py:554
 msgid "Version is already locked"
 msgstr "Versie is al gesloten"
 
-#: models.py:539
+#: models.py:560
 msgid "Draft version is not locked"
 msgstr "Concept versie is niet gesloten"
 
@@ -383,12 +399,14 @@ msgstr "Opslaan"
 msgid "Save and continue editing"
 msgstr "Opslaan en verder bewerken"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
 #: templates/djangocms_versioning/admin/grouper_form.html:9
 msgid "Home"
 msgstr "Home"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:7
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
 #: templates/admin/djangocms_versioning/versioning_buttons.html:27
 msgid "Versions"
 msgstr "Versies"
@@ -407,19 +425,19 @@ msgstr "Ben je er zeker van om deze versie te archiveren?"
 msgid " Version number: %(version_number)s"
 msgstr "Versie nummer: %(version_number)s"
 
-#: templates/djangocms_versioning/admin/archive_confirmation.html:24
-#: templates/djangocms_versioning/admin/discard_confirmation.html:24
-#: templates/djangocms_versioning/admin/revert_confirmation.html:42
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:29
-msgid "Yes, I'm sure"
-msgstr "Ja, ik ben er zeker van"
-
-#: templates/djangocms_versioning/admin/archive_confirmation.html:28
-#: templates/djangocms_versioning/admin/discard_confirmation.html:26
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:33
+#: templates/djangocms_versioning/admin/archive_confirmation.html:23
+#: templates/djangocms_versioning/admin/discard_confirmation.html:22
+#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "Nee, breng me terug"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:27
+#: templates/djangocms_versioning/admin/discard_confirmation.html:27
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
+msgid "Yes, I'm sure"
+msgstr "Ja, ik ben er zeker van"
 
 #: templates/djangocms_versioning/admin/compare.html:8
 #, python-format
@@ -509,7 +527,6 @@ msgid "View on site"
 msgstr "Bekijk de site"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:16
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Revert Confirmation"
 msgstr "Conformatie terugdraaien"
 
@@ -525,13 +542,19 @@ msgstr ""
 msgid "Are you sure you want to revert to the following version?"
 msgstr "Ben je er zeker van om deze versie terug te draaien?"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:33
+#: templates/djangocms_versioning/admin/revert_confirmation.html:36
 msgid "Discard existing draft and Revert"
 msgstr "Annuleer concept en terugdraaien van huidige versie"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:37
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
 msgid "Archive existing draft and Revert"
 msgstr "Archiveer bestaande concept en Revert"
+
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+#, fuzzy
+#| msgid "Discard Confirmation"
+msgid "Unpublish Confirmation"
+msgstr "Annuleer Confirmatie"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
@@ -561,3 +584,6 @@ msgstr ""
 "op met %(by_user)s in geval van enige zorgen. \n"
 "\n"
 "Dit is een geautomatiseerde notificatie van Django CMS.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Versie is niet een concept"

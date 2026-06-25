@@ -29,9 +29,9 @@ except ImportError:
     emit_content_change = None
 
 
-not_draft_error = _("Version is not a draft")
-lock_error_message = _("Action Denied. The latest version is locked by {user}")
-lock_draft_error_message = _("Action Denied. The draft version is locked by {user}")
+not_draft_error = _("This version is not a draft: to make changes create a new draft")
+lock_error_message = _("The latest version is locked by {user}")
+lock_draft_error_message = _("The draft version is locked by {user}")
 permission_error_message = _("You do not have permission to perform this action")
 
 
@@ -305,7 +305,7 @@ class Version(models.Model):
 
     check_archive = Conditions(
         [
-            user_can_change(permission_error_message),
+            user_can_change(_("You do not have change permissions")),
             in_state([constants.DRAFT], _("Version is not in draft state")),
             is_not_locked(lock_error_message),
         ]
@@ -356,7 +356,7 @@ class Version(models.Model):
 
     check_publish = Conditions(
         [
-            user_can_publish(permission_error_message),
+            user_can_publish(_("You do not have publish permissions")),
             in_state([constants.DRAFT], _("Version is not in draft state")),
         ]
     )
@@ -421,7 +421,7 @@ class Version(models.Model):
         pass
 
     check_unpublish = Conditions([
-        user_can_publish(permission_error_message),
+        user_can_publish(_("You do not have unpublish permissions")),
         in_state([constants.PUBLISHED], _("Version is not in published state")),
         draft_is_not_locked(lock_draft_error_message),
     ])
@@ -520,12 +520,12 @@ class Version(models.Model):
         [
             in_state([constants.DRAFT], not_draft_error),
             draft_is_not_locked(lock_draft_error_message),
-            user_can_unlock(permission_error_message),
+            user_can_unlock(_("You do not have unlock permissions")),
         ]
     )
     check_revert = Conditions(
         [
-            user_can_change(permission_error_message),
+            user_can_change(_("You do not have change permissions")),
             in_state(
                 [constants.ARCHIVED, constants.UNPUBLISHED],
                 _("Version is not in archived or unpublished state"),

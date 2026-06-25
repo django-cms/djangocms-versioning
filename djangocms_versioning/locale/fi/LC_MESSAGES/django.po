@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 22:13+0100\n"
+"POT-Creation-Date: 2026-06-14 18:37+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Teemu Gratschev <teemu.gratschev@gmail.com>, 2026\n"
 "Language-Team: Finnish (https://app.transifex.com/divio/teams/58664/fi/)\n"
@@ -21,99 +21,99 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:176 admin.py:356 admin.py:478
+#: admin.py:177 admin.py:361 admin.py:507
 msgid "State"
 msgstr "Tila"
 
-#: admin.py:219 constants.py:27
+#: admin.py:220 constants.py:27
 msgid "Empty"
 msgstr "Tyhjä"
 
-#: admin.py:370 admin.py:488
+#: admin.py:375 admin.py:517
 msgid "Author"
 msgstr "Tekijä"
 
-#: admin.py:384 admin.py:502 models.py:92
+#: admin.py:389 admin.py:531 models.py:106
 msgid "Modified"
 msgstr "Muokattu"
 
-#: admin.py:538 admin.py:784
+#: admin.py:567 admin.py:813
 #: templates/admin/djangocms_versioning/page/change_form.html:23
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Esikatsele"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: admin.py:585 admin.py:870 cms_toolbars.py:120
+#: admin.py:614 admin.py:899 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Uusi luonnos"
 
-#: admin.py:597
+#: admin.py:626
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Hallitse versioita"
 
-#: admin.py:750
+#: admin.py:779
 msgid "Content"
 msgstr "Sisältö"
 
-#: admin.py:765
+#: admin.py:794
 msgid "locked"
 msgstr "lukittu"
 
-#: admin.py:799 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Arkistoi"
 
-#: admin.py:816 cms_toolbars.py:83 indicators.py:37
+#: admin.py:845 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Julkaise"
 
-#: admin.py:835 indicators.py:57 indicators.py:63
+#: admin.py:864 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Peru julkaisu"
 
-#: admin.py:890 cms_toolbars.py:179
+#: admin.py:919 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Palauta"
 
-#: admin.py:908 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Hylkää"
 
-#: admin.py:925 cms_toolbars.py:148
+#: admin.py:954 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Poista lukitus"
 
-#: admin.py:952
+#: admin.py:981
 msgid "Settings"
 msgstr "Asetukset"
 
-#: admin.py:989
+#: admin.py:1018
 msgid "Compare versions"
 msgstr "Vertaa versioita"
 
-#: admin.py:998
+#: admin.py:1027
 msgid "Exactly two versions need to be selected."
 msgstr "Valitse tasan kaksi versiota."
 
-#: admin.py:1016
+#: admin.py:1045
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Poista valitut %(verbose_name_plural)s"
 
-#: admin.py:1027
+#: admin.py:1056
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
@@ -121,52 +121,52 @@ msgstr ""
 "Luonnoksia tai julkaistuja versioita ei voi poistaa. Peru julkaisu tai "
 "hylkää luonnos ennen poistamista."
 
-#: admin.py:1056
+#: admin.py:1085
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Valitse {} nähdäksesi sen versiot"
 
-#: admin.py:1071
+#: admin.py:1100
 msgid "Version cannot be archived"
 msgstr "Versiota ei voi arkistoida"
 
-#: admin.py:1095
+#: admin.py:1124
 msgid "Version archived"
 msgstr "Versio arkistoitu"
 
-#: admin.py:1105 admin.py:1243 admin.py:1392
+#: admin.py:1134 admin.py:1272 admin.py:1421
 msgid "This view only supports POST method."
 msgstr "Tämä näkymä hyväksyy vain POST-pyynnöt."
 
-#: admin.py:1119
+#: admin.py:1148
 msgid "Version cannot be published"
 msgstr "Versiota ei voi julkaista"
 
-#: admin.py:1131
+#: admin.py:1160
 msgid "Version published"
 msgstr "Versio julkaistu"
 
-#: admin.py:1169
+#: admin.py:1198
 msgid "Version cannot be unpublished"
 msgstr "Version julkaisua ei voi perua"
 
-#: admin.py:1204
+#: admin.py:1233
 msgid "Version unpublished"
 msgstr "Version julkaisu on peruttu"
 
-#: admin.py:1339
+#: admin.py:1368
 msgid "The last version has been deleted"
 msgstr "Viimeisin versio on poistettu"
 
-#: admin.py:1405
+#: admin.py:1434
 msgid "You do not have permission to remove the version lock"
 msgstr "Sinulla ei ole oikeutta poistaa version lukitusta"
 
-#: admin.py:1410
+#: admin.py:1439
 msgid "Version unlocked"
 msgstr "Version lukitus poistettu"
 
-#: admin.py:1455
+#: admin.py:1484
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Näytetään kohteen \"{grouper}\" versiot"
@@ -284,79 +284,95 @@ msgid "Manage Versions..."
 msgstr "Hallitse versioita..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Versio ei ole luonnos"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Tämä versio ei ole luonnos: tehdäksesi muutoksia luo uusi luonnos"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Toiminto estetty. Viimeisin versio on käyttäjän {user} lukitsema"
+msgid "The latest version is locked by {user}"
+msgstr "Viimeisin versio on käyttäjän {user} lukitsema"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Toiminto estetty. Luonnosversio on käyttäjän {user} lukitsema"
+msgid "The draft version is locked by {user}"
+msgstr "Luonnosversio on käyttäjän {user} lukitsema"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
 msgstr "Sinulla ei ole oikeutta suorittaa tätä toimintoa"
 
-#: models.py:91
+#: models.py:105
 msgid "Created"
 msgstr "Luotu"
 
-#: models.py:94
+#: models.py:108
 msgid "author"
 msgstr "tekijä"
 
-#: models.py:107
+#: models.py:121
 msgid "status"
 msgstr "tila"
 
-#: models.py:115
+#: models.py:129
 msgid "locked by"
 msgstr "lukinnut"
 
-#: models.py:124
+#: models.py:138
 msgid "source"
 msgstr "lähde"
 
-#: models.py:138
+#: models.py:159
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
 msgstr "Versio #{number} ({state} {date})"
 
-#: models.py:145
+#: models.py:166
 #, python-brace-format
 msgid "Version #{number} ({state})"
 msgstr "Versio #{number} ({state})"
 
-#: models.py:151
+#: models.py:172
 #, python-format
 msgid "Locked by %(user)s"
 msgstr "Lukinnut %(user)s"
 
-#: models.py:288 models.py:339
+#: models.py:308 models.py:528
+msgid "You do not have change permissions"
+msgstr "Sinulla ei ole oikeutta muokata"
+
+#: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "Versio ei ole luonnos"
 
-#: models.py:404
+#: models.py:359
+msgid "You do not have publish permissions"
+msgstr "Sinulla ei ole oikeutta julkaista"
+
+#: models.py:424
+msgid "You do not have unpublish permissions"
+msgstr "Sinulla ei ole oikeutta perua julkaisua"
+
+#: models.py:425
 msgid "Version is not in published state"
 msgstr "Versio ei ole julkaistu"
 
-#: models.py:510
+#: models.py:523
+msgid "You do not have unlock permissions"
+msgstr "Sinulla ei ole oikeutta poistaa lukitusta"
+
+#: models.py:531
 msgid "Version is not in archived or unpublished state"
 msgstr "Versio ei ole arkistoitu tai julkaisematon"
 
-#: models.py:525
+#: models.py:546
 msgid "Version is not in draft or published state"
 msgstr "Versio ei ole luonnos eikä julkaistu"
 
-#: models.py:533
+#: models.py:554
 msgid "Version is already locked"
 msgstr "Versio on jo lukittu"
 
-#: models.py:539
+#: models.py:560
 msgid "Draft version is not locked"
 msgstr "Luonnos ei ole lukittu"
 
@@ -382,12 +398,14 @@ msgstr "Tallenna"
 msgid "Save and continue editing"
 msgstr "Tallenna ja jatka muokkaamista"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:3
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
 #: templates/djangocms_versioning/admin/grouper_form.html:9
 msgid "Home"
 msgstr "Etusivu"
 
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:7
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
 #: templates/admin/djangocms_versioning/versioning_buttons.html:27
 msgid "Versions"
 msgstr "Versiot"
@@ -406,19 +424,19 @@ msgstr "Haluatko varmasti arkistoida seuraavan version?"
 msgid " Version number: %(version_number)s"
 msgstr " Versionumero: %(version_number)s"
 
-#: templates/djangocms_versioning/admin/archive_confirmation.html:24
-#: templates/djangocms_versioning/admin/discard_confirmation.html:24
-#: templates/djangocms_versioning/admin/revert_confirmation.html:42
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:29
-msgid "Yes, I'm sure"
-msgstr "Kyllä, olen varma"
-
-#: templates/djangocms_versioning/admin/archive_confirmation.html:28
-#: templates/djangocms_versioning/admin/discard_confirmation.html:26
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:33
+#: templates/djangocms_versioning/admin/archive_confirmation.html:23
+#: templates/djangocms_versioning/admin/discard_confirmation.html:22
+#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "Ei, palaa takaisin"
+
+#: templates/djangocms_versioning/admin/archive_confirmation.html:27
+#: templates/djangocms_versioning/admin/discard_confirmation.html:27
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
+msgid "Yes, I'm sure"
+msgstr "Kyllä, olen varma"
 
 #: templates/djangocms_versioning/admin/compare.html:8
 #, python-format
@@ -508,7 +526,6 @@ msgid "View on site"
 msgstr "Näytä sivustolla"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:16
-#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Revert Confirmation"
 msgstr "Palauttamisen vahvistaminen"
 
@@ -524,13 +541,19 @@ msgstr ""
 msgid "Are you sure you want to revert to the following version?"
 msgstr "Haluatko varmasti palauttaa seuraavaan versioon?"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:33
+#: templates/djangocms_versioning/admin/revert_confirmation.html:36
 msgid "Discard existing draft and Revert"
 msgstr "Hylkää nykyinen luonnos ja palauta"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:37
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
 msgid "Archive existing draft and Revert"
 msgstr "Arkistoi nykyinen luonnos ja palauta"
+
+#: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+#, fuzzy
+#| msgid "Discard Confirmation"
+msgid "Unpublish Confirmation"
+msgstr "Hylkäämisen vahvistus"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
@@ -561,3 +584,6 @@ msgstr ""
 "käyttäjään %(by_user)s, mikäli sinulla on kysyttävää.\n"
 "\n"
 "Tämä on automaattinen ilmoitus Django CMS:ltä.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Versio ei ole luonnos"

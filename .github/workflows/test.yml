@@ -45,7 +45,7 @@ jobs:
             python-version: "3.14"
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
@@ -60,7 +60,7 @@ jobs:
         uv pip install --system -e .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7
@@ -117,7 +117,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
@@ -130,7 +130,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
       env:
         DATABASE_URL: postgres://postgres:postgres@127.0.0.1/postgres
 
@@ -187,7 +187,7 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
@@ -200,7 +200,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
       env:
         DATABASE_URL: mysql://root@127.0.0.1/djangocms_test
 
@@ -222,7 +222,7 @@ jobs:
         ]
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
@@ -237,7 +237,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7
@@ -257,7 +257,7 @@ jobs:
         requirements-file: ['dj60_cms50.txt']
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
@@ -272,7 +272,7 @@ jobs:
         uv pip install --system .
 
     - name: Run coverage
-      run: coverage run ./test_settings.py
+      run: coverage run -m pytest
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v7

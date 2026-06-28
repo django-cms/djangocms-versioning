@@ -42,7 +42,7 @@ Usage
 To add versioning to your own models, start with the tutorial in
 `docs/tutorials/versioning_a_blog.rst <docs/tutorials/versioning_a_blog.rst>`_. More
 detailed integration instructions are available in
-`docs/introduction/versioning_integration.rst <docs/introduction/versioning_integration.rst>`_.
+`docs/howto/versioning_integration.rst <docs/howto/versioning_integration.rst>`_.
 
 An example implementation can be found here:
 

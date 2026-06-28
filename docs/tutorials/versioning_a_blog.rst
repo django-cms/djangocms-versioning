@@ -127,7 +127,7 @@ What's happening here:
 
 We don't pass a ``copy_function``: when it is omitted, versioning falls back to its
 built-in ``default_copy``, which is all a simple model needs. See
-:doc:`/introduction/versioning_integration` for when (and how) to supply a custom one.
+:doc:`/howto/versioning_integration` for when (and how) to supply a custom one.
 
 
 Step 3 — Show versions in the admin
@@ -192,7 +192,7 @@ Step 4 — Create the database tables
     python -m manage migrate
 
 If your blog already had data in the old single-model table, see the data-migration
-note in :doc:`/introduction/versioning_integration` — you need to create a grouper
+note in :doc:`/howto/versioning_integration` — you need to create a grouper
 for each existing row. For a brand-new app there is nothing extra to do.
 
 
@@ -291,13 +291,13 @@ What you have learned
 - ``.with_user(user).create(...)`` makes drafts; ``version.publish(user)`` makes them
   public; ``version.copy(user)`` starts the next draft.
 - The default ``objects`` manager shows only published content; reach for
-  ``admin_manager`` when you need every version (see :doc:`/introduction/working_with_pages`).
+  ``admin_manager`` when you need every version (see :doc:`/howto/working_with_pages`).
 
 Where to next:
 
-- :doc:`/introduction/versioning_integration` — custom copy functions (for posts with
+- :doc:`/howto/versioning_integration` — custom copy functions (for posts with
   related objects like comments or polls), extra grouping fields such as ``language``,
   and the contract-based ``get_contract`` registration that decouples your app from a
   specific versioning package.
-- :doc:`/introduction/basic_concepts` — what the four version states mean and why.
+- :doc:`/explanations/basic_concepts` — what the four version states mean and why.
 - :doc:`/api/settings` and :doc:`/howto/configuration` — tuning versioning for your project.

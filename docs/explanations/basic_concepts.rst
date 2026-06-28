@@ -14,17 +14,17 @@ Version states
 Each versioned object carries a version number, creation date, modification date,
 a reference to the user who created the version, and a **version state**. The states are:
 
-  * **draft**: This is the version which currently can be edited. Only draft versions can
-    be edited and only one draft version per language is allowed. Changes made to draft
-    pages are not visible to the public.
-  * **published**: This is the version currently visible on the website to the public. Only
-    one version per language can be public. It cannot be changed. If it needs to be changed
-    a new draft is created based on a published page and the published page stays unchanged.
-  * **unpublished**: This is a version which was published at one time but now is not
-    visible to the public any more. There can be many unpublished versions.
-  * **archived**: This is a version which has not been published and therefore has never been
-    visible to the public. It represents a state which is intended to be used for
-    later work (by reverting it to a draft state).
+* **draft**: This is the version which currently can be edited. Only draft versions can
+  be edited and only one draft version per language is allowed. Changes made to draft
+  pages are not visible to the public.
+* **published**: This is the version currently visible on the website to the public. Only
+  one version per language can be public. It cannot be changed. If it needs to be changed
+  a new draft is created based on a published page and the published page stays unchanged.
+* **unpublished**: This is a version which was published at one time but now is not
+  visible to the public any more. There can be many unpublished versions.
+* **archived**: This is a version which has not been published and therefore has never been
+  visible to the public. It represents a state which is intended to be used for
+  later work (by reverting it to a draft state).
 
 Each new draft version will generate a new version number.
 

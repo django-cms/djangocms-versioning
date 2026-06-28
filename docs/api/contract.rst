@@ -176,6 +176,6 @@ This means:
 See also
 --------
 
-- :doc:`/introduction/versioning_integration` for integrating your models with versioning
+- :doc:`/howto/versioning_integration` for integrating your models with versioning
 - :doc:`advanced_configuration` for customizing versioning behavior
 - :doc:`models` for the Version model reference

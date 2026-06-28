@@ -3,7 +3,7 @@
 Advanced configuration
 ======================
 
-For the most important configuration options see :doc:`/introduction/versioning_integration`. Below are additional configuration options built into versioning.
+For the most important configuration options see :doc:`/howto/versioning_integration`. Below are additional configuration options built into versioning.
 
 
 Overriding how versioning handles core cms models
@@ -48,7 +48,7 @@ need to override the `djangocms_versioning/admin/unpublish_confirmation.html` te
 Additional options on the VersionableItem class
 -------------------------------------------------
 The three mandatory attributes of :class:`~djangocms_versioning.datastructures.VersionableItem`
-are described in detail on the :doc:`/introduction/versioning_integration` page. Below are additional
+are described in detail on the :doc:`/howto/versioning_integration` page. Below are additional
 options you might want to set.
 
 

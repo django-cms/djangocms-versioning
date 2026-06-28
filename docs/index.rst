@@ -64,10 +64,10 @@ in :doc:`/api/advanced_configuration`.)
    :hidden:
    :caption: How-To Guides:
 
-   introduction/versioning_integration
-   introduction/working_with_pages
-   explanations/admin_options
-   explanations/customizing_version_list
+   howto/versioning_integration
+   howto/working_with_pages
+   howto/admin_options
+   howto/customizing_version_list
    howto/configuration
    howto/permissions
    howto/version_locking
@@ -91,7 +91,7 @@ in :doc:`/api/advanced_configuration`.)
    :hidden:
    :caption: Explanation:
 
-   introduction/basic_concepts
+   explanations/basic_concepts
 
 .. toctree::
    :maxdepth: 2

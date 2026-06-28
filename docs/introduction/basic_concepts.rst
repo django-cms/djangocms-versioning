@@ -1,5 +1,5 @@
-Introduction
-============
+Basic concepts
+==============
 
 djangocms-versioning is a general purpose package that manages versions
 for page contents and other models within four categories: **published**,
@@ -9,8 +9,8 @@ for page contents and other models within four categories: **published**,
 Version states
 --------------
 
-Each versioned object carries a version number, creation date, modification date, +
-a reference to the user who created the version, and **version state**. The states are:
+Each versioned object carries a version number, creation date, modification date,
+a reference to the user who created the version, and a **version state**. The states are:
 
   * **draft**: This is the version which currently can be edited. Only draft versions can
     be edited and only one draft version per language is allowed. Changes made to draft

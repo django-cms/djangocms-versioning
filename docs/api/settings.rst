@@ -3,6 +3,9 @@ Settings for djangocms Versioning
 
 All Django CMS Versioning settings are optional and have sensible defaults. Add them to your Django ``settings.py`` file as needed.
 
+For ready-to-paste configurations tuned to production, development and editor
+workflows, see :doc:`/howto/configuration`.
+
 
 .. py:attribute:: DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS
 
@@ -150,20 +153,14 @@ All Django CMS Versioning settings are optional and have sensible defaults. Add 
         # Redirect to preview
         DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT = "preview"
 
-    **Recommendation**: Choose based on your workflow:
-        - Content creators: ``"published"`` or ``"preview"`` for immediate feedback
-        - Advanced editors managing many versions: ``"versions"`` for overview
+    See :doc:`/howto/configuration` for guidance on choosing a value.
 
 
 .. py:attribute:: DJANGOCMS_VERSIONING_VERBOSE_UI
 
-    **Incorrect name in conf.py**: ``DJANGOCMS_VERSIONING_VERBOSE``
-
     **Default**: ``True``
 
     **Type**: boolean
-
-    **Note**: There's a typo in conf.py where the setting is named ``DJANGOCMS_VERSIONING_VERBOSE`` but should be ``DJANGOCMS_VERSIONING_VERBOSE_UI``.
 
     Controls the verbosity of the versioning UI in the admin.
 
@@ -263,75 +260,7 @@ Settings Summary Table
      - Auto-detected
      - Register in CMS menu
 
+.. seealso::
 
-Complete Configuration Example
--------------------------------
-
-.. code-block:: python
-
-    # settings.py - djangocms-versioning configuration
-
-    # Security: Protect version history from accidental deletion
-    DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = False
-
-    # UX: Lock drafts to prevent conflicts
-    DJANGOCMS_VERSIONING_LOCK_VERSIONS = True
-
-    # Setup: Default user for migrations and commands
-    DJANGOCMS_VERSIONING_DEFAULT_USER = 1  # pk of system user
-
-    # UX: Redirect to the published page after changes
-    DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT = "published"
-
-    # UI: Show full UI with dates and admin index
-    DJANGOCMS_VERSIONING_VERBOSE_UI = True
-
-    # Email: Fail silently in development
-    if DEBUG:
-        EMAIL_NOTIFICATIONS_FAIL_SILENTLY = True
-    else:
-        EMAIL_NOTIFICATIONS_FAIL_SILENTLY = False
-
-    # Custom user model with email as username
-    if AUTH_USER_MODEL != "auth.User":
-        DJANGOCMS_VERSIONING_USERNAME_FIELD = "email"
-
-
-Common Configuration Patterns
-------------------------------
-
-Production Setup
-++++++++++++++++
-
-.. code-block:: python
-
-    # Production: Maximum protection and tracking
-    DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = False
-    DJANGOCMS_VERSIONING_LOCK_VERSIONS = True
-    DJANGOCMS_VERSIONING_DEFAULT_USER = 1
-    DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT = "published"
-    DJANGOCMS_VERSIONING_VERBOSE_UI = True
-    EMAIL_NOTIFICATIONS_FAIL_SILENTLY = False
-
-
-Development Setup
-+++++++++++++++++
-
-.. code-block:: python
-
-    # Development: More flexibility, simplified UI
-    DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS = True
-    DJANGOCMS_VERSIONING_LOCK_VERSIONS = False
-    DJANGOCMS_VERSIONING_VERBOSE_UI = False
-    EMAIL_NOTIFICATIONS_FAIL_SILENTLY = True
-
-
-Content Creator Focused
-++++++++++++++++++++++++
-
-.. code-block:: python
-
-    # Focus on ease of use for content creators
-    DJANGOCMS_VERSIONING_LOCK_VERSIONS = True  # Prevent edit conflicts
-    DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT = "published"  # See result
-    DJANGOCMS_VERSIONING_VERBOSE_UI = False  # Simple interface
+    :doc:`/howto/configuration` collects these settings into ready-to-paste
+    blocks for production, development and editor-focused workflows.

@@ -132,9 +132,9 @@ and the name of the field that is a foreign key to the :term:`grouper model <gro
 
 Once a model is registered for versioning its behaviour changes:
 
-1. It's default manager (``Model.objects``) only sees published versions of the model.
-   See :term:``content model``.
-2. It's ``Model.objects.create`` method now will not only create the :term:`content model`
+1. Its default manager (``Model.objects``) only sees published versions of the model.
+   See :term:`content model`.
+2. Its ``Model.objects.create`` method now will not only create the :term:`content model`
    but also a corresponding ``Version`` model. Since the ``Version`` model requires a
    ``User`` object to track who created which version the correct way of creating a
    versioned :term:`content model` is::

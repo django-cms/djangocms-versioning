@@ -235,13 +235,13 @@ which combines the functionality of the
 extended_admin_field_modifiers
 ++++++++++++++++++++++++++++++
 These allow for the alteration of how a field is displayed, by providing a method,
-when the admin menu containing it uses the ExtendedVersionAdminMixin.
+when the admin containing it uses the ``ExtendedVersionAdminMixin``.
 
-This can be provided as a dictionary of {model: {field: method}}.
+Provide a **list of dictionaries**, each of the form ``{model: {field: method}}``:
 
-model - the model which is registered with an admin that inherits ExtendedVersionAdminMixin
-field - field to be modified
-method - the method used to modify the field
+- **model** – the model registered with an admin that inherits ``ExtendedVersionAdminMixin``
+- **field** – the field to be modified
+- **method** – a callable ``(obj, field) -> value`` returning the value to display
 
 .. code-block:: python
 
@@ -251,9 +251,11 @@ method - the method used to modify the field
     from .models import SomeModel
 
     def transform_text_field(obj, field):
-        return obj.field + " Extra Value!"
+        return getattr(obj, field) + " Extra Value!"
 
-     class SomeCMSConfig(CMSAppConfig):
+    class SomeCMSConfig(CMSAppConfig):
         djangocms_versioning_enabled = True
         ...
-        extended_admin_field_modifiers = {SomeModel: {"text": transform_text_field}}
+        extended_admin_field_modifiers = [
+            {SomeModel: {"text": transform_text_field}},
+        ]

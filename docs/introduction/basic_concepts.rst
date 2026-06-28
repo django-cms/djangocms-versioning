@@ -71,6 +71,6 @@ will retrieve all objects of all versions. Alternativley, to get the current dra
 
     MyModel.admin_manager.filter(language="en", versions__state=DRAFT)
 
-Finally, there are instance where you want to access the "current" version of a page. This is either the current draft version or - there is no draft - the published version. You can easily achieve this by using::
+Finally, there are instances where you want to access the "current" version of a page. This is either the current draft version or - there is no draft - the published version. You can easily achieve this by using::
 
     MyModel.admin_manager.filter(language="en").current_content()

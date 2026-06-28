@@ -25,6 +25,11 @@ If you are adding versioning to a project that **already has content**, also run
 to create the ``Version`` objects that mark existing content as published. See
 :doc:`/api/management_commands` for details.
 
+That is what installing versioning gives you: every piece of content which supports
+django CMS versioning now moves through four version states — draft, published,
+unpublished and archived. See :ref:`version-states` for what each state means and
+how content moves between them.
+
 
 It just works with pages, aliases, stories, or snippets
 -------------------------------------------------------

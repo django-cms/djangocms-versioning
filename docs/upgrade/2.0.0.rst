@@ -89,7 +89,7 @@ As of django CMS 4.1 ``TitleExtension`` in ``cms.extensions.models`` has been
 renamed to ``PageContentExtension`` to keep a consistent language in the page
 models. This change is reflected in djangocms-versioning 2.0.0.
 
-See this `PR <https://github.com/django-cms/djangocms-versioning/pull/291>`_.
+See this `PR <https://github.com/django-cms/djangocms-versioning/pull/291>`__.
 
 Icon use
 --------
@@ -102,7 +102,7 @@ Miscellaneous
 =============
 
 * Adds compatibility for User models with no username field (see this
-  `PR <https://github.com/django-cms/djangocms-versioning/pull/293>`_):
+  `PR <https://github.com/django-cms/djangocms-versioning/pull/293>`__):
   Adds the possibility to configure which field of the User model uniquely
   identifies the User. Default is username.
 
@@ -110,4 +110,4 @@ Bug fixes
 =========
 
 * Adjust migrations to ensure MySql compatibility (see this
-  `PR <https://github.com/django-cms/djangocms-versioning/pull/287>`_)
+  `PR <https://github.com/django-cms/djangocms-versioning/pull/287>`__)

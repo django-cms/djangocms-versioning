@@ -49,12 +49,14 @@ in :doc:`/api/advanced_configuration`.)
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Tutorial:
 
    tutorials/versioning_a_blog
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: How-To Guides:
 
    introduction/versioning_integration
@@ -68,6 +70,7 @@ in :doc:`/api/advanced_configuration`.)
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Reference:
 
    api/models
@@ -80,18 +83,23 @@ in :doc:`/api/advanced_configuration`.)
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Explanation:
 
    introduction/basic_concepts
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
    :caption: Release notes:
 
    upgrade/2.6.0
    upgrade/2.5.0
    upgrade/2.4.0
    upgrade/2.0.0
+
+
+-----
 
 
 Glossary
@@ -111,11 +119,19 @@ Glossary
         a poll with many answers, the answers would be kept in a separate
         model, but would also be part of the version).
 
+        See `the grouper / content pattern
+        <https://docs.django-cms.org/en/latest/explanation/content_objects.html#the-two-parts>`__
+        in the django CMS documentation.
+
     grouper model
         A model with a one2many relationship with the
         :term:`content model <content model>`. An instance of the grouper
         model groups all the versions of one object. It is in effect the
         object being versioned. It also stores data that is not version-specific.
+
+        See `the grouper / content pattern
+        <https://docs.django-cms.org/en/latest/explanation/content_objects.html#the-two-parts>`__
+        in the django CMS documentation.
 
     extra grouping field
         The :term:`content model <content model>` must always have a foreign key
@@ -127,6 +143,10 @@ Glossary
         in any other implementations (in the page example, this ensures that
         the latest version of a German alias would not be displayed on an English page).
 
+        See `the grouper / content pattern
+        <https://docs.django-cms.org/en/latest/explanation/content_objects.html>`__
+        in the django CMS documentation.
+
     copy function
         When creating a new draft version, versioning will usually copy an
         existing version. By default it will copy the current published version,
@@ -137,6 +157,10 @@ Glossary
         The ``cms_config.py`` file in a Django app that defines how the app
         integrates with django CMS and djangocms-versioning. It contains a
         ``CMSAppConfig`` subclass with versioning settings.
+
+        See `how to share capabilities between apps
+        <https://docs.django-cms.org/en/latest/how_to/20-cms-config.html>`__ in the
+        django CMS documentation.
 
     ExtendedVersionAdminMixin
         A mixin class for Django admin that adds versioning-related fields and

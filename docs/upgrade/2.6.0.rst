@@ -64,6 +64,6 @@ Bug fixes
 Documentation and maintenance
 =============================
 
-* The documentation has been reorganised along the `Diátaxis <https://diataxis.fr/>`__
+* The documentation has been reworked along the `Diátaxis <https://diataxis.fr/>`__
   framework, with a new tutorial for adding versioning to your own models.
 * The test suite now runs on pytest.

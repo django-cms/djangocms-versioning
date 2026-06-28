@@ -6,6 +6,8 @@ for page contents and other models within four categories: **published**,
 **draft**, **unpublished**, or **archived**, called "version states".
 
 
+.. _version-states:
+
 Version states
 --------------
 

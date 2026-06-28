@@ -84,7 +84,8 @@ workflows, see :doc:`/howto/configuration`.
         # settings.py for custom user model with 'email' as username
         DJANGOCMS_VERSIONING_USERNAME_FIELD = "email"
 
-    **Related**: Only needed if using a :doc:`custom user model <django:topics/auth/customizing>`.
+    **Related**: Only needed if using a `custom user model
+    <https://docs.djangoproject.com/en/stable/topics/auth/customizing/>`_.
 
 
 .. py:attribute:: DJANGOCMS_VERSIONING_DEFAULT_USER
@@ -111,7 +112,7 @@ workflows, see :doc:`/howto/configuration`.
         # Without it, you'd need:
         python manage.py create_versions --userid 1
 
-    **Related**: See :doc:`api/management_commands` for more information.
+    **Related**: See :doc:`/api/management_commands` for more information.
 
     **Note**: If this setting is configured, command-line options ``--userid`` and ``--username`` are ignored.
 

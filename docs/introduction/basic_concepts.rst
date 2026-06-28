@@ -26,6 +26,13 @@ a reference to the user who created the version, and **version state**. The stat
 
 Each new draft version will generate a new version number.
 
+.. note::
+
+    The difference between **unpublished** and **archived** is their history: an
+    *unpublished* version was published at some point and later taken offline, while an
+    *archived* version has never been public. Both are invisible to the public — but the
+    unpublished version was visible to the public in the past.
+
 .. image:: /static/version-states.png
      :align: center
      :alt: Version states
@@ -62,7 +69,7 @@ will retrieve all objects of all versions. Alternativley, to get the current dra
 
     from djangocms_versioning.constants import DRAFT
 
-    MyModel.admin_manager.filter(language="en", versions__status==DRAFT)
+    MyModel.admin_manager.filter(language="en", versions__state=DRAFT)
 
 Finally, there are instance where you want to access the "current" version of a page. This is either the current draft version or - there is no draft - the published version. You can easily achieve this by using::
 

@@ -73,6 +73,15 @@ depends on which data should be versioned and which should not. In this example 
 cannot be changed, therefore we would not want to version it (it never changes so there's nothing to version!). But if your project
 assumes that the site can be changed and those changes should be versioned, we would put that field in the `PostContent` model.
 
+.. note::
+
+    If you are integrating versioning into an **existing** application that already has
+    data in the database, splitting one model into a grouper and a content model is a
+    schema change that ``makemigrations`` cannot populate on its own. You will also need a
+    **data migration** that creates a grouper object for each existing row and repoints the
+    content rows at it via the new foreign key. Write and test this migration against a
+    copy of your production data before deploying.
+
 Register the model for versioning
 ----------------------------------
 

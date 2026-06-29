@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-14 18:37+0200\n"
+"POT-Creation-Date: 2026-06-29 20:29+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2026\n"
 "Language-Team: Chinese (China) (https://app.transifex.com/divio/teams/58664/zh_CN/)\n"
@@ -21,150 +21,151 @@ msgstr ""
 "Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: admin.py:177 admin.py:361 admin.py:507
+#: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
 msgstr "状态"
 
-#: admin.py:220 constants.py:27
+#: admin.py:217 constants.py:27
 msgid "Empty"
 msgstr "空"
 
-#: admin.py:375 admin.py:517
+#: admin.py:384 admin.py:526
 msgid "Author"
 msgstr "作者"
 
-#: admin.py:389 admin.py:531 models.py:106
+#: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
 msgstr "修改时间"
 
-#: admin.py:567 admin.py:813
-#: templates/admin/djangocms_versioning/page/change_form.html:23
+#: admin.py:576 admin.py:822
+#: templates/admin/djangocms_versioning/page/change_form.html:20
+#: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "预览"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "编辑"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "新建草稿"
 
-#: admin.py:626
+#: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "管理版本"
 
-#: admin.py:779
+#: admin.py:788
 msgid "Content"
 msgstr "内容"
 
-#: admin.py:794
+#: admin.py:803
 msgid "locked"
 msgstr "已锁定"
 
-#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "归档"
 
-#: admin.py:845 cms_toolbars.py:83 indicators.py:37
+#: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "发布"
 
-#: admin.py:864 indicators.py:57 indicators.py:63
+#: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "取消发布"
 
-#: admin.py:919 cms_toolbars.py:179
+#: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "还原"
 
-#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "丢弃"
 
-#: admin.py:954 cms_toolbars.py:148
+#: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "解锁"
 
-#: admin.py:981
+#: admin.py:990
 msgid "Settings"
 msgstr "设置"
 
-#: admin.py:1018
+#: admin.py:1027
 msgid "Compare versions"
 msgstr "比较版本"
 
-#: admin.py:1027
+#: admin.py:1036
 msgid "Exactly two versions need to be selected."
 msgstr "必须选择恰好两个版本。"
 
-#: admin.py:1045
+#: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "删除所选 %(verbose_name_plural)s"
 
-#: admin.py:1056
+#: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr "草稿或已发布的版本不能删除。请先取消发布或对草稿使用丢弃。"
 
-#: admin.py:1085
+#: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "选择{}以查看其版本"
 
-#: admin.py:1100
+#: admin.py:1110
 msgid "Version cannot be archived"
 msgstr "无法归档该版本"
 
-#: admin.py:1124
+#: admin.py:1134
 msgid "Version archived"
 msgstr "版本已归档"
 
-#: admin.py:1134 admin.py:1272 admin.py:1421
+#: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
 msgstr "此视图仅支持 POST 方法。"
 
-#: admin.py:1148
+#: admin.py:1158
 msgid "Version cannot be published"
 msgstr "无法发布该版本"
 
-#: admin.py:1160
+#: admin.py:1170
 msgid "Version published"
 msgstr "版本已发布"
 
-#: admin.py:1198
+#: admin.py:1208
 msgid "Version cannot be unpublished"
 msgstr "无法取消发布该版本"
 
-#: admin.py:1233
+#: admin.py:1243
 msgid "Version unpublished"
 msgstr "版本已取消发布"
 
-#: admin.py:1368
+#: admin.py:1408
 msgid "The last version has been deleted"
 msgstr "最后一个版本已被删除"
 
-#: admin.py:1434
+#: admin.py:1474
 msgid "You do not have permission to remove the version lock"
 msgstr "您无权移除版本锁定"
 
-#: admin.py:1439
+#: admin.py:1479
 msgid "Version unlocked"
 msgstr "版本已解锁"
 
-#: admin.py:1484
+#: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "正在显示“{grouper}”的版本"
@@ -282,18 +283,18 @@ msgid "Manage Versions..."
 msgstr "管理版本..."
 
 #: models.py:32
-msgid "This version is not a draft: to make changes create a new draft"
-msgstr "此版本不是草稿：如需更改，请创建一个新草稿"
+msgid "Version is not a draft"
+msgstr "版本不是草稿"
 
 #: models.py:33
 #, python-brace-format
-msgid "The latest version is locked by {user}"
-msgstr "最新版本被 {user} 锁定"
+msgid "Action Denied. The latest version is locked by {user}"
+msgstr "操作被拒绝。最新版本被 {user} 锁定"
 
 #: models.py:34
 #, python-brace-format
-msgid "The draft version is locked by {user}"
-msgstr "草稿版本被 {user} 锁定"
+msgid "Action Denied. The draft version is locked by {user}"
+msgstr "操作被拒绝。草稿版本被 {user} 锁定"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -334,29 +335,13 @@ msgstr "版本 #{number}（{state}）"
 msgid "Locked by %(user)s"
 msgstr "由 %(user)s 锁定"
 
-#: models.py:308 models.py:528
-msgid "You do not have change permissions"
-msgstr "您无权更改"
-
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "版本不处于草稿状态"
 
-#: models.py:359
-msgid "You do not have publish permissions"
-msgstr "您无权发布"
-
-#: models.py:424
-msgid "You do not have unpublish permissions"
-msgstr "您无权取消发布"
-
 #: models.py:425
 msgid "Version is not in published state"
 msgstr "版本不处于已发布状态"
-
-#: models.py:523
-msgid "You do not have unlock permissions"
-msgstr "您无权解锁"
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
@@ -374,32 +359,42 @@ msgstr "版本已被锁定"
 msgid "Draft version is not locked"
 msgstr "草稿版本未被锁定"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:58
+#: templates/admin/djangocms_versioning/grouper_form.html:10
+#: templates/admin/djangocms_versioning/grouper_form.html:16
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
+msgid "Home"
+msgstr "首页"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:36
+#, python-format
+msgid "Add %(name)s"
+msgstr "添加%(name)s"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:53
+msgid "Submit"
+msgstr "提交"
+
+#: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] "请修正下列错误。"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:75
+#: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
 msgstr "所有权限"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:76
+#: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
 msgstr "正在加载..."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:86
+#: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
 msgstr "保存"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:87
+#: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
 msgstr "保存并继续编辑"
-
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
-#: templates/djangocms_versioning/admin/grouper_form.html:9
-msgid "Home"
-msgstr "首页"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
@@ -508,15 +503,6 @@ msgstr "您确定要丢弃以下版本吗？"
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "版本号：%(version_number)s"
-
-#: templates/djangocms_versioning/admin/grouper_form.html:28
-#, python-format
-msgid "Add %(name)s"
-msgstr "添加%(name)s"
-
-#: templates/djangocms_versioning/admin/grouper_form.html:45
-msgid "Submit"
-msgstr "提交"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"

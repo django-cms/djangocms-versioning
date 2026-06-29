@@ -3,36 +3,39 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+# Translators:
+# Fabian Braun <fsbraun@gmx.de>, 2025
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-29 20:29+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2025-06-29 12:00+0000\n"
+"Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
+"Language-Team: Vietnamese (https://app.transifex.com/divio/teams/58664/vi/)\n"
+"Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
-msgstr ""
+msgstr "Trạng thái"
 
 #: admin.py:217 constants.py:27
 msgid "Empty"
-msgstr ""
+msgstr "Trống"
 
 #: admin.py:384 admin.py:526
 msgid "Author"
-msgstr ""
+msgstr "Tác giả"
 
 #: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
-msgstr ""
+msgstr "Đã sửa đổi"
 
 #: admin.py:576 admin.py:822
 #: templates/admin/djangocms_versioning/page/change_form.html:20
@@ -40,393 +43,394 @@ msgstr ""
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
-msgstr ""
+msgstr "Xem trước"
 
 #: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
-msgstr ""
+msgstr "Sửa"
 
 #: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
-msgstr ""
+msgstr "Bản nháp mới"
 
 #: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
-msgstr ""
+msgstr "Quản lý phiên bản"
 
 #: admin.py:788
 msgid "Content"
-msgstr ""
+msgstr "Nội dung"
 
 #: admin.py:803
 msgid "locked"
-msgstr ""
+msgstr "đã khóa"
 
 #: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
-msgstr ""
+msgstr "Lưu trữ"
 
 #: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
-msgstr ""
+msgstr "Xuất bản"
 
 #: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
-msgstr ""
+msgstr "Hủy xuất bản"
 
 #: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
-msgstr ""
+msgstr "Hoàn nguyên"
 
 #: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
-msgstr ""
+msgstr "Loại bỏ"
 
 #: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
-msgstr ""
+msgstr "Mở khóa"
 
 #: admin.py:990
 msgid "Settings"
-msgstr ""
+msgstr "Cài đặt"
 
 #: admin.py:1027
 msgid "Compare versions"
-msgstr ""
+msgstr "So sánh phiên bản"
 
 #: admin.py:1036
 msgid "Exactly two versions need to be selected."
-msgstr ""
+msgstr "Cần chọn chính xác hai phiên bản."
 
 #: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
-msgstr ""
+msgstr "Xóa %(verbose_name_plural)s đã chọn"
 
 #: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
+"Không thể xóa các phiên bản nháp hoặc đã xuất bản. Trước tiên hãy hủy xuất "
+"bản hoặc dùng loại bỏ cho bản nháp."
 
 #: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
-msgstr ""
+msgstr "Chọn {} để xem các phiên bản của nó"
 
 #: admin.py:1110
 msgid "Version cannot be archived"
-msgstr ""
+msgstr "Không thể lưu trữ phiên bản"
 
 #: admin.py:1134
 msgid "Version archived"
-msgstr ""
+msgstr "Đã lưu trữ phiên bản"
 
 #: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
-msgstr ""
+msgstr "Khung nhìn này chỉ hỗ trợ phương thức POST."
 
 #: admin.py:1158
 msgid "Version cannot be published"
-msgstr ""
+msgstr "Không thể xuất bản phiên bản"
 
 #: admin.py:1170
 msgid "Version published"
-msgstr ""
+msgstr "Đã xuất bản phiên bản"
 
 #: admin.py:1208
 msgid "Version cannot be unpublished"
-msgstr ""
+msgstr "Không thể hủy xuất bản phiên bản"
 
 #: admin.py:1243
 msgid "Version unpublished"
-msgstr ""
+msgstr "Đã hủy xuất bản phiên bản"
 
 #: admin.py:1408
 msgid "The last version has been deleted"
-msgstr ""
+msgstr "Phiên bản cuối cùng đã bị xóa"
 
 #: admin.py:1474
 msgid "You do not have permission to remove the version lock"
-msgstr ""
+msgstr "Bạn không có quyền gỡ bỏ khóa phiên bản"
 
 #: admin.py:1479
 msgid "Version unlocked"
-msgstr ""
+msgstr "Đã mở khóa phiên bản"
 
 #: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
-msgstr ""
+msgstr "Đang hiển thị các phiên bản của \"{grouper}\""
 
 #: apps.py:8
 msgid "django CMS Versioning"
-msgstr ""
+msgstr "django CMS Versioning"
 
 #: cms_config.py:206
 msgid "No available title"
-msgstr ""
+msgstr "Không có tiêu đề khả dụng"
 
 #: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
-msgstr ""
+msgstr "Chưa xuất bản"
 
 #: cms_config.py:280
 msgid "Language must be set to a supported language!"
-msgstr ""
+msgstr "Ngôn ngữ phải được đặt thành một ngôn ngữ được hỗ trợ!"
 
 #: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
-msgstr ""
+msgstr "Bạn không có quyền sao chép các plugin này."
 
 #: cms_toolbars.py:208
 msgid "Manage Versions"
-msgstr ""
+msgstr "Quản lý phiên bản"
 
 #: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
-msgstr ""
+msgstr "So sánh với {source}"
 
 #: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
-msgstr ""
+msgstr "Loại bỏ thay đổi"
 
 #: cms_toolbars.py:264
 msgid "View Published"
-msgstr ""
+msgstr "Xem bản đã xuất bản"
 
 #: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
-msgstr ""
+msgstr "Ngôn ngữ"
 
 #: cms_toolbars.py:371
 msgid "Add Translation"
-msgstr ""
+msgstr "Thêm bản dịch"
 
 #: cms_toolbars.py:382
 msgid "Delete Translation"
-msgstr ""
+msgstr "Xóa bản dịch"
 
 #: cms_toolbars.py:405
 msgid "Copy all plugins"
-msgstr ""
+msgstr "Sao chép tất cả plugin"
 
 #: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
-msgstr ""
+msgstr "từ %s"
 
 #: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
-msgstr ""
+msgstr "Bạn có chắc muốn sao chép tất cả plugin từ %s không?"
 
 #: cms_toolbars.py:425
 msgid "No other language available"
-msgstr ""
+msgstr "Không có ngôn ngữ nào khác khả dụng"
 
 #: constants.py:10 constants.py:24
 msgid "Draft"
-msgstr ""
+msgstr "Bản nháp"
 
 #: constants.py:11 constants.py:22
 msgid "Published"
-msgstr ""
+msgstr "Đã xuất bản"
 
 #: constants.py:13 constants.py:26
 msgid "Archived"
-msgstr ""
+msgstr "Đã lưu trữ"
 
 #: constants.py:23
 msgid "Changed"
-msgstr ""
+msgstr "Đã thay đổi"
 
 #: emails.py:40
 msgid "Unlocked"
-msgstr ""
+msgstr "Đã mở khóa"
 
 #: indicators.py:31
 #, python-format
 msgid "Unlock (%(message)s)"
-msgstr ""
+msgstr "Mở khóa (%(message)s)"
 
 #: indicators.py:43
 msgid "Create new draft"
-msgstr ""
+msgstr "Tạo bản nháp mới"
 
 #: indicators.py:49
 msgid "Revert from Unpublish"
-msgstr ""
+msgstr "Hoàn nguyên từ hủy xuất bản"
 
 #: indicators.py:69
 msgid "Delete Draft"
-msgstr ""
+msgstr "Xóa bản nháp"
 
 #: indicators.py:75
 msgid "Compare Draft to Published..."
-msgstr ""
+msgstr "So sánh bản nháp với bản đã xuất bản..."
 
 #: indicators.py:85
 msgid "Manage Versions..."
-msgstr ""
+msgstr "Quản lý phiên bản..."
 
 #: models.py:32
 msgid "Version is not a draft"
-msgstr ""
+msgstr "Phiên bản không phải là bản nháp"
 
 #: models.py:33
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
-msgstr ""
+msgstr "Hành động bị từ chối. Phiên bản mới nhất bị khóa bởi {user}"
 
 #: models.py:34
 #, python-brace-format
 msgid "Action Denied. The draft version is locked by {user}"
-msgstr ""
+msgstr "Hành động bị từ chối. Phiên bản nháp bị khóa bởi {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
-msgstr ""
+msgstr "Bạn không có quyền thực hiện hành động này"
 
 #: models.py:105
 msgid "Created"
-msgstr ""
+msgstr "Đã tạo"
 
 #: models.py:108
 msgid "author"
-msgstr ""
+msgstr "tác giả"
 
 #: models.py:121
 msgid "status"
-msgstr ""
+msgstr "trạng thái"
 
 #: models.py:129
 msgid "locked by"
-msgstr ""
+msgstr "bị khóa bởi"
 
 #: models.py:138
 msgid "source"
-msgstr ""
+msgstr "nguồn"
 
 #: models.py:159
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
-msgstr ""
+msgstr "Phiên bản #{number} ({state} {date})"
 
 #: models.py:166
 #, python-brace-format
 msgid "Version #{number} ({state})"
-msgstr ""
+msgstr "Phiên bản #{number} ({state})"
 
 #: models.py:172
 #, python-format
 msgid "Locked by %(user)s"
-msgstr ""
+msgstr "Bị khóa bởi %(user)s"
 
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
-msgstr ""
+msgstr "Phiên bản không ở trạng thái nháp"
 
 #: models.py:425
 msgid "Version is not in published state"
-msgstr ""
+msgstr "Phiên bản không ở trạng thái đã xuất bản"
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
-msgstr ""
+msgstr "Phiên bản không ở trạng thái đã lưu trữ hoặc chưa xuất bản"
 
 #: models.py:546
 msgid "Version is not in draft or published state"
-msgstr ""
+msgstr "Phiên bản không ở trạng thái nháp hoặc đã xuất bản"
 
 #: models.py:554
 msgid "Version is already locked"
-msgstr ""
+msgstr "Phiên bản đã bị khóa"
 
 #: models.py:560
 msgid "Draft version is not locked"
-msgstr ""
+msgstr "Phiên bản nháp chưa bị khóa"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:10
 #: templates/admin/djangocms_versioning/grouper_form.html:16
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:36
 #, python-format
 msgid "Add %(name)s"
-msgstr ""
+msgstr "Thêm %(name)s"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:53
 msgid "Submit"
-msgstr ""
+msgstr "Gửi"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Vui lòng sửa lỗi bên dưới."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
-msgstr ""
+msgstr "Tất cả quyền"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
-msgstr ""
+msgstr "Đang tải..."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
-msgstr ""
+msgstr "Lưu"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
-msgstr ""
+msgstr "Lưu và tiếp tục chỉnh sửa"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
 #: templates/admin/djangocms_versioning/versioning_buttons.html:27
 msgid "Versions"
-msgstr ""
+msgstr "Phiên bản"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:3
 msgid "Archive Confirmation"
-msgstr ""
+msgstr "Xác nhận lưu trữ"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:16
 msgid "Are you sure you want to archive the following version?"
-msgstr ""
+msgstr "Bạn có chắc muốn lưu trữ phiên bản sau không?"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:18
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:18
 #, python-format
 msgid " Version number: %(version_number)s"
-msgstr ""
+msgstr " Số phiên bản: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
 #: templates/djangocms_versioning/admin/revert_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
-msgstr ""
+msgstr "Không, đưa tôi trở lại"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
 #: templates/djangocms_versioning/admin/revert_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
-msgstr ""
+msgstr "Có, tôi chắc chắn"
 
 #: templates/djangocms_versioning/admin/compare.html:8
 #, python-format
@@ -435,6 +439,9 @@ msgid ""
 "        Compare %(left)s to %(right)s\n"
 "        "
 msgstr ""
+"\n"
+"        So sánh %(left)s với %(right)s\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:12
 #, python-format
@@ -443,6 +450,9 @@ msgid ""
 "        Compare %(left)s\n"
 "        "
 msgstr ""
+"\n"
+"        So sánh %(left)s\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:16
 #, python-format
@@ -451,10 +461,13 @@ msgid ""
 "        Compare %(right)s\n"
 "        "
 msgstr ""
+"\n"
+"        So sánh %(right)s\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:37
 msgid "Back"
-msgstr ""
+msgstr "Quay lại"
 
 #: templates/djangocms_versioning/admin/compare.html:40
 #, python-format
@@ -463,68 +476,76 @@ msgid ""
 "                    Comparing %(left)s with\n"
 "                "
 msgstr ""
+"\n"
+"                    Đang so sánh %(left)s với\n"
+"                "
 
 #: templates/djangocms_versioning/admin/compare.html:45
 msgid "Pick a version to compare to"
-msgstr ""
+msgstr "Chọn một phiên bản để so sánh"
 
 #: templates/djangocms_versioning/admin/compare.html:56
 msgid "Visual"
-msgstr ""
+msgstr "Trực quan"
 
 #: templates/djangocms_versioning/admin/compare.html:59
 msgid "Source"
-msgstr ""
+msgstr "Nguồn"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:14
 msgid "Discard Confirmation"
-msgstr ""
+msgstr "Xác nhận loại bỏ"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:15
 msgid "Are you sure you want to discard following version?"
-msgstr ""
+msgstr "Bạn có chắc muốn loại bỏ phiên bản sau không?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
 #: templates/djangocms_versioning/admin/revert_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
-msgstr ""
+msgstr "Số phiên bản: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
-msgstr ""
+msgstr "Xem trên trang"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:16
 msgid "Revert Confirmation"
-msgstr ""
+msgstr "Xác nhận hoàn nguyên"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:19
 msgid ""
 "Reverting to this version may cause loss of an existing draft version. "
 "Please select an option to continue"
 msgstr ""
+"Hoàn nguyên về phiên bản này có thể gây mất một phiên bản nháp hiện có. Vui "
+"lòng chọn một tùy chọn để tiếp tục"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:21
 msgid "Are you sure you want to revert to the following version?"
-msgstr ""
+msgstr "Bạn có chắc muốn hoàn nguyên về phiên bản sau không?"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:36
 msgid "Discard existing draft and Revert"
-msgstr ""
+msgstr "Loại bỏ bản nháp hiện có và Hoàn nguyên"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:40
 msgid "Archive existing draft and Revert"
-msgstr ""
+msgstr "Lưu trữ bản nháp hiện có và Hoàn nguyên"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
+#| msgid "Discard Confirmation"
 msgid "Unpublish Confirmation"
-msgstr ""
+msgstr "Xác nhận hủy xuất bản"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
 "Unpublishing will remove this version from live. Are you sure you want to "
 "unpublish?"
 msgstr ""
+"Hủy xuất bản sẽ gỡ phiên bản này khỏi bản trực tiếp. Bạn có chắc muốn hủy "
+"xuất bản không?"
 
 #: templates/djangocms_versioning/emails/unlock-notification.txt:2
 #, python-format
@@ -533,8 +554,14 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
+"\n"
+"Phiên bản nháp sau đã được %(by_user)s mở khóa để họ sử dụng.\n"
+"%(version_link)s\n"
+"\n"
+"Xin lưu ý rằng bạn sẽ không thể chỉnh sửa thêm bản nháp này. Vui lòng liên hệ với %(by_user)s nếu có bất kỳ thắc mắc nào.\n"
+"\n"
+"Đây là thông báo tự động từ Django CMS.\n"

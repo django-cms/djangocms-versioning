@@ -1,0 +1,77 @@
+.. _upgrade-to-2-5-0:
+
+*******************
+2.5.0 release notes
+*******************
+
+*November 2025*
+
+Welcome to django CMS versioning 2.5.0!
+
+These release notes cover the new features, the refreshed Python and Django support,
+and the dependency change you'll want to be aware of when upgrading from an earlier
+2.x release.
+
+
+Django and Python compatibility
+===============================
+
+django CMS versioning supports **Django 4.2, 5.0, 5.1, 5.2, and 6.0**. We highly
+recommend and only support the latest release of each series.
+
+It supports **Python 3.10, 3.11, 3.12, 3.13, and 3.14**. As for Django, we highly
+recommend and only support the latest release of each series.
+
+.. note::
+
+    Support for **Python 3.9 has been dropped**. Upgrade your interpreter to Python
+    3.10 or later before upgrading djangocms-versioning.
+
+
+Features
+========
+
+Create translations from preview mode
+-------------------------------------
+
+The language menu now lets editors start a new translation of a versioned object
+directly from preview mode (e.g., of a published page content), removing a detour
+through the admin or the edit mode of a new draft for multilingual content.
+The language menu is also only shown when more than one language is configured,
+so single-language sites get a tidier interface.
+
+
+Respect site-specific language configurations
+---------------------------------------------
+
+When determining which languages are available for an object, versioning now honours
+per-site language settings. Multi-site projects with different language sets per site
+behave correctly as a result.
+
+
+Permission handling
+-------------------
+
+* Indicator menus and version-locking actions now consistently respect the configured
+  permissions, so users are only offered actions they are allowed to perform.
+* The display name of the ``delete_versionlock`` permission was corrected from
+  "Can unlock verision" to "Can unlock version". The permission **codename is
+  unchanged**, so no changes to your groups, code or data are required.
+
+
+Dependencies
+============
+
+django CMS versioning now depends on `django-fsm-2
+<https://github.com/django-commons/django-fsm-2>`__ instead of the original, no longer
+maintained ``django-fsm``. ``django-fsm-2`` is a drop-in successor maintained by Django
+Commons. If your project requires ``django-fsm`` explicitly, replace it with
+``django-fsm-2``.
+
+
+Bug fixes and maintenance
+=========================
+
+* The version toolbar no longer uses ``_original_manager`` unnecessarily.
+* The JavaScript build has been modernised and the legacy jQuery bundle removed.
+* Translation catalogues were updated.

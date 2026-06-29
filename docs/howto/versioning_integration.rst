@@ -73,6 +73,15 @@ depends on which data should be versioned and which should not. In this example 
 cannot be changed, therefore we would not want to version it (it never changes so there's nothing to version!). But if your project
 assumes that the site can be changed and those changes should be versioned, we would put that field in the `PostContent` model.
 
+.. note::
+
+    If you are integrating versioning into an **existing** application that already has
+    data in the database, splitting one model into a grouper and a content model is a
+    schema change that ``makemigrations`` cannot populate on its own. You will also need a
+    **data migration** that creates a grouper object for each existing row and repoints the
+    content rows at it via the new foreign key. Write and test this migration against a
+    copy of your production data before deploying.
+
 Register the model for versioning
 ----------------------------------
 
@@ -123,9 +132,9 @@ and the name of the field that is a foreign key to the :term:`grouper model <gro
 
 Once a model is registered for versioning its behaviour changes:
 
-1. It's default manager (``Model.objects``) only sees published versions of the model.
-   See :term:``content model``.
-2. It's ``Model.objects.create`` method now will not only create the :term:`content model`
+1. Its default manager (``Model.objects``) only sees published versions of the model.
+   See :term:`content model`.
+2. Its ``Model.objects.create`` method now will not only create the :term:`content model`
    but also a corresponding ``Version`` model. Since the ``Version`` model requires a
    ``User`` object to track who created which version the correct way of creating a
    versioned :term:`content model` is::

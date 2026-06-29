@@ -1,0 +1,69 @@
+.. _upgrade-to-2-6-0:
+
+*******************
+2.6.0 release notes
+*******************
+
+*June 2026*
+
+Welcome to django CMS versioning 2.6.0!
+
+These release notes cover the new features, the broadened Django support, and the bug
+fixes you'll want to be aware of when upgrading from an earlier 2.x release.
+
+
+Django and Python compatibility
+===============================
+
+django CMS versioning supports **Django 4.2, 5.0, 5.1, 5.2, 6.0, and 6.1**. We highly
+recommend and only support the latest release of each series.
+
+It supports **Python 3.10, 3.11, 3.12, 3.13, and 3.14**.
+
+
+Features
+========
+
+Protect only published versions from deletion
+---------------------------------------------
+
+``DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS`` gains a third option,
+``constants.DELETE_NON_PUBLIC_ONLY`` (``"non-public only"``). With it, users can delete
+draft, unpublished and archived versions, while published versions stay protected from
+deletion. This is a middle ground between the existing ``DELETE_NONE`` (the default,
+protect everything that is a source for another version) and ``DELETE_ANY`` (allow
+deleting any version). It avoids accidental deletion of public content.
+See :doc:`/api/settings` for details.
+
+
+Versioning object tools on grouper change views
+-----------------------------------------------
+
+Versioned grouper admins now show the versioning object tools (the preview, edit and
+version actions) on the change view, not just the change list, for a more consistent
+editing experience.
+
+
+Django 6.1 and django CMS 5.1 compatibility
+-------------------------------------------
+
+Internal queries, breadcrumbs and version checks were updated to work with Django 6.1
+and django CMS 5.1.
+
+
+Bug fixes
+=========
+
+* Prepopulated content fields (for example an auto-populated ``slug``) no longer break
+  the versioned admin, including for non-public versions.
+* The version comparison view no longer includes the django CMS toolbar in the compared
+  markup.
+* Fixed a typo when reading the ``DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT`` setting.
+
+
+Documentation and maintenance
+=============================
+
+* The documentation has been reworked along the `Diátaxis <https://diataxis.fr/>`__
+  framework, with a new tutorial for adding versioning to your own models.
+* The test suite now runs on pytest.

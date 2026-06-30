@@ -299,14 +299,15 @@ Get the current (either draft or published) version of content:
 
 .. code-block:: python
 
-    # Returns draft versions if they exist, otherwise published
+    # Per grouper: the draft if one exists, otherwise the published version
     current_posts = PostContent.admin_manager.current_content(language='en')
 
-    # Equivalent to manually filtering
-    from djangocms_versioning.constants import DRAFT, PUBLISHED
-    current = PostContent.admin_manager.filter(
-        versions__state__in=[DRAFT, PUBLISHED]
-    ).distinct()
+.. note::
+
+    ``current_content()`` returns **one** content object per grouper: the draft
+    masks the published version when both exist. It is *not* the same as
+    ``filter(versions__state__in=[DRAFT, PUBLISHED])``, which would return both
+    the draft and the published version of the same grouper.
 
 
 Latest Content

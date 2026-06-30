@@ -10,22 +10,24 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
 
-project = '"djangocms-versioning"'
+import djangocms_versioning
+
+project = "djangocms-versioning"
 copyright = "2019, Fidelity International"
 author = "Fidelity International"
 
 # The short X.Y version
-version = ""
+version = djangocms_versioning.__version__
 # The full version, including alpha/beta/rc tags
-release = ""
+release = djangocms_versioning.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -62,7 +64,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -84,12 +86,19 @@ html_theme = "furo"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {"show_powered_by": False}
+html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [""]
+#
+# NOTE: do not use [""] here. The empty string resolves to the whole ``docs/``
+# source tree, so Sphinx recursively copies ``docs/_build`` into itself
+# (``_build/html/_static/_build/html/_static/...``) until the path is too long
+# and the build fails with ``OSError(63, 'File name too long')``. Images are
+# referenced via ``.. image:: /static/...`` and copied automatically, so no
+# custom static path is needed.
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -132,7 +141,7 @@ latex_documents = [
     (
         master_doc,
         "djangocms-versioning.tex",
-        '"djangocms-versioning" Documentation',
+        "djangocms-versioning Documentation",
         "Fidelity International",
         "manual",
     )
@@ -147,7 +156,7 @@ man_pages = [
     (
         master_doc,
         "djangocms-versioning",
-        '"djangocms-versioning" Documentation',
+        "djangocms-versioning Documentation",
         [author],
         1,
     )
@@ -163,7 +172,7 @@ texinfo_documents = [
     (
         master_doc,
         "djangocms-versioning",
-        '"djangocms-versioning" Documentation',
+        "djangocms-versioning Documentation",
         author,
         "djangocms-versioning",
         "One line description of project.",

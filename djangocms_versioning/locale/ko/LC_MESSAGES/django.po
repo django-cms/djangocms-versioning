@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-14 18:37+0200\n"
+"POT-Creation-Date: 2026-06-29 20:29+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2026\n"
 "Language-Team: Korean (https://app.transifex.com/divio/teams/58664/ko/)\n"
@@ -21,99 +21,100 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: admin.py:177 admin.py:361 admin.py:507
+#: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
 msgstr "상태"
 
-#: admin.py:220 constants.py:27
+#: admin.py:217 constants.py:27
 msgid "Empty"
 msgstr "비어 있음"
 
-#: admin.py:375 admin.py:517
+#: admin.py:384 admin.py:526
 msgid "Author"
 msgstr "작성자"
 
-#: admin.py:389 admin.py:531 models.py:106
+#: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
 msgstr "수정됨"
 
-#: admin.py:567 admin.py:813
-#: templates/admin/djangocms_versioning/page/change_form.html:23
+#: admin.py:576 admin.py:822
+#: templates/admin/djangocms_versioning/page/change_form.html:20
+#: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "미리보기"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "편집"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "새 초안"
 
-#: admin.py:626
+#: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "버전 관리"
 
-#: admin.py:779
+#: admin.py:788
 msgid "Content"
 msgstr "콘텐츠"
 
-#: admin.py:794
+#: admin.py:803
 msgid "locked"
 msgstr "잠김"
 
-#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "아카이브"
 
-#: admin.py:845 cms_toolbars.py:83 indicators.py:37
+#: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "게시"
 
-#: admin.py:864 indicators.py:57 indicators.py:63
+#: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "게시 취소"
 
-#: admin.py:919 cms_toolbars.py:179
+#: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "되돌리기"
 
-#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "폐기"
 
-#: admin.py:954 cms_toolbars.py:148
+#: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "잠금 해제"
 
-#: admin.py:981
+#: admin.py:990
 msgid "Settings"
 msgstr "설정"
 
-#: admin.py:1018
+#: admin.py:1027
 msgid "Compare versions"
 msgstr "버전 비교"
 
-#: admin.py:1027
+#: admin.py:1036
 msgid "Exactly two versions need to be selected."
 msgstr "정확히 두 개의 버전을 선택해야 합니다."
 
-#: admin.py:1045
+#: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "선택한 %(verbose_name_plural)s 삭제"
 
-#: admin.py:1056
+#: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
@@ -121,52 +122,52 @@ msgstr ""
 "초안이나 게시된 버전은 삭제할 수 없습니다. 먼저 게시를 취소하거나 초안의 경우"
 "에는 폐기를 사용하세요."
 
-#: admin.py:1085
+#: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "버전을 보려면 {}을(를) 선택하세요"
 
-#: admin.py:1100
+#: admin.py:1110
 msgid "Version cannot be archived"
 msgstr "버전을 아카이브할 수 없습니다"
 
-#: admin.py:1124
+#: admin.py:1134
 msgid "Version archived"
 msgstr "버전이 아카이브되었습니다"
 
-#: admin.py:1134 admin.py:1272 admin.py:1421
+#: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
 msgstr "이 뷰는 POST 메서드만 지원합니다."
 
-#: admin.py:1148
+#: admin.py:1158
 msgid "Version cannot be published"
 msgstr "버전을 게시할 수 없습니다"
 
-#: admin.py:1160
+#: admin.py:1170
 msgid "Version published"
 msgstr "버전이 게시되었습니다"
 
-#: admin.py:1198
+#: admin.py:1208
 msgid "Version cannot be unpublished"
 msgstr "버전의 게시를 취소할 수 없습니다"
 
-#: admin.py:1233
+#: admin.py:1243
 msgid "Version unpublished"
 msgstr "버전 게시가 취소되었습니다"
 
-#: admin.py:1368
+#: admin.py:1408
 msgid "The last version has been deleted"
 msgstr "마지막 버전이 삭제되었습니다"
 
-#: admin.py:1434
+#: admin.py:1474
 msgid "You do not have permission to remove the version lock"
 msgstr "버전 잠금을 해제할 권한이 없습니다"
 
-#: admin.py:1439
+#: admin.py:1479
 msgid "Version unlocked"
 msgstr "버전 잠금이 해제되었습니다"
 
-#: admin.py:1484
+#: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "\"{grouper}\"의 버전 표시 중"
@@ -336,29 +337,13 @@ msgstr "버전 #{number} ({state})"
 msgid "Locked by %(user)s"
 msgstr "%(user)s님이 잠금"
 
-#: models.py:308 models.py:528
-msgid "You do not have change permissions"
-msgstr "변경 권한이 없습니다."
-
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "버전이 초안 상태가 아닙니다"
 
-#: models.py:359
-msgid "You do not have publish permissions"
-msgstr "게시 권한이 없습니다."
-
-#: models.py:424
-msgid "You do not have unpublish permissions"
-msgstr "게시 취소 권한이 없습니다."
-
 #: models.py:425
 msgid "Version is not in published state"
 msgstr "버전이 게시된 상태가 아닙니다"
-
-#: models.py:523
-msgid "You do not have unlock permissions"
-msgstr "잠금 해제 권한이 없습니다."
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
@@ -376,32 +361,42 @@ msgstr "버전이 이미 잠겨 있습니다"
 msgid "Draft version is not locked"
 msgstr "초안 버전이 잠겨 있지 않습니다"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:58
+#: templates/admin/djangocms_versioning/grouper_form.html:10
+#: templates/admin/djangocms_versioning/grouper_form.html:16
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
+msgid "Home"
+msgstr "홈"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:36
+#, python-format
+msgid "Add %(name)s"
+msgstr "%(name)s 추가"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:53
+msgid "Submit"
+msgstr "제출"
+
+#: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] "아래 오류를 수정해 주세요."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:75
+#: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
 msgstr "모든 권한"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:76
+#: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
 msgstr "로드 중..."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:86
+#: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
 msgstr "저장"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:87
+#: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
 msgstr "저장 및 편집 계속"
-
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
-#: templates/djangocms_versioning/admin/grouper_form.html:9
-msgid "Home"
-msgstr "홈"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
@@ -511,15 +506,6 @@ msgstr "다음 버전을 폐기하시겠습니까?"
 msgid "Version number: %(version_number)s"
 msgstr "버전 번호: %(version_number)s"
 
-#: templates/djangocms_versioning/admin/grouper_form.html:28
-#, python-format
-msgid "Add %(name)s"
-msgstr "%(name)s 추가"
-
-#: templates/djangocms_versioning/admin/grouper_form.html:45
-msgid "Submit"
-msgstr "제출"
-
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "사이트에서 보기"
@@ -549,10 +535,9 @@ msgid "Archive existing draft and Revert"
 msgstr "기존 초안 아카이브 후 되돌리기"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
-#, fuzzy
 #| msgid "Discard Confirmation"
 msgid "Unpublish Confirmation"
-msgstr "폐기 확인"
+msgstr "게시 취소 확인"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""

@@ -48,6 +48,14 @@ The default ``objects`` manager only returns published content:
 This is the safe default for public-facing code —- draft and unpublished content is
 never accidentally exposed.
 
+.. note::
+
+    This filtering applies wherever the default manager is used — including reverse
+    relations such as ``page.pagecontent_set.all()`` and
+    ``prefetch_related("pagecontent_set")``. To reach all versions through a reverse
+    relation you have to name the admin manager explicitly; see
+    :ref:`the final example below <iterate_current_content>`.
+
 
 All versions (admin contexts only)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -177,15 +185,15 @@ Check if a page has unpublished changes
 .. code-block:: python
 
     from cms.models import PageContent
-    from djangocms_versioning.constants import DRAFT, PUBLISHED
+    from djangocms_versioning.constants import DRAFT
 
     def has_unpublished_changes(page, language):
-        """Returns True if page has a draft that differs from published."""
-        contents = PageContent.admin_manager.filter(
+        """Returns True if the page has a draft version (i.e. unpublished changes)."""
+        return PageContent.admin_manager.filter(
             page=page,
-            language=language
-        ).current_content()
-        return contents and contents.versions.first().state == DRAFT
+            language=language,
+            versions__state=DRAFT,
+        ).exists()
 
 
 Get the published version of a draft
@@ -197,6 +205,8 @@ Get the published version of a draft
     versioning solutions.
 
 .. code-block:: python
+
+    from django.contrib.contenttypes.models import ContentType
 
     from djangocms_versioning.constants import PUBLISHED
     from djangocms_versioning.models import Version
@@ -211,8 +221,10 @@ Get the published version of a draft
             ).values_list("pk", flat=True),
             state=PUBLISHED
         ).first()
-        return version.content if version or None
+        return version.content if version else None
 
+
+.. _iterate_current_content:
 
 Iterate over all pages with their current content
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

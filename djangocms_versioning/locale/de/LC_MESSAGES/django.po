@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-14 18:37+0200\n"
+"POT-Creation-Date: 2026-06-29 20:29+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: German (https://app.transifex.com/divio/teams/58664/de/)\n"
@@ -21,152 +21,153 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:177 admin.py:361 admin.py:507
+#: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
 msgstr "Status"
 
-#: admin.py:220 constants.py:27
+#: admin.py:217 constants.py:27
 msgid "Empty"
 msgstr "Leer"
 
-#: admin.py:375 admin.py:517
+#: admin.py:384 admin.py:526
 msgid "Author"
 msgstr "Autor"
 
-#: admin.py:389 admin.py:531 models.py:106
+#: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
 msgstr "Geändert"
 
-#: admin.py:567 admin.py:813
-#: templates/admin/djangocms_versioning/page/change_form.html:23
+#: admin.py:576 admin.py:822
+#: templates/admin/djangocms_versioning/page/change_form.html:20
+#: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Vorschau"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Neuer Entwurf"
 
-#: admin.py:626
+#: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Versionen verwalten"
 
-#: admin.py:779
+#: admin.py:788
 msgid "Content"
 msgstr "Inhalt"
 
-#: admin.py:794
+#: admin.py:803
 msgid "locked"
 msgstr "gesperrt"
 
-#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Archivieren"
 
-#: admin.py:845 cms_toolbars.py:83 indicators.py:37
+#: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Veröffentlichen"
 
-#: admin.py:864 indicators.py:57 indicators.py:63
+#: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Veröffentlichung aufheben"
 
-#: admin.py:919 cms_toolbars.py:179
+#: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Zurückholen"
 
-#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Verwerfen"
 
-#: admin.py:954 cms_toolbars.py:148
+#: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Entsperren"
 
-#: admin.py:981
+#: admin.py:990
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: admin.py:1018
+#: admin.py:1027
 msgid "Compare versions"
 msgstr "Versionen vergleichen"
 
-#: admin.py:1027
+#: admin.py:1036
 msgid "Exactly two versions need to be selected."
 msgstr "Genau zwei Versionen müssen ausgewählt werden."
 
-#: admin.py:1045
+#: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Ausgewählte %(verbose_name_plural)s löschen"
 
-#: admin.py:1056
+#: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
-"Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben "
-"Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
+"Entwurfs- oder veröffentlichte Versionen können nicht gelöscht werden. Heben"
+" Sie zuerst die Veröffentlichung auf oder verwerfen Sie den Entwurf."
 
-#: admin.py:1085
+#: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Wählen Sie ein Objekt ({}) aus, um dessen Versionen anzuzeigen"
 
-#: admin.py:1100
+#: admin.py:1110
 msgid "Version cannot be archived"
 msgstr "Version kann nicht archiviert werden"
 
-#: admin.py:1124
+#: admin.py:1134
 msgid "Version archived"
 msgstr "Version archiviert"
 
-#: admin.py:1134 admin.py:1272 admin.py:1421
+#: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
 msgstr "Dieser View unterstützt nur die POST-Methode."
 
-#: admin.py:1148
+#: admin.py:1158
 msgid "Version cannot be published"
 msgstr "Version kann nicht veröffentlicht werden"
 
-#: admin.py:1160
+#: admin.py:1170
 msgid "Version published"
 msgstr "Version veröffentlicht"
 
-#: admin.py:1198
+#: admin.py:1208
 msgid "Version cannot be unpublished"
 msgstr "Die Veröffentlichung kann nicht aufgehoben werden"
 
-#: admin.py:1233
+#: admin.py:1243
 msgid "Version unpublished"
 msgstr "Veröffentlichung aufgehoben"
 
-#: admin.py:1368
+#: admin.py:1408
 msgid "The last version has been deleted"
 msgstr "Die letzte Version wurde gelöscht"
 
-#: admin.py:1434
+#: admin.py:1474
 msgid "You do not have permission to remove the version lock"
 msgstr "Keine Berechtigung vorhanden, um die Sperrung der Version aufzuheben."
 
-#: admin.py:1439
+#: admin.py:1479
 msgid "Version unlocked"
 msgstr "Version entsperrt"
 
-#: admin.py:1484
+#: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Zeige Versionen von \"{grouper}\""
@@ -336,29 +337,13 @@ msgstr "Version #{number} ({state})"
 msgid "Locked by %(user)s"
 msgstr "Gesperrt von %(user)s"
 
-#: models.py:308 models.py:528
-msgid "You do not have change permissions"
-msgstr "Sie haben keine Berechtigung zum Ändern."
-
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "Version ist kein Entwurf"
 
-#: models.py:359
-msgid "You do not have publish permissions"
-msgstr "Sie haben keine Berechtigung zum Veröffentlichen."
-
-#: models.py:424
-msgid "You do not have unpublish permissions"
-msgstr "Sie haben keine Berechtigung zum Zurückziehen der Veröffentlichung."
-
 #: models.py:425
 msgid "Version is not in published state"
 msgstr "Version ist nicht veröffentlicht"
-
-#: models.py:523
-msgid "You do not have unlock permissions"
-msgstr "Sie haben keine Berechtigung zum Entsperren."
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
@@ -376,33 +361,43 @@ msgstr "Version ist bereits gesperrt"
 msgid "Draft version is not locked"
 msgstr "Entwurfsversion ist nicht gesperrt"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:58
+#: templates/admin/djangocms_versioning/grouper_form.html:10
+#: templates/admin/djangocms_versioning/grouper_form.html:16
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
+msgid "Home"
+msgstr "Start"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:36
+#, python-format
+msgid "Add %(name)s"
+msgstr "%(name)s hinzufügen"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:53
+msgid "Submit"
+msgstr "Absenden"
+
+#: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] "Bitte korrigieren Sie den folgenden Fehler."
 msgstr[1] "Bitte korrigieren Sie die folgenden Fehler."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:75
+#: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
 msgstr "Alle Berechtigungen"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:76
+#: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
 msgstr "Wird geladen..."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:86
+#: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
 msgstr "Speichern"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:87
+#: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
 msgstr "Speichern und weiter bearbeiten"
-
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
-#: templates/djangocms_versioning/admin/grouper_form.html:9
-msgid "Home"
-msgstr "Start"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
@@ -508,15 +503,6 @@ msgstr "Sind Sie sicher, dass Sie diese Version verwerfen möchten?"
 msgid "Version number: %(version_number)s"
 msgstr "Version %(version_number)s"
 
-#: templates/djangocms_versioning/admin/grouper_form.html:28
-#, python-format
-msgid "Add %(name)s"
-msgstr "%(name)s hinzufügen"
-
-#: templates/djangocms_versioning/admin/grouper_form.html:45
-msgid "Submit"
-msgstr "Absenden"
-
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "Auf Website anzeigen"
@@ -548,10 +534,9 @@ msgid "Archive existing draft and Revert"
 msgstr "Existierenden Entwurf archivieren und Version zurückholen"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
-#, fuzzy
 #| msgid "Discard Confirmation"
 msgid "Unpublish Confirmation"
-msgstr "Bestätigung: Verwerfen"
+msgstr "Bestätigung: Veröffentlichung aufheben"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
@@ -569,8 +554,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -578,8 +562,7 @@ msgstr ""
 "Der folgende Entwurf wurde von %(by_user)s entsperrt.\n"
 "%(version_link)s\n"
 "\n"
-"Bitte beachten Sie, dass Sie diesen Entwurf nicht weiter bearbeiten können. "
-"Bitte kontaktieren Sie %(by_user)s bei Rückfragen.\n"
+"Bitte beachten Sie, dass Sie diesen Entwurf nicht weiter bearbeiten können. Bitte kontaktieren Sie %(by_user)s bei Rückfragen.\n"
 "\n"
 "Dies ist eine automatisierte Nachricht von Django CMS.\n"
 

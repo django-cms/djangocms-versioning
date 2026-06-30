@@ -39,7 +39,10 @@ needed to mark existing versions as draft.
 Usage
 =====
 
-Versioning integration instructions are available in `docs/versioning_integration.rst <docs/versioning_integration.rst>`_
+To add versioning to your own models, start with the tutorial in
+`docs/tutorials/versioning_a_blog.rst <docs/tutorials/versioning_a_blog.rst>`_. More
+detailed integration instructions are available in
+`docs/howto/versioning_integration.rst <docs/howto/versioning_integration.rst>`_.
 
 An example implementation can be found here:
 

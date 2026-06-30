@@ -72,6 +72,27 @@ class TestVersioningSignals(CMSTestCase):
             self.assertEqual(version_1_pre_call_kwargs["to_be_published"], version2)
             self.assertEqual(version_2_post_call_kwargs["unpublished"], [version1])
 
+            # Exact emission order — guards docs/api/signals.rst "Signal
+            # Execution Order": the new version is published first, then the old
+            # one is unpublished, and the post-publish signal comes last.
+            order = [
+                (
+                    "pre" if kwargs["signal"] is pre_version_operation else "post",
+                    kwargs["operation"],
+                    "new" if kwargs["obj"] == version2 else "old",
+                )
+                for _args, kwargs in env.calls
+            ]
+            self.assertEqual(
+                order,
+                [
+                    ("pre", constants.OPERATION_PUBLISH, "new"),
+                    ("pre", constants.OPERATION_UNPUBLISH, "old"),
+                    ("post", constants.OPERATION_UNPUBLISH, "old"),
+                    ("post", constants.OPERATION_PUBLISH, "new"),
+                ],
+            )
+
 
     def test_unpublish_signals_fired(self):
         """

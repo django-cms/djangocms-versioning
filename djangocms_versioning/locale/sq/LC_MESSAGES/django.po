@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-14 18:37+0200\n"
+"POT-Creation-Date: 2026-06-29 20:29+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Besnik Bleta <besnik@programeshqip.org>, 2025\n"
 "Language-Team: Albanian (https://app.transifex.com/divio/teams/58664/sq/)\n"
@@ -21,99 +21,100 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:177 admin.py:361 admin.py:507
+#: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
 msgstr "Gjendje"
 
-#: admin.py:220 constants.py:27
+#: admin.py:217 constants.py:27
 msgid "Empty"
 msgstr "I zbrazët"
 
-#: admin.py:375 admin.py:517
+#: admin.py:384 admin.py:526
 msgid "Author"
 msgstr "Autor"
 
-#: admin.py:389 admin.py:531 models.py:106
+#: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
 msgstr "E ndryshuar"
 
-#: admin.py:567 admin.py:813
-#: templates/admin/djangocms_versioning/page/change_form.html:23
+#: admin.py:576 admin.py:822
+#: templates/admin/djangocms_versioning/page/change_form.html:20
+#: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
 msgstr "Paraparje"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Përpunojeni"
 
-#: admin.py:614 admin.py:899 cms_toolbars.py:120
+#: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Skicë e Re"
 
-#: admin.py:626
+#: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "Administroni versione"
 
-#: admin.py:779
+#: admin.py:788
 msgid "Content"
 msgstr "Lëndë"
 
-#: admin.py:794
+#: admin.py:803
 msgid "locked"
 msgstr "kyçur"
 
-#: admin.py:828 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "Arkiv"
 
-#: admin.py:845 cms_toolbars.py:83 indicators.py:37
+#: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "Botoje"
 
-#: admin.py:864 indicators.py:57 indicators.py:63
+#: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "Hiqe nga të botuar"
 
-#: admin.py:919 cms_toolbars.py:179
+#: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
 msgstr "Riktheje"
 
-#: admin.py:937 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Hidhe tej"
 
-#: admin.py:954 cms_toolbars.py:148
+#: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
 msgstr "Shkyçe"
 
-#: admin.py:981
+#: admin.py:990
 msgid "Settings"
 msgstr "Rregullime"
 
-#: admin.py:1018
+#: admin.py:1027
 msgid "Compare versions"
 msgstr "Krahasoni versione"
 
-#: admin.py:1027
+#: admin.py:1036
 msgid "Exactly two versions need to be selected."
 msgstr "Lypset të përzgjidhen saktësisht dy versione."
 
-#: admin.py:1045
+#: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Fshi %(verbose_name_plural)s e përzgjedhura"
 
-#: admin.py:1056
+#: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
@@ -121,52 +122,52 @@ msgstr ""
 "Versionet skicë ose të botuara s'mund të fshihen. Së pari hiqni nga botimi "
 "ose përdorni hedhjen tej për skicat."
 
-#: admin.py:1085
+#: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Përzgjidhni {} që të shihni versionet e tij"
 
-#: admin.py:1100
+#: admin.py:1110
 msgid "Version cannot be archived"
 msgstr "Versioni s’mund të arkivohet"
 
-#: admin.py:1124
+#: admin.py:1134
 msgid "Version archived"
 msgstr "Versioni u arkivua"
 
-#: admin.py:1134 admin.py:1272 admin.py:1421
+#: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
 msgstr "Kjo pamje mbulon vetëm metodën POST."
 
-#: admin.py:1148
+#: admin.py:1158
 msgid "Version cannot be published"
 msgstr "Versioni s’mund të botohet"
 
-#: admin.py:1160
+#: admin.py:1170
 msgid "Version published"
 msgstr "Versioni u botua"
 
-#: admin.py:1198
+#: admin.py:1208
 msgid "Version cannot be unpublished"
 msgstr "Versioni s’mund të shbotohet"
 
-#: admin.py:1233
+#: admin.py:1243
 msgid "Version unpublished"
 msgstr "Versioni u shbotua"
 
-#: admin.py:1368
+#: admin.py:1408
 msgid "The last version has been deleted"
 msgstr "Versioni i fundit është fshirë"
 
-#: admin.py:1434
+#: admin.py:1474
 msgid "You do not have permission to remove the version lock"
 msgstr "S’keni leje për të hequr këtë kyçje versioni"
 
-#: admin.py:1439
+#: admin.py:1479
 msgid "Version unlocked"
 msgstr "U shkyç version"
 
-#: admin.py:1484
+#: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Po shfaqen versione të “{grouper}”"
@@ -336,29 +337,13 @@ msgstr "Version #{number} ({state})"
 msgid "Locked by %(user)s"
 msgstr "Kyçur nga %(user)s"
 
-#: models.py:308 models.py:528
-msgid "You do not have change permissions"
-msgstr "S’keni leje ndryshimi"
-
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
 msgstr "Versioni s’është nën gjendjen “skicë”"
 
-#: models.py:359
-msgid "You do not have publish permissions"
-msgstr "S’keni leje botimi"
-
-#: models.py:424
-msgid "You do not have unpublish permissions"
-msgstr "S’keni leje çbotimi"
-
 #: models.py:425
 msgid "Version is not in published state"
 msgstr "Versioni s’është nën gjendjen “i botuar”"
-
-#: models.py:523
-msgid "You do not have unlock permissions"
-msgstr "S’keni leje çkyçjeje"
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
@@ -376,33 +361,43 @@ msgstr "Versioni është tashmë i kyçur"
 msgid "Draft version is not locked"
 msgstr "Versioni skicë s’është i kyçur"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:58
+#: templates/admin/djangocms_versioning/grouper_form.html:10
+#: templates/admin/djangocms_versioning/grouper_form.html:16
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
+#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
+msgid "Home"
+msgstr "Kreu"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:36
+#, python-format
+msgid "Add %(name)s"
+msgstr "Shto %(name)s"
+
+#: templates/admin/djangocms_versioning/grouper_form.html:53
+msgid "Submit"
+msgstr "Parashtroje"
+
+#: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] "Ju lutemi, ndreqni gabimin më poshtë."
 msgstr[1] "Ju lutemi, ndreqni gabimet më poshtë."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:75
+#: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
 msgstr "Krejt lejet"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:76
+#: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
 msgstr "Po ngarkohet..."
 
-#: templates/admin/djangocms_versioning/page/change_form.html:86
+#: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
 msgstr "Ruaje"
 
-#: templates/admin/djangocms_versioning/page/change_form.html:87
+#: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
 msgstr "Ruaje dhe vazhdo përpunimin"
-
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
-#: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
-#: templates/djangocms_versioning/admin/grouper_form.html:9
-msgid "Home"
-msgstr "Kreu"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
@@ -512,15 +507,6 @@ msgstr "Jeni i sigurt se doni të hidhet tej versioni vijues?"
 msgid "Version number: %(version_number)s"
 msgstr "Numër versioni: %(version_number)s"
 
-#: templates/djangocms_versioning/admin/grouper_form.html:28
-#, python-format
-msgid "Add %(name)s"
-msgstr "Shto %(name)s"
-
-#: templates/djangocms_versioning/admin/grouper_form.html:45
-msgid "Submit"
-msgstr "Parashtroje"
-
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "Shiheni në sajt"
@@ -550,10 +536,9 @@ msgid "Archive existing draft and Revert"
 msgstr "Arkivo skicën ekzistuese dhe bëj Rikthimin"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
-#, fuzzy
 #| msgid "Discard Confirmation"
 msgid "Unpublish Confirmation"
-msgstr "Ripohim Hedhje Tej"
+msgstr "Ripohim Shbotimi"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
@@ -570,8 +555,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -579,8 +563,7 @@ msgstr ""
 "Versioni skicë vijues është shkyçur nga %(by_user)s për t’u përdorur.\n"
 "%(version_link)s\n"
 "\n"
-"Ju lutemi, kini parasysh se s’do të jeni në gjendje të përpunoni më tej këtë "
-"skicë. Në rast të çfarëdo shqetësimi, lidhuni me %(by_user)s.\n"
+"Ju lutemi, kini parasysh se s’do të jeni në gjendje të përpunoni më tej këtë skicë. Në rast të çfarëdo shqetësimi, lidhuni me %(by_user)s.\n"
 "\n"
 "Ky është një njoftim i automatizuar prej Django CMS.\n"
 

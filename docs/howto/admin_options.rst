@@ -94,22 +94,22 @@ Example:
         list_display = ["title"]
 
 The :term:`ExtendedVersionAdminMixin` also has functionality to alter fields from other apps. By adding the :term:`extended_admin_field_modifiers` to a given app's :term:`cms_config`,
-in the form of a dictionary of {model_name: {field: method}}, the admin for the model will alter the field using the method provided.
+in the form of a list of dictionaries ``[{model: {field: method}}]``, the admin for the model will alter the field using the method provided.
 
 .. code-block:: python
 
     # cms_config.py
-    def post_modifier(obj, field):
-        return obj.get(field) + " extra field text!"
+    def title_modifier(obj, field):
+        return getattr(obj, field) + " — extra field text!"
 
     class PostCMSConfig(CMSAppConfig):
         # Other versioning configurations...
-        admin_field_modifiers = [
-            {PostContent: {"title": post_modifier}},
+        extended_admin_field_modifiers = [
+            {PostContent: {"title": title_modifier}},
         ]
 
-Given the code sample above, "This is how we add" would be displayed as
-"this is how we add extra field text!" in the changelist of PostAdmin.
+Given the code sample above, a post titled "Hello world" would be displayed as
+"Hello world — extra field text!" in the changelist of ``PostContentAdmin``.
 
 Adding State Indicators
 -------------------------
@@ -145,8 +145,8 @@ You can use these on your content model's changelist view admin by adding the fo
                     value = request.GET.pop(field, [None])[0]
                     # Validation is recommended: Add clean_language etc. to your Admin class!
                     if hasattr(self, f"clean_{field}"):
-                        value = getattr(self, f"clean_{field}")(value):
-                    setattr(self, field) = value
+                        value = getattr(self, f"clean_{field}")(value)
+                    setattr(self, field, value)
                 # Grouping field-specific cache needs to be cleared when they are changed
                 self._content_cache = {}
             instance = super().get_changelist_instance(request)

@@ -12,30 +12,30 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-29 20:29+0200\n"
-"PO-Revision-Date: 2023-01-10 15:29+0000\n"
+"PO-Revision-Date: 2025-06-29 12:00+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
-"Language-Team: Russian (https://app.transifex.com/divio/teams/58664/ru/)\n"
-"Language: ru\n"
+"Language-Team: Bengali (https://app.transifex.com/divio/teams/58664/bn/)\n"
+"Language: bn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: admin.py:174 admin.py:370 admin.py:516
 msgid "State"
-msgstr "Состояние"
+msgstr "অবস্থা"
 
 #: admin.py:217 constants.py:27
 msgid "Empty"
-msgstr "Пустая"
+msgstr "খালি"
 
 #: admin.py:384 admin.py:526
 msgid "Author"
-msgstr "Автор"
+msgstr "লেখক"
 
 #: admin.py:398 admin.py:540 models.py:106
 msgid "Modified"
-msgstr "Изменена"
+msgstr "পরিবর্তিত"
 
 #: admin.py:576 admin.py:822
 #: templates/admin/djangocms_versioning/page/change_form.html:20
@@ -43,400 +43,395 @@ msgstr "Изменена"
 #: templates/djangocms_versioning/admin/icons/preview.html:3
 #: templates/djangocms_versioning/admin/preview.html:3
 msgid "Preview"
-msgstr "Просмотр"
+msgstr "পূর্বরূপ"
 
 #: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
-msgstr "Правка"
+msgstr "সম্পাদনা"
 
 #: admin.py:623 admin.py:908 cms_toolbars.py:120
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
-msgstr "Новый Черновик"
+msgstr "নতুন খসড়া"
 
 #: admin.py:635
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
-msgstr "Версии"
+msgstr "সংস্করণ পরিচালনা করুন"
 
 #: admin.py:788
 msgid "Content"
-msgstr "Содержимое"
+msgstr "বিষয়বস্তু"
 
 #: admin.py:803
 msgid "locked"
-msgstr "блокировано"
+msgstr "লক করা"
 
 #: admin.py:837 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
-msgstr "Архив"
+msgstr "আর্কাইভ"
 
 #: admin.py:854 cms_toolbars.py:83 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
-msgstr "Публикация"
+msgstr "প্রকাশ করুন"
 
 #: admin.py:873 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
-msgstr "Депубликация"
+msgstr "অপ্রকাশ করুন"
 
 #: admin.py:928 cms_toolbars.py:179
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
 #: templates/djangocms_versioning/admin/icons/revert_icon.html:3
 msgid "Revert"
-msgstr "Откат"
+msgstr "প্রত্যাবর্তন"
 
 #: admin.py:946 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
-msgstr "Сброс"
+msgstr "বাতিল করুন"
 
 #: admin.py:963 cms_toolbars.py:148
 msgid "Unlock"
-msgstr "Разблокировать"
+msgstr "আনলক করুন"
 
 #: admin.py:990
 msgid "Settings"
-msgstr "Настройки"
+msgstr "সেটিংস"
 
 #: admin.py:1027
 msgid "Compare versions"
-msgstr "Сравнить версии"
+msgstr "সংস্করণ তুলনা করুন"
 
 #: admin.py:1036
 msgid "Exactly two versions need to be selected."
-msgstr "Должны быть выбраны две версии"
+msgstr "ঠিক দুটি সংস্করণ নির্বাচন করতে হবে।"
 
 #: admin.py:1054
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
-msgstr "Удалить выбранные %(verbose_name_plural)s"
+msgstr "নির্বাচিত %(verbose_name_plural)s মুছুন"
 
 #: admin.py:1065
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use "
 "discard for drafts."
 msgstr ""
-"Черновые или опубликованные версии не могут быть удалены. Сначала отмените "
-"публикацию или используйте сброс для черновиков."
+"খসড়া বা প্রকাশিত সংস্করণ মুছে ফেলা যায় না। প্রথমে অপ্রকাশ করুন অথবা খসড়ার"
+" জন্য বাতিল ব্যবহার করুন।"
 
 #: admin.py:1094
 #, python-brace-format
 msgid "Select {} to view its versions"
-msgstr "Выберите {} для просмотра версий"
+msgstr "এর সংস্করণ দেখতে {} নির্বাচন করুন"
 
 #: admin.py:1110
 msgid "Version cannot be archived"
-msgstr "Версия не может быть архивирована"
+msgstr "সংস্করণ আর্কাইভ করা যাবে না"
 
 #: admin.py:1134
 msgid "Version archived"
-msgstr "Версия архивирована"
+msgstr "সংস্করণ আর্কাইভ করা হয়েছে"
 
 #: admin.py:1144 admin.py:1312 admin.py:1461
 msgid "This view only supports POST method."
-msgstr "Это представление поддерживает только метод POST"
+msgstr "এই ভিউ শুধুমাত্র POST পদ্ধতি সমর্থন করে।"
 
 #: admin.py:1158
 msgid "Version cannot be published"
-msgstr "Версия не может быть опубликована"
+msgstr "সংস্করণ প্রকাশ করা যাবে না"
 
 #: admin.py:1170
 msgid "Version published"
-msgstr "Версия опубликована"
+msgstr "সংস্করণ প্রকাশিত হয়েছে"
 
 #: admin.py:1208
 msgid "Version cannot be unpublished"
-msgstr "Версия не может быть депубликована"
+msgstr "সংস্করণ অপ্রকাশ করা যাবে না"
 
 #: admin.py:1243
 msgid "Version unpublished"
-msgstr "Версия депубликована"
+msgstr "সংস্করণ অপ্রকাশিত হয়েছে"
 
 #: admin.py:1408
 msgid "The last version has been deleted"
-msgstr "Последняя версия была удалена"
+msgstr "শেষ সংস্করণটি মুছে ফেলা হয়েছে"
 
 #: admin.py:1474
 msgid "You do not have permission to remove the version lock"
-msgstr "У вас нет прав на снятие блокировки версии"
+msgstr "সংস্করণ লক অপসারণের অনুমতি আপনার নেই"
 
 #: admin.py:1479
 msgid "Version unlocked"
-msgstr "Версия разблокирована"
+msgstr "সংস্করণ আনলক করা হয়েছে"
 
 #: admin.py:1524
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
-msgstr "Отображение версий \"{grouper}\""
+msgstr "\"{grouper}\" এর সংস্করণ প্রদর্শন করা হচ্ছে"
 
 #: apps.py:8
 msgid "django CMS Versioning"
-msgstr "Джанго Версионирование"
+msgstr "django CMS Versioning"
 
 #: cms_config.py:206
 msgid "No available title"
-msgstr "Нет доступного заголовка"
+msgstr "কোনো শিরোনাম উপলব্ধ নেই"
 
 #: cms_config.py:208 constants.py:12 constants.py:25
 msgid "Unpublished"
-msgstr "Депубликована"
+msgstr "অপ্রকাশিত"
 
 #: cms_config.py:280
 msgid "Language must be set to a supported language!"
-msgstr "Язык должен быть выбран из поддерживаемых языков"
+msgstr "ভাষা একটি সমর্থিত ভাষায় সেট করতে হবে!"
 
 #: cms_config.py:298
 msgid "You do not have permission to copy these plugins."
-msgstr "У вас нет разрешения на копирование этих плагинов."
+msgstr "এই প্লাগইনগুলি অনুলিপি করার অনুমতি আপনার নেই।"
 
 #: cms_toolbars.py:208
 msgid "Manage Versions"
-msgstr "Управление версиями"
+msgstr "সংস্করণ পরিচালনা করুন"
 
 #: cms_toolbars.py:211
 #, python-brace-format
 msgid "Compare to {source}"
-msgstr "Сравнить с {source}"
+msgstr "{source} এর সাথে তুলনা করুন"
 
 #: cms_toolbars.py:229 indicators.py:69
 msgid "Discard Changes"
-msgstr "Отменить изменения"
+msgstr "পরিবর্তন বাতিল করুন"
 
 #: cms_toolbars.py:264
 msgid "View Published"
-msgstr "Просмотреть опубликованное"
+msgstr "প্রকাশিত দেখুন"
 
 #: cms_toolbars.py:334 cms_toolbars.py:448
 msgid "Language"
-msgstr "Язык"
+msgstr "ভাষা"
 
 #: cms_toolbars.py:371
 msgid "Add Translation"
-msgstr "Добавить перевод"
+msgstr "অনুবাদ যোগ করুন"
 
 #: cms_toolbars.py:382
 msgid "Delete Translation"
-msgstr "Удалить перевод"
+msgstr "অনুবাদ মুছুন"
 
 #: cms_toolbars.py:405
 msgid "Copy all plugins"
-msgstr "Скопируйте все плагины"
+msgstr "সমস্ত প্লাগইন অনুলিপি করুন"
 
 #: cms_toolbars.py:407
 #, python-format
 msgid "from %s"
-msgstr "из %s"
+msgstr "%s থেকে"
 
 #: cms_toolbars.py:408
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
-msgstr "Вы уверены, что хотите скопировать все плагины из %s?"
+msgstr "আপনি কি নিশ্চিত যে আপনি %s থেকে সমস্ত প্লাগইন অনুলিপি করতে চান?"
 
 #: cms_toolbars.py:425
 msgid "No other language available"
-msgstr "Другие языки недоступны"
+msgstr "অন্য কোনো ভাষা উপলব্ধ নেই"
 
 #: constants.py:10 constants.py:24
 msgid "Draft"
-msgstr "Черновик"
+msgstr "খসড়া"
 
 #: constants.py:11 constants.py:22
 msgid "Published"
-msgstr "Опубликовано"
+msgstr "প্রকাশিত"
 
 #: constants.py:13 constants.py:26
 msgid "Archived"
-msgstr "Архивировано"
+msgstr "আর্কাইভ করা"
 
 #: constants.py:23
 msgid "Changed"
-msgstr "Изменено"
+msgstr "পরিবর্তিত"
 
 #: emails.py:40
 msgid "Unlocked"
-msgstr "Разблокировано"
+msgstr "আনলক করা হয়েছে"
 
 #: indicators.py:31
 #, python-format
 msgid "Unlock (%(message)s)"
-msgstr "Разблокировано (%(message)s)"
+msgstr "আনলক করুন (%(message)s)"
 
 #: indicators.py:43
 msgid "Create new draft"
-msgstr "Создать новый черновик"
+msgstr "নতুন খসড়া তৈরি করুন"
 
 #: indicators.py:49
 msgid "Revert from Unpublish"
-msgstr "Вернуть из Депубликации"
+msgstr "অপ্রকাশ থেকে প্রত্যাবর্তন"
 
 #: indicators.py:69
 msgid "Delete Draft"
-msgstr "Удалить черновик"
+msgstr "খসড়া মুছুন"
 
 #: indicators.py:75
 msgid "Compare Draft to Published..."
-msgstr "Сравнить черновик с опубликованным..."
+msgstr "খসড়া প্রকাশিতের সাথে তুলনা করুন..."
 
 #: indicators.py:85
 msgid "Manage Versions..."
-msgstr "Управление версиями..."
+msgstr "সংস্করণ পরিচালনা করুন..."
 
 #: models.py:32
-msgid "This version is not a draft: to make changes create a new draft"
-msgstr ""
-"Эта версия не является черновиком: чтобы внести изменения, создайте новый "
-"черновик"
+msgid "Version is not a draft"
+msgstr "সংস্করণটি খসড়া নয়"
 
 #: models.py:33
 #, python-brace-format
 msgid "Action Denied. The latest version is locked by {user}"
-msgstr ""
-"Действие отклонено. Черновая версия заблокирована пользователем {user}"
+msgstr "ক্রিয়া প্রত্যাখ্যাত। সর্বশেষ সংস্করণটি {user} দ্বারা লক করা হয়েছে"
 
 #: models.py:34
 #, python-brace-format
-msgid "The draft version is locked by {user}"
-msgstr "Черновая версия заблокирована пользователем {user}"
+msgid "Action Denied. The draft version is locked by {user}"
+msgstr "ক্রিয়া প্রত্যাখ্যাত। খসড়া সংস্করণটি {user} দ্বারা লক করা হয়েছে"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
-msgstr "У вас нет разрешения на выполнение этого действия"
+msgstr "এই ক্রিয়া সম্পাদনের অনুমতি আপনার নেই"
 
 #: models.py:105
 msgid "Created"
-msgstr "Создано"
+msgstr "তৈরি করা হয়েছে"
 
 #: models.py:108
 msgid "author"
-msgstr "автор"
+msgstr "লেখক"
 
 #: models.py:121
 msgid "status"
-msgstr "статус"
+msgstr "অবস্থা"
 
 #: models.py:129
 msgid "locked by"
-msgstr "заблокировано "
+msgstr "লক করেছেন"
 
 #: models.py:138
 msgid "source"
-msgstr "источник"
+msgstr "উৎস"
 
 #: models.py:159
 #, python-brace-format
 msgid "Version #{number} ({state} {date})"
-msgstr "Версия #{number} ({state} {date})"
+msgstr "সংস্করণ #{number} ({state} {date})"
 
 #: models.py:166
 #, python-brace-format
 msgid "Version #{number} ({state})"
-msgstr "Версия #{number} ({state})"
+msgstr "সংস্করণ #{number} ({state})"
 
 #: models.py:172
 #, python-format
 msgid "Locked by %(user)s"
-msgstr "Заблокировано %(user)s"
+msgstr "%(user)s দ্বারা লক করা হয়েছে"
 
 #: models.py:309 models.py:360
 msgid "Version is not in draft state"
-msgstr "Версия не является черновиком"
+msgstr "সংস্করণটি খসড়া অবস্থায় নেই"
 
 #: models.py:425
 msgid "Version is not in published state"
-msgstr "Версия не находится в стадии черновика"
+msgstr "সংস্করণটি প্রকাশিত অবস্থায় নেই"
 
 #: models.py:531
 msgid "Version is not in archived or unpublished state"
-msgstr "Версия не находится в архивном или неопубликованном состоянии"
+msgstr "সংস্করণটি আর্কাইভ করা বা অপ্রকাশিত অবস্থায় নেই"
 
 #: models.py:546
 msgid "Version is not in draft or published state"
-msgstr "Версия не находится в стадии черновика или опубликована"
+msgstr "সংস্করণটি খসড়া বা প্রকাশিত অবস্থায় নেই"
 
 #: models.py:554
 msgid "Version is already locked"
-msgstr "Версия уже заблокирована"
+msgstr "সংস্করণটি ইতিমধ্যে লক করা আছে"
 
 #: models.py:560
 msgid "Draft version is not locked"
-msgstr "Черновая версия не заблокирована"
+msgstr "খসড়া সংস্করণ লক করা নেই"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:10
 #: templates/admin/djangocms_versioning/grouper_form.html:16
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:4
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:12
 msgid "Home"
-msgstr "Домой"
+msgstr "হোম"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:36
 #, python-format
 msgid "Add %(name)s"
-msgstr "Добавить %(name)s"
+msgstr "%(name)s যোগ করুন"
 
 #: templates/admin/djangocms_versioning/grouper_form.html:53
 msgid "Submit"
-msgstr "Отправить"
+msgstr "জমা দিন"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:65
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] "Пожалуйста, исправьте ошибку ниже."
-msgstr[1] "Пожалуйста, исправьте ошибки ниже."
-msgstr[2] "Пожалуйста, исправьте ошибки ниже."
-msgstr[3] "Пожалуйста, исправьте ошибки ниже."
+msgstr[0] "অনুগ্রহ করে নিচের ত্রুটিটি সংশোধন করুন।"
+msgstr[1] "অনুগ্রহ করে নিচের ত্রুটিগুলি সংশোধন করুন।"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:82
 msgid "All permissions"
-msgstr "Все разрешения"
+msgstr "সমস্ত অনুমতি"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:83
 msgid "Loading..."
-msgstr "Загрузка..."
+msgstr "লোড হচ্ছে..."
 
 #: templates/admin/djangocms_versioning/page/change_form.html:93
 msgid "Save"
-msgstr "Сохранить"
+msgstr "সংরক্ষণ করুন"
 
 #: templates/admin/djangocms_versioning/page/change_form.html:94
 msgid "Save and continue editing"
-msgstr "Сохранить и продолжить редактирование"
+msgstr "সংরক্ষণ করুন এবং সম্পাদনা চালিয়ে যান"
 
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:8
 #: templates/admin/djangocms_versioning/versioning_breadcrumbs.html:16
 #: templates/admin/djangocms_versioning/versioning_buttons.html:27
 msgid "Versions"
-msgstr "Версии"
+msgstr "সংস্করণ"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:3
 msgid "Archive Confirmation"
-msgstr "Подтверждение архивирования"
+msgstr "আর্কাইভ নিশ্চিতকরণ"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:16
 msgid "Are you sure you want to archive the following version?"
-msgstr "Вы уверены, что хотите заархивировать следующую версию?"
+msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণটি আর্কাইভ করতে চান?"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:18
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:18
 #, python-format
 msgid " Version number: %(version_number)s"
-msgstr " Номер версии: %(version_number)s"
+msgstr " সংস্করণ নম্বর: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
 #: templates/djangocms_versioning/admin/revert_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
-msgstr "Нет, вернутся"
+msgstr "না, আমাকে ফিরিয়ে নিন"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
 #: templates/djangocms_versioning/admin/revert_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
-msgstr "Да, я уверен"
+msgstr "হ্যাঁ, আমি নিশ্চিত"
 
 #: templates/djangocms_versioning/admin/compare.html:8
 #, python-format
@@ -446,7 +441,8 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"Сравнить %(left)s с %(right)s "
+"        %(left)s কে %(right)s এর সাথে তুলনা করুন\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:12
 #, python-format
@@ -456,7 +452,8 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"Сравнить %(left)s "
+"        %(left)s তুলনা করুন\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:16
 #, python-format
@@ -466,11 +463,12 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"Сравнить %(right)s "
+"        %(right)s তুলনা করুন\n"
+"        "
 
 #: templates/djangocms_versioning/admin/compare.html:37
 msgid "Back"
-msgstr "Назад"
+msgstr "পিছনে"
 
 #: templates/djangocms_versioning/admin/compare.html:40
 #, python-format
@@ -480,74 +478,75 @@ msgid ""
 "                "
 msgstr ""
 "\n"
-"Сравнение %(left)s с "
+"                    %(left)s এর সাথে তুলনা করা হচ্ছে\n"
+"                "
 
 #: templates/djangocms_versioning/admin/compare.html:45
 msgid "Pick a version to compare to"
-msgstr "Выберите версию для сравнения"
+msgstr "তুলনা করার জন্য একটি সংস্করণ বাছুন"
 
 #: templates/djangocms_versioning/admin/compare.html:56
 msgid "Visual"
-msgstr "Визуально"
+msgstr "ভিজ্যুয়াল"
 
 #: templates/djangocms_versioning/admin/compare.html:59
 msgid "Source"
-msgstr "Источник"
+msgstr "উৎস"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:14
 msgid "Discard Confirmation"
-msgstr "Отменить подтверждение"
+msgstr "বাতিল নিশ্চিতকরণ"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:15
 msgid "Are you sure you want to discard following version?"
-msgstr "Вы уверены, что хотите отменить следующую версию?"
+msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণটি বাতিল করতে চান?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
 #: templates/djangocms_versioning/admin/revert_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
-msgstr "Номер версии: %(version_number)s"
+msgstr "সংস্করণ নম্বর: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
-msgstr "Посмотреть на сайте"
+msgstr "সাইটে দেখুন"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:16
 msgid "Revert Confirmation"
-msgstr "Отменить подтверждение"
+msgstr "প্রত্যাবর্তন নিশ্চিতকরণ"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:19
 msgid ""
 "Reverting to this version may cause loss of an existing draft version. "
 "Please select an option to continue"
 msgstr ""
-"Возврат к этой версии может привести к потере существующей черновой версии. "
-"Пожалуйста, выберите вариант для продолжения"
+"এই সংস্করণে প্রত্যাবর্তন করলে একটি বিদ্যমান খসড়া সংস্করণ হারিয়ে যেতে পারে।"
+" চালিয়ে যেতে অনুগ্রহ করে একটি বিকল্প নির্বাচন করুন"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:21
 msgid "Are you sure you want to revert to the following version?"
-msgstr "Вы уверены, что хотите вернуться к следующей версии?"
+msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণে প্রত্যাবর্তন করতে চান?"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:36
 msgid "Discard existing draft and Revert"
-msgstr "Отменить существующий черновик и вернуться к предыдущему варианту"
+msgstr "বিদ্যমান খসড়া বাতিল করুন এবং প্রত্যাবর্তন করুন"
 
 #: templates/djangocms_versioning/admin/revert_confirmation.html:40
 msgid "Archive existing draft and Revert"
-msgstr "Архивировать существующий черновик и отменить"
+msgstr "বিদ্যমান খসড়া আর্কাইভ করুন এবং প্রত্যাবর্তন করুন"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 #| msgid "Discard Confirmation"
 msgid "Unpublish Confirmation"
-msgstr "Подтверждение депубликации"
+msgstr "অপ্রকাশ নিশ্চিতকরণ"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:16
 msgid ""
 "Unpublishing will remove this version from live. Are you sure you want to "
 "unpublish?"
 msgstr ""
-"Депубликация удалит эту версию из живого. Вы уверены, что хотите "
-"депубликовать?"
+"অপ্রকাশ করলে এই সংস্করণটি লাইভ থেকে সরিয়ে ফেলা হবে। আপনি কি নিশ্চিত যে আপনি"
+" অপ্রকাশ করতে চান?"
 
 #: templates/djangocms_versioning/emails/unlock-notification.txt:2
 #, python-format
@@ -561,12 +560,9 @@ msgid ""
 "This is an automated notification from Django CMS.\n"
 msgstr ""
 "\n"
-"Следующая черновая версия была разблокирована %(by_user)s для их использования.\n"
+"নিম্নলিখিত খসড়া সংস্করণটি %(by_user)s তাদের ব্যবহারের জন্য আনলক করেছেন।\n"
 "%(version_link)s\n"
 "\n"
-"Обратите внимание, что вы не сможете дальше редактировать этот черновик. Пожалуйста, свяжитесь с %(by_user)s в случае каких-либо вопросов.\n"
+"অনুগ্রহ করে মনে রাখবেন যে আপনি এই খসড়াটি আর সম্পাদনা করতে পারবেন না। কোনো উদ্বেগ থাকলে অনুগ্রহ করে %(by_user)s এর সাথে যোগাযোগ করুন।\n"
 "\n"
-"Это автоматическое уведомление от Django CMS.\n"
-
-#~ msgid "Version is not a draft"
-#~ msgstr "Версия не является черновиком"
+"এটি Django CMS থেকে একটি স্বয়ংক্রিয় বিজ্ঞপ্তি।\n"

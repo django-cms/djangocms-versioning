@@ -285,18 +285,18 @@ msgid "Manage Versions..."
 msgstr "Administroni Versione…"
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Versioni s’është skicë"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Ky version s’është skicë: që të bëni ndryshime, krijoni një skicë të re"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Veprim i Hedhur Poshtë. Versioni më i ri është kyçur nga {user}"
+msgid "The latest version is locked by {user}"
+msgstr "Versioni më i ri është kyçur nga {user}"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Veprim i Hedhur Poshtë. Versioni skicë është kyçur nga {user}"
+msgid "The draft version is locked by {user}"
+msgstr "Versioni skicë është kyçur nga {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -566,3 +566,6 @@ msgstr ""
 "Ju lutemi, kini parasysh se s’do të jeni në gjendje të përpunoni më tej këtë skicë. Në rast të çfarëdo shqetësimi, lidhuni me %(by_user)s.\n"
 "\n"
 "Ky është një njoftim i automatizuar prej Django CMS.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Versioni s’është skicë"

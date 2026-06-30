@@ -280,17 +280,17 @@ msgid "Manage Versions..."
 msgstr ""
 
 #: models.py:32
-msgid "Version is not a draft"
+msgid "This version is not a draft: to make changes create a new draft"
 msgstr ""
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
+msgid "The latest version is locked by {user}"
 msgstr ""
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
+msgid "The draft version is locked by {user}"
 msgstr ""
 
 #: models.py:35

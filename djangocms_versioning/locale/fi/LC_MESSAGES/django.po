@@ -285,18 +285,18 @@ msgid "Manage Versions..."
 msgstr "Hallitse versioita..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Versio ei ole luonnos"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Tämä versio ei ole luonnos: tehdäksesi muutoksia luo uusi luonnos"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Toiminto estetty. Viimeisin versio on käyttäjän {user} lukitsema"
+msgid "The latest version is locked by {user}"
+msgstr "Viimeisin versio on käyttäjän {user} lukitsema"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Toiminto estetty. Luonnosversio on käyttäjän {user} lukitsema"
+msgid "The draft version is locked by {user}"
+msgstr "Luonnosversio on käyttäjän {user} lukitsema"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -566,3 +566,6 @@ msgstr ""
 "Huomioithan, että et voi enää muokata tätä luonnosta. Ota yhteyttä käyttäjään %(by_user)s, mikäli sinulla on kysyttävää.\n"
 "\n"
 "Tämä on automaattinen ilmoitus Django CMS:ltä.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Versio ei ole luonnos"

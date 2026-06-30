@@ -287,18 +287,18 @@ msgid "Manage Versions..."
 msgstr "إدارة الإصدارات..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "الإصدار ليس مسودة"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "هذا الإصدار ليس مسودة: لإجراء تغييرات أنشئ مسودة جديدة"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "تم رفض الإجراء. أحدث إصدار مقفول بواسطة {user}"
+msgid "The latest version is locked by {user}"
+msgstr "أحدث إصدار مقفول بواسطة {user}"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "تم رفض الإجراء. إصدار المسودة مقفول بواسطة {user}"
+msgid "The draft version is locked by {user}"
+msgstr "إصدار المسودة مقفول بواسطة {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -568,3 +568,6 @@ msgstr ""
 "برجاء العلم أنك لن تستطيع إجراء المزيد من التعديلات على هذه المسودة. يرجى التواصل مع %(by_user)s في حالة وجود أي استفسارات.\n"
 "\n"
 "هذا إشعار تلقائي من ن.إ.م. چانجو.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "الإصدار ليس مسودة"

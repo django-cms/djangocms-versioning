@@ -37,7 +37,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have publish permissions")
 
         # status hasn't changed
         post_version = Version.objects.get(pk=post_version.pk)
@@ -61,7 +61,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have unpublish permissions")
 
         # status hasn't changed
         post_version = Version.objects.get(pk=post_version.pk)
@@ -110,7 +110,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have publish permissions")
 
         # status hasn't changed
         post_version = Version.objects.get(pk=post_version.pk)
@@ -158,7 +158,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have unpublish permissions")
 
         # status hasn't changed
         post_version = Version.objects.get(pk=post_version.pk)
@@ -181,7 +181,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have change permissions")
 
         # status hasn't changed
         post_version = Version.objects.get(pk=post_version.pk)
@@ -228,7 +228,7 @@ class PermissionTestCase(BaseStateTestCase):
 
         self.assertEqual(mocked_messages.call_count, 1)
         self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
-        self.assertEqual(mocked_messages.call_args[0][2], "You do not have permission to perform this action")
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have change permissions")
 
         # status hasn't changed
         poll_version_ = Version.objects.get(pk=post_version.pk)

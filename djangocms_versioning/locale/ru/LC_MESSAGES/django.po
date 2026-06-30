@@ -285,8 +285,10 @@ msgid "Manage Versions..."
 msgstr "Управление версиями..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Версия не является черновиком"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr ""
+"Эта версия не является черновиком: чтобы внести изменения, создайте новый "
+"черновик"
 
 #: models.py:33
 #, python-brace-format
@@ -296,9 +298,8 @@ msgstr ""
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr ""
-"Действие отклонено. Последняя версия заблокирована пользователем {user}"
+msgid "The draft version is locked by {user}"
+msgstr "Черновая версия заблокирована пользователем {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -566,3 +567,6 @@ msgstr ""
 "Обратите внимание, что вы не сможете дальше редактировать этот черновик. Пожалуйста, свяжитесь с %(by_user)s в случае каких-либо вопросов.\n"
 "\n"
 "Это автоматическое уведомление от Django CMS.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Версия не является черновиком"

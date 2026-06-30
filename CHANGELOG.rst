@@ -13,7 +13,7 @@ Changelog
 * feat: Add Hindi, Vietnamese, Bengali and Indeonesian by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/567
 * fix: Typo when reading `DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT` by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/522
 * fix: Version comparison included the django CMS toolbar by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/530
-* fix: prepopuleted fields from content object crashed for non-public versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/533
+* fix: Prepopulated fields from content object crashed for non-public versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/533
 * fix: Prepopulated content fields broke versioned admin by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/534
 * docs: Fix code examples, some clarifications by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/552
 

@@ -285,18 +285,18 @@ msgid "Manage Versions..."
 msgstr "Versionen verwalten..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "Version ist kein Entwurf"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Diese Version ist kein Entwurf: Erstellen Sie einen neuen Entwurf, um Änderungen vorzunehmen"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Aktion verweigert. Die aktuelle Version ist von {user} gesperrt."
+msgid "The latest version is locked by {user}"
+msgstr "Die aktuelle Version ist von {user} gesperrt."
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Aktion verweigert. Der Entwurf ist von {user} gesperrt."
+msgid "The draft version is locked by {user}"
+msgstr "Der Entwurf ist von {user} gesperrt."
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -565,3 +565,6 @@ msgstr ""
 "Bitte beachten Sie, dass Sie diesen Entwurf nicht weiter bearbeiten können. Bitte kontaktieren Sie %(by_user)s bei Rückfragen.\n"
 "\n"
 "Dies ist eine automatisierte Nachricht von Django CMS.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "Version ist kein Entwurf"

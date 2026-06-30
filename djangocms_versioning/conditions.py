@@ -6,6 +6,18 @@ from .exceptions import ConditionFailed
 from .helpers import get_latest_draft_version, version_is_unlocked_for_user
 
 
+class ReasonedBool(int):
+    """"rich bool": truthy/falsy via the int value, with the failure reason exposed by ``str()``."""
+
+    def __new__(cls, value, reason=""):
+        obj = super().__new__(cls, bool(value))
+        obj.reason = reason
+        return obj
+
+    def __str__(self):
+        return str(self.reason)
+
+
 class Conditions(list):
     def __add__(self, other: list) -> "Conditions":
         return Conditions(super().__add__(other))
@@ -19,11 +31,11 @@ class Conditions(list):
         for func in self:
             func(instance, user)
 
-    def as_bool(self, instance: object, user: settings.AUTH_USER_MODEL) -> bool:
+    def as_bool(self, instance: object, user: settings.AUTH_USER_MODEL) -> bool | ReasonedBool:
         try:
             self(instance, user)
-        except ConditionFailed:
-            return False
+        except ConditionFailed as e:
+            return ReasonedBool(False, str(e))
         return True
 
 

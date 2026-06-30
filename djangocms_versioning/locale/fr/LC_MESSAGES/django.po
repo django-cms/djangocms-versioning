@@ -288,18 +288,18 @@ msgid "Manage Versions..."
 msgstr "Gérer les versions..."
 
 #: models.py:32
-msgid "Version is not a draft"
-msgstr "La version n'est pas un brouillon"
+msgid "This version is not a draft: to make changes create a new draft"
+msgstr "Cette version n'est pas un brouillon : pour apporter des modifications, créez un nouveau brouillon"
 
 #: models.py:33
 #, python-brace-format
-msgid "Action Denied. The latest version is locked by {user}"
-msgstr "Action Refusée. La dernière version est verrouillée par {user}"
+msgid "The latest version is locked by {user}"
+msgstr "La dernière version est verrouillée par {user}"
 
 #: models.py:34
 #, python-brace-format
-msgid "Action Denied. The draft version is locked by {user}"
-msgstr "Action Refusée. Le brouillon est verrouillé par {user}"
+msgid "The draft version is locked by {user}"
+msgstr "Le brouillon est verrouillé par {user}"
 
 #: models.py:35
 msgid "You do not have permission to perform this action"
@@ -570,3 +570,6 @@ msgstr ""
 "Notez que vous ne pourrez pas continuer a modifier ce brouillon. Vous êtes prié de contacter %(by_user)s en cas de soucis.\n"
 "\n"
 "C'est une notification automatique de Django CMS.\n"
+
+#~ msgid "Version is not a draft"
+#~ msgstr "La version n'est pas un brouillon"

@@ -2,6 +2,23 @@
 Changelog
 =========
 
+2.6.0 (2026-06-30)
+==================
+
+## What's Changed
+* feat: Add versioning object tools to versioned groupers, Django 6.1 compatible by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/543
+* feat: Propagate failure messages to user by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/546
+* feat: Setting to block deletion of public versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/501
+* feat: Prepare for Django 6.1 support by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/541
+* feat: Add Hindi, Vietnamese, Bengali and Indeonesian by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/567
+* fix: Typo when reading `DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT` by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/522
+* fix: Version comparison included the django CMS toolbar by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/530
+* fix: Prepopulated fields from content object crashed for non-public versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/533
+* fix: Prepopulated content fields broke versioned admin by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/534
+* docs: Fix code examples, some clarifications by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/552
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.5.1...2.6.0
+
 2.5.1 (2026-02-09)
 ==================
 

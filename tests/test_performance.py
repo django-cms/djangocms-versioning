@@ -334,6 +334,7 @@ class AdminPerformanceTestCase(PerformanceTestMixin, TestCase):
         """
         from django.contrib import admin as django_admin
         from django.contrib.admin.sites import AdminSite
+        from django.test import RequestFactory
 
         # Create a mock admin class that properly inherits from ModelAdmin
         class TestAdmin(ExtendedVersionAdminMixin, django_admin.ModelAdmin):
@@ -342,10 +343,14 @@ class AdminPerformanceTestCase(PerformanceTestMixin, TestCase):
 
         admin = TestAdmin(PollContentWithVersionFactory._meta.model, AdminSite())
 
+        # Build a realistic request so get_queryset exercises the actual admin path
+        request = RequestFactory().get("/")
+        request.user = self.user
+
         reset_queries()
 
         # Get the queryset (this should include prefetching)
-        queryset = admin.get_queryset(None)
+        queryset = admin.get_queryset(request)
 
         # Force evaluation
         content_list = list(queryset)

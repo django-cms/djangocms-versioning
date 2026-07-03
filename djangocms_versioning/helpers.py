@@ -492,10 +492,13 @@ def content_is_unlocked_for_user(
         else:
             # For unversioned models, content.versions won't exist
             version = content.versions.first()
-        return version_is_unlocked_for_user(version, user)
-    except (AttributeError, KeyError):
-        # Unversioned model or no version found - no lock
+    except AttributeError:
+        # Unversioned model - no lock
         return True
+    if version is None:
+        # No version yet - no lock
+        return True
+    return version_is_unlocked_for_user(version, user)
 
 
 def placeholder_content_is_unlocked_for_user(

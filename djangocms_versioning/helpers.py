@@ -477,8 +477,12 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
-    """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by_id is None or version.locked_by_id == user.pk
+    """Check if lock doesn't exist for a version object or is locked to provided user.
+
+    Thin wrapper kept for backwards compatibility; prefer
+    ``version.is_unlocked_for_user(user)``.
+    """
+    return version.is_unlocked_for_user(user)
 
 
 def content_is_unlocked_for_user(
@@ -498,7 +502,7 @@ def content_is_unlocked_for_user(
     if version is None:
         # No version yet - no lock
         return True
-    return version_is_unlocked_for_user(version, user)
+    return version.is_unlocked_for_user(user)
 
 
 def placeholder_content_is_unlocked_for_user(
@@ -529,21 +533,3 @@ def send_email(
     )
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
-
-def get_latest_draft_version(version: models.Model) -> models.Model:
-    """Get latest draft version of version object and caches it in the
-    content object"""
-    from .models import Version
-
-    if getattr(version.content, "content_is_latest", False):
-        return version if version.state == DRAFT else None
-
-    if (
-        not hasattr(version.content, "_latest_draft_version")
-        or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT
-    ):
-        drafts = Version.objects.filter_by_content_grouping_values(
-            version.content
-        ).filter(state=DRAFT)
-        version.content._latest_draft_version = drafts.first()
-    return version.content._latest_draft_version

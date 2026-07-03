@@ -172,6 +172,26 @@ class Version(models.Model):
             return _("Locked by %(user)s") % {"user": self.locked_by}
         return ""
 
+    def is_unlocked_for_user(self, user) -> bool:
+        """Return ``True`` if this version has no lock or is locked to ``user``."""
+        return self.locked_by_id is None or self.locked_by_id == user.pk
+
+    def get_latest_draft_version(self):
+        """Return the latest draft version for this version's grouping, caching
+        the result on the content object."""
+        if getattr(self.content, "content_is_latest", False):
+            return self if self.state == constants.DRAFT else None
+        if (
+            not hasattr(self.content, "_latest_draft_version")
+            or getattr(self.content._latest_draft_version, "state", constants.DRAFT)
+            != constants.DRAFT
+        ):
+            drafts = Version.objects.filter_by_content_grouping_values(
+                self.content
+            ).filter(state=constants.DRAFT)
+            self.content._latest_draft_version = drafts.first()
+        return self.content._latest_draft_version
+
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper
         as well if we are deleting the last version."""

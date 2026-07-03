@@ -1,5 +1,4 @@
 from . import conf, constants
-from .helpers import get_version_for_content
 
 if conf.ENABLE_MENU_REGISTRATION:
     from cms import constants as cms_constants
@@ -84,6 +83,9 @@ if conf.ENABLE_MENU_REGISTRATION:
         See https://discord.com/channels/800813886689247262/1204047551570120755 for more information."""
 
         def get_nodes(self, request):
+            # Imported here (not at module level) to avoid a module-level
+            # import cycle helpers -> models -> conditions -> helpers.
+            from .helpers import get_version_for_content
             site = self.renderer.site
             language = self.renderer.request_language
             pages_qs = get_page_queryset(site).select_related("node")

@@ -3,7 +3,11 @@ from django.conf import settings
 
 from . import conf
 from .exceptions import ConditionFailed
-from .helpers import get_latest_draft_version, version_is_unlocked_for_user
+
+# NOTE: ``get_latest_draft_version`` and ``version_is_unlocked_for_user`` live in
+# ``helpers``, which forms an import cycle with this module via ``models``. They are
+# therefore imported lazily inside the condition callables below (never at module
+# level) so that ``conditions`` can be initialised before ``helpers`` is fully loaded.
 
 
 class ReasonedBool(int):
@@ -63,6 +67,8 @@ def is_not_locked(message: str) -> callable:
     """Condition that the version is not locked. Is only effective if ``settings.DJANGOCMS_VERSIONING_LOCK_VERSIONS``
     is set to ``True``"""
     def inner(version, user):
+        from .helpers import version_is_unlocked_for_user
+
         if conf.LOCK_VERSIONS:
             if not version_is_unlocked_for_user(version, user):
                 raise ConditionFailed(message.format(user=version.locked_by))
@@ -71,6 +77,8 @@ def is_not_locked(message: str) -> callable:
 
 def draft_is_not_locked(message: str) -> callable:
     def inner(version, user):
+        from .helpers import get_latest_draft_version, version_is_unlocked_for_user
+
         if conf.LOCK_VERSIONS:
             draft_version = get_latest_draft_version(version)
             if draft_version and not version_is_unlocked_for_user(draft_version, user):
@@ -80,6 +88,8 @@ def draft_is_not_locked(message: str) -> callable:
 
 def draft_is_locked(message: str) -> callable:
     def inner(version, user):
+        from .helpers import get_latest_draft_version, version_is_unlocked_for_user
+
         if conf.LOCK_VERSIONS:
             draft_version = get_latest_draft_version(version)
             if not draft_version or version_is_unlocked_for_user(draft_version, user):
@@ -91,6 +101,8 @@ def draft_is_locked(message: str) -> callable:
 
 def user_can_unlock(message: str) -> callable:
     def inner(version, user):
+        from .helpers import get_latest_draft_version
+
         if conf.LOCK_VERSIONS:
             if user.has_perm(f"{version._meta.app_label}.delete_versionlock"):
                 return

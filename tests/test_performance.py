@@ -198,21 +198,25 @@ class MenuPerformanceTestCase(PerformanceTestMixin, TestCase):
         from djangocms_versioning.cms_menus import CMSMenu
 
         site = Site.objects.get_current()
-
+        user = UserFactory()
         reset_queries()
 
         # Create menu and get nodes
-        menu = CMSMenu()
+        request = type("Request", (), {
+            "user": user,
+            "site": site,
+            "request_language": "en",
+            "GET": {},
+            "path": "/test/",
+            "path_info": "/test/",
+            "META": {"HTTP_HOST": "testserver"},
+        })()
+        menu = CMSMenu(request)
 
         # This will trigger the get_nodes method which processes all page contents
         # The current implementation at line 128 does: version = page_content.versions.all()[0]
         # If versions are not properly prefetched, this causes N+1
-        menu.get_nodes(type("Request", (), {
-            "current_page": None,
-            "user": self.user,
-            "language": "en",
-            "site": site,
-        })())
+        menu.get_nodes(request)
 
         query_count = self.get_query_count()
 

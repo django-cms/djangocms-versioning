@@ -35,6 +35,7 @@ from djangocms_versioning.helpers import (
     get_current_site,
     get_latest_admin_viewable_content,
     get_object_live_url,
+    get_version_for_content,
     version_list_url,
 )
 from djangocms_versioning.models import Version
@@ -45,6 +46,10 @@ CMS_ADDS_PREVIEW_BUTTON = version.Version(cms_version) >= version.Version("4.2")
 
 
 class VersioningToolbar(PlaceholderToolbar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._version_cache = None
+
     def _get_versionable(self):
         """Helper method to get the versionable for the content type
         of the version
@@ -65,6 +70,13 @@ class VersioningToolbar(PlaceholderToolbar):
         """
         return self._get_versionable().version_model_proxy
 
+    def _get_version(self):
+        """Get the version for the toolbar object, using prefetched or cached version to avoid N+1 queries."""
+        if self._version_cache is None and self._is_versioned():
+            # Check for prefetched versions first, then fall back to database query
+            self._version_cache = get_version_for_content(self.toolbar.obj)
+        return self._version_cache
+
     def _add_publish_button(self):
         """Helper method to add a publish button to the toolbar"""
         # Check if object is registered with versioning otherwise don't add
@@ -74,7 +86,9 @@ class VersioningToolbar(PlaceholderToolbar):
         if self.toolbar.edit_mode_active:
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
-            version = Version.objects.get_for_content(self.toolbar.obj)
+            version = self._get_version()
+            if version is None:
+                return
             publish_url = reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_publish",
                 args=(version.pk,),
@@ -101,8 +115,8 @@ class VersioningToolbar(PlaceholderToolbar):
         """Helper method to add an edit button to the toolbar"""
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
-        version = Version.objects.get_for_content(self.toolbar.obj)
-        if version.check_edit_redirect.as_bool(self.request.user):
+        version = self._get_version()
+        if version and version.check_edit_redirect.as_bool(self.request.user):
             edit_url = reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_edit_redirect",
                 args=(version.pk,),
@@ -129,8 +143,8 @@ class VersioningToolbar(PlaceholderToolbar):
         if LOCK_VERSIONS and self._is_versioned():
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
-            version = Version.objects.filter_by_content_grouping_values(self.toolbar.obj).filter(state=DRAFT).first()
-            if version and version.check_unlock.as_bool(self.request.user):
+            version = self._get_version()
+            if version and version.state == DRAFT and version.check_unlock.as_bool(self.request.user):
                 unlock_url = reverse(
                     f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",
                     args=(version.pk,),
@@ -154,7 +168,9 @@ class VersioningToolbar(PlaceholderToolbar):
 
     def _add_lock_message(self):
         if self._is_versioned() and LOCK_VERSIONS and not self.toolbar.edit_mode_active:
-            version = Version.objects.get_for_content(self.toolbar.obj)
+            version = self._get_version()
+            if version is None:
+                return
             lock_message = TemplateItem(
                 template="djangocms_versioning/admin/lock_indicator.html",
                 extra_context={"version": version},
@@ -169,8 +185,8 @@ class VersioningToolbar(PlaceholderToolbar):
             return
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
-        version = Version.objects.get_for_content(self.toolbar.obj)
-        if version.check_revert.as_bool(self.request.user):
+        version = self._get_version()
+        if version and version.check_revert.as_bool(self.request.user):
             revert_url = reverse(
                 f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_revert",
                 args=(version.pk,),
@@ -189,7 +205,7 @@ class VersioningToolbar(PlaceholderToolbar):
         if not self._is_versioned():
             return
 
-        version = Version.objects.get_for_content(self.toolbar.obj)
+        version = self._get_version()
         if version is None:
             return
 

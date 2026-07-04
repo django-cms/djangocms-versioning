@@ -262,7 +262,7 @@ class VersionLockUnlockTestCase(CMSTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.versionable = PollsCMSConfig.versioning[0]
-        cls.default_permissions = ["change_pollcontentversion"]
+        cls.default_permissions = ["change_pollcontentversion", "change_pollcontent"]
 
     def setUp(self):
         import importlib

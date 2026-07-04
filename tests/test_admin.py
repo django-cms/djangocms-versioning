@@ -473,7 +473,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         expected_disabled_control = "inactive"
         expected_href = self.get_admin_url(
             self.versionable.version_model_proxy, "edit_redirect", version.pk
@@ -496,7 +496,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         expected_disabled_control = "inactive"
         expected_href = None
 
@@ -682,7 +682,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PageVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         expected_sideframe_open_control = "js-keep-sideframe"
         expected_sideframe_close_control = "js-close-sideframe"
         expected_href = self.get_admin_url(
@@ -707,7 +707,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
-        request.user = factories.UserFactory()
+        request.user = self.get_superuser()
         expected_sideframe_open_control = "js-keep-sideframe"
         expected_sideframe_close_control = "js-close-sideframe"
         expected_href = self.get_admin_url(
@@ -1898,6 +1898,7 @@ class EditRedirectTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "edit_redirect", published.pk
         )
         user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1924,6 +1925,7 @@ class EditRedirectTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "edit_redirect", draft.pk
         )
         user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -1949,6 +1951,7 @@ class EditRedirectTestCase(BaseStateTestCase):
             self.versionable.version_model_proxy, "edit_redirect", draft.pk
         )
         user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
 
         with self.login_user_context(user):
             response = self.client.post(url)
@@ -2019,8 +2022,10 @@ class EditRedirectTestCase(BaseStateTestCase):
         url = self.get_admin_url(
             self.versionable.version_model_proxy, "edit_redirect", published.pk
         )
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
 
-        with self.login_user_context(self.get_staff_user_with_no_permissions()):
+        with self.login_user_context(user):
             response = self.client.post(url)
 
         # redirect happened
@@ -3529,8 +3534,8 @@ class ListActionsTestCase(CMSTestCase):
         edit_endpoint = reverse("admin:djangocms_versioning_blogcontentversion_edit_redirect", args=(version.pk,),)
         response = func(version.content)
 
-        self.assertIn("inactive", response)
-        self.assertIn('title="Edit"', response)
+        # Without change permission the edit action is not offered at all
+        self.assertNotIn('title="Edit"', response)
         self.assertNotIn(edit_endpoint, response)
 
     def test_valid_back_link(self):

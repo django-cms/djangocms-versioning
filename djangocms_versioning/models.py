@@ -32,6 +32,7 @@ except ImportError:
 not_draft_error = _("This version is not a draft: to make changes create a new draft")
 lock_error_message = _("The latest version is locked by {user}")
 lock_draft_error_message = _("The draft version is locked by {user}")
+change_permission_error = _("You do not have change permissions")
 permission_error_message = _("You do not have permission to perform this action")
 
 
@@ -305,7 +306,7 @@ class Version(models.Model):
 
     check_archive = Conditions(
         [
-            user_can_change(_("You do not have change permissions")),
+            user_can_change(change_permission_error),
             in_state([constants.DRAFT], _("Version is not in draft state")),
             is_not_locked(lock_error_message),
         ]
@@ -525,7 +526,7 @@ class Version(models.Model):
     )
     check_revert = Conditions(
         [
-            user_can_change(_("You do not have change permissions")),
+            user_can_change(change_permission_error),
             in_state(
                 [constants.ARCHIVED, constants.UNPUBLISHED],
                 _("Version is not in archived or unpublished state"),
@@ -536,6 +537,7 @@ class Version(models.Model):
     check_discard = Conditions(
         [
             in_state([constants.DRAFT], not_draft_error),
+            user_can_change(change_permission_error),
             is_not_locked(lock_error_message),
         ]
     )
@@ -545,6 +547,7 @@ class Version(models.Model):
                 [constants.DRAFT, constants.PUBLISHED],
                 _("Version is not in draft or published state"),
             ),
+            user_can_change(change_permission_error),
             draft_is_not_locked(lock_draft_error_message),
         ]
     )

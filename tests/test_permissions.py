@@ -257,3 +257,90 @@ class PermissionTestCase(BaseStateTestCase):
         self.assertIsNotNone(post_version_)
         self.assertEqual(post_version_.state, constants.DRAFT)
         self.assertTrue(post_version_.content.has_change_permission(user))  # Content was copied
+
+    @patch("django.contrib.messages.add_message")
+    def test_discard_view_cannot_be_accessed_without_permission(
+        self, mocked_messages
+    ):
+        # Regression test: discarding a draft (which deletes the underlying
+        # content object) must require change permission. A staff user without
+        # it must not be able to discard someone else's draft via its version pk.
+        post_version = factories.BlogPostVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "discard", post_version.pk
+        )
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url, data={"discard": "1"})
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have change permissions")
+
+        # The version (and its content) has not been discarded
+        self.assertTrue(Version.objects.filter(pk=post_version.pk).exists())
+
+    @patch("django.contrib.messages.add_message")
+    def test_discard_view_can_be_accessed_with_permission(
+        self, mocked_messages
+    ):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(
+            self.poll_versionable.version_model_proxy, "discard", poll_version.pk
+        )
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
+
+        with self.login_user_context(user):
+            self.client.post(url, data={"discard": "1"})
+
+        # The version has been discarded
+        self.assertFalse(Version.objects.filter(pk=poll_version.pk).exists())
+
+    @patch("django.contrib.messages.add_message")
+    def test_edit_redirect_view_cannot_be_accessed_without_permission(
+        self, mocked_messages
+    ):
+        # Regression test: creating a draft off a published version via
+        # edit_redirect must require change permission.
+        post_version = factories.BlogPostVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "edit_redirect", post_version.pk
+        )
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        self.assertEqual(mocked_messages.call_count, 1)
+        self.assertEqual(mocked_messages.call_args[0][1], messages.ERROR)
+        self.assertEqual(mocked_messages.call_args[0][2], "You do not have change permissions")
+
+        # No draft was created
+        self.assertFalse(
+            Version.objects.filter(
+                content_type=post_version.content_type, state=constants.DRAFT
+            ).exists()
+        )
+
+    @patch("django.contrib.messages.add_message")
+    def test_edit_redirect_view_can_be_accessed_with_permission(
+        self, mocked_messages
+    ):
+        poll_version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        url = self.get_admin_url(
+            self.poll_versionable.version_model_proxy, "edit_redirect", poll_version.pk
+        )
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
+
+        with self.login_user_context(user):
+            self.client.post(url)
+
+        # A draft was created off the published version
+        self.assertTrue(
+            Version.objects.filter(
+                content_type=poll_version.content_type, state=constants.DRAFT
+            ).exists()
+        )

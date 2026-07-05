@@ -144,6 +144,8 @@ class VersioningToolbar(PlaceholderToolbar):
             item = ButtonList(side=self.toolbar.RIGHT)
             proxy_model = self._get_proxy_model()
             version = self._get_version()
+            if version and version.state != DRAFT:
+                version = version.get_latest_draft_version()
             if version and version.state == DRAFT and version.check_unlock.as_bool(self.request.user):
                 unlock_url = reverse(
                     f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_unlock",

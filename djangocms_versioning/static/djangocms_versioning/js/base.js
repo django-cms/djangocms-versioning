@@ -38,13 +38,14 @@ const getOrAddFrame = () => {
 
 const switchVersion = version => {
     const url = window.location.href;
+    const safeVersion = encodeURIComponent(String(version));
 
     if (url.match(/compare_to=\d+/)) {
-        window.location.href = window.location.href.replace(/compare_to=\d+/, `compare_to=${version}`);
+        window.location.href = window.location.href.replace(/compare_to=\d+/, `compare_to=${safeVersion}`);
     } else if (url.match(/\?/)) {
-        window.location.href += `&compare_to=${version}`;
+        window.location.href += `&compare_to=${safeVersion}`;
     } else {
-        window.location.href += `?compare_to=${version}`;
+        window.location.href += `?compare_to=${safeVersion}`;
     }
 };
 

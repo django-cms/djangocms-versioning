@@ -8,6 +8,7 @@ reliably regardless of ``settings.DEBUG`` -- the test runner forces
 assertion would pass vacuously.
 """
 from contextlib import contextmanager
+from unittest import skipIf
 
 from django.contrib import admin as django_admin
 from django.contrib.admin.sites import AdminSite
@@ -18,7 +19,6 @@ from django.test.utils import CaptureQueriesContext
 
 from djangocms_versioning import conf
 from djangocms_versioning.admin import ExtendedVersionAdminMixin
-from djangocms_versioning.cms_menus import CMSMenu
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.indicators import content_indicator
 from djangocms_versioning.models import Version
@@ -144,8 +144,11 @@ class ToolbarPerformanceTestCase(PerformanceTestMixin, TestCase):
 class MenuPerformanceTestCase(PerformanceTestMixin, TestCase):
     """Test that menu rendering prefetches versions instead of an N+1 loop."""
 
+    @skipIf(conf.ENABLE_MENU_REGISTRATION, "Only with menu registration enabled")
     def _render_menu_query_count(self, num_pages):
         """Create ``num_pages`` pages and return the query count for get_nodes."""
+        from djangocms_versioning.cms_menus import CMSMenu
+
         user = UserFactory()
         for _ in range(num_pages):
             PageContentWithVersionFactory(

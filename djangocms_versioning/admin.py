@@ -503,8 +503,15 @@ class ExtendedVersionAdminMixin(
         # annotate the queryset, with the usernames all lower case, and then order based on that!
 
         queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{conf.USERNAME_FIELD}"))
-        # Prefetch versions to avoid N+1 queries in list display
-        queryset = queryset.prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
+        # Prefetch versions (including author, locked_by) to avoid N+1 queries in list display,
+        # e.g. get_author() accesses version.created_by for every row.
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                "versions",
+                queryset=Version.objects.select_related("created_by", "locked_by"),
+                to_attr="_prefetched_versions",
+            )
+        )
         return queryset
 
     def get_version(self, obj):

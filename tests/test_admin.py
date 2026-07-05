@@ -118,7 +118,7 @@ class AdminVersioningTestCase(CMSTestCase):
         self.assertTrue(issubclass(new_admin_class, mixin))
 
         # mixin takes precedence over user-defined class
-        self.assertTrue(mro.index(mixin) < mro.index(admin_class))
+        self.assertLess(mro.index(mixin), mro.index(admin_class))
 
 
 class AdminReplaceVersioningTestCase(CMSTestCase):

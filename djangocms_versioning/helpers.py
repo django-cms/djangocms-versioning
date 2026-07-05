@@ -489,18 +489,13 @@ def content_is_unlocked_for_user(
     content: models.Model, user: settings.AUTH_USER_MODEL
 ) -> bool:
     """Check if lock doesn't exist or object is locked to provided user."""
+    from .models import Version
+
     try:
-        # Use prefetched versions if available to avoid N+1 query
-        if hasattr(content, "_prefetched_versions") and content._prefetched_versions:
-            version = content._prefetched_versions[0]
-        else:
-            # For unversioned models, content.versions won't exist
-            version = content.versions.first()
-    except AttributeError:
-        # Unversioned model - no lock
-        return True
-    if version is None:
-        # No version yet - no lock
+        version = get_version_for_content(content)
+    except (KeyError, Version.DoesNotExist):
+        # Unversioned model (KeyError from the versionables lookup) or content
+        # without a version yet (DoesNotExist) - either way there is no lock.
         return True
     return version.is_unlocked_for_user(user)
 

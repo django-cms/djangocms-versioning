@@ -18,6 +18,7 @@ from django.test.utils import CaptureQueriesContext
 
 from djangocms_versioning import conf
 from djangocms_versioning.admin import ExtendedVersionAdminMixin
+from djangocms_versioning.cms_menus import CMSMenu
 from djangocms_versioning.cms_toolbars import VersioningToolbar
 from djangocms_versioning.indicators import content_indicator
 from djangocms_versioning.models import Version
@@ -119,12 +120,25 @@ class ToolbarPerformanceTestCase(PerformanceTestMixin, TestCase):
         for content in contents:
             self._clear_version_cache(content)
 
-        # 3 objects -> exactly 3 version lookups (1 each), reused within each toolbar.
-        with self.assertNumQueries(len(contents)):
+        # Exactly one version query per object (reused within each toolbar), no N+1.
+        # Count version-table queries only, ignoring incidental framework lookups
+        # (e.g. a one-off django_site query when the first toolbar is built).
+        with CaptureQueriesContext(connection) as ctx:
             for content in contents:
                 toolbar = self._create_toolbar(content, edit_mode=True)
                 toolbar._get_version()
                 toolbar._get_version()
+
+        version_queries = [
+            q for q in ctx.captured_queries
+            if "djangocms_versioning_version" in q["sql"]
+        ]
+        self.assertEqual(
+            len(version_queries),
+            len(contents),
+            f"Expected one version query per object ({len(contents)}), got "
+            f"{len(version_queries)}; suggests an N+1 in the toolbar version lookup.",
+        )
 
 
 class MenuPerformanceTestCase(PerformanceTestMixin, TestCase):
@@ -147,9 +161,7 @@ class MenuPerformanceTestCase(PerformanceTestMixin, TestCase):
             "path_info": "/test/",
             "META": {"HTTP_HOST": "testserver"},
         })()
-        menu = __import__(
-            "djangocms_versioning.cms_menus", fromlist=["CMSMenu"]
-        ).CMSMenu(request)
+        menu = CMSMenu(request)
 
         with CaptureQueriesContext(connection) as ctx:
             menu.get_nodes(request)

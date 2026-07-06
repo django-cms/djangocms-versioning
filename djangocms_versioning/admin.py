@@ -67,11 +67,25 @@ from .versionables import _cms_extension
 
 
 def _get_grouper_content_filters(model_admin, request):
+    versionable = versionables.for_grouper(model_admin.model)
     if hasattr(model_admin, "get_content_filters"):
-        return model_admin.get_content_filters(request)
-    # Compatibility with django CMS < 5.1. Drop when django CMS 5.0 support is dropped.
-    model_admin.get_grouping_from_request(request)
-    return model_admin.current_content_filters
+        content_filters = model_admin.get_content_filters(request)
+    else:
+        # Compatibility with django CMS < 5.1. Drop when django CMS 5.0 support is dropped.
+        model_admin.get_grouping_from_request(request)
+        content_filters = model_admin.current_content_filters
+
+    content_filters = dict(content_filters)
+    for field in versionable.extra_grouping_fields:
+        if field in content_filters:
+            continue
+        if hasattr(model_admin, f"get_{field}_from_request"):
+            content_filters[field] = getattr(model_admin, f"get_{field}_from_request")(request)
+        elif field == "language":
+            content_filters[field] = get_language_from_request(request)
+        elif hasattr(model_admin, field):
+            content_filters[field] = getattr(model_admin, field)
+    return content_filters
 
 
 class VersioningChangeListMixin:

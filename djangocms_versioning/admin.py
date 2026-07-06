@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import warnings
 from collections import OrderedDict
+from inspect import Parameter, signature
 from urllib.parse import urlencode, urlparse
 
 from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
@@ -86,6 +87,19 @@ def _get_grouper_content_filters(model_admin, request):
         elif hasattr(model_admin, field):
             content_filters[field] = getattr(model_admin, field)
     return content_filters
+
+
+def _accepts_content_filters(method):
+    return any(
+        parameter.kind == Parameter.VAR_KEYWORD or parameter.name == "content_filters"
+        for parameter in signature(method).parameters.values()
+    )
+
+
+def _get_grouper_content_obj(model_admin, obj, content_filters=None):
+    if _accepts_content_filters(model_admin.get_content_obj):
+        return model_admin.get_content_obj(obj, content_filters=content_filters)
+    return model_admin.get_content_obj(obj)
 
 
 class VersioningChangeListMixin:
@@ -287,7 +301,7 @@ class ExtendedListDisplayMixin:
 
         def get_field_modifier(obj):
             if self._is_grouper_admin:  # In a grouper admin?
-                return method(self.get_content_obj(obj, content_filters=content_filters), field)
+                return method(_get_grouper_content_obj(self, obj, content_filters=content_filters), field)
             else:
                 return method(obj, field)
 
@@ -392,10 +406,11 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             # and are unhashable, so they must not reach the instance-keyed cache in the super().
             return None
         if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
-            if hasattr(self, "get_content_filters"):
-                return super().get_content_obj(obj, content_filters=content_filters)
+            get_content_obj = super().get_content_obj
+            if _accepts_content_filters(get_content_obj):
+                return get_content_obj(obj, content_filters=content_filters)
             # Compatibility with django CMS < 5.1. Drop when django CMS 5.0 support is dropped.
-            return super().get_content_obj(obj)
+            return get_content_obj(obj)
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
     @admin.display(

@@ -32,9 +32,12 @@ from freezegun import freeze_time
 import djangocms_versioning.helpers
 from djangocms_versioning import constants, helpers
 from djangocms_versioning.admin import (
+    ExtendedGrouperVersionAdminMixin,
     VersionAdmin,
     VersionChangeList,
     VersioningAdminMixin,
+    _get_grouper_content_filters,
+    _get_grouper_content_obj,
 )
 from djangocms_versioning.cms_config import VersioningCMSConfig
 from djangocms_versioning.helpers import (
@@ -3155,6 +3158,116 @@ class ExtendedVersionGrouperAdminTestCase(CMSTestCase):
         modified_field = modeladmin._get_field_modifier(request, modifier_dict, "text")
 
         self.assertEqual("{} {}".format(content.text, "Test!"), modified_field(content))
+
+    def test_get_content_obj_supports_old_grouper_admin_api(self):
+        class OldGrouperAdminBase:
+            def get_content_obj(self, obj):
+                return obj
+
+        class VersionedOldGrouperAdmin(ExtendedGrouperVersionAdminMixin, OldGrouperAdminBase):
+            def _is_content_obj(self, obj):
+                return False
+
+        class Obj:
+            pk = 1
+
+        obj = Obj()
+        modeladmin = VersionedOldGrouperAdmin()
+
+        self.assertIs(
+            modeladmin.get_content_obj(obj, content_filters={"language": "en"}),
+            obj,
+        )
+
+    def test_get_content_obj_passes_content_filters_to_new_grouper_admin_api(self):
+        class NewGrouperAdminBase:
+            def get_content_obj(self, obj, content_filters=None):
+                self.content_filters = content_filters
+                return obj
+
+        class VersionedNewGrouperAdmin(ExtendedGrouperVersionAdminMixin, NewGrouperAdminBase):
+            def _is_content_obj(self, obj):
+                return False
+
+        class Obj:
+            pk = 1
+
+        obj = Obj()
+        modeladmin = VersionedNewGrouperAdmin()
+        content_filters = {"language": "en"}
+
+        self.assertIs(
+            modeladmin.get_content_obj(obj, content_filters=content_filters),
+            obj,
+        )
+        self.assertEqual(modeladmin.content_filters, content_filters)
+
+    def test_get_grouper_content_obj_supports_old_grouper_admin_api(self):
+        class OldGrouperAdmin:
+            def get_content_obj(self, obj):
+                self.called_with = obj
+                return obj
+
+        obj = object()
+        modeladmin = OldGrouperAdmin()
+
+        self.assertIs(
+            _get_grouper_content_obj(modeladmin, obj, content_filters={"language": "en"}),
+            obj,
+        )
+        self.assertIs(modeladmin.called_with, obj)
+
+    def test_get_grouper_content_obj_passes_filters_to_new_grouper_admin_api(self):
+        class NewGrouperAdmin:
+            def get_content_obj(self, obj, content_filters=None):
+                self.called_with = obj
+                self.content_filters = content_filters
+                return obj
+
+        obj = object()
+        modeladmin = NewGrouperAdmin()
+        content_filters = {"language": "en"}
+
+        self.assertIs(
+            _get_grouper_content_obj(modeladmin, obj, content_filters=content_filters),
+            obj,
+        )
+        self.assertIs(modeladmin.called_with, obj)
+        self.assertEqual(modeladmin.content_filters, content_filters)
+
+    def test_get_grouper_content_filters_supports_old_grouper_admin_api(self):
+        class OldGrouperAdmin:
+            model = Poll
+
+            def get_grouping_from_request(self, request):
+                self.grouping_request = request
+                self.current_content_filters = {"language": "en"}
+
+        request = self.get_request("/")
+        modeladmin = OldGrouperAdmin()
+
+        self.assertEqual(
+            _get_grouper_content_filters(modeladmin, request),
+            {"language": "en"},
+        )
+        self.assertIs(modeladmin.grouping_request, request)
+
+    def test_get_grouper_content_filters_supports_new_grouper_admin_api(self):
+        class NewGrouperAdmin:
+            model = Poll
+
+            def get_content_filters(self, request):
+                self.filters_request = request
+                return {"language": "en"}
+
+        request = self.get_request("/")
+        modeladmin = NewGrouperAdmin()
+
+        self.assertEqual(
+            _get_grouper_content_filters(modeladmin, request),
+            {"language": "en"},
+        )
+        self.assertIs(modeladmin.filters_request, request)
 
     def test_extended_grouper_extend_list_display_handles_non_existent_field(self):
         """

@@ -2,6 +2,15 @@
 Changelog
 =========
 
+2.6.1 (2026-07-06)
+==================
+* fix: Enforced change permission on discard and edit_redirect by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/573
+* fix: DOM text reinterpreted as HTML by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/572
+* perf: Removed unnecessary Version queries by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/571
+
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.6.0...2.6.1
+
 2.6.0 (2026-06-30)
 ==================
 

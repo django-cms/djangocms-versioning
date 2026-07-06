@@ -281,7 +281,7 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar.post_template_populate()
 
         edit_buttons = find_toolbar_buttons("Edit", toolbar.toolbar)
-        self.assertTrue(len(edit_buttons) > 0, "Edit button should be present in toolbar")
+        self.assertGreater(len(edit_buttons), 0, "Edit button should be present in toolbar")
         edit_button = edit_buttons[0]
 
         # The edit button URL should include the GET parameters

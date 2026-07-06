@@ -33,6 +33,7 @@ from .datastructures import BaseVersionableItem, VersionableItem, default_copy
 from .exceptions import ConditionFailed
 from .helpers import (
     get_latest_admin_viewable_content,
+    get_version_for_content,
     inject_generic_relation_to_version,
     is_editable,
     register_versionadmin_proxy,
@@ -40,7 +41,6 @@ from .helpers import (
     replace_manager,
 )
 from .managers import AdminManagerMixin, PublishedContentManagerMixin
-from .models import Version
 from .plugin_rendering import CMSToolbarVersioningMixin
 
 
@@ -246,7 +246,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
         if obj:
-            version = Version.objects.get_for_content(obj)
+            version = get_version_for_content(obj)
             if not version.check_modify.as_bool(request.user):
                 form = self.get_form_class(request)
                 if form.fieldsets:
@@ -260,7 +260,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         return (
             super()
             .get_queryset(request)
-            .prefetch_related(Prefetch("versions", to_attr="prefetched_versions"))
+            .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
         )
 
     def copy_language(self, request, object_id):
@@ -301,7 +301,7 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
     def change_innavigation(self, request, object_id):
         page_content = self.get_object(request, object_id=object_id)
-        version = Version.objects.get_for_content(page_content)
+        version = get_version_for_content(page_content)
         try:
             version.check_modify(request.user)
         except ConditionFailed as e:
@@ -319,10 +319,13 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
         """Get the indicator menu for PageContent object taking into account the
         currently available versions"""
         menu_template = "admin/cms/page/tree/indicator_menu.html"
-        if hasattr(page_content.page, "filtered_translations") and hasattr(page_content, "prefetched_versions"):
+        if hasattr(page_content.page, "filtered_translations") and hasattr(page_content, "_prefetched_versions"):
             # get_tree has prefetched versions
             versions = sorted(
-                [content.prefetched_versions[0] for content in page_content.page.filtered_translations],
+                [
+                    get_version_for_content(content)
+                    for content in page_content.page.filtered_translations
+                ],
                 key=lambda version: -version.pk,
             )
             for content in page_content.page.filtered_translations:

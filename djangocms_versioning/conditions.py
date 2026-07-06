@@ -3,7 +3,6 @@ from django.conf import settings
 
 from . import conf
 from .exceptions import ConditionFailed
-from .helpers import get_latest_draft_version, version_is_unlocked_for_user
 
 
 class ReasonedBool(int):
@@ -64,7 +63,7 @@ def is_not_locked(message: str) -> callable:
     is set to ``True``"""
     def inner(version, user):
         if conf.LOCK_VERSIONS:
-            if not version_is_unlocked_for_user(version, user):
+            if not version.is_unlocked_for_user(user):
                 raise ConditionFailed(message.format(user=version.locked_by))
     return inner
 
@@ -72,8 +71,8 @@ def is_not_locked(message: str) -> callable:
 def draft_is_not_locked(message: str) -> callable:
     def inner(version, user):
         if conf.LOCK_VERSIONS:
-            draft_version = get_latest_draft_version(version)
-            if draft_version and not version_is_unlocked_for_user(draft_version, user):
+            draft_version = version.get_latest_draft_version()
+            if draft_version and not draft_version.is_unlocked_for_user(user):
                 raise ConditionFailed(message.format(user=draft_version.locked_by))
     return inner
 
@@ -81,8 +80,8 @@ def draft_is_not_locked(message: str) -> callable:
 def draft_is_locked(message: str) -> callable:
     def inner(version, user):
         if conf.LOCK_VERSIONS:
-            draft_version = get_latest_draft_version(version)
-            if not draft_version or version_is_unlocked_for_user(draft_version, user):
+            draft_version = version.get_latest_draft_version()
+            if not draft_version or draft_version.is_unlocked_for_user(user):
                 raise ConditionFailed(message)
         else:
             raise ConditionFailed(message)
@@ -94,7 +93,7 @@ def user_can_unlock(message: str) -> callable:
         if conf.LOCK_VERSIONS:
             if user.has_perm(f"{version._meta.app_label}.delete_versionlock"):
                 return
-            draft_version = get_latest_draft_version(version)
+            draft_version = version.get_latest_draft_version()
             if draft_version and (draft_version.locked_by_id is  None or draft_version.locked_by_id == user.pk):
                 return
             raise ConditionFailed(message)

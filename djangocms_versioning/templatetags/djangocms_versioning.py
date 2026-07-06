@@ -20,8 +20,7 @@ def object_tools_outside_content():
 def _get_version(content):
     """Return the (single) version of a versioned content object.
 
-    Uses a prefetched ``versions`` list when one is available - ``prefetched_versions``
-    on changelist/menu querysets, ``_prefetched_versions`` on grouper change views -
+    Uses a prefetched ``versions`` list when one is available
     and falls back to a query otherwise (e.g. the toolbar). Each content object has a
     single version, so the first entry is the relevant one.
 
@@ -29,10 +28,9 @@ def _get_version(content):
     which has no ``versions`` manager, is filtered out by the templates), so the
     query fallback is safe.
     """
-    for attr in ("prefetched_versions", "_prefetched_versions"):
-        prefetched = getattr(content, attr, None)
-        if prefetched is not None:
-            return prefetched[0] if prefetched else None
+    prefetched = getattr(content, "_prefetched_versions", None)
+    if prefetched is not None:
+        return prefetched[0] if prefetched else None
     return content.versions.first()
 
 

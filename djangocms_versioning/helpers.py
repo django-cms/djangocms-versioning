@@ -4,6 +4,7 @@ import copy
 import warnings
 from collections.abc import Iterable
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from cms.models import Page, PageContent, Placeholder
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -23,6 +24,9 @@ from django.utils.translation import get_language, override as force_language
 from . import versionables
 from .conf import EMAIL_NOTIFICATIONS_FAIL_SILENTLY
 from .constants import DRAFT, PUBLISHED
+
+if TYPE_CHECKING:
+    from .models import Version
 
 try:
     from djangocms_internalsearch.helpers import emit_content_change
@@ -45,13 +49,30 @@ except ImportError:
         return Site.objects.get_current()
 
 
-def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
-    """Check of content_obj is editable"""
+def get_version_for_content(content_obj: models.Model) -> Version:
+    """Get the version for a content object, using prefetched versions if available.
+
+    This helper function centralizes the logic for retrieving a version object,
+    checking for prefetched versions first to avoid N+1 queries, and falling back
+    to Version.objects.get_for_content() if prefetched versions are not available.
+
+    :param content_obj: A content model instance
+    :return: The Version instance for the content
+    """
     from .models import Version
 
-    return Version.objects.get_for_content(content_obj).check_modify.as_bool(
-        request.user
-    )
+    # Check for prefetched versions (set by Prefetch with to_attr="_prefetched_versions")
+    if hasattr(content_obj, "_prefetched_versions") and content_obj._prefetched_versions:
+        return content_obj._prefetched_versions[0]
+
+    # Fall back to database query
+    return Version.objects.get_for_content(content_obj)
+
+
+def is_editable(content_obj: models.Model, request: HttpRequest) -> bool:
+    """Check of content_obj is editable"""
+    version = get_version_for_content(content_obj)
+    return version.check_modify.as_bool(request.user)
 
 
 def versioning_admin_factory(admin_class: type[admin.ModelAdmin], mixin: type) -> type[admin.ModelAdmin]:
@@ -260,9 +281,8 @@ def is_content_editable(placeholder: Placeholder, user: models.Model) -> bool:
         versionables.for_content(placeholder.source)
     except KeyError:
         return True
-    from .models import Version
 
-    version = Version.objects.get_for_content(placeholder.source)
+    version = get_version_for_content(placeholder.source)
     return version.state == DRAFT
 
 
@@ -457,22 +477,27 @@ def version_is_locked(version) -> settings.AUTH_USER_MODEL:
 
 
 def version_is_unlocked_for_user(version, user: settings.AUTH_USER_MODEL) -> bool:
-    """Check if lock doesn't exist for a version object or is locked to provided user."""
-    return version.locked_by_id is None or version.locked_by_id == user.pk
+    """Check if lock doesn't exist for a version object or is locked to provided user.
+
+    Thin wrapper kept for backwards compatibility; prefer
+    ``version.is_unlocked_for_user(user)``.
+    """
+    return version.is_unlocked_for_user(user)
 
 
 def content_is_unlocked_for_user(
     content: models.Model, user: settings.AUTH_USER_MODEL
 ) -> bool:
     """Check if lock doesn't exist or object is locked to provided user."""
+    from .models import Version
+
     try:
-        if hasattr(content, "prefetched_versions"):
-            version = content.prefetched_versions[0]
-        else:
-            version = content.versions.first()
-        return version_is_unlocked_for_user(version, user)
-    except AttributeError:
+        version = get_version_for_content(content)
+    except (KeyError, Version.DoesNotExist):
+        # Unversioned model (KeyError from the versionables lookup) or content
+        # without a version yet (DoesNotExist) - either way there is no lock.
         return True
+    return version.is_unlocked_for_user(user)
 
 
 def placeholder_content_is_unlocked_for_user(
@@ -503,21 +528,3 @@ def send_email(
     )
     return message.send(fail_silently=EMAIL_NOTIFICATIONS_FAIL_SILENTLY)
 
-
-def get_latest_draft_version(version: models.Model) -> models.Model:
-    """Get latest draft version of version object and caches it in the
-    content object"""
-    from .models import Version
-
-    if getattr(version.content, "content_is_latest", False):
-        return version if version.state == DRAFT else None
-
-    if (
-        not hasattr(version.content, "_latest_draft_version")
-        or getattr(version.content._latest_draft_version, "state", DRAFT) != DRAFT
-    ):
-        drafts = Version.objects.filter_by_content_grouping_values(
-            version.content
-        ).filter(state=DRAFT)
-        version.content._latest_draft_version = drafts.first()
-    return version.content._latest_draft_version

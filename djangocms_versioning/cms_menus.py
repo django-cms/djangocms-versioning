@@ -1,4 +1,5 @@
 from . import conf, constants
+from .helpers import get_version_for_content
 
 if conf.ENABLE_MENU_REGISTRATION:
     from cms import constants as cms_constants
@@ -13,6 +14,7 @@ if conf.ENABLE_MENU_REGISTRATION:
     from cms.toolbar.utils import get_object_preview_url, get_toolbar_from_request
     from cms.utils.page import get_page_queryset
     from django.apps import apps
+    from django.db.models import Prefetch
     from menus.base import Menu, NavigationNode
     from menus.menu_pool import menu_pool
 
@@ -113,7 +115,7 @@ if conf.ENABLE_MENU_REGISTRATION:
                 )
                 .order_by("page__node__path" if TreeNode else "page__path", "versions__state")
                 .select_related("page", "page__node" if TreeNode else "page")
-                .prefetch_related("versions")
+                .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
             )
             added_pages = []
 
@@ -125,7 +127,8 @@ if conf.ENABLE_MENU_REGISTRATION:
                     # Therefore, we avoid adding it to the menu.
                     continue
 
-                version = page_content.versions.all()[0]
+                # Use prefetched versions to avoid N+1 query
+                version = get_version_for_content(page_content)
 
                 if page.pk in added_pages and edit_or_preview and version.state == constants.PUBLISHED:
                     # Page content is already added. This is the case where you

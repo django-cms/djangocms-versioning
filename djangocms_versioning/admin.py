@@ -55,6 +55,7 @@ from .helpers import (
     get_latest_content_from_cache,
     get_object_live_url,
     get_preview_url,
+    get_version_for_content,
     proxy_model,
     remove_version_lock,
     version_is_locked,
@@ -147,7 +148,7 @@ class VersioningAdminMixin:
     def has_change_permission(self, request, obj=None):
         # Add additional version checks
         if obj:
-            version = Version.objects.get_for_content(obj)
+            version = get_version_for_content(obj)
             permission = version.check_modify.as_bool(request.user)
             if conf.LOCK_VERSIONS and permission:
                 permission = content_is_unlocked_for_user(obj, request.user)
@@ -411,7 +412,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         if content_obj is None:
             # Creating an object is never restricted by versioning
             return True
-        version = Version.objects.get_for_content(content_obj)
+        version = get_version_for_content(content_obj)
         return version.check_modify.as_bool(request.user)
 
     def get_prepopulated_fields(self, request: HttpRequest, obj=None) -> dict:
@@ -502,6 +503,15 @@ class ExtendedVersionAdminMixin(
         # annotate the queryset, with the usernames all lower case, and then order based on that!
 
         queryset = queryset.annotate(created_by_username_ordering=Lower(f"versions__created_by__{conf.USERNAME_FIELD}"))
+        # Prefetch versions (including author, locked_by) to avoid N+1 queries in list display,
+        # e.g. get_author() accesses version.created_by for every row.
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                "versions",
+                queryset=Version.objects.select_related("created_by", "locked_by"),
+                to_attr="_prefetched_versions",
+            )
+        )
         return queryset
 
     def get_version(self, obj):
@@ -510,7 +520,7 @@ class ExtendedVersionAdminMixin(
         :param obj: Versioned Content instance
         :return: Latest Version linked with content instance
         """
-        return obj.versions.all()[0]
+        return get_version_for_content(obj)
 
     @admin.display(
         description=_("State"),

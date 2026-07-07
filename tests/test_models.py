@@ -272,7 +272,7 @@ class TestVersionQuerySet(CMSTestCase):
 
         cached_version = Version.objects.get_for_content(content)
         # Populate the latest draft version cache on the content object
-        latest_draft_version = Version.objects.get_latest_draft_version(content)
+        latest_draft_version = cached_version.get_latest_draft_version()
 
         self.assertEqual(cached_version.state, DRAFT)
         self.assertEqual(latest_draft_version.state, DRAFT)

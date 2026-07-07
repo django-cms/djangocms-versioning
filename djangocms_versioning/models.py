@@ -193,6 +193,14 @@ class Version(models.Model):
             self.content._latest_draft_version = drafts.first()
         return self.content._latest_draft_version
 
+    def _clear_content_version_caches(self):
+        content = self._state.fields_cache.get("content")
+        if content is None:
+            return
+        for attr in ("_version_cache", "_latest_draft_version"):
+            if hasattr(content, attr):
+                delattr(content, attr)
+
     def delete(self, using=None, keep_parents=False):
         """Deleting a version deletes the grouper
         as well if we are deleting the last version."""
@@ -237,6 +245,7 @@ class Version(models.Model):
             self.locked_by = None
 
         super().save(**kwargs)
+        self._clear_content_version_caches()
         # Only one draft version is allowed per unique grouping values.
         # Set all other drafts to archived
         if self.state == constants.DRAFT:

@@ -833,6 +833,23 @@ class ExtendedVersionAdminActionsSideframeTestCase(CMSTestCase):
         self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
         self.assertIn("js-close-sideframe", actual_sideframe_control)
 
+    def test_new_draft_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        """For a published version the edit action renders as "New Draft";
+        creating the draft must also keep the sideframe open for models
+        edited in the admin."""
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+
+        edit_link = self.poll_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertEqual(actual_link.get("title"), "New Draft")
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+
 
 class StateActionsTestCase(CMSTestCase):
     def test_archive_in_state_actions_for_draft_version(self):

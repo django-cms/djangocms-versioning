@@ -266,6 +266,25 @@ class TestVersionQuerySet(CMSTestCase):
         version = factories.PollVersionFactory()
         self.assertEqual(Version.objects.get_for_content(version.content), version)
 
+    def test_get_for_content_cache_invalidated_on_publish(self):
+        version = factories.PollVersionFactory()
+        content = version.content
+
+        cached_version = Version.objects.get_for_content(content)
+        # Populate the latest draft version cache on the content object
+        latest_draft_version = cached_version.get_latest_draft_version()
+
+        self.assertEqual(cached_version.state, DRAFT)
+        self.assertEqual(latest_draft_version.state, DRAFT)
+        self.assertTrue(hasattr(content, "_version_cache"))
+        self.assertTrue(hasattr(content, "_latest_draft_version"))
+
+        version.publish(user=version.created_by)
+
+        self.assertFalse(hasattr(content, "_version_cache"))
+        self.assertFalse(hasattr(content, "_latest_draft_version"))
+        self.assertEqual(Version.objects.get_for_content(content).state, PUBLISHED)
+
     def test_versioned_admin_manager(self):
         """With an extra helper method we can return the full queryset"""
         factories.PollVersionFactory()

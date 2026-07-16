@@ -235,8 +235,8 @@ If we were using the `default_copy` function on this model structure, versioning
 Let's take a scenario like this:
 
 1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
-2. We revert to `version #1` which creates a draft `version #3`.
-3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we reverted to), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
+2. We restore `version #1` which creates a draft `version #3`.
+3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we restored), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
 4. We edit both the PostContent, Poll and Answer data on `version #3`.
 5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
 
@@ -305,7 +305,7 @@ but also new Poll and Answer objects.
     A custom copy method will need to use the content model's ``PostContent._original_manager`` to create only a content model object and not also a Version object which the ``PostContent.objects`` manager would have done!
 
 Notice that we have not created new Category objects in this example. This is because the default behaviour actually suits Category objects fine.
-If the name of a category changed, we would not want to revert the whole site to use the old name of the category when reverting a PostContent object.
+If the name of a category changed, we would not want the whole site to go back to using the old name of the category when restoring a PostContent object.
 
 Adding Versioning Entries to a Grouper Model Admin
 --------------------------------------------------

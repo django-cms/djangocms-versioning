@@ -44,12 +44,12 @@ def content_indicator_menu(request, status, versions, back=""):
                 _reverse_action(versions[0], "edit_redirect"),
                 "js-cms-tree-lang-trigger js-cms-pagetree-page-view",  # Triggers POST from the frontend
             ))
-        if versions[0].check_revert.as_bool(request.user) and versions[0].state == UNPUBLISHED:
-            # Do not offer revert from unpublish -> archived versions to be managed in version admin
-            label = _("Revert from Unpublish")
+        if versions[0].check_restore.as_bool(request.user) and versions[0].state == UNPUBLISHED:
+            # Do not offer restore from unpublish -> archived versions to be managed in version admin
+            label = _("Restore from Unpublish")
             menu.append((
                 label, "cms-icon-undo",
-                _reverse_action(versions[0], "revert"),
+                _reverse_action(versions[0], "restore"),
                 "js-cms-tree-lang-trigger",  # Triggers POST from the frontend
             ))
         if versions[0].check_unpublish.as_bool(request.user):

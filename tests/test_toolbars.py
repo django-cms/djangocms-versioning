@@ -48,9 +48,9 @@ class VersioningToolbarTestCase(CMSTestCase):
         admin_url = self.get_admin_url(versionable.version_model_proxy, "edit_redirect", version.pk)
         return admin_url
 
-    def _get_revert_url(self, version, versionable=PollsCMSConfig.versioning[0]):
-        """Helper method to return the expected publish url"""
-        admin_url = self.get_admin_url(versionable.version_model_proxy, "revert", version.pk)
+    def _get_restore_url(self, version, versionable=PollsCMSConfig.versioning[0]):
+        """Helper method to return the expected restore url"""
+        admin_url = self.get_admin_url(versionable.version_model_proxy, "restore", version.pk)
         return admin_url
 
     def test_publish_in_toolbar_in_edit_mode(self):
@@ -59,8 +59,8 @@ class VersioningToolbarTestCase(CMSTestCase):
         toolbar = get_toolbar(version.content, edit_mode=True)
 
         toolbar.post_template_populate()
-        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)
-        self.assertListEqual(revert_button, [])  # No revert button
+        restore_button = find_toolbar_buttons("Restore", toolbar.toolbar)
+        self.assertListEqual(restore_button, [])  # No restore button
 
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)[0]
         self.assertEqual(publish_button.name, "Publish")
@@ -71,8 +71,8 @@ class VersioningToolbarTestCase(CMSTestCase):
             ["cms-btn-action", "cms-form-post-method", "cms-versioning-js-publish-btn"],
         )
 
-    def test_revert_in_toolbar_in_preview_mode(self):
-        """Test for Revert button outside mode"""
+    def test_restore_in_toolbar_in_preview_mode(self):
+        """Test for Restore button outside mode"""
 
         version = PollVersionFactory()
         version.archive(self.get_superuser())
@@ -82,12 +82,12 @@ class VersioningToolbarTestCase(CMSTestCase):
         publish_button = find_toolbar_buttons("Publish", toolbar.toolbar)
         self.assertListEqual(publish_button, [])  # No publish button
 
-        revert_button = find_toolbar_buttons("Revert", toolbar.toolbar)[0]
-        self.assertEqual(revert_button.name, "Revert")
-        self.assertEqual(revert_button.url, self._get_revert_url(version))
-        self.assertFalse(revert_button.disabled)
+        restore_button = find_toolbar_buttons("Restore", toolbar.toolbar)[0]
+        self.assertEqual(restore_button.name, "Restore")
+        self.assertEqual(restore_button.url, self._get_restore_url(version))
+        self.assertFalse(restore_button.disabled)
         self.assertListEqual(
-            revert_button.extra_classes,
+            restore_button.extra_classes,
             [
                 "cms-btn-action",
             ],

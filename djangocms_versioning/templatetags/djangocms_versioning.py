@@ -1,3 +1,5 @@
+import warnings
+
 import django
 from django import template
 from django.urls import reverse
@@ -64,12 +66,23 @@ def url_new_draft(content, user):
 
 
 @register.filter
-def url_revert_version(content, user):
+def url_restore_version(content, user):
     version = _get_version(content)
-    if version and version.check_revert.as_bool(user):
+    if version and version.check_restore.as_bool(user):
         proxy_model = versionables.for_content(content).version_model_proxy
         return reverse(
-            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_revert",
+            f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_restore",
             args=(version.pk,),
         )
     return ""
+
+
+@register.filter
+def url_revert_version(content, user):
+    """Deprecated alias of ``url_restore_version``."""
+    warnings.warn(
+        "The url_revert_version filter is deprecated. Use url_restore_version instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return url_restore_version(content, user)

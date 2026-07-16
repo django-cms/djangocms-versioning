@@ -152,12 +152,12 @@ The Version model uses Django FSM (Finite State Machine) to manage state transit
      - Unpublishes a published version
    * - unpublished
      - draft
-     - ``revert()``
-     - Reverts to an unpublished version as a new draft
+     - ``copy()`` (the "Restore" action)
+     - Restores an unpublished version as a new draft
    * - archived
      - draft
-     - ``revert()``
-     - Reverts to an archived version as a new draft
+     - ``copy()`` (the "Restore" action)
+     - Restores an archived version as a new draft
    * - draft
      - archived
      - ``archive()``

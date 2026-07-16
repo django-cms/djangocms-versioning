@@ -511,50 +511,50 @@ class VersionAdminActionsTestCase(CMSTestCase):
         # No href should be present in the edit link when it is disabled
         self.assertEqual(expected_href, actual_href)
 
-    def test_revert_action_link_enable_state(self):
+    def test_restore_action_link_enable_state(self):
         """
-        The revert action is active
+        The restore action is active
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         user = self.get_superuser()
         request = RequestFactory().get("/admin/polls/pollcontent/")
         version.created_by = request.user = user
-        actual_enabled_control = self.version_admin._get_revert_link(version, request)
-        draft_revert_url = self.get_admin_url(
-            self.versionable.version_model_proxy, "revert", version.pk
+        actual_enabled_control = self.version_admin._get_restore_link(version, request)
+        draft_restore_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "restore", version.pk
         )
         expected_enabled_state = (
             '<a class="btn cms-form-get-method '
             'cms-action-btn '
-            'cms-action-revert '
+            'cms-action-restore '
             'js-action '
             'js-keep-sideframe" '
-            f'href="{draft_revert_url}" '
-            'title="Revert">'
+            f'href="{draft_restore_url}" '
+            'title="Restore">'
         )
         self.assertIn(expected_enabled_state, actual_enabled_control.replace("\n", ""))
 
-    def test_revert_action_link_for_draft_state(self):
+    def test_restore_action_link_for_draft_state(self):
         """
-        The revert url should be null for draft state
+        The restore url should be null for draft state
         """
         version = factories.PollVersionFactory(state=constants.DRAFT)
         request = RequestFactory().get("/admin/polls/pollcontent/")
         request.user = factories.UserFactory()
-        actual_disabled_control = self.version_admin._get_revert_link(version, request)
+        actual_disabled_control = self.version_admin._get_restore_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
 
-    def test_revert_action_link_for_published_state(self):
+    def test_restore_action_link_for_published_state(self):
         """
-        The revert url should be null for unpublished state
+        The restore url should be null for unpublished state
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
         request.user = factories.UserFactory()
-        actual_disabled_control = self.version_admin._get_revert_link(version, request)
+        actual_disabled_control = self.version_admin._get_restore_link(version, request)
         expected_disabled_control = ""
         self.assertIn(
             expected_disabled_control, actual_disabled_control.replace("\n", "")
@@ -607,7 +607,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
     def test_discard_action_link_for_archive_state(self):
         """
-        The revert url should be null for archive state
+        The discard url should be null for archive state
         """
         version = factories.PollVersionFactory(state=constants.ARCHIVED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
@@ -620,7 +620,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
     def test_discard_action_link_for_unpublished_state(self):
         """
-        The revert url should be null for unpublished state
+        The discard url should be null for unpublished state
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
@@ -633,7 +633,7 @@ class VersionAdminActionsTestCase(CMSTestCase):
 
     def test_discard_action_link_for_published_state(self):
         """
-        The revert url should be null for unpublished state
+        The discard url should be null for published state
         """
         version = factories.PollVersionFactory(state=constants.PUBLISHED)
         request = RequestFactory().get("/admin/polls/pollcontent/")
@@ -644,9 +644,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
             expected_disabled_control, actual_disabled_control.replace("\n", "")
         )
 
-    def test_revert_action_link_for_archive_state(self):
+    def test_restore_action_link_for_archive_state(self):
         """
-        The revert url should be null for unpublished state
+        The restore url should be null for unpublished state
         """
         version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
         user = self.get_superuser()
@@ -654,19 +654,19 @@ class VersionAdminActionsTestCase(CMSTestCase):
         archive_version.archive(user)
         request = RequestFactory().get("/admin/polls/pollcontent/")
         request.user = user
-        actual_disabled_control = self.version_admin._get_revert_link(
+        actual_disabled_control = self.version_admin._get_restore_link(
             archive_version, request
         )
-        draft_revert_url = self.get_admin_url(
-            self.versionable.version_model_proxy, "revert", archive_version.pk
+        draft_restore_url = self.get_admin_url(
+            self.versionable.version_model_proxy, "restore", archive_version.pk
         )
         expected_disabled_control = (
             '<a class="btn cms-form-get-method cms-action-btn '
-            'cms-action-revert '
+            'cms-action-restore '
             'js-action '
             'js-keep-sideframe" '
-            f'href="{draft_revert_url}" '
-            'title="Revert">'
+            f'href="{draft_restore_url}" '
+            'title="Restore">'
             '<span class="cms-icon cms-icon-undo"></span>'
             '</a>'
         )
@@ -1817,14 +1817,14 @@ class UnpublishViewTestCase(BaseStateTestCase):
         conf.ON_PUBLISH_REDIRECT = original_setting
 
 
-class RevertViewTestCase(BaseStateTestCase):
+class RestoreViewTestCase(BaseStateTestCase):
     def setUp(self):
         self.versionable = PollsCMSConfig.versioning[0]
 
-    def test_revert_view_sets_modified_time(self):
+    def test_restore_view_sets_modified_time(self):
         poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "revert", poll_version.pk
+            self.versionable.version_model_proxy, "restore", poll_version.pk
         )
         user = self.get_superuser()
         with freeze_time("2999-01-11 00:00:00", tz_offset=0), self.login_user_context(
@@ -1832,13 +1832,40 @@ class RevertViewTestCase(BaseStateTestCase):
         ):
             self.client.post(url)
 
-        # get the new reverted draft object
+        # get the new restored draft object
         poll_version_ = Version.objects.filter(state=constants.DRAFT).first()
         # check modified time is updated as freeze time
         self.assertEqual(
             poll_version_.modified,
             datetime.datetime(2999, 1, 11, 00, 00, 00),
         )
+
+    def test_deprecated_revert_url_still_works(self):
+        """The old ``revert`` admin URL still resolves and restores the version."""
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        url = self.get_admin_url(
+            self.versionable.version_model_proxy, "revert", poll_version.pk
+        )
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.post(url)
+
+        self.assertRedirectsToVersionList(response, poll_version)
+        self.assertTrue(Version.objects.filter(state=constants.DRAFT).exists())
+
+    def test_deprecated_check_revert_is_alias_of_check_restore(self):
+        self.assertIs(Version.check_revert, Version.check_restore)
+
+    def test_deprecated_revert_view_warns_and_delegates(self):
+        poll_version = factories.PollVersionFactory(state=constants.ARCHIVED)
+        version_admin = admin.site._registry[self.versionable.version_model_proxy]
+        request = RequestFactory().post("/")
+        request.user = self.get_superuser()
+
+        with self.assertWarns(DeprecationWarning):
+            response = version_admin.revert_view(request, str(poll_version.pk))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Version.objects.filter(state=constants.DRAFT).exists())
 
 
 class EditRedirectTestCase(BaseStateTestCase):
@@ -3354,7 +3381,7 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         self.assertNotIn("Preview", tool_links)
         # Other versioning object-tools are not applicable for published content
         self.assertNotIn("Publish", tool_links)
-        self.assertNotIn("Revert", tool_links)
+        self.assertNotIn("Restore", tool_links)
 
     def test_prepopulated_fields_add_change_add_sequence(self):
         """Reproduces the flow from issue #532: after visiting the change view
@@ -3548,11 +3575,11 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
             response = self.client.get(self.get_change_view_url(version.content))
 
         self.assertContains(response, expected_button)
-        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "Restore")
         self.assertNotContains(response, "New Draft")
 
     def test_buttons_in_published_changeview(self):
-        """Only revert button should be visible in published mode"""
+        """Only restore button should be visible in published mode"""
         version = PollVersionFactory(state=constants.PUBLISHED)
         action_url = self._get_versioning_url(version, "edit_redirect")
         expected_button = ('<a class="accent cms-form-post-method" '
@@ -3562,15 +3589,15 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
             response = self.client.get(self.get_change_view_url(version.content))
 
         self.assertContains(response, expected_button)
-        self.assertNotContains(response, "Revert")
+        self.assertNotContains(response, "Restore")
         self.assertNotContains(response, "Publish")
 
     def test_buttons_in_unpublished_changeview(self):
-        """Only revert button should be visible in unpublished mode"""
+        """Only restore button should be visible in unpublished mode"""
         version = PollVersionFactory(state=constants.UNPUBLISHED)
-        action_url = self._get_versioning_url(version, "revert")
+        action_url = self._get_versioning_url(version, "restore")
         next_url = self.get_change_view_url(version.content)
-        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+        expected_button = f'<a href="{action_url}?next={next_url}">Restore</a>'
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_change_view_url(version.content))
@@ -3580,11 +3607,11 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
         self.assertNotContains(response, "Publish")
 
     def test_buttons_in_archived_changeview(self):
-        """Only revert button should be visible in archived mode"""
+        """Only restore button should be visible in archived mode"""
         version = PollVersionFactory(state=constants.ARCHIVED)
-        action_url = self._get_versioning_url(version, "revert")
+        action_url = self._get_versioning_url(version, "restore")
         next_url = self.get_change_view_url(version.content)
-        expected_button = f'<a href="{action_url}?next={next_url}">Revert</a>'
+        expected_button = f'<a href="{action_url}?next={next_url}">Restore</a>'
 
         with self.login_user_context(self.get_superuser()):
             response = self.client.get(self.get_change_view_url(version.content))
@@ -3640,7 +3667,7 @@ class VersioningAdminButtonsTestCase(CMSTestCase):
         self.assertEqual(preview.get("target"), "_parent")
         # Buttons not applicable to a draft version must be absent
         self.assertNotIn("New Draft", tool_links)
-        self.assertNotIn("Revert", tool_links)
+        self.assertNotIn("Restore", tool_links)
 
 
 class GrouperAdminPerformanceTestCase(CMSTestCase):

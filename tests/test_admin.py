@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
+from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
@@ -32,6 +33,7 @@ from freezegun import freeze_time
 import djangocms_versioning.helpers
 from djangocms_versioning import constants, helpers
 from djangocms_versioning.admin import (
+    ExtendedVersionAdminMixin,
     VersionAdmin,
     VersionChangeList,
     VersioningAdminMixin,
@@ -724,6 +726,112 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.assertIn(expected_href, actual_href)
         self.assertIn(expected_sideframe_open_control, actual_sideframe_control)
         self.assertNotIn(expected_sideframe_close_control, actual_sideframe_control)
+
+    def test_preview_action_link_sideframe_editing_disabled_state(self):
+        """
+        The preview action closes the sideframe for objects with
+        placeholders i.e. PageContent
+        """
+        version = factories.PageVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get("/")
+        request.user = self.get_superuser()
+
+        preview_link = self.version_admin._get_preview_link(version, request)
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_sideframe_control = soup.find("a").get("class")
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_preview_action_link_sideframe_editing_enabled_state(self):
+        """
+        The preview action keeps the sideframe open for all other objects
+        without placeholders
+        """
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = self.get_superuser()
+
+        preview_link = self.version_admin._get_preview_link(version, request)
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+        # The custom preview url registered for polls is still used
+        self.assertEqual(actual_link.get("href"), version.content.get_preview_url())
+
+
+class ExtendedVersionAdminActionsSideframeTestCase(CMSTestCase):
+    """The preview and edit action buttons rendered by the
+    ExtendedVersionAdminMixin keep the sideframe open for models edited in
+    the admin and only close it for frontend-editable models, i.e. models
+    with placeholders (issue #528).
+    """
+
+    def setUp(self):
+        self.poll_content_admin = admin.site._registry[PollContent]
+        page_content_admin_class = type(
+            "PageContentExtendedVersionAdmin",
+            (ExtendedVersionAdminMixin, admin.ModelAdmin),
+            {},
+        )
+        self.page_content_admin = page_content_admin_class(PageContent, admin.site)
+        self.request = RequestFactory().get("/")
+        self.request.user = self.get_superuser()
+
+    def _get_link_classes(self, rendered_button):
+        soup = BeautifulSoup(str(rendered_button), features="lxml")
+        return soup.find("a").get("class")
+
+    def test_preview_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+
+        preview_link = self.poll_content_admin._get_preview_link(
+            version.content, self.request
+        )
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+        # The custom preview url of the content model is still used
+        self.assertEqual(actual_link.get("href"), version.content.get_preview_url())
+
+    def test_preview_action_link_closes_sideframe_for_frontend_editable_model(self):
+        version = factories.PageVersionFactory(state=constants.PUBLISHED)
+
+        preview_link = self.page_content_admin._get_preview_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(preview_link)
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_edit_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        edit_link = self.poll_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(edit_link)
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_edit_action_link_closes_sideframe_for_frontend_editable_model(self):
+        version = factories.PageVersionFactory(state=constants.DRAFT)
+
+        edit_link = self.page_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(edit_link)
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
 
 
 class StateActionsTestCase(CMSTestCase):

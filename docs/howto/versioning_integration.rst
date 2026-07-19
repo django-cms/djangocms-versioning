@@ -237,7 +237,7 @@ Let's take a scenario like this:
 1. A Post object has 2 versions - `version #1` which is archived and `version #2` which is published.
 2. We restore `version #1` which creates a draft `version #3`.
 3. The PostContent data in `version #3` is a copy of what was in `version #1` (the version we restored), but the Poll and Answer data is what was there at the time of `version #2` (the latest version).
-4. We edit both the PostContent, Poll and Answer data on `version #3`.
+4. We edit the PostContent, Poll, and Answer data on `version #3`.
 5. The PostContent data is now different in all three versions. However, the poll data is the same in all three versions. This means that the data edit we did on `version #3` (a draft) to Poll and Answer objects is now being displayed on the published site (`version #2` is published).
 
 This is probably not how one would want things to work in this scenario, so to fix it, we need to implement a custom :term:`copy function <copy function>` like so:

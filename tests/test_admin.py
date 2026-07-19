@@ -1861,8 +1861,14 @@ class RestoreViewTestCase(BaseStateTestCase):
         request = RequestFactory().post("/")
         request.user = self.get_superuser()
 
-        with self.assertWarns(DeprecationWarning):
+        # CMSTestCase overrides assertWarns with a non-context-manager helper,
+        # so collect the warnings manually.
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
             response = version_admin.revert_view(request, str(poll_version.pk))
+        self.assertTrue(
+            any(issubclass(w.category, DeprecationWarning) for w in caught)
+        )
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Version.objects.filter(state=constants.DRAFT).exists())

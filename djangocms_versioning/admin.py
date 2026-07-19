@@ -21,7 +21,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models import OuterRef, Prefetch, Subquery, Value
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
@@ -1174,7 +1174,16 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return self._internal_redirect(requested_redirect, redirect_url)
 
         # Publish the version
-        version.publish(request.user)
+        try:
+            version.publish(request.user)
+        except IntegrityError as e:
+            # e.g. the cms detected a URL collision with another page
+            self.message_user(
+                request,
+                _("Version could not be published: {error}").format(error=force_str(e)),
+                messages.ERROR,
+            )
+            return self._internal_redirect(requested_redirect, redirect_url)
 
         # Display message
         self.message_user(request, _("Version published"))

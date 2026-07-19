@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import warnings
 from collections import OrderedDict
 from urllib.parse import urlencode, urlparse
@@ -21,7 +22,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models import OuterRef, Prefetch, Subquery, Value
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
@@ -64,6 +65,8 @@ from .helpers import (
 from .indicators import content_indicator, content_indicator_menu
 from .models import Version
 from .versionables import _cms_extension
+
+logger = logging.getLogger(__name__)
 
 
 class VersioningChangeListMixin:
@@ -1174,7 +1177,22 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return self._internal_redirect(requested_redirect, redirect_url)
 
         # Publish the version
-        version.publish(request.user)
+        try:
+            version.publish(request.user)
+        except IntegrityError as e:
+            # e.g. the cms detected a URL collision with another page
+            logger.warning("Publishing version %s failed: %s", version.pk, e)
+            self.message_user(
+                request,
+                _(
+                    "Version could not be published: it conflicts with existing "
+                    "published content. This usually means the URL or slug is "
+                    "already in use by another page. Please change the slug and "
+                    "try again."
+                ),
+                messages.ERROR,
+            )
+            return self._internal_redirect(requested_redirect, redirect_url)
 
         # Display message
         self.message_user(request, _("Version published"))

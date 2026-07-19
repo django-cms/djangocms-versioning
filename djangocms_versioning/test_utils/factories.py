@@ -11,6 +11,7 @@ except ImportError:
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
+from django.utils.text import slugify
 from djangocms_text.models import Text
 from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyText
 
@@ -227,6 +228,10 @@ class PageContentFactory(AbstractContentFactory):
     limit_visibility_in_menu = constants.VISIBILITY_USERS
     template = "page.html"
     xframe_options = FuzzyInteger(0, 3)
+    if hasattr(PageContent, "slug"):
+        # django CMS 5.1+ authors the slug on the content object; the PageUrl
+        # is derived from it when the content is published
+        slug = factory.LazyAttribute(lambda content: slugify(content.title))
 
     class Meta:
         model = PageContent

@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 18:04+0200\n"
+"POT-Creation-Date: 2026-07-19 12:49+0200\n"
 "PO-Revision-Date: 2025-06-29 12:00+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: Bengali (https://app.transifex.com/divio/teams/58664/bn/)\n"
@@ -21,23 +21,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:175 admin.py:371 admin.py:526
+#: admin.py:178 admin.py:374 admin.py:529
 msgid "State"
 msgstr "অবস্থা"
 
-#: admin.py:218 constants.py:27
+#: admin.py:221 constants.py:27
 msgid "Empty"
 msgstr "খালি"
 
-#: admin.py:385 admin.py:536
+#: admin.py:388 admin.py:539
 msgid "Author"
 msgstr "লেখক"
 
-#: admin.py:399 admin.py:550 models.py:107
+#: admin.py:402 admin.py:553 models.py:107
 msgid "Modified"
 msgstr "পরিবর্তিত"
 
-#: admin.py:586 admin.py:832
+#: admin.py:589 admin.py:835
 #: templates/admin/djangocms_versioning/page/change_form.html:20
 #: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
@@ -45,128 +45,139 @@ msgstr "পরিবর্তিত"
 msgid "Preview"
 msgstr "পূর্বরূপ"
 
-#: admin.py:633 admin.py:918 cms_toolbars.py:135
+#: admin.py:636 admin.py:921 cms_toolbars.py:134
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "সম্পাদনা"
 
-#: admin.py:633 admin.py:918 cms_toolbars.py:135
+#: admin.py:636 admin.py:921 cms_toolbars.py:134
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "নতুন খসড়া"
 
-#: admin.py:645
+#: admin.py:648
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "সংস্করণ পরিচালনা করুন"
 
-#: admin.py:798
+#: admin.py:801
 msgid "Content"
 msgstr "বিষয়বস্তু"
 
-#: admin.py:813
+#: admin.py:816
 msgid "locked"
 msgstr "লক করা"
 
-#: admin.py:847 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:850 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "আর্কাইভ"
 
-#: admin.py:864 cms_toolbars.py:98 indicators.py:37
+#: admin.py:867 cms_toolbars.py:97 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "প্রকাশ করুন"
 
-#: admin.py:883 indicators.py:57 indicators.py:63
+#: admin.py:886 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "অপ্রকাশ করুন"
 
-#: admin.py:938 cms_toolbars.py:198
+#: admin.py:941 cms_toolbars.py:197
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
-#: templates/djangocms_versioning/admin/icons/restore_icon.html:3
-msgid "Restore"
-msgstr "পুনরুদ্ধার"
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "প্রত্যাবর্তন"
 
-#: admin.py:965 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:959 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "বাতিল করুন"
 
-#: admin.py:982 cms_toolbars.py:165
+#: admin.py:976 cms_toolbars.py:164
 msgid "Unlock"
 msgstr "আনলক করুন"
 
-#: admin.py:1009
+#: admin.py:1003
 msgid "Settings"
 msgstr "সেটিংস"
 
-#: admin.py:1046
+#: admin.py:1040
 msgid "Compare versions"
 msgstr "সংস্করণ তুলনা করুন"
 
-#: admin.py:1055
+#: admin.py:1049
 msgid "Exactly two versions need to be selected."
 msgstr "ঠিক দুটি সংস্করণ নির্বাচন করতে হবে।"
 
-#: admin.py:1073
+#: admin.py:1067
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "নির্বাচিত %(verbose_name_plural)s মুছুন"
 
-#: admin.py:1084
+#: admin.py:1078
 msgid ""
-"Draft or published versions cannot be deleted. First unpublish or use "
-"discard for drafts."
+"Draft or published versions cannot be deleted. First unpublish or use discard"
+" for drafts."
 msgstr ""
-"খসড়া বা প্রকাশিত সংস্করণ মুছে ফেলা যায় না। প্রথমে অপ্রকাশ করুন অথবা খসড়ার জন্য "
-"বাতিল ব্যবহার করুন।"
+"খসড়া বা প্রকাশিত সংস্করণ মুছে ফেলা যায় না। প্রথমে অপ্রকাশ করুন অথবা খসড়ার "
+"জন্য বাতিল ব্যবহার করুন।"
 
-#: admin.py:1113
+#: admin.py:1107
+#, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "এর সংস্করণ দেখতে {} নির্বাচন করুন"
 
-#: admin.py:1129
+#: admin.py:1123
 msgid "Version cannot be archived"
 msgstr "সংস্করণ আর্কাইভ করা যাবে না"
 
-#: admin.py:1153
+#: admin.py:1147
 msgid "Version archived"
 msgstr "সংস্করণ আর্কাইভ করা হয়েছে"
 
-#: admin.py:1163 admin.py:1331 admin.py:1493
+#: admin.py:1157 admin.py:1340 admin.py:1489
 msgid "This view only supports POST method."
 msgstr "এই ভিউ শুধুমাত্র POST পদ্ধতি সমর্থন করে।"
 
-#: admin.py:1177
+#: admin.py:1171
 msgid "Version cannot be published"
 msgstr "সংস্করণ প্রকাশ করা যাবে না"
 
-#: admin.py:1189
+#: admin.py:1188
+msgid ""
+"Version could not be published: it conflicts with existing published content."
+" This usually means the URL or slug is already in use by another page. Please"
+" change the slug and try again."
+msgstr ""
+"সংস্করণটি প্রকাশ করা যায়নি: এটি বিদ্যমান প্রকাশিত সামগ্রীর সাথে সাংঘর্ষিক। "
+"সাধারণত এর অর্থ URL বা স্লাগটি ইতিমধ্যে অন্য একটি পৃষ্ঠায় ব্যবহৃত হচ্ছে। "
+"অনুগ্রহ করে স্লাগ পরিবর্তন করে আবার চেষ্টা করুন।"
+
+#: admin.py:1198
 msgid "Version published"
 msgstr "সংস্করণ প্রকাশিত হয়েছে"
 
-#: admin.py:1227
+#: admin.py:1236
 msgid "Version cannot be unpublished"
 msgstr "সংস্করণ অপ্রকাশ করা যাবে না"
 
-#: admin.py:1262
+#: admin.py:1271
 msgid "Version unpublished"
 msgstr "সংস্করণ অপ্রকাশিত হয়েছে"
 
-#: admin.py:1440
+#: admin.py:1436
 msgid "The last version has been deleted"
 msgstr "শেষ সংস্করণটি মুছে ফেলা হয়েছে"
 
-#: admin.py:1506
+#: admin.py:1502
 msgid "You do not have permission to remove the version lock"
 msgstr "সংস্করণ লক অপসারণের অনুমতি আপনার নেই"
 
-#: admin.py:1511
+#: admin.py:1507
 msgid "Version unlocked"
 msgstr "সংস্করণ আনলক করা হয়েছে"
 
-#: admin.py:1556
+#: admin.py:1552
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "\"{grouper}\" এর সংস্করণ প্রদর্শন করা হচ্ছে"
@@ -175,66 +186,66 @@ msgstr "\"{grouper}\" এর সংস্করণ প্রদর্শন ক�
 msgid "django CMS Versioning"
 msgstr "django CMS Versioning"
 
-#: cms_config.py:206
+#: cms_config.py:211
 msgid "No available title"
 msgstr "কোনো শিরোনাম উপলব্ধ নেই"
 
-#: cms_config.py:208 constants.py:12 constants.py:25
+#: cms_config.py:213 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "অপ্রকাশিত"
 
-#: cms_config.py:280
+#: cms_config.py:298
 msgid "Language must be set to a supported language!"
 msgstr "ভাষা একটি সমর্থিত ভাষায় সেট করতে হবে!"
 
-#: cms_config.py:298
+#: cms_config.py:316
 msgid "You do not have permission to copy these plugins."
 msgstr "এই প্লাগইনগুলি অনুলিপি করার অনুমতি আপনার নেই।"
 
-#: cms_toolbars.py:236
+#: cms_toolbars.py:226
 msgid "Manage Versions"
 msgstr "সংস্করণ পরিচালনা করুন"
 
-#: cms_toolbars.py:239
+#: cms_toolbars.py:229
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "{source} এর সাথে তুলনা করুন"
 
-#: cms_toolbars.py:257 indicators.py:69
+#: cms_toolbars.py:247 indicators.py:69
 msgid "Discard Changes"
 msgstr "পরিবর্তন বাতিল করুন"
 
-#: cms_toolbars.py:292
+#: cms_toolbars.py:282
 msgid "View Published"
 msgstr "প্রকাশিত দেখুন"
 
-#: cms_toolbars.py:362 cms_toolbars.py:476
+#: cms_toolbars.py:352 cms_toolbars.py:466
 msgid "Language"
 msgstr "ভাষা"
 
-#: cms_toolbars.py:399
+#: cms_toolbars.py:389
 msgid "Add Translation"
 msgstr "অনুবাদ যোগ করুন"
 
-#: cms_toolbars.py:410
+#: cms_toolbars.py:400
 msgid "Delete Translation"
 msgstr "অনুবাদ মুছুন"
 
-#: cms_toolbars.py:433
+#: cms_toolbars.py:423
 msgid "Copy all plugins"
 msgstr "সমস্ত প্লাগইন অনুলিপি করুন"
 
-#: cms_toolbars.py:435
+#: cms_toolbars.py:425
 #, python-format
 msgid "from %s"
 msgstr "%s থেকে"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:426
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "আপনি কি নিশ্চিত যে আপনি %s থেকে সমস্ত প্লাগইন অনুলিপি করতে চান?"
 
-#: cms_toolbars.py:453
+#: cms_toolbars.py:443
 msgid "No other language available"
 msgstr "অন্য কোনো ভাষা উপলব্ধ নেই"
 
@@ -268,8 +279,8 @@ msgid "Create new draft"
 msgstr "নতুন খসড়া তৈরি করুন"
 
 #: indicators.py:49
-msgid "Restore from Unpublish"
-msgstr "অপ্রকাশ থেকে পুনরুদ্ধার"
+msgid "Revert from Unpublish"
+msgstr "অপ্রকাশ থেকে প্রত্যাবর্তন"
 
 #: indicators.py:69
 msgid "Delete Draft"
@@ -285,25 +296,21 @@ msgstr "সংস্করণ পরিচালনা করুন..."
 
 #: models.py:32
 msgid "This version is not a draft: to make changes create a new draft"
-msgstr ""
+msgstr "এই সংস্করণটি খসড়া নয়: পরিবর্তন করতে একটি নতুন খসড়া তৈরি করুন"
 
 #: models.py:33
-#, fuzzy, python-brace-format
-#| msgid "Action Denied. The latest version is locked by {user}"
+#, python-brace-format
 msgid "The latest version is locked by {user}"
-msgstr "ক্রিয়া প্রত্যাখ্যাত। সর্বশেষ সংস্করণটি {user} দ্বারা লক করা হয়েছে"
+msgstr "সর্বশেষ সংস্করণটি {user} দ্বারা লক করা হয়েছে"
 
 #: models.py:34
-#, fuzzy, python-brace-format
-#| msgid "Action Denied. The draft version is locked by {user}"
+#, python-brace-format
 msgid "The draft version is locked by {user}"
-msgstr "ক্রিয়া প্রত্যাখ্যাত। খসড়া সংস্করণটি {user} দ্বারা লক করা হয়েছে"
+msgstr "খসড়া সংস্করণটি {user} দ্বারা লক করা হয়েছে"
 
 #: models.py:35
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have change permissions"
-msgstr "এই প্লাগইনগুলি অনুলিপি করার অনুমতি আপনার নেই।"
+msgstr "আপনার পরিবর্তন করার অনুমতি নেই"
 
 #: models.py:36
 msgid "You do not have permission to perform this action"
@@ -349,40 +356,34 @@ msgid "Version is not in draft state"
 msgstr "সংস্করণটি খসড়া অবস্থায় নেই"
 
 #: models.py:389
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
 msgid "You do not have publish permissions"
-msgstr "এই ক্রিয়া সম্পাদনের অনুমতি আপনার নেই"
+msgstr "আপনার প্রকাশ করার অনুমতি নেই"
 
-#: models.py:454
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
+#: models.py:458
 msgid "You do not have unpublish permissions"
-msgstr "এই ক্রিয়া সম্পাদনের অনুমতি আপনার নেই"
+msgstr "আপনার প্রকাশনা বাতিল করার অনুমতি নেই"
 
-#: models.py:455
+#: models.py:459
 msgid "Version is not in published state"
 msgstr "সংস্করণটি প্রকাশিত অবস্থায় নেই"
 
-#: models.py:553
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
+#: models.py:558
 msgid "You do not have unlock permissions"
-msgstr "এই ক্রিয়া সম্পাদনের অনুমতি আপনার নেই"
+msgstr "আপনার আনলক করার অনুমতি নেই"
 
-#: models.py:561
+#: models.py:566
 msgid "Version is not in archived or unpublished state"
 msgstr "সংস্করণটি আর্কাইভ করা বা অপ্রকাশিত অবস্থায় নেই"
 
-#: models.py:580
+#: models.py:582
 msgid "Version is not in draft or published state"
 msgstr "সংস্করণটি খসড়া বা প্রকাশিত অবস্থায় নেই"
 
-#: models.py:589
+#: models.py:591
 msgid "Version is already locked"
 msgstr "সংস্করণটি ইতিমধ্যে লক করা আছে"
 
-#: models.py:595
+#: models.py:597
 msgid "Draft version is not locked"
 msgstr "খসড়া সংস্করণ লক করা নেই"
 
@@ -446,14 +447,14 @@ msgstr " সংস্করণ নম্বর: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
-#: templates/djangocms_versioning/admin/restore_confirmation.html:30
+#: templates/djangocms_versioning/admin/revert_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "না, আমাকে ফিরিয়ে নিন"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
-#: templates/djangocms_versioning/admin/restore_confirmation.html:45
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
 msgstr "হ্যাঁ, আমি নিশ্চিত"
@@ -527,42 +528,38 @@ msgid "Are you sure you want to discard following version?"
 msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণটি বাতিল করতে চান?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
-#: templates/djangocms_versioning/admin/restore_confirmation.html:25
+#: templates/djangocms_versioning/admin/revert_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "সংস্করণ নম্বর: %(version_number)s"
-
-#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
-msgid "Revert"
-msgstr "প্রত্যাবর্তন"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "সাইটে দেখুন"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:16
-msgid "Restore Confirmation"
-msgstr "পুনরুদ্ধার নিশ্চিতকরণ"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:16
+msgid "Revert Confirmation"
+msgstr "প্রত্যাবর্তন নিশ্চিতকরণ"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:19
+#: templates/djangocms_versioning/admin/revert_confirmation.html:19
 msgid ""
-"Restoring this version may cause loss of an existing draft version. Please "
-"select an option to continue"
+"Reverting to this version may cause loss of an existing draft version. Please"
+" select an option to continue"
 msgstr ""
-"এই সংস্করণ পুনরুদ্ধার করলে একটি বিদ্যমান খসড়া সংস্করণ হারিয়ে যেতে পারে। চালিয়ে "
-"যেতে অনুগ্রহ করে একটি বিকল্প নির্বাচন করুন"
+"এই সংস্করণে প্রত্যাবর্তন করলে একটি বিদ্যমান খসড়া সংস্করণ হারিয়ে যেতে পারে। "
+"চালিয়ে যেতে অনুগ্রহ করে একটি বিকল্প নির্বাচন করুন"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:21
-msgid "Are you sure you want to restore the following version?"
-msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণ পুনরুদ্ধার করতে চান?"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:21
+msgid "Are you sure you want to revert to the following version?"
+msgstr "আপনি কি নিশ্চিত যে আপনি নিম্নলিখিত সংস্করণে প্রত্যাবর্তন করতে চান?"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:36
-msgid "Discard existing draft and Restore"
-msgstr "বিদ্যমান খসড়া বাতিল করুন এবং পুনরুদ্ধার করুন"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:36
+msgid "Discard existing draft and Revert"
+msgstr "বিদ্যমান খসড়া বাতিল করুন এবং প্রত্যাবর্তন করুন"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:40
-msgid "Archive existing draft and Restore"
-msgstr "বিদ্যমান খসড়া আর্কাইভ করুন এবং পুনরুদ্ধার করুন"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
+msgid "Archive existing draft and Revert"
+msgstr "বিদ্যমান খসড়া আর্কাইভ করুন এবং প্রত্যাবর্তন করুন"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Unpublish Confirmation"
@@ -583,8 +580,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -592,8 +588,7 @@ msgstr ""
 "নিম্নলিখিত খসড়া সংস্করণটি %(by_user)s তাদের ব্যবহারের জন্য আনলক করেছেন।\n"
 "%(version_link)s\n"
 "\n"
-"অনুগ্রহ করে মনে রাখবেন যে আপনি এই খসড়াটি আর সম্পাদনা করতে পারবেন না। কোনো উদ্বেগ "
-"থাকলে অনুগ্রহ করে %(by_user)s এর সাথে যোগাযোগ করুন।\n"
+"অনুগ্রহ করে মনে রাখবেন যে আপনি এই খসড়াটি আর সম্পাদনা করতে পারবেন না। কোনো উদ্বেগ থাকলে অনুগ্রহ করে %(by_user)s এর সাথে যোগাযোগ করুন।\n"
 "\n"
 "এটি Django CMS থেকে একটি স্বয়ংক্রিয় বিজ্ঞপ্তি।\n"
 

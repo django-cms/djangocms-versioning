@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 18:04+0200\n"
+"POT-Creation-Date: 2026-07-19 12:49+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Mohammad Alsakhawy, 2024\n"
 "Language-Team: Arabic (https://app.transifex.com/divio/teams/58664/ar/)\n"
@@ -21,26 +21,25 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
-"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: admin.py:175 admin.py:371 admin.py:526
+#: admin.py:178 admin.py:374 admin.py:529
 msgid "State"
 msgstr "الحالة"
 
-#: admin.py:218 constants.py:27
+#: admin.py:221 constants.py:27
 msgid "Empty"
 msgstr "فارغ"
 
-#: admin.py:385 admin.py:536
+#: admin.py:388 admin.py:539
 msgid "Author"
 msgstr "المؤلف"
 
-#: admin.py:399 admin.py:550 models.py:107
+#: admin.py:402 admin.py:553 models.py:107
 msgid "Modified"
 msgstr "تعديل"
 
-#: admin.py:586 admin.py:832
+#: admin.py:589 admin.py:835
 #: templates/admin/djangocms_versioning/page/change_form.html:20
 #: templates/admin/djangocms_versioning/page/change_form.html:39
 #: templates/djangocms_versioning/admin/icons/preview.html:3
@@ -48,128 +47,139 @@ msgstr "تعديل"
 msgid "Preview"
 msgstr "معاينة"
 
-#: admin.py:633 admin.py:918 cms_toolbars.py:135
+#: admin.py:636 admin.py:921 cms_toolbars.py:134
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "تحرير"
 
-#: admin.py:633 admin.py:918 cms_toolbars.py:135
+#: admin.py:636 admin.py:921 cms_toolbars.py:134
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "مسودة جديدة "
 
-#: admin.py:645
+#: admin.py:648
 #: templates/djangocms_versioning/admin/icons/manage_versions.html:3
 msgid "Manage versions"
 msgstr "إدارة الإصدارات "
 
-#: admin.py:798
+#: admin.py:801
 msgid "Content"
 msgstr "المحتوى"
 
-#: admin.py:813
+#: admin.py:816
 msgid "locked"
 msgstr "مقفول"
 
-#: admin.py:847 templates/djangocms_versioning/admin/icons/archive_icon.html:3
+#: admin.py:850 templates/djangocms_versioning/admin/icons/archive_icon.html:3
 msgid "Archive"
 msgstr "أرشيف"
 
-#: admin.py:864 cms_toolbars.py:98 indicators.py:37
+#: admin.py:867 cms_toolbars.py:97 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
 msgstr "نشر"
 
-#: admin.py:883 indicators.py:57 indicators.py:63
+#: admin.py:886 indicators.py:57 indicators.py:63
 #: templates/djangocms_versioning/admin/icons/unpublish_icon.html:3
 msgid "Unpublish"
 msgstr "الغاء النشر "
 
-#: admin.py:938 cms_toolbars.py:198
+#: admin.py:941 cms_toolbars.py:197
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
-#: templates/djangocms_versioning/admin/icons/restore_icon.html:3
-msgid "Restore"
-msgstr "استعادة"
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "استرجاع"
 
-#: admin.py:965 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:959 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "تجاهل"
 
-#: admin.py:982 cms_toolbars.py:165
+#: admin.py:976 cms_toolbars.py:164
 msgid "Unlock"
 msgstr "إلغاء القفل "
 
-#: admin.py:1009
+#: admin.py:1003
 msgid "Settings"
 msgstr "الإعدادات"
 
-#: admin.py:1046
+#: admin.py:1040
 msgid "Compare versions"
 msgstr "مقارنة الإصدارات "
 
-#: admin.py:1055
+#: admin.py:1049
 msgid "Exactly two versions need to be selected."
 msgstr "يجب تحديد إثنين من الإصدارات بالضبط"
 
-#: admin.py:1073
+#: admin.py:1067
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "حذف %(verbose_name_plural)s المحددة"
 
-#: admin.py:1084
+#: admin.py:1078
 msgid ""
-"Draft or published versions cannot be deleted. First unpublish or use "
-"discard for drafts."
+"Draft or published versions cannot be deleted. First unpublish or use discard"
+" for drafts."
 msgstr ""
 "لا يمكن حذف المسودات أو الإصدارات المنشورة. قم أولاً بإلغاء النشر أو استخدم "
 "التجاهل للمسودات."
 
-#: admin.py:1113
+#: admin.py:1107
+#, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "حدد {} لعرض إصداراته"
 
-#: admin.py:1129
+#: admin.py:1123
 msgid "Version cannot be archived"
 msgstr "لا يمكن أرشفة الإصدار "
 
-#: admin.py:1153
+#: admin.py:1147
 msgid "Version archived"
 msgstr "تمت أرشفة الإصدار "
 
-#: admin.py:1163 admin.py:1331 admin.py:1493
+#: admin.py:1157 admin.py:1340 admin.py:1489
 msgid "This view only supports POST method."
 msgstr "هذا العرض يدعم فقط طريقة POST"
 
-#: admin.py:1177
+#: admin.py:1171
 msgid "Version cannot be published"
 msgstr "لا يمكن نشر الإصدار "
 
-#: admin.py:1189
+#: admin.py:1188
+msgid ""
+"Version could not be published: it conflicts with existing published content."
+" This usually means the URL or slug is already in use by another page. Please"
+" change the slug and try again."
+msgstr ""
+"تعذّر نشر الإصدار: فهو يتعارض مع محتوى منشور موجود. يعني هذا عادةً أن عنوان "
+"URL أو الاسم اللطيف (slug) مستخدم بالفعل في صفحة أخرى. يرجى تغيير الاسم "
+"اللطيف والمحاولة مرة أخرى."
+
+#: admin.py:1198
 msgid "Version published"
 msgstr "تم نشر الإصدار "
 
-#: admin.py:1227
+#: admin.py:1236
 msgid "Version cannot be unpublished"
 msgstr "لا يمكن إلغاء نشر الإصدار"
 
-#: admin.py:1262
+#: admin.py:1271
 msgid "Version unpublished"
 msgstr "تم إلغاء نشر الإصدار"
 
-#: admin.py:1440
+#: admin.py:1436
 msgid "The last version has been deleted"
 msgstr "تم حذف الإصدار السابق"
 
-#: admin.py:1506
+#: admin.py:1502
 msgid "You do not have permission to remove the version lock"
 msgstr "ليس لديك صلاحيات لحذف قفل الإصدار"
 
-#: admin.py:1511
+#: admin.py:1507
 msgid "Version unlocked"
 msgstr "تم إلغاء قفل الإصدار"
 
-#: admin.py:1556
+#: admin.py:1552
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "عرض إصدارات \"{grouper}\""
@@ -178,66 +188,66 @@ msgstr "عرض إصدارات \"{grouper}\""
 msgid "django CMS Versioning"
 msgstr "إصدارات ن.إ.م. چانجو"
 
-#: cms_config.py:206
+#: cms_config.py:211
 msgid "No available title"
 msgstr "بدون عنوان"
 
-#: cms_config.py:208 constants.py:12 constants.py:25
+#: cms_config.py:213 constants.py:12 constants.py:25
 msgid "Unpublished"
 msgstr "غير منشور"
 
-#: cms_config.py:280
+#: cms_config.py:298
 msgid "Language must be set to a supported language!"
 msgstr "يجب تحديد لغة ضمن اللغات المدعومة!"
 
-#: cms_config.py:298
+#: cms_config.py:316
 msgid "You do not have permission to copy these plugins."
 msgstr "ليس لديك صلاحيات لنسخ هذه الملحقات."
 
-#: cms_toolbars.py:236
+#: cms_toolbars.py:226
 msgid "Manage Versions"
 msgstr "إدارة الإصدارات"
 
-#: cms_toolbars.py:239
+#: cms_toolbars.py:229
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "قارن ب {source}"
 
-#: cms_toolbars.py:257 indicators.py:69
+#: cms_toolbars.py:247 indicators.py:69
 msgid "Discard Changes"
 msgstr " تجاهل التغييرات"
 
-#: cms_toolbars.py:292
+#: cms_toolbars.py:282
 msgid "View Published"
 msgstr "عرض المنشور"
 
-#: cms_toolbars.py:362 cms_toolbars.py:476
+#: cms_toolbars.py:352 cms_toolbars.py:466
 msgid "Language"
 msgstr "اللغة"
 
-#: cms_toolbars.py:399
+#: cms_toolbars.py:389
 msgid "Add Translation"
 msgstr "إضافة ترجمة"
 
-#: cms_toolbars.py:410
+#: cms_toolbars.py:400
 msgid "Delete Translation"
 msgstr "حذف الترجمة"
 
-#: cms_toolbars.py:433
+#: cms_toolbars.py:423
 msgid "Copy all plugins"
 msgstr "نسخ كل الملحقات"
 
-#: cms_toolbars.py:435
+#: cms_toolbars.py:425
 #, python-format
 msgid "from %s"
 msgstr "من %s"
 
-#: cms_toolbars.py:436
+#: cms_toolbars.py:426
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "هل أنت متأكد من أنك تريد نسخ كل الملحقات من %s؟"
 
-#: cms_toolbars.py:453
+#: cms_toolbars.py:443
 msgid "No other language available"
 msgstr "لا توجد لغة أخرى متوفرة"
 
@@ -271,8 +281,8 @@ msgid "Create new draft"
 msgstr "إنشاء مسودة جديدة"
 
 #: indicators.py:49
-msgid "Restore from Unpublish"
-msgstr "استعادة من إلغاء النشر"
+msgid "Revert from Unpublish"
+msgstr "تراجع عن إلغاء النشر"
 
 #: indicators.py:69
 msgid "Delete Draft"
@@ -301,10 +311,8 @@ msgid "The draft version is locked by {user}"
 msgstr "إصدار المسودة مقفول بواسطة {user}"
 
 #: models.py:35
-#, fuzzy
-#| msgid "You do not have permission to copy these plugins."
 msgid "You do not have change permissions"
-msgstr "ليس لديك صلاحيات لنسخ هذه الملحقات."
+msgstr "ليس لديك صلاحية التغيير"
 
 #: models.py:36
 msgid "You do not have permission to perform this action"
@@ -350,40 +358,34 @@ msgid "Version is not in draft state"
 msgstr "الإصدار ليس في حالة مسودة"
 
 #: models.py:389
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
 msgid "You do not have publish permissions"
-msgstr "ليس لديك صلاحيات للقيام بهذا الإجراء"
+msgstr "ليس لديك صلاحية النشر"
 
-#: models.py:454
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
+#: models.py:458
 msgid "You do not have unpublish permissions"
-msgstr "ليس لديك صلاحيات للقيام بهذا الإجراء"
+msgstr "ليس لديك صلاحية إلغاء النشر"
 
-#: models.py:455
+#: models.py:459
 msgid "Version is not in published state"
 msgstr "الإصدار ليس في حالة منشور"
 
-#: models.py:553
-#, fuzzy
-#| msgid "You do not have permission to perform this action"
+#: models.py:558
 msgid "You do not have unlock permissions"
-msgstr "ليس لديك صلاحيات للقيام بهذا الإجراء"
+msgstr "ليس لديك صلاحية إلغاء القفل"
 
-#: models.py:561
+#: models.py:566
 msgid "Version is not in archived or unpublished state"
 msgstr "الإصدار ليس في حالة أرشفة أو حالة غير منشور"
 
-#: models.py:580
+#: models.py:582
 msgid "Version is not in draft or published state"
 msgstr "الإصدار ليس في حالة مسودة أو حالة منشور"
 
-#: models.py:589
+#: models.py:591
 msgid "Version is already locked"
 msgstr "تم قفل الإصدار بالفعل"
 
-#: models.py:595
+#: models.py:597
 msgid "Draft version is not locked"
 msgstr "إصدار المسودة غير مقفول"
 
@@ -451,14 +453,14 @@ msgstr "إصدار رقم: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
-#: templates/djangocms_versioning/admin/restore_confirmation.html:30
+#: templates/djangocms_versioning/admin/revert_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "لا، تراجع للخلف"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
-#: templates/djangocms_versioning/admin/restore_confirmation.html:45
+#: templates/djangocms_versioning/admin/revert_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
 msgstr "نعم، أنا متأكد"
@@ -528,42 +530,38 @@ msgid "Are you sure you want to discard following version?"
 msgstr "هل أنت متأكد أنك تريد تجاهل الإصدار التالي؟"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
-#: templates/djangocms_versioning/admin/restore_confirmation.html:25
+#: templates/djangocms_versioning/admin/revert_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "إصدار رقم: %(version_number)s"
-
-#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
-msgid "Revert"
-msgstr "استرجاع"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "عرض على الموقع"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:16
-msgid "Restore Confirmation"
-msgstr "تأكيد الاستعادة"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:16
+msgid "Revert Confirmation"
+msgstr "تأكيد الاسترجاع"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:19
+#: templates/djangocms_versioning/admin/revert_confirmation.html:19
 msgid ""
-"Restoring this version may cause loss of an existing draft version. Please "
-"select an option to continue"
+"Reverting to this version may cause loss of an existing draft version. Please"
+" select an option to continue"
 msgstr ""
-"استعادة هذا الإصدار قد تتسبب في خسارة إصدار مسودة موجود. يرجى تحديد اختيار "
-"للاستمرار"
+"الاسترجاع لهذا الإصدار قد يتسبب في خسارة إصدار مسودة متواجدة. يرجى تحديد "
+"اختيار للإستمرار"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:21
-msgid "Are you sure you want to restore the following version?"
-msgstr "هل أنت متأكد أنك تريد استعادة الإصدار التالي؟"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:21
+msgid "Are you sure you want to revert to the following version?"
+msgstr "هل أنت متأكد أنك تريد استرجاع الإصدار التالي؟"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:36
-msgid "Discard existing draft and Restore"
-msgstr "تجاهل المسودة الموجودة وقم بالاستعادة"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:36
+msgid "Discard existing draft and Revert"
+msgstr "تجاهل المسودة المتواجدة واسترجع"
 
-#: templates/djangocms_versioning/admin/restore_confirmation.html:40
-msgid "Archive existing draft and Restore"
-msgstr "أرشف المسودة الموجودة وقم بالاستعادة"
+#: templates/djangocms_versioning/admin/revert_confirmation.html:40
+msgid "Archive existing draft and Revert"
+msgstr "أرشف المسودة المتواجدة واسترجع"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Unpublish Confirmation"
@@ -584,8 +582,7 @@ msgid ""
 "The following draft version has been unlocked by %(by_user)s for their use.\n"
 "%(version_link)s\n"
 "\n"
-"Please note you will not be able to further edit this draft. Kindly reach "
-"out to %(by_user)s in case of any concerns.\n"
+"Please note you will not be able to further edit this draft. Kindly reach out to %(by_user)s in case of any concerns.\n"
 "\n"
 "This is an automated notification from Django CMS.\n"
 msgstr ""
@@ -593,8 +590,7 @@ msgstr ""
 "تم إلغاء قفل المسودة التالية بواسطة %(by_user)s لاستخدامهم.\n"
 "%(version_link)s\n"
 "\n"
-"برجاء العلم أنك لن تستطيع إجراء المزيد من التعديلات على هذه المسودة. يرجى "
-"التواصل مع %(by_user)s في حالة وجود أي استفسارات.\n"
+"برجاء العلم أنك لن تستطيع إجراء المزيد من التعديلات على هذه المسودة. يرجى التواصل مع %(by_user)s في حالة وجود أي استفسارات.\n"
 "\n"
 "هذا إشعار تلقائي من ن.إ.م. چانجو.\n"
 

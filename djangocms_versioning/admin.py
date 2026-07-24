@@ -583,12 +583,15 @@ class ExtendedVersionAdminMixin(
         if not preview_url:
             disabled = True
 
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = versionables.for_content(obj).content_model_is_sideframe_editable
+
         return self.admin_action_button(
             preview_url,
             icon="view",
             title=_("Preview"),
             name="preview",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
             disabled=disabled,
         )
 
@@ -630,6 +633,9 @@ class ExtendedVersionAdminMixin(
         else:
             icon = "edit"
 
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = versionables.for_content(obj).content_model_is_sideframe_editable
+
         return self.admin_action_button(
             url,
             icon=icon,
@@ -637,7 +643,7 @@ class ExtendedVersionAdminMixin(
             name="edit",
             disabled=disabled,
             action="post",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
         )
 
     def _get_manage_versions_link(self, obj, request, disabled=False):
@@ -827,11 +833,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Draft versions have edit button
             return ""
         url = get_preview_url(obj.content)
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = obj.versionable.content_model_is_sideframe_editable
         return self.admin_action_button(
             url,
             icon="view",
             name="preview",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
             title=_("Preview"),
         )
 

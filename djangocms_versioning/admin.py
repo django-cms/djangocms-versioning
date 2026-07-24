@@ -4,6 +4,7 @@ import json
 import logging
 import warnings
 from collections import OrderedDict
+from inspect import Parameter, signature
 from urllib.parse import urlencode, urlparse
 
 from cms.admin.utils import CONTENT_PREFIX, ChangeListActionsMixin, GrouperModelAdmin
@@ -67,6 +68,41 @@ from .models import Version
 from .versionables import _cms_extension
 
 logger = logging.getLogger(__name__)
+
+
+def _get_grouper_content_filters(model_admin, request):
+    versionable = versionables.for_grouper(model_admin.model)
+    if hasattr(model_admin, "get_content_filters"):
+        content_filters = model_admin.get_content_filters(request)
+    else:
+        # Compatibility with django CMS < 5.1. Drop when django CMS 5.0 support is dropped.
+        model_admin.get_grouping_from_request(request)
+        content_filters = model_admin.current_content_filters
+
+    content_filters = dict(content_filters)
+    for field in versionable.extra_grouping_fields:
+        if field in content_filters:
+            continue
+        if hasattr(model_admin, f"get_{field}_from_request"):
+            content_filters[field] = getattr(model_admin, f"get_{field}_from_request")(request)
+        elif field == "language":
+            content_filters[field] = get_language_from_request(request)
+        elif hasattr(model_admin, field):
+            content_filters[field] = getattr(model_admin, field)
+    return content_filters
+
+
+def _accepts_content_filters(method):
+    return any(
+        parameter.kind == Parameter.VAR_KEYWORD or parameter.name == "content_filters"
+        for parameter in signature(method).parameters.values()
+    )
+
+
+def _get_grouper_content_obj(model_admin, obj, content_filters=None):
+    if _accepts_content_filters(model_admin.get_content_obj):
+        return model_admin.get_content_obj(obj, content_filters=content_filters)
+    return model_admin.get_content_obj(obj)
 
 
 class VersioningChangeListMixin:
@@ -185,13 +221,17 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
             return None
 
     def get_indicator_column(self, request):
+        grouping_filters = None
+        if self._extra_grouping_fields is not None:
+            grouping_filters = _get_grouper_content_filters(self, request)
+
         def indicator(obj):
             versions = None
             if self._extra_grouping_fields is not None:  # Grouper Model
                 content_obj = get_latest_admin_viewable_content(
                     obj,
                     include_unpublished_archived=True,
-                    **{field: getattr(self, field) for field in self._extra_grouping_fields},
+                    **grouping_filters,
                 )
                 for prefetched in getattr(obj, "_prefetched_contents", []):
                     prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
@@ -260,10 +300,11 @@ class ExtendedListDisplayMixin:
 
     def _get_field_modifier(self, request, modifier_dict, field):
         method = modifier_dict[field]
+        content_filters = _get_grouper_content_filters(self, request) if self._is_grouper_admin else None
 
         def get_field_modifier(obj):
             if self._is_grouper_admin:  # In a grouper admin?
-                return method(self.get_content_obj(obj), field)
+                return method(_get_grouper_content_obj(self, obj, content_filters=content_filters), field)
             else:
                 return method(obj, field)
 
@@ -327,10 +368,11 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         """Annotates the username of the ``created_by`` field, the ``modified`` field (date time),
         and the ``state`` field of the version object to the grouper queryset."""
         grouper_content_type = versionables.for_grouper(self.model).content_types
+        content_filters = _get_grouper_content_filters(self, request)
         qs = super().get_queryset(request)
         versions = Version.objects.filter(object_id=OuterRef("pk"), content_type__in=grouper_content_type)
         contents = self.content_model.admin_manager.latest_content(
-            **{self.grouper_field_name: OuterRef("pk"), **self.current_content_filters}
+            **{self.grouper_field_name: OuterRef("pk"), **content_filters}
         ).annotate(
             content_created_by=Subquery(versions.values(f"created_by__{conf.USERNAME_FIELD}")[:1]),
             content_state=Subquery(versions.values("state")),
@@ -352,7 +394,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             Prefetch(
                 reverse_name,
                 to_attr="_prefetched_contents",  # Needed for state indicators
-                queryset=self.content_model.admin_manager.filter(**self.current_content_filters)
+                queryset=self.content_model.admin_manager.filter(**content_filters)
                 .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
                 .annotate(content_is_latest=Value(True))  # We're only looking at the latest content in the qs
                 .order_by("-pk"),
@@ -360,14 +402,18 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         )
         return qs
 
-    def get_content_obj(self, obj: models.Model) -> models.Model:
+    def get_content_obj(self, obj: models.Model, content_filters: dict | None = None) -> models.Model:
         """Returns the latest content object for the given grouper object."""
         if obj is None or obj.pk is None:
             # Unsaved grouper instances (e.g. on the admin add view) have no content object
             # and are unhashable, so they must not reach the instance-keyed cache in the super().
             return None
         if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
-            return super().get_content_obj(obj)
+            get_content_obj = super().get_content_obj
+            if _accepts_content_filters(get_content_obj):
+                return get_content_obj(obj, content_filters=content_filters)
+            # Compatibility with django CMS < 5.1. Drop when django CMS 5.0 support is dropped.
+            return get_content_obj(obj)
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
     @admin.display(
@@ -428,10 +474,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         would raise a KeyError in ``AdminForm.__init__``. Filter against the actual form
         fields so both the key and every dependency are guaranteed to resolve.
         """
-        # Ensure the per-request content cache is refreshed before get_form() queries
-        # readonly state. changeform_view() calls this too, but direct callers (and tests)
-        # exercise get_prepopulated_fields in isolation.
-        self.get_grouping_from_request(request)
+        _get_grouper_content_filters(self, request)
         prepopulated_fields = super().get_prepopulated_fields(request, obj)
         if not prepopulated_fields:
             return prepopulated_fields

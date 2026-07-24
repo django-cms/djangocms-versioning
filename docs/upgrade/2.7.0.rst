@@ -1,0 +1,83 @@
+.. _upgrade-to-2-7-0:
+
+*******************
+2.7.0 release notes
+*******************
+
+*Unreleased*
+
+Welcome to django CMS versioning 2.7.0!
+
+These release notes cover the support for content-authored page URLs introduced
+with django CMS 5.1, as well as some behavioral changes around publishing you'll
+want to be aware of when upgrading from an earlier 2.x release.
+
+
+Django and Python compatibility
+===============================
+
+django CMS versioning supports **Django 4.2, 5.0, 5.1, 5.2, 6.0, and 6.1**. We highly
+recommend and only support the latest release of each series.
+
+It supports **Python 3.10, 3.11, 3.12, 3.13, and 3.14**.
+
+
+Features
+========
+
+Versioned page URLs (django CMS 5.1+)
+-------------------------------------
+
+django CMS 5.1 moves the authored URL values of a page — the slug and the
+overwrite URL — onto the ``PageContent`` model, so they are versioned together
+with the rest of the page content. The ``PageUrl`` routing table is derived
+from the *published* content only.
+
+djangocms-versioning implements this contract:
+
+* **Publishing** a page content version updates the page's URL from the newly
+  published content (``Page.update_urls_from_content()``): the slug and
+  overwrite URL of the published version take effect, and the paths of all
+  descendant pages are updated accordingly.
+* **Editing a draft** no longer affects the live URL. Changing the slug of a
+  draft version only takes effect when that version is published. Different
+  versions of a page content can carry different slugs.
+* **Unpublishing** a page content removes the URL's path so the page stops
+  resolving, while the slug stays reserved for the page. When a new version
+  replaces a published one, the URL switches to the new version's values
+  instead.
+
+On django CMS 5.0 and 4.1 the previous behavior is unchanged.
+
+Slug and overwrite URL respect version locking (django CMS 5.1+)
+----------------------------------------------------------------
+
+Since the slug and overwrite URL are now model fields on ``PageContent``, they
+are rendered read-only in the page admin when a version cannot be modified by
+the current user. Previously these fields had to remain editable on locked
+versions for technical reasons.
+
+
+Backward-incompatible changes
+=============================
+
+Publishing and unpublishing run in a transaction
+------------------------------------------------
+
+``Version.publish()`` and ``Version.unpublish()`` are now wrapped in
+``transaction.atomic``. If an ``on_publish`` or ``on_unpublish`` hook raises an
+exception, the state change is rolled back completely and the version remains
+in its previous state. Previously, a failing hook could leave a version marked
+as published without the hook's side effects applied.
+
+Publishing can fail on URL collisions (django CMS 5.1+)
+-------------------------------------------------------
+
+Because drafts can freely stage slugs and overwrite URLs, django CMS checks for
+path collisions when a version is published. If the derived path is already
+taken by another page on the same site, publishing raises an ``IntegrityError``,
+the publish is rolled back, and the version stays in draft state. The versioning
+admin catches this error and reports it to the user as an error message.
+
+If you call ``Version.publish()`` programmatically, be prepared to handle
+``django.db.IntegrityError`` for page content.

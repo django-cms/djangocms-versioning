@@ -394,9 +394,13 @@ class Version(models.Model):
     def can_be_published(self):
         return can_proceed(self._set_publish)
 
+    @transaction.atomic
     def publish(self, user):
         """Change state to PUBLISHED and unpublish currently
-        published versions"""
+        published versions
+
+        Runs in a transaction so that a failing on_publish hook (e.g. a URL
+        collision detected by the cms) rolls back the state change."""
         # trigger pre operation signal
         action_token = send_pre_version_operation(
             constants.OPERATION_PUBLISH, version=self
@@ -459,6 +463,7 @@ class Version(models.Model):
     def can_be_unpublished(self):
         return can_proceed(self._set_unpublish)
 
+    @transaction.atomic
     def unpublish(self, user, to_be_published=None):
         """Change state to UNPUBLISHED"""
         # trigger pre operation signal

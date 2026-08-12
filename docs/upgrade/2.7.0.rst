@@ -4,7 +4,7 @@
 2.7.0 release notes
 *******************
 
-*Unreleased*
+*August 2026*
 
 Welcome to django CMS versioning 2.7.0!
 

@@ -6,7 +6,7 @@ Changelog
 ==================
 
 ## What's Changed
-* feat: Support slug field on page ocntent objects, make publishing actions atomic by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/581
+* feat: Support slug field on page content objects, make publishing actions atomic by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/581
 * fix: State transitions did not clear version caches by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/577
 * fix: Keep not frontend-editable objects in the sideframe by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/580
 

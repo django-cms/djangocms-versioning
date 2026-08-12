@@ -29,6 +29,7 @@ from django.utils.http import urlencode
 from django.utils.timezone import now
 from django.utils.translation import override
 from freezegun import freeze_time
+from packaging.version import Version as PackageVersion
 
 import djangocms_versioning.helpers
 from djangocms_versioning import constants, helpers
@@ -3806,8 +3807,8 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         # 1. Count query for pagination
         # 2. Count query (duplicate from admin)
         # 3. Main queryset with subqueries for content annotations
-        # 4. django CMS 5.1+: Prefetch content
-        with self.assertNumQueries(3 if cms_version < "5.0.7" else 4):
+        # 4. django CMS 5.0.7+: Prefetch content
+        with self.assertNumQueries(3 if PackageVersion(cms_version) < PackageVersion("5.0.7") else 4):
             response = poll_admin.changelist_view(request)
             # Force evaluation of queryset
             list(response.context_data["cl"].result_list)
@@ -3838,6 +3839,6 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
         # Query count should remain the same regardless of version count
         # because of prefetch optimization
-        with self.assertNumQueries(3 if cms_version < "5.0.7" else 4):
+        with self.assertNumQueries(3 if PackageVersion(cms_version) < PackageVersion("5.0.7") else 4):
             response = poll_admin.changelist_view(request)
             list(response.context_data["cl"].result_list)

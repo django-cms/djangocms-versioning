@@ -2,6 +2,17 @@
 Changelog
 =========
 
+2.7.0 (2026-08-12)
+==================
+
+## What's Changed
+* feat: Support slug field on page ocntent objects, make publishing actions atomic by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/581
+* fix: State transitions did not clear version caches by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/577
+* fix: Keep not frontend-editable objects in the sideframe by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/580
+
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.6.1...2.7.0
+
 2.6.1 (2026-07-06)
 ==================
 * fix: Enforced change permission on discard and edit_redirect (reported by Ta Duc Thien) by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/573

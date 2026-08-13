@@ -933,23 +933,32 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             keepsideframe=keepsideframe,
         )
 
-    def _get_revert_link(self, obj, request, disabled=False):
-        """Helper function to get the html link to the revert action"""
+    def _get_restore_link(self, obj, request, disabled=False):
+        """Helper function to get the html link to the restore action"""
         if obj.state in (PUBLISHED, DRAFT):
             # Don't display the link if it's a draft or published
             return ""
 
-        revert_url = reverse(
-            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_revert",
+        restore_url = reverse(
+            f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_restore",
             args=(obj.pk,),
         )
         return self.admin_action_button(
-            revert_url,
+            restore_url,
             icon="undo",
-            title=_("Revert"),
-            name="revert",
-            disabled=not obj.check_revert.as_bool(request.user) or disabled,
+            title=_("Restore"),
+            name="restore",
+            disabled=not obj.check_restore.as_bool(request.user) or disabled,
         )
+
+    def _get_revert_link(self, obj, request, disabled=False):
+        """Deprecated alias of ``_get_restore_link``."""
+        warnings.warn(
+            "VersionAdmin._get_revert_link is deprecated. Use _get_restore_link instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_restore_link(obj, request, disabled=disabled)
 
     def _get_discard_link(self, obj, request, disabled=False):
         """Helper function to get the html link to the discard action"""
@@ -1039,7 +1048,7 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             self._get_archive_link,
             self._get_publish_link,
             self._get_unpublish_link,
-            self._get_revert_link,
+            self._get_restore_link,
             self._get_discard_link,
             self._get_unlock_link,
             self._get_settings_link,
@@ -1361,15 +1370,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         # Redirect
         return redirect(self._get_edit_redirect_url(target.content, request))
 
-    def revert_view(self, request, object_id):
-        """Reverts to the specified version i.e. creates a draft from it."""
+    def restore_view(self, request, object_id):
+        """Restores the specified version i.e. creates a draft from it."""
         version = self.get_object(request, unquote(object_id))
 
         if version is None:
             raise Http404
 
         try:
-            version.check_revert(request.user)
+            version.check_restore(request.user)
         except ConditionFailed as e:
             self.message_user(request, force_str(e), messages.ERROR)
             return redirect(version_list_url(version.content))
@@ -1391,13 +1400,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "version_number": version.number,
                 "draft_version": draft_version,
                 "object_id": object_id,
-                "revert_url": reverse(
-                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_revert",
+                "restore_url": reverse(
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_restore",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),
             }
-            return TemplateResponse(request, "djangocms_versioning/admin/revert_confirmation.html", context)
+            # Deprecated alias for custom templates, will be removed in a future version
+            context["revert_url"] = context["restore_url"]
+            return TemplateResponse(request, "djangocms_versioning/admin/restore_confirmation.html", context)
         else:
             if draft_version and request.POST.get("archive"):
                 draft_version.archive(request.user)
@@ -1408,6 +1419,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             version = version.copy(request.user)
             # Redirect
             return redirect(version_list_url(version.content))
+
+    def revert_view(self, request, object_id):
+        """Deprecated alias of ``restore_view``."""
+        warnings.warn(
+            "VersionAdmin.revert_view is deprecated. Use restore_view instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.restore_view(request, object_id)
 
     def discard_view(self, request, object_id):
         """Discards the specified version"""
@@ -1427,12 +1447,14 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 "version_number": version.number,
                 "draft_version": version,
                 "object_id": object_id,
-                "revert_url": reverse(
-                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_revert",
+                "restore_url": reverse(
+                    f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_restore",
                     args=(version.content.pk,),
                 ),
                 "back_url": self.back_link(request, version),
             }
+            # Deprecated alias for custom templates, will be removed in a future version
+            context["revert_url"] = context["restore_url"]
             return TemplateResponse(request, "djangocms_versioning/admin/discard_confirmation.html", context)
 
         version_url = version_list_url(version.content)
@@ -1619,8 +1641,15 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
                 name="{}_{}_edit_redirect".format(*info),
             ),
             path(
+                "<path:object_id>/restore/",
+                self.admin_site.admin_view(self.restore_view),
+                name="{}_{}_restore".format(*info),
+            ),
+            # Deprecated URL, kept for backwards compatibility.
+            # Will be removed in a future version.
+            path(
                 "<path:object_id>/revert/",
-                self.admin_site.admin_view(self.revert_view),
+                self.admin_site.admin_view(self.restore_view),
                 name="{}_{}_revert".format(*info),
             ),
             path(

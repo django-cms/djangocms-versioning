@@ -13,10 +13,10 @@
         </li>
     {% endif %}
 {% endwith %}
-{% with url=original|url_revert_version:request.user %}
+{% with url=original|url_restore_version:request.user %}
     {% if url %}
         <li>
-            <a href="{{ url }}?next={{ request.path }}">{% trans "Revert" %}</a>
+            <a href="{{ url }}?next={{ request.path }}">{% trans "Restore" %}</a>
         </li>
     {% endif %}
 {% endwith %}

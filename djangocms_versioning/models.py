@@ -558,7 +558,7 @@ class Version(models.Model):
             user_can_unlock(_("You do not have unlock permissions")),
         ]
     )
-    check_revert = Conditions(
+    check_restore = Conditions(
         [
             user_can_change(change_permission_error),
             in_state(
@@ -568,6 +568,9 @@ class Version(models.Model):
             draft_is_not_locked(lock_draft_error_message),
         ]
     )
+    #: Deprecated alias of :attr:`check_restore`, kept for backwards
+    #: compatibility. Will be removed in a future version.
+    check_revert = check_restore
     check_discard = Conditions(
         [
             in_state([constants.DRAFT], not_draft_error),

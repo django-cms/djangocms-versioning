@@ -214,12 +214,12 @@ class PermissionTestCase(BaseStateTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 1)
 
     @patch("django.contrib.messages.add_message")
-    def test_revert_view_cannot_be_accessed_without_permission(
+    def test_restore_view_cannot_be_accessed_without_permission(
         self, mocked_messages
     ):
         post_version = factories.BlogPostVersionFactory(state=constants.ARCHIVED)
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "revert", post_version.pk
+            self.versionable.version_model_proxy, "restore", post_version.pk
         )
         user = self.get_staff_user_with_no_permissions()
 
@@ -237,12 +237,12 @@ class PermissionTestCase(BaseStateTestCase):
         self.assertEqual(StateTracking.objects.all().count(), 0)
 
     @patch("django.contrib.messages.add_message")
-    def test_revert_view_can_be_accessed_with_low_level_permission(
+    def test_restore_view_can_be_accessed_with_low_level_permission(
         self, mocked_messages
     ):
         post_version = factories.BlogPostVersionFactory(state=constants.ARCHIVED, content__text="post <alice>")
         url = self.get_admin_url(
-            self.versionable.version_model_proxy, "revert", post_version.pk
+            self.versionable.version_model_proxy, "restore", post_version.pk
         )
         user = self.get_user("alice", is_staff=True)
         with self.login_user_context(user):

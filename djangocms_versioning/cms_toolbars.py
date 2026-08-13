@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections import OrderedDict
 from copy import copy
 
@@ -180,26 +181,35 @@ class VersioningToolbar(PlaceholderToolbar):
             )
             self.toolbar.add_item(lock_message, position=0)
 
-    def _add_revert_button(self, disabled=False):
-        """Helper method to add a revert button to the toolbar"""
+    def _add_restore_button(self, disabled=False):
+        """Helper method to add a restore button to the toolbar"""
         # Check if object is registered with versioning otherwise don't add
         if not self._is_versioned():
             return
         item = ButtonList(side=self.toolbar.RIGHT)
         proxy_model = self._get_proxy_model()
         version = self._get_version()
-        if version and version.check_revert.as_bool(self.request.user):
-            revert_url = reverse(
-                f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_revert",
+        if version and version.check_restore.as_bool(self.request.user):
+            restore_url = reverse(
+                f"admin:{proxy_model._meta.app_label}_{proxy_model._meta.model_name}_restore",
                 args=(version.pk,),
             )
             item.add_button(
-                _("Revert"),
-                url=revert_url,
+                _("Restore"),
+                url=restore_url,
                 disabled=disabled,
                 extra_classes=["cms-btn-action"],
             )
             self.toolbar.add_item(item)
+
+    def _add_revert_button(self, disabled=False):
+        """Deprecated alias of ``_add_restore_button``."""
+        warnings.warn(
+            "VersioningToolbar._add_revert_button is deprecated. Use _add_restore_button instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._add_restore_button(disabled=disabled)
 
     def _add_versioning_menu(self):
         """Helper method to add version menu in the toolbar"""
@@ -302,7 +312,7 @@ class VersioningToolbar(PlaceholderToolbar):
         self._add_lock_message()
         self._add_preview_button()
         self._add_view_published_button()
-        self._add_revert_button()
+        self._add_restore_button()
         self._add_publish_button()
         self._add_versioning_menu()
 

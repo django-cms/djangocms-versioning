@@ -408,6 +408,9 @@ def get_latest_content_from_cache(
     def matches_filters(content):
         return all(getattr(content, field, None) == value for field, value in extra_grouping_fields.items())
 
+    # Ignore content objects without a version (e.g. created before versioning was enabled)
+    cache = [content for content in cache if getattr(content, "_prefetched_versions", None)]
+
     # Evaluate prefetched contents in python
     drafts = (content for content in cache if content._prefetched_versions[0].state == DRAFT)
     for content in drafts:

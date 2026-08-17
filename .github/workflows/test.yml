@@ -64,7 +64,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         sudo apt install gettext gcc -y
@@ -136,7 +136,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -206,7 +206,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -241,7 +241,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -276,7 +276,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}

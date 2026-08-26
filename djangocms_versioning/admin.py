@@ -361,13 +361,23 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         return qs
 
     def get_content_obj(self, obj: models.Model) -> models.Model:
-        """Returns the latest content object for the given grouper object."""
+        """Returns the content object to show for the given grouper object.
+
+        This is the latest content object, unless a specific one was requested by primary
+        key via the grouper admin's ``content_pk_url_param``. Honouring that request is
+        what lets the change view show an older version (e.g. the published one, which is
+        then rendered read-only); reading the prefetch cache unconditionally would always
+        bring up the latest content and silently offer its fields for editing instead.
+        """
         if obj is None or obj.pk is None:
             # Unsaved grouper instances (e.g. on the admin add view) have no content object
             # and are unhashable, so they must not reach the instance-keyed cache in the super().
             return None
         if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
             return super().get_content_obj(obj)
+        requested = self._requested_content_obj
+        if requested is not None and getattr(requested, f"{self.grouper_field_name}_id", None) == obj.pk:
+            return requested
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)
 
     @admin.display(

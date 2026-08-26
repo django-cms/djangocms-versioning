@@ -3444,6 +3444,81 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         finally:
             modeladmin.__class__.prepopulated_fields = original
 
+    def test_get_content_obj_honours_requested_content_pk(self):
+        """A content object requested by primary key must win over the prefetch cache.
+
+        ``ExtendedGrouperVersionAdminMixin.get_queryset`` always prefetches the latest
+        content, so reading that cache unconditionally would make the grouper admin's
+        ``content_pk_url_param`` a no-op and always bring up the latest content."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        draft = factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request(f"/?{modeladmin.content_pk_url_param}={published.content.pk}")
+        request.user = self.get_superuser()
+        # The ModelAdmin is a singleton: do not leak the requested content into later tests.
+        self.addCleanup(setattr, modeladmin, "_requested_content_obj", None)
+        modeladmin.get_grouping_from_request(request)
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        # The prefetch cache holds the latest (draft) content ...
+        self.assertIn(draft.content, obj._prefetched_contents)
+        # ... but the explicitly requested (published) content is what gets shown.
+        self.assertEqual(modeladmin.get_content_obj(obj), published.content)
+
+    def test_get_content_obj_ignores_requested_content_of_other_grouper(self):
+        """A content pk belonging to a different grouper must be ignored, so the
+        change view falls back to the latest content of the grouper being edited."""
+        draft = factories.PollVersionFactory(content__language="en")
+        other = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request(f"/?{modeladmin.content_pk_url_param}={other.content.pk}")
+        request.user = self.get_superuser()
+        # The ModelAdmin is a singleton: do not leak the requested content into later tests.
+        self.addCleanup(setattr, modeladmin, "_requested_content_obj", None)
+        modeladmin.get_grouping_from_request(request)
+
+        obj = modeladmin.get_queryset(request).get(pk=draft.content.poll.pk)
+
+        self.assertEqual(modeladmin.get_content_obj(obj), draft.content)
+
+    def test_change_view_renders_requested_published_content_readonly(self):
+        """Requesting the published content of a grouper that also has a newer draft
+        must render that published content, and render it read-only."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        url = self.get_admin_url(Poll, "change", poll.pk)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(
+                f"{url}?{modeladmin.content_pk_url_param}={published.content.pk}"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["content_instance"], published.content)
+        self.assertFalse(response.context["can_change_content_obj"])
+
+    def test_change_view_renders_latest_draft_editable(self):
+        """Without a requested content pk the change view edits the latest content."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        draft = factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        url = self.get_admin_url(Poll, "change", poll.pk)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["content_instance"], draft.content)
+        self.assertTrue(response.context["can_change_content_obj"])
+
     def test_object_tools_render_on_grouper_change_view(self):
         """The versioning object-tools render on the grouper admin change form,
         driven by the ``content_instance`` exposed by the grouper admin, via the

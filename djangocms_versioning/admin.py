@@ -193,13 +193,15 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     include_unpublished_archived=True,
                     **{field: getattr(self, field) for field in self._extra_grouping_fields},
                 )
-                for prefetched in getattr(obj, "_prefetched_contents", []):
-                    prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
-                versions = (
-                    [content._prefetched_versions[0] for content in obj._prefetched_contents]
-                    if hasattr(obj, "_prefetched_contents")
-                    else None
-                )
+                if hasattr(obj, "_prefetched_contents"):
+                    versions = []
+                    for prefetched in obj._prefetched_contents:
+                        if not prefetched._prefetched_versions:
+                            # Content object without a version, e.g. created before versioning
+                            # was enabled: it has no state to indicate
+                            continue
+                        prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
+                        versions.append(prefetched._prefetched_versions[0])
             else:  # Content Model
                 content_obj = obj
 
@@ -352,7 +354,11 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             Prefetch(
                 reverse_name,
                 to_attr="_prefetched_contents",  # Needed for state indicators
-                queryset=self.content_model.admin_manager.filter(**self.current_content_filters)
+                # ``versions__isnull=False`` keeps content objects without a version (e.g. created
+                # before versioning was enabled) out of the cache, just like ``latest_content()`` does
+                queryset=self.content_model.admin_manager.filter(
+                    versions__isnull=False, **self.current_content_filters
+                )
                 .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
                 .annotate(content_is_latest=Value(True))  # We're only looking at the latest content in the qs
                 .order_by("-pk"),

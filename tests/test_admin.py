@@ -3412,6 +3412,46 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
 
+    def test_changelist_with_content_without_version(self):
+        """Content objects without a version (e.g. created before versioning was enabled)
+        must neither be prefetched nor break the changelist. See #602."""
+        version = factories.PollVersionFactory(content__language="en")
+        poll = version.content.poll
+        # Content object of the same grouper which has no version
+        versionless_content = factories.PollContentFactory(poll=poll, language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        self.assertNotIn(versionless_content, obj._prefetched_contents)
+        self.assertEqual(modeladmin.get_content_obj(obj), version.content)
+
+        indicator = modeladmin.get_indicator_column(request)
+        self.assertIn("cms-pagetree-node-state-draft", indicator(obj))
+
+    def test_changelist_indicator_with_only_content_without_version(self):
+        """A grouper whose only content object has no version renders an empty
+        indicator instead of raising. See #602."""
+        poll = factories.PollFactory()
+        factories.PollContentFactory(poll=poll, language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        self.assertEqual(obj._prefetched_contents, [])
+        self.assertIsNone(modeladmin.get_content_obj(obj))
+
+        indicator = modeladmin.get_indicator_column(request)
+        self.assertIn("cms-pagetree-node-state-empty", indicator(obj))
+
     def test_prepopulated_fields_excluded_when_readonly(self):
         """Prepopulated fields referencing readonly content fields must be
         excluded to avoid a KeyError in Django's AdminForm. See #532."""

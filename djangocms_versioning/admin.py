@@ -374,6 +374,10 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
         what lets the change view show an older version (e.g. the published one, which is
         then rendered read-only); reading the prefetch cache unconditionally would always
         bring up the latest content and silently offer its fields for editing instead.
+
+        ``content_pk_url_param``/``_requested_content_obj`` only exist from django-cms 5.1
+        on; on older supported versions there is no way to request a specific content
+        object, so the latest content is all there is to show.
         """
         if obj is None or obj.pk is None:
             # Unsaved grouper instances (e.g. on the admin add view) have no content object
@@ -381,7 +385,7 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             return None
         if self._is_content_obj(obj) or not hasattr(obj, "_prefetched_contents"):
             return super().get_content_obj(obj)
-        requested = self._requested_content_obj
+        requested = getattr(self, "_requested_content_obj", None)
         if requested is not None and getattr(requested, f"{self.grouper_field_name}_id", None) == obj.pk:
             return requested
         return get_latest_content_from_cache(obj._prefetched_contents, include_unpublished_archived=True)

@@ -98,6 +98,7 @@ in :doc:`/api/advanced_configuration`.)
    :hidden:
    :caption: Release notes:
 
+   upgrade/2.7.0
    upgrade/2.6.0
    upgrade/2.5.0
    upgrade/2.4.0

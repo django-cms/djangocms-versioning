@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
+from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
 from cms.utils import get_language_from_request
@@ -28,11 +29,13 @@ from django.utils.http import urlencode
 from django.utils.timezone import now
 from django.utils.translation import override
 from freezegun import freeze_time
+from packaging.version import Version as PackageVersion
 
 import djangocms_versioning.helpers
 from djangocms_versioning import constants, helpers
 from djangocms_versioning.admin import (
     ExtendedGrouperVersionAdminMixin,
+    ExtendedVersionAdminMixin,
     VersionAdmin,
     VersionChangeList,
     VersioningAdminMixin,
@@ -727,6 +730,129 @@ class VersionAdminActionsTestCase(CMSTestCase):
         self.assertIn(expected_href, actual_href)
         self.assertIn(expected_sideframe_open_control, actual_sideframe_control)
         self.assertNotIn(expected_sideframe_close_control, actual_sideframe_control)
+
+    def test_preview_action_link_sideframe_editing_disabled_state(self):
+        """
+        The preview action closes the sideframe for objects with
+        placeholders i.e. PageContent
+        """
+        version = factories.PageVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get("/")
+        request.user = self.get_superuser()
+
+        preview_link = self.version_admin._get_preview_link(version, request)
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_sideframe_control = soup.find("a").get("class")
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_preview_action_link_sideframe_editing_enabled_state(self):
+        """
+        The preview action keeps the sideframe open for all other objects
+        without placeholders
+        """
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+        request = RequestFactory().get("/admin/polls/pollcontent/")
+        request.user = self.get_superuser()
+
+        preview_link = self.version_admin._get_preview_link(version, request)
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+        # The custom preview url registered for polls is still used
+        self.assertEqual(actual_link.get("href"), version.content.get_preview_url())
+
+
+class ExtendedVersionAdminActionsSideframeTestCase(CMSTestCase):
+    """The preview and edit action buttons rendered by the
+    ExtendedVersionAdminMixin keep the sideframe open for models edited in
+    the admin and only close it for frontend-editable models, i.e. models
+    with placeholders (issue #528).
+    """
+
+    def setUp(self):
+        self.poll_content_admin = admin.site._registry[PollContent]
+        page_content_admin_class = type(
+            "PageContentExtendedVersionAdmin",
+            (ExtendedVersionAdminMixin, admin.ModelAdmin),
+            {},
+        )
+        self.page_content_admin = page_content_admin_class(PageContent, admin.site)
+        self.request = RequestFactory().get("/")
+        self.request.user = self.get_superuser()
+
+    def _get_link_classes(self, rendered_button):
+        soup = BeautifulSoup(str(rendered_button), features="lxml")
+        return soup.find("a").get("class")
+
+    def test_preview_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+
+        preview_link = self.poll_content_admin._get_preview_link(
+            version.content, self.request
+        )
+        soup = BeautifulSoup(str(preview_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+        # The custom preview url of the content model is still used
+        self.assertEqual(actual_link.get("href"), version.content.get_preview_url())
+
+    def test_preview_action_link_closes_sideframe_for_frontend_editable_model(self):
+        version = factories.PageVersionFactory(state=constants.PUBLISHED)
+
+        preview_link = self.page_content_admin._get_preview_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(preview_link)
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_edit_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        version = factories.PollVersionFactory(state=constants.DRAFT)
+
+        edit_link = self.poll_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(edit_link)
+
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_edit_action_link_closes_sideframe_for_frontend_editable_model(self):
+        version = factories.PageVersionFactory(state=constants.DRAFT)
+
+        edit_link = self.page_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        actual_sideframe_control = self._get_link_classes(edit_link)
+
+        self.assertNotIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertIn("js-close-sideframe", actual_sideframe_control)
+
+    def test_new_draft_action_link_keeps_sideframe_for_sideframe_editable_model(self):
+        """For a published version the edit action renders as "New Draft";
+        creating the draft must also keep the sideframe open for models
+        edited in the admin."""
+        version = factories.PollVersionFactory(state=constants.PUBLISHED)
+
+        edit_link = self.poll_content_admin._get_edit_link(
+            version.content, self.request
+        )
+        soup = BeautifulSoup(str(edit_link), features="lxml")
+        actual_link = soup.find("a")
+        actual_sideframe_control = actual_link.get("class")
+
+        self.assertEqual(actual_link.get("title"), "New Draft")
+        self.assertIn("js-keep-sideframe", actual_sideframe_control)
+        self.assertNotIn("js-close-sideframe", actual_sideframe_control)
 
 
 class StateActionsTestCase(CMSTestCase):
@@ -3399,6 +3525,46 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
         can_change = modeladmin.can_change_content(request, public_version.content)
         self.assertFalse(can_change)
 
+    def test_changelist_with_content_without_version(self):
+        """Content objects without a version (e.g. created before versioning was enabled)
+        must neither be prefetched nor break the changelist. See #602."""
+        version = factories.PollVersionFactory(content__language="en")
+        poll = version.content.poll
+        # Content object of the same grouper which has no version
+        versionless_content = factories.PollContentFactory(poll=poll, language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        self.assertNotIn(versionless_content, obj._prefetched_contents)
+        self.assertEqual(modeladmin.get_content_obj(obj), version.content)
+
+        indicator = modeladmin.get_indicator_column(request)
+        self.assertIn("cms-pagetree-node-state-draft", indicator(obj))
+
+    def test_changelist_indicator_with_only_content_without_version(self):
+        """A grouper whose only content object has no version renders an empty
+        indicator instead of raising. See #602."""
+        poll = factories.PollFactory()
+        factories.PollContentFactory(poll=poll, language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request("/")
+        request.user = self.get_superuser()
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        self.assertEqual(obj._prefetched_contents, [])
+        self.assertIsNone(modeladmin.get_content_obj(obj))
+
+        indicator = modeladmin.get_indicator_column(request)
+        self.assertIn("cms-pagetree-node-state-empty", indicator(obj))
+
     def test_prepopulated_fields_excluded_when_readonly(self):
         """Prepopulated fields referencing readonly content fields must be
         excluded to avoid a KeyError in Django's AdminForm. See #532."""
@@ -3794,8 +3960,8 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         # 1. Count query for pagination
         # 2. Count query (duplicate from admin)
         # 3. Main queryset with subqueries for content annotations
-        # 4. django CMS 5.1+: Prefetch content
-        with self.assertNumQueries(3 if cms_version < "5.0.7" else 4):
+        # 4. django CMS 5.0.7+: Prefetch content
+        with self.assertNumQueries(3 if PackageVersion(cms_version) < PackageVersion("5.0.7") else 4):
             response = poll_admin.changelist_view(request)
             # Force evaluation of queryset
             list(response.context_data["cl"].result_list)
@@ -3826,6 +3992,6 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
 
         # Query count should remain the same regardless of version count
         # because of prefetch optimization
-        with self.assertNumQueries(3 if cms_version < "5.0.7" else 4):
+        with self.assertNumQueries(3 if PackageVersion(cms_version) < PackageVersion("5.0.7") else 4):
             response = poll_admin.changelist_view(request)
             list(response.context_data["cl"].result_list)

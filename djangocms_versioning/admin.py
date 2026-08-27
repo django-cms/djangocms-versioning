@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import warnings
 from collections import OrderedDict
 from inspect import Parameter, signature
@@ -22,7 +23,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_permission_codename
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models import OuterRef, Prefetch, Subquery, Value
 from django.db.models.functions import Cast, Lower
 from django.forms import MediaDefiningClass
@@ -65,6 +66,8 @@ from .helpers import (
 from .indicators import content_indicator, content_indicator_menu
 from .models import Version
 from .versionables import _cms_extension
+
+logger = logging.getLogger(__name__)
 
 
 def _get_grouper_content_filters(model_admin, request):
@@ -230,13 +233,15 @@ class StateIndicatorMixin(metaclass=MediaDefiningClass):
                     include_unpublished_archived=True,
                     **grouping_filters,
                 )
-                for prefetched in getattr(obj, "_prefetched_contents", []):
-                    prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
-                versions = (
-                    [content._prefetched_versions[0] for content in obj._prefetched_contents]
-                    if hasattr(obj, "_prefetched_contents")
-                    else None
-                )
+                if hasattr(obj, "_prefetched_contents"):
+                    versions = []
+                    for prefetched in obj._prefetched_contents:
+                        if not prefetched._prefetched_versions:
+                            # Content object without a version, e.g. created before versioning
+                            # was enabled: it has no state to indicate
+                            continue
+                        prefetched._prefetched_versions[0].content = prefetched  # Avoid fetching reverse
+                        versions.append(prefetched._prefetched_versions[0])
             else:  # Content Model
                 content_obj = obj
 
@@ -391,7 +396,9 @@ class ExtendedGrouperVersionAdminMixin(ExtendedListDisplayMixin):
             Prefetch(
                 reverse_name,
                 to_attr="_prefetched_contents",  # Needed for state indicators
-                queryset=self.content_model.admin_manager.filter(**content_filters)
+                # ``versions__isnull=False`` keeps content objects without a version (e.g. created
+                # before versioning was enabled) out of the cache, just like ``latest_content()`` does
+                queryset=self.content_model.admin_manager.filter(versions__isnull=False, **content_filters)
                 .prefetch_related(Prefetch("versions", to_attr="_prefetched_versions"))
                 .annotate(content_is_latest=Value(True))  # We're only looking at the latest content in the qs
                 .order_by("-pk"),
@@ -623,12 +630,15 @@ class ExtendedVersionAdminMixin(
         if not preview_url:
             disabled = True
 
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = versionables.for_content(obj).content_model_is_sideframe_editable
+
         return self.admin_action_button(
             preview_url,
             icon="view",
             title=_("Preview"),
             name="preview",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
             disabled=disabled,
         )
 
@@ -670,6 +680,9 @@ class ExtendedVersionAdminMixin(
         else:
             icon = "edit"
 
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = versionables.for_content(obj).content_model_is_sideframe_editable
+
         return self.admin_action_button(
             url,
             icon=icon,
@@ -677,7 +690,7 @@ class ExtendedVersionAdminMixin(
             name="edit",
             disabled=disabled,
             action="post",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
         )
 
     def _get_manage_versions_link(self, obj, request, disabled=False):
@@ -867,11 +880,13 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             # Draft versions have edit button
             return ""
         url = get_preview_url(obj.content)
+        # Don't close the sideframe if the item is sideframe compatible
+        keepsideframe = obj.versionable.content_model_is_sideframe_editable
         return self.admin_action_button(
             url,
             icon="view",
             name="preview",
-            keepsideframe=False,
+            keepsideframe=keepsideframe,
             title=_("Preview"),
         )
 
@@ -1217,7 +1232,22 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return self._internal_redirect(requested_redirect, redirect_url)
 
         # Publish the version
-        version.publish(request.user)
+        try:
+            version.publish(request.user)
+        except IntegrityError as e:
+            # e.g. the cms detected a URL collision with another page
+            logger.warning("Publishing version %s failed: %s", version.pk, e)
+            self.message_user(
+                request,
+                _(
+                    "Version could not be published: it conflicts with existing "
+                    "published content. This usually means the URL or slug is "
+                    "already in use by another page. Please change the slug and "
+                    "try again."
+                ),
+                messages.ERROR,
+            )
+            return self._internal_redirect(requested_redirect, redirect_url)
 
         # Display message
         self.message_user(request, _("Version published"))

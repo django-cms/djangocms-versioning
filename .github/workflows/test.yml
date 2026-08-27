@@ -19,6 +19,9 @@ jobs:
             dj52_cms50.txt,
             dj60_cms50.txt,
             dj61_cms50.txt,
+            dj52_cms51.txt,
+            dj60_cms51.txt,
+            dj61_cms51.txt,
           ]
         exclude:
           - requirements-file: dj52_cms41.txt
@@ -32,6 +35,16 @@ jobs:
           - requirements-file: dj61_cms50.txt
             python-version: "3.10"
           - requirements-file: dj61_cms50.txt
+            python-version: "3.11"
+          - requirements-file: dj52_cms51.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms51.txt
+            python-version: "3.10"
+          - requirements-file: dj60_cms51.txt
+            python-version: "3.11"
+          - requirements-file: dj61_cms51.txt
+            python-version: "3.10"
+          - requirements-file: dj61_cms51.txt
             python-version: "3.11"
           - requirements-file: dj42_cms41.txt
             python-version: "3.14"
@@ -47,11 +60,11 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         sudo apt install gettext gcc -y
@@ -119,11 +132,11 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -189,11 +202,11 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -224,11 +237,11 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}
@@ -259,11 +272,11 @@ jobs:
     steps:
     - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install uv
-      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
     - name: Install dependencies
       run: |
         uv pip install --system -r tests/requirements/${{ matrix.requirements-file }}

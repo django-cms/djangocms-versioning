@@ -161,6 +161,38 @@ class TestGetLatestAdminViewableContent(CMSTestCase):
         self.assertEqual(en_content.language, "en")
         self.assertEqual(en_content.versions.first(), self.version)
 
+    def test_prefetched_content_without_version_is_ignored(self):
+        """Content objects without a version (e.g. created before versioning was enabled)
+        must not raise an IndexError but simply be skipped. See #602."""
+        content_obj = self.version.content
+        content_obj._prefetched_versions = [self.version]
+        versionless_content = factories.PageContentFactory(page=self.page, language="en")
+        versionless_content._prefetched_versions = []
+
+        self.page._prefetched_contents = [versionless_content, content_obj]  # order_by("-pk")
+
+        content = helpers.get_latest_admin_viewable_content(self.page, language="en")
+        self.assertEqual(content, content_obj)
+
+        content = helpers.get_latest_admin_viewable_content(
+            self.page, language="en", include_unpublished_archived=True
+        )
+        self.assertEqual(content, content_obj)
+
+    def test_prefetched_content_only_without_version_returns_none(self):
+        """A grouper whose only content object has no version has no viewable content. See #602."""
+        versionless_content = factories.PageContentFactory(page=self.page, language="de")
+        versionless_content._prefetched_versions = []
+
+        self.page._prefetched_contents = [versionless_content]
+
+        self.assertIsNone(helpers.get_latest_admin_viewable_content(self.page, language="de"))
+        self.assertIsNone(
+            helpers.get_latest_admin_viewable_content(
+                self.page, language="de", include_unpublished_archived=True
+            )
+        )
+
     def test_extra_grouping_fields_respects_language_without_prefetch(self):
         """Test that extra_grouping_fields (language) is respected when _prefetched_contents is not present"""
         # Create content for two different languages

@@ -13,6 +13,7 @@ from django.utils.text import slugify
 
 from djangocms_versioning.admin import VersionAdmin, VersioningAdminMixin
 from djangocms_versioning.cms_config import (
+    PAGE_CONTENT_HAS_URL_FIELDS,
     VersioningCMSConfig,
     VersioningCMSExtension,
 )
@@ -44,7 +45,9 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
         self.language = "en"
         self.title = "test page"
 
-        self.version = factories.PageVersionFactory(content__language="en", state=DRAFT,)
+        self.version = factories.PageVersionFactory(
+            content__language="en", content__title=self.title, state=DRAFT,
+        )
         factories.PageUrlFactory(
             page=self.version.content.page,
             language="en",
@@ -124,6 +127,15 @@ class PageContentVersioningBehaviourTestCase(CMSTestCase):
         form.save()
         page = Page.objects.get(pk=self.page.pk)
         url = page.get_urls().first()
+
+        if PAGE_CONTENT_HAS_URL_FIELDS:
+            # django CMS 5.1+: changing a draft's slug does not touch the URL
+            # until the draft is published
+            self.assertEqual(url.slug, slugify(self.title))
+            self.assertEqual(url.path, slugify(self.title))
+
+            self.version.publish(self.user)
+            url = page.get_urls().first()
 
         self.assertEqual(url.slug, new_slug)
         self.assertEqual(url.path, new_slug)

@@ -97,6 +97,7 @@ extend-ignore = [
   "PLR0912",  # Too many branches
   "PLR0913",  # Too many arguments to function call
   "PLR0915",  # Too many statements
+  "PLR0917",  # Too many positional arguments
   "PLR2004",  # Magic value used in comparison, consider replacing with a constant variable
   "UP007",  # Use `X | Y` for type annotations
 ]

@@ -1,13 +1,17 @@
-from unittest import skipIf
+from unittest import skipIf, skipUnless
 
 from cms import __version__ as cms_version
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.toolbar import CMSToolbar
 from cms.utils.urlutils import admin_reverse
+from django.contrib.sites.models import Site
+from django.db import IntegrityError
 from django.template import Context
 from packaging.version import Version as PackageVersion
 
 from djangocms_versioning import constants
+from djangocms_versioning.cms_config import PAGE_CONTENT_HAS_URL_FIELDS
+from djangocms_versioning.models import Version
 from djangocms_versioning.plugin_rendering import CMSToolbarVersioningMixin, VersionContentRenderer
 from djangocms_versioning.test_utils.factories import (
     PageFactory,
@@ -307,3 +311,73 @@ class AdminManagerIntegrationTestCase(CMSTestCase):
 
         self.assertIn(f"/admin/cms/pagecontent/{self.fr_version.content.pk}/", result)
 
+
+
+@skipUnless(PAGE_CONTENT_HAS_URL_FIELDS, "URL fields on PageContent require django CMS 5.1+")
+class PageUrlFromContentTestCase(CMSTestCase):
+    """The cms derives PageUrl from the published PageContent; versioning is
+    responsible for triggering this on publish and unpublish."""
+
+    def setUp(self):
+        self.user = self.get_superuser()
+        self.site = Site.objects.first()
+
+    def test_publish_creates_url_from_content(self):
+        version = PageVersionFactory(
+            content__language="en", content__slug="my-page", content__page__site=self.site
+        )
+
+        version.publish(self.user)
+
+        url = version.content.page.urls.get(language="en")
+        self.assertEqual(url.slug, "my-page")
+        self.assertEqual(url.path, "my-page")
+        self.assertTrue(url.managed)
+
+    def test_draft_slug_change_only_applies_on_publish(self):
+        version = PageVersionFactory(
+            content__language="en", content__slug="initial", content__page__site=self.site
+        )
+        version.publish(self.user)
+        page = version.content.page
+
+        draft = version.copy(self.user)
+        draft.content.slug = "changed"
+        draft.content.save()
+
+        url = page.urls.get(language="en")
+        self.assertEqual(url.path, "initial")
+
+        draft.publish(self.user)
+
+        url.refresh_from_db()
+        self.assertEqual(url.slug, "changed")
+        self.assertEqual(url.path, "changed")
+
+    def test_unpublish_removes_path_but_keeps_slug(self):
+        version = PageVersionFactory(
+            content__language="en", content__slug="my-page", content__page__site=self.site
+        )
+        version.publish(self.user)
+
+        version.unpublish(self.user)
+
+        url = version.content.page.urls.get(language="en")
+        self.assertIsNone(url.path)
+        self.assertEqual(url.slug, "my-page")
+
+    def test_publish_colliding_path_rolls_back(self):
+        published = PageVersionFactory(
+            content__language="en", content__slug="same", content__page__site=self.site
+        )
+        published.publish(self.user)
+        draft = PageVersionFactory(
+            content__language="en", content__slug="same", content__page__site=self.site
+        )
+
+        with self.assertRaises(IntegrityError):
+            draft.publish(self.user)
+
+        draft = Version.objects.get(pk=draft.pk)
+        self.assertEqual(draft.state, constants.DRAFT)
+        self.assertFalse(draft.content.page.urls.filter(language="en").exists())

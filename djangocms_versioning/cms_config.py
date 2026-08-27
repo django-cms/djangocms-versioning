@@ -43,6 +43,11 @@ from .helpers import (
 from .managers import AdminManagerMixin, PublishedContentManagerMixin
 from .plugin_rendering import CMSToolbarVersioningMixin
 
+#: django CMS 5.1+ stores slug and overwrite_url on PageContent and derives the
+#: PageUrl routing table from the published content
+#: (https://github.com/django-cms/django-cms/pull/8729)
+PAGE_CONTENT_HAS_URL_FIELDS = hasattr(PageContent, "slug")
+
 
 class VersioningCMSExtension(CMSAppExtension):
     def __init__(self):
@@ -213,10 +218,14 @@ def on_page_content_publish(version):
     """Url path and cache operations to do when a PageContent obj is published"""
     page = version.content.page
     language = version.content.language
-    page._update_url_path(language)
-    if page.is_home:
-        page._remove_title_root_path()
-    page._update_url_path_recursive(language)
+    if PAGE_CONTENT_HAS_URL_FIELDS:
+        # The now public content is the source of truth for the page's URL
+        page.update_urls_from_content(language)
+    else:
+        page._update_url_path(language)
+        if page.is_home:
+            page._remove_title_root_path()
+        page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 
 
@@ -224,7 +233,13 @@ def on_page_content_unpublish(version):
     """Url path and cache operations to do when a PageContent obj is unpublished"""
     page = version.content.page
     language = version.content.language
-    page._update_url_path_recursive(language)
+    if PAGE_CONTENT_HAS_URL_FIELDS:
+        # Sets the URL path to None when no public content remains so the page
+        # stops resolving; when a new version replaces this one, the URL is
+        # derived from the newly published content instead.
+        page.update_urls_from_content(language)
+    else:
+        page._update_url_path_recursive(language)
     page.clear_cache(menu=True)
 
 
@@ -252,8 +267,11 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
                 if form.fieldsets:
                     fields = flatten_fieldsets(form.fieldsets)
                 fields = list(fields)
-                for f_name in {"slug", "overwrite_url"}.intersection(fields):
-                    fields.remove(f_name)
+                if not PAGE_CONTENT_HAS_URL_FIELDS:
+                    # slug/overwrite_url are form-only fields without a model
+                    # attribute; rendering them read-only would crash the admin
+                    for f_name in {"slug", "overwrite_url"}.intersection(fields):
+                        fields.remove(f_name)
         return fields
 
     def get_queryset(self, request):

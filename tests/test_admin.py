@@ -3535,6 +3535,20 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
 
         self.assertEqual(modeladmin.get_content_obj(obj), draft.content)
 
+    def _skip_without_readonly_context(self, response):
+        """Skip if django-cms does not expose ``can_change_content_obj`` for this admin.
+
+        Before django-cms 5.0.11/5.1.2 (#8799) the key is only added for grouper admins
+        with a ``language`` grouping field, and the test ``PollAdmin`` declares no
+        ``extra_grouping_fields``. Probe the context instead of comparing versions: the
+        fix spans two release lines, so no version boundary describes it.
+        """
+        if "can_change_content_obj" not in response.context:
+            self.skipTest(
+                "django-cms does not expose can_change_content_obj for grouper admins "
+                "without a language grouping field"
+            )
+
     @skipUnless(CMS_SUPPORTS_CONTENT_PK_URL_PARAM, "django-cms < 5.1 cannot request a content object by pk")
     def test_change_view_renders_requested_published_content_readonly(self):
         """Requesting the published content of a grouper that also has a newer draft
@@ -3555,6 +3569,7 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["content_instance"], published.content)
+        self._skip_without_readonly_context(response)
         self.assertFalse(response.context["can_change_content_obj"])
 
     def test_change_view_renders_latest_draft_editable(self):
@@ -3569,6 +3584,7 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["content_instance"], draft.content)
+        self._skip_without_readonly_context(response)
         self.assertTrue(response.context["can_change_content_obj"])
 
     def test_object_tools_render_on_grouper_change_view(self):

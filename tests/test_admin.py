@@ -1,12 +1,13 @@
 import datetime
 import warnings
 from collections import OrderedDict
-from unittest import skip
+from unittest import skip, skipUnless
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
+from cms.admin.utils import GrouperModelAdmin
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -65,6 +66,11 @@ from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollConte
 if not hasattr(CMSTestCase, "assertQuerySetEqual"):
     # Django < 4.2
     CMSTestCase.assertQuerySetEqual = CMSTestCase.assertQuerysetEqual
+
+# Requesting a specific content object by primary key was added to ``GrouperModelAdmin``
+# in django-cms 5.1; on the older versions this package still supports there is no such
+# query parameter, and the grouper admin always shows the latest content object.
+CMS_SUPPORTS_CONTENT_PK_URL_PARAM = hasattr(GrouperModelAdmin, "content_pk_url_param")
 
 
 class BaseStateTestCase(CMSTestCase):
@@ -3483,6 +3489,103 @@ class DefaultGrouperAdminTestCase(CMSTestCase):
             self.assertNotIn(CONTENT_PREFIX + "text", prepopulated)
         finally:
             modeladmin.__class__.prepopulated_fields = original
+
+    @skipUnless(CMS_SUPPORTS_CONTENT_PK_URL_PARAM, "django-cms < 5.1 cannot request a content object by pk")
+    def test_get_content_obj_honours_requested_content_pk(self):
+        """A content object requested by primary key must win over the prefetch cache.
+
+        ``ExtendedGrouperVersionAdminMixin.get_queryset`` always prefetches the latest
+        content, so reading that cache unconditionally would make the grouper admin's
+        ``content_pk_url_param`` a no-op and always bring up the latest content."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        draft = factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request(f"/?{modeladmin.content_pk_url_param}={published.content.pk}")
+        request.user = self.get_superuser()
+        # The ModelAdmin is a singleton: do not leak the requested content into later tests.
+        self.addCleanup(setattr, modeladmin, "_requested_content_obj", None)
+        modeladmin.get_grouping_from_request(request)
+
+        obj = modeladmin.get_queryset(request).get(pk=poll.pk)
+
+        # The prefetch cache holds the latest (draft) content ...
+        self.assertIn(draft.content, obj._prefetched_contents)
+        # ... but the explicitly requested (published) content is what gets shown.
+        self.assertEqual(modeladmin.get_content_obj(obj), published.content)
+
+    @skipUnless(CMS_SUPPORTS_CONTENT_PK_URL_PARAM, "django-cms < 5.1 cannot request a content object by pk")
+    def test_get_content_obj_ignores_requested_content_of_other_grouper(self):
+        """A content pk belonging to a different grouper must be ignored, so the
+        change view falls back to the latest content of the grouper being edited."""
+        draft = factories.PollVersionFactory(content__language="en")
+        other = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+
+        modeladmin = admin.site._registry[Poll]
+        modeladmin.language = "en"
+        request = self.get_request(f"/?{modeladmin.content_pk_url_param}={other.content.pk}")
+        request.user = self.get_superuser()
+        # The ModelAdmin is a singleton: do not leak the requested content into later tests.
+        self.addCleanup(setattr, modeladmin, "_requested_content_obj", None)
+        modeladmin.get_grouping_from_request(request)
+
+        obj = modeladmin.get_queryset(request).get(pk=draft.content.poll.pk)
+
+        self.assertEqual(modeladmin.get_content_obj(obj), draft.content)
+
+    def _skip_without_readonly_context(self, response):
+        """Skip if django-cms does not expose ``can_change_content_obj`` for this admin.
+
+        Before django-cms 5.0.11/5.1.2 (#8799) the key is only added for grouper admins
+        with a ``language`` grouping field, and the test ``PollAdmin`` declares no
+        ``extra_grouping_fields``. Probe the context instead of comparing versions: the
+        fix spans two release lines, so no version boundary describes it.
+        """
+        if "can_change_content_obj" not in response.context:
+            self.skipTest(
+                "django-cms does not expose can_change_content_obj for grouper admins "
+                "without a language grouping field"
+            )
+
+    @skipUnless(CMS_SUPPORTS_CONTENT_PK_URL_PARAM, "django-cms < 5.1 cannot request a content object by pk")
+    def test_change_view_renders_requested_published_content_readonly(self):
+        """Requesting the published content of a grouper that also has a newer draft
+        must render that published content, and render it read-only."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        modeladmin = admin.site._registry[Poll]
+        # Going through the view sets the requested content on the ModelAdmin singleton:
+        # do not leak it into later tests.
+        self.addCleanup(setattr, modeladmin, "_requested_content_obj", None)
+        url = self.get_admin_url(Poll, "change", poll.pk)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(
+                f"{url}?{modeladmin.content_pk_url_param}={published.content.pk}"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["content_instance"], published.content)
+        self._skip_without_readonly_context(response)
+        self.assertFalse(response.context["can_change_content_obj"])
+
+    def test_change_view_renders_latest_draft_editable(self):
+        """Without a requested content pk the change view edits the latest content."""
+        published = factories.PollVersionFactory(content__language="en", state=constants.PUBLISHED)
+        poll = published.content.poll
+        draft = factories.PollVersionFactory(content__poll=poll, content__language="en")
+
+        url = self.get_admin_url(Poll, "change", poll.pk)
+        with self.login_user_context(self.get_superuser()):
+            response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["content_instance"], draft.content)
+        self._skip_without_readonly_context(response)
+        self.assertTrue(response.context["can_change_content_obj"])
 
     def test_object_tools_render_on_grouper_change_view(self):
         """The versioning object-tools render on the grouper admin change form,

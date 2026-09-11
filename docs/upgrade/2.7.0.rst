@@ -42,10 +42,10 @@ djangocms-versioning implements this contract:
 * **Editing a draft** no longer affects the live URL. Changing the slug of a
   draft version only takes effect when that version is published. Different
   versions of a page content can carry different slugs.
-* **Unpublishing** a page content removes the URL's path so the page stops
-  resolving, while the slug stays reserved for the page. When a new version
-  replaces a published one, the URL switches to the new version's values
-  instead.
+* **Unpublishing** a page content removes the URL's path so the page — and its
+  descendant pages — stop resolving; ``get_absolute_url()`` returns ``None``
+  for them. The slug stays reserved for the page. When a new version replaces
+  a published one, the URL switches to the new version's values instead.
 
 On django CMS 5.0 and 4.1 the previous behavior is unchanged.
 

@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-19 12:49+0200\n"
+"POT-Creation-Date: 2026-07-19 16:38+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Corentin Bettiol, 2026\n"
 "Language-Team: French (https://app.transifex.com/divio/teams/58664/fr/)\n"
@@ -47,12 +47,12 @@ msgstr "Modifié"
 msgid "Preview"
 msgstr "Pré-visualisation"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Éditer"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Nouveau Brouillon"
@@ -74,7 +74,7 @@ msgstr "verrouillé"
 msgid "Archive"
 msgstr "Archiver"
 
-#: admin.py:867 cms_toolbars.py:97 indicators.py:37
+#: admin.py:867 cms_toolbars.py:98 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
@@ -85,38 +85,38 @@ msgstr "Publier"
 msgid "Unpublish"
 msgstr "Dépublier"
 
-#: admin.py:941 cms_toolbars.py:197
+#: admin.py:941 cms_toolbars.py:198
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
-#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
-msgid "Revert"
-msgstr "Rétablir"
+#: templates/djangocms_versioning/admin/icons/restore_icon.html:3
+msgid "Restore"
+msgstr "Restaurer"
 
-#: admin.py:959 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:968 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Rejeter"
 
-#: admin.py:976 cms_toolbars.py:164
+#: admin.py:985 cms_toolbars.py:165
 msgid "Unlock"
 msgstr "Déverrouiller"
 
-#: admin.py:1003
+#: admin.py:1012
 msgid "Settings"
 msgstr "Paramètres"
 
-#: admin.py:1040
+#: admin.py:1049
 msgid "Compare versions"
 msgstr "Comparer les versions"
 
-#: admin.py:1049
+#: admin.py:1058
 msgid "Exactly two versions need to be selected."
 msgstr "Il faut sélectionner exactement deux versions."
 
-#: admin.py:1067
+#: admin.py:1076
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Supprimer les %(verbose_name_plural)s sélectionnés"
 
-#: admin.py:1078
+#: admin.py:1087
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use discard"
 " for drafts."
@@ -125,28 +125,28 @@ msgstr ""
 "Commencez par retirer la publication ou utilisez la fonction « Supprimer » "
 "pour les versions provisoires."
 
-#: admin.py:1107
+#: admin.py:1116
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Sélectionnez {} pour afficher ses versions."
 
-#: admin.py:1123
+#: admin.py:1132
 msgid "Version cannot be archived"
 msgstr "La version ne peut pas être archivée"
 
-#: admin.py:1147
+#: admin.py:1156
 msgid "Version archived"
 msgstr "Version archivée"
 
-#: admin.py:1157 admin.py:1340 admin.py:1489
+#: admin.py:1166 admin.py:1349 admin.py:1511
 msgid "This view only supports POST method."
 msgstr "Cette vue ne prend en charge que la méthode POST."
 
-#: admin.py:1171
+#: admin.py:1180
 msgid "Version cannot be published"
 msgstr "La version ne peut pas être publiée"
 
-#: admin.py:1188
+#: admin.py:1197
 msgid ""
 "Version could not be published: it conflicts with existing published content."
 " This usually means the URL or slug is already in use by another page. Please"
@@ -156,31 +156,31 @@ msgstr ""
 " publié. Cela signifie généralement que l'URL ou le slug est déjà utilisé par"
 " une autre page. Veuillez modifier le slug et réessayer."
 
-#: admin.py:1198
+#: admin.py:1207
 msgid "Version published"
 msgstr "Version publiée"
 
-#: admin.py:1236
+#: admin.py:1245
 msgid "Version cannot be unpublished"
 msgstr "La version ne peut pas être dépubliée"
 
-#: admin.py:1271
+#: admin.py:1280
 msgid "Version unpublished"
 msgstr "Version non publiée"
 
-#: admin.py:1436
+#: admin.py:1458
 msgid "The last version has been deleted"
 msgstr "La dernière version a été supprimée"
 
-#: admin.py:1502
+#: admin.py:1524
 msgid "You do not have permission to remove the version lock"
 msgstr "Vous n'avez pas la permission de retirer le verrouillage de version"
 
-#: admin.py:1507
+#: admin.py:1529
 msgid "Version unlocked"
 msgstr "Version déverrouillée"
 
-#: admin.py:1552
+#: admin.py:1574
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Afficher les versions de \"{grouper}\""
@@ -205,50 +205,50 @@ msgstr "La langue doit être définie comme une langue prise en charge !"
 msgid "You do not have permission to copy these plugins."
 msgstr "Vous n'avez pas la permission de copier ces plugins."
 
-#: cms_toolbars.py:226
+#: cms_toolbars.py:236
 msgid "Manage Versions"
 msgstr "Gérer les versions"
 
-#: cms_toolbars.py:229
+#: cms_toolbars.py:239
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Comparer à {source}"
 
-#: cms_toolbars.py:247 indicators.py:69
+#: cms_toolbars.py:257 indicators.py:69
 msgid "Discard Changes"
 msgstr "Abandonner les modifications"
 
-#: cms_toolbars.py:282
+#: cms_toolbars.py:292
 msgid "View Published"
 msgstr "Vue publiée"
 
-#: cms_toolbars.py:352 cms_toolbars.py:466
+#: cms_toolbars.py:362 cms_toolbars.py:476
 msgid "Language"
 msgstr "Langue"
 
-#: cms_toolbars.py:389
+#: cms_toolbars.py:399
 msgid "Add Translation"
 msgstr "Ajouter une traduction"
 
-#: cms_toolbars.py:400
+#: cms_toolbars.py:410
 msgid "Delete Translation"
 msgstr "Supprimer la traduction"
 
-#: cms_toolbars.py:423
+#: cms_toolbars.py:433
 msgid "Copy all plugins"
 msgstr "Copier tous les plugins"
 
-#: cms_toolbars.py:425
+#: cms_toolbars.py:435
 #, python-format
 msgid "from %s"
 msgstr "de %s"
 
-#: cms_toolbars.py:426
+#: cms_toolbars.py:436
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Êtes-vous sûr de vouloir copier tous les plugins de %s?"
 
-#: cms_toolbars.py:443
+#: cms_toolbars.py:453
 msgid "No other language available"
 msgstr "Aucune autre langue disponible"
 
@@ -282,8 +282,8 @@ msgid "Create new draft"
 msgstr "Créer un brouillon"
 
 #: indicators.py:49
-msgid "Revert from Unpublish"
-msgstr "Annulation de la publication"
+msgid "Restore from Unpublish"
+msgstr "Restaurer depuis la dépublication"
 
 #: indicators.py:69
 msgid "Delete Draft"
@@ -380,15 +380,15 @@ msgstr "Vous n'avez pas la permission de déverrouiller"
 msgid "Version is not in archived or unpublished state"
 msgstr "La version n'est pas archivé ou non publié"
 
-#: models.py:582
+#: models.py:585
 msgid "Version is not in draft or published state"
 msgstr "La version n'est pas en brouillon ou publiée"
 
-#: models.py:591
+#: models.py:594
 msgid "Version is already locked"
 msgstr "La version  est déjà verrouillée"
 
-#: models.py:597
+#: models.py:600
 msgid "Draft version is not locked"
 msgstr "Le brouillon n'est pas verrouillé"
 
@@ -453,14 +453,14 @@ msgstr " Numéro de version : %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
-#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/restore_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "Non, ramène-moi."
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/restore_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
 msgstr "Oui, je suis sûr"
@@ -534,38 +534,42 @@ msgid "Are you sure you want to discard following version?"
 msgstr "Êtes-vous sûr de vouloir rejeter cette version ?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
-#: templates/djangocms_versioning/admin/revert_confirmation.html:25
+#: templates/djangocms_versioning/admin/restore_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "Numéro de version : %(version_number)s"
+
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "Rétablir"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "Voir sur le site"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:16
-msgid "Revert Confirmation"
-msgstr "Confirmation de l'annulation"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:16
+msgid "Restore Confirmation"
+msgstr "Confirmation de restauration"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:19
+#: templates/djangocms_versioning/admin/restore_confirmation.html:19
 msgid ""
-"Reverting to this version may cause loss of an existing draft version. Please"
-" select an option to continue"
+"Restoring this version may cause loss of an existing draft version. Please "
+"select an option to continue"
 msgstr ""
-"Le retour à cette version peut entraîner la perte d'une version brouillon "
+"Restaurer cette version peut entraîner la perte d'une version brouillon "
 "existante. Veuillez sélectionner une option pour continuer"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:21
-msgid "Are you sure you want to revert to the following version?"
-msgstr "Êtes-vous sûr de vouloir revenir à cette version ?"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:21
+msgid "Are you sure you want to restore the following version?"
+msgstr "Êtes-vous sûr de vouloir restaurer la version suivante ?"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:36
-msgid "Discard existing draft and Revert"
-msgstr "Rejeter le brouillon existant et revenir en arrière"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:36
+msgid "Discard existing draft and Restore"
+msgstr "Rejeter le brouillon existant et restaurer"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:40
-msgid "Archive existing draft and Revert"
-msgstr "Archiver le brouillon existant et revenir en arrière"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:40
+msgid "Archive existing draft and Restore"
+msgstr "Archiver le brouillon existant et restaurer"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Unpublish Confirmation"

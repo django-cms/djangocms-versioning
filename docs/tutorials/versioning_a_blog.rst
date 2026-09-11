@@ -280,7 +280,7 @@ Step 6 — See it in the admin
 Log into ``/admin/``, open **Posts**, and you will see your post with its author,
 last-modified date and a state indicator. Use the actions menu to **edit** (create a
 new draft), **publish**, **unpublish** or open the **manage versions** view, which
-lists every version with its state and lets you revert to an older one.
+lists every version with its state and lets you restore an older one.
 
 
 What you have learned

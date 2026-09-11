@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-19 12:49+0200\n"
+"POT-Creation-Date: 2026-07-19 16:38+0200\n"
 "PO-Revision-Date: 2025-06-29 12:00+0000\n"
 "Last-Translator: Fabian Braun <fsbraun@gmx.de>, 2025\n"
 "Language-Team: Indonesian (https://app.transifex.com/divio/teams/58664/id/)\n"
@@ -45,12 +45,12 @@ msgstr "Diubah"
 msgid "Preview"
 msgstr "Pratinjau"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Sunting"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Draf Baru"
@@ -72,7 +72,7 @@ msgstr "terkunci"
 msgid "Archive"
 msgstr "Arsipkan"
 
-#: admin.py:867 cms_toolbars.py:97 indicators.py:37
+#: admin.py:867 cms_toolbars.py:98 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
@@ -83,38 +83,38 @@ msgstr "Terbitkan"
 msgid "Unpublish"
 msgstr "Batalkan terbit"
 
-#: admin.py:941 cms_toolbars.py:197
+#: admin.py:941 cms_toolbars.py:198
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
-#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
-msgid "Revert"
-msgstr "Kembalikan"
+#: templates/djangocms_versioning/admin/icons/restore_icon.html:3
+msgid "Restore"
+msgstr "Pulihkan"
 
-#: admin.py:959 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:968 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Buang"
 
-#: admin.py:976 cms_toolbars.py:164
+#: admin.py:985 cms_toolbars.py:165
 msgid "Unlock"
 msgstr "Buka kunci"
 
-#: admin.py:1003
+#: admin.py:1012
 msgid "Settings"
 msgstr "Pengaturan"
 
-#: admin.py:1040
+#: admin.py:1049
 msgid "Compare versions"
 msgstr "Bandingkan versi"
 
-#: admin.py:1049
+#: admin.py:1058
 msgid "Exactly two versions need to be selected."
 msgstr "Tepat dua versi harus dipilih."
 
-#: admin.py:1067
+#: admin.py:1076
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Hapus %(verbose_name_plural)s yang dipilih"
 
-#: admin.py:1078
+#: admin.py:1087
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use discard"
 " for drafts."
@@ -122,28 +122,28 @@ msgstr ""
 "Versi draf atau yang sudah terbit tidak dapat dihapus. Batalkan terbit "
 "terlebih dahulu atau gunakan buang untuk draf."
 
-#: admin.py:1107
+#: admin.py:1116
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Pilih {} untuk melihat versinya"
 
-#: admin.py:1123
+#: admin.py:1132
 msgid "Version cannot be archived"
 msgstr "Versi tidak dapat diarsipkan"
 
-#: admin.py:1147
+#: admin.py:1156
 msgid "Version archived"
 msgstr "Versi diarsipkan"
 
-#: admin.py:1157 admin.py:1340 admin.py:1489
+#: admin.py:1166 admin.py:1349 admin.py:1511
 msgid "This view only supports POST method."
 msgstr "Tampilan ini hanya mendukung metode POST."
 
-#: admin.py:1171
+#: admin.py:1180
 msgid "Version cannot be published"
 msgstr "Versi tidak dapat diterbitkan"
 
-#: admin.py:1188
+#: admin.py:1197
 msgid ""
 "Version could not be published: it conflicts with existing published content."
 " This usually means the URL or slug is already in use by another page. Please"
@@ -153,31 +153,31 @@ msgstr ""
 "diterbitkan. Ini biasanya berarti URL atau slug sudah digunakan oleh halaman "
 "lain. Silakan ubah slug dan coba lagi."
 
-#: admin.py:1198
+#: admin.py:1207
 msgid "Version published"
 msgstr "Versi diterbitkan"
 
-#: admin.py:1236
+#: admin.py:1245
 msgid "Version cannot be unpublished"
 msgstr "Versi tidak dapat dibatalkan terbit"
 
-#: admin.py:1271
+#: admin.py:1280
 msgid "Version unpublished"
 msgstr "Versi dibatalkan terbit"
 
-#: admin.py:1436
+#: admin.py:1458
 msgid "The last version has been deleted"
 msgstr "Versi terakhir telah dihapus"
 
-#: admin.py:1502
+#: admin.py:1524
 msgid "You do not have permission to remove the version lock"
 msgstr "Anda tidak memiliki izin untuk menghapus kunci versi"
 
-#: admin.py:1507
+#: admin.py:1529
 msgid "Version unlocked"
 msgstr "Versi dibuka kuncinya"
 
-#: admin.py:1552
+#: admin.py:1574
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Menampilkan versi dari \"{grouper}\""
@@ -202,50 +202,50 @@ msgstr "Bahasa harus disetel ke bahasa yang didukung!"
 msgid "You do not have permission to copy these plugins."
 msgstr "Anda tidak memiliki izin untuk menyalin plugin ini."
 
-#: cms_toolbars.py:226
+#: cms_toolbars.py:236
 msgid "Manage Versions"
 msgstr "Kelola Versi"
 
-#: cms_toolbars.py:229
+#: cms_toolbars.py:239
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Bandingkan dengan {source}"
 
-#: cms_toolbars.py:247 indicators.py:69
+#: cms_toolbars.py:257 indicators.py:69
 msgid "Discard Changes"
 msgstr "Buang Perubahan"
 
-#: cms_toolbars.py:282
+#: cms_toolbars.py:292
 msgid "View Published"
 msgstr "Lihat yang Terbit"
 
-#: cms_toolbars.py:352 cms_toolbars.py:466
+#: cms_toolbars.py:362 cms_toolbars.py:476
 msgid "Language"
 msgstr "Bahasa"
 
-#: cms_toolbars.py:389
+#: cms_toolbars.py:399
 msgid "Add Translation"
 msgstr "Tambah Terjemahan"
 
-#: cms_toolbars.py:400
+#: cms_toolbars.py:410
 msgid "Delete Translation"
 msgstr "Hapus Terjemahan"
 
-#: cms_toolbars.py:423
+#: cms_toolbars.py:433
 msgid "Copy all plugins"
 msgstr "Salin semua plugin"
 
-#: cms_toolbars.py:425
+#: cms_toolbars.py:435
 #, python-format
 msgid "from %s"
 msgstr "dari %s"
 
-#: cms_toolbars.py:426
+#: cms_toolbars.py:436
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Anda yakin ingin menyalin semua plugin dari %s?"
 
-#: cms_toolbars.py:443
+#: cms_toolbars.py:453
 msgid "No other language available"
 msgstr "Tidak ada bahasa lain yang tersedia"
 
@@ -279,8 +279,8 @@ msgid "Create new draft"
 msgstr "Buat draf baru"
 
 #: indicators.py:49
-msgid "Revert from Unpublish"
-msgstr "Kembalikan dari pembatalan terbit"
+msgid "Restore from Unpublish"
+msgstr "Pulihkan dari pembatalan terbit"
 
 #: indicators.py:69
 msgid "Delete Draft"
@@ -375,15 +375,15 @@ msgstr "Anda tidak memiliki izin membuka kunci"
 msgid "Version is not in archived or unpublished state"
 msgstr "Versi tidak dalam keadaan diarsipkan atau dibatalkan terbit"
 
-#: models.py:582
+#: models.py:585
 msgid "Version is not in draft or published state"
 msgstr "Versi tidak dalam keadaan draf atau terbit"
 
-#: models.py:591
+#: models.py:594
 msgid "Version is already locked"
 msgstr "Versi sudah terkunci"
 
-#: models.py:597
+#: models.py:600
 msgid "Draft version is not locked"
 msgstr "Versi draf tidak terkunci"
 
@@ -446,14 +446,14 @@ msgstr " Nomor versi: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
-#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/restore_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "Tidak, kembali"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/restore_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
 msgstr "Ya, saya yakin"
@@ -527,38 +527,42 @@ msgid "Are you sure you want to discard following version?"
 msgstr "Anda yakin ingin membuang versi berikut?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
-#: templates/djangocms_versioning/admin/revert_confirmation.html:25
+#: templates/djangocms_versioning/admin/restore_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "Nomor versi: %(version_number)s"
+
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "Kembalikan"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "Lihat di situs"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:16
-msgid "Revert Confirmation"
-msgstr "Konfirmasi Pengembalian"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:16
+msgid "Restore Confirmation"
+msgstr "Konfirmasi Pemulihan"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:19
+#: templates/djangocms_versioning/admin/restore_confirmation.html:19
 msgid ""
-"Reverting to this version may cause loss of an existing draft version. Please"
-" select an option to continue"
+"Restoring this version may cause loss of an existing draft version. Please "
+"select an option to continue"
 msgstr ""
-"Mengembalikan ke versi ini dapat menyebabkan hilangnya versi draf yang ada. "
-"Silakan pilih opsi untuk melanjutkan"
+"Memulihkan versi ini dapat menyebabkan hilangnya versi draf yang ada. Silakan"
+" pilih opsi untuk melanjutkan"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:21
-msgid "Are you sure you want to revert to the following version?"
-msgstr "Anda yakin ingin mengembalikan ke versi berikut?"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:21
+msgid "Are you sure you want to restore the following version?"
+msgstr "Anda yakin ingin memulihkan versi berikut?"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:36
-msgid "Discard existing draft and Revert"
-msgstr "Buang draf yang ada dan Kembalikan"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:36
+msgid "Discard existing draft and Restore"
+msgstr "Buang draf yang ada dan Pulihkan"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:40
-msgid "Archive existing draft and Revert"
-msgstr "Arsipkan draf yang ada dan Kembalikan"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:40
+msgid "Archive existing draft and Restore"
+msgstr "Arsipkan draf yang ada dan Pulihkan"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15
 msgid "Unpublish Confirmation"

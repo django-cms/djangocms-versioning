@@ -2,6 +2,13 @@
 Changelog
 =========
 
+2.7.1 (2026-09-20)
+==================
+
+* fix: Harden prefetch for versionless content by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/601
+* fix: GrouperAdminMixins did not respect cms_content query param by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/603
+
+
 2.7.0 (2026-08-12)
 ==================
 

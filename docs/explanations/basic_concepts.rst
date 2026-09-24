@@ -24,7 +24,7 @@ a reference to the user who created the version, and a **version state**. The st
   visible to the public any more. There can be many unpublished versions.
 * **archived**: This is a version which has not been published and therefore has never been
   visible to the public. It represents a state which is intended to be used for
-  later work (by reverting it to a draft state).
+  later work (by restoring it to a draft state).
 
 Each new draft version will generate a new version number.
 

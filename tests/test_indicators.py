@@ -51,7 +51,7 @@ class TestLatestAdminViewable(CMSTestCase):
         self.assertEqual(content.versions.first(), self.version)
 
     def test_latest_admin_viewable_published(self):
-        # Now revert and publish => latest content is published
+        # Now restore and publish => latest content is published
         self.version.archive(user=self.get_superuser())
         version2 = self.version.copy(created_by=self.get_superuser())
         version2.publish(user=self.get_superuser())
@@ -139,8 +139,8 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms-pagetree-node-state-archived")
             self.assertNotContains(response, "cms-pagetree-node-state-draft")
 
-            # Now revert
-            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
+            # Now restore
+            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_restore",
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
             pk = Version.objects.filter_by_content_grouping_values(version1.content).order_by("-pk")[0].pk
@@ -174,8 +174,8 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms-pagetree-node-state-unpublished")
             self.assertNotContains(response, "cms-pagetree-node-state-published")
 
-            # Now revert
-            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
+            # Now restore
+            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_restore",
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
 
@@ -196,8 +196,8 @@ class TestVersionState(CMSTestCase):
             self.assertContains(response, "cms-pagetree-node-state-archived")
             self.assertNotContains(response, "cms-pagetree-node-state-draft")
 
-            # Now revert
-            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_revert",
+            # Now restore
+            response = self.client.post(admin_reverse("djangocms_versioning_pagecontentversion_restore",
                                         args=(pk,)))
             self.assertEqual(response.status_code, 302)  # Sends a redirect
 

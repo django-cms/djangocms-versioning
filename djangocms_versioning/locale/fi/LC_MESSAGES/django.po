@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-19 12:49+0200\n"
+"POT-Creation-Date: 2026-07-19 16:38+0200\n"
 "PO-Revision-Date: 2023-01-10 15:29+0000\n"
 "Last-Translator: Teemu Gratschev <teemu.gratschev@gmail.com>, 2026\n"
 "Language-Team: Finnish (https://app.transifex.com/divio/teams/58664/fi/)\n"
@@ -45,12 +45,12 @@ msgstr "Muokattu"
 msgid "Preview"
 msgstr "Esikatsele"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/djangocms_versioning/admin/icons/edit_icon.html:3
 msgid "Edit"
 msgstr "Muokkaa"
 
-#: admin.py:636 admin.py:921 cms_toolbars.py:134
+#: admin.py:636 admin.py:921 cms_toolbars.py:135
 #: templates/admin/djangocms_versioning/versioning_buttons.html:12
 msgid "New Draft"
 msgstr "Uusi luonnos"
@@ -72,7 +72,7 @@ msgstr "lukittu"
 msgid "Archive"
 msgstr "Arkistoi"
 
-#: admin.py:867 cms_toolbars.py:97 indicators.py:37
+#: admin.py:867 cms_toolbars.py:98 indicators.py:37
 #: templates/admin/djangocms_versioning/versioning_buttons.html:5
 #: templates/djangocms_versioning/admin/icons/publish_icon.html:3
 msgid "Publish"
@@ -83,38 +83,38 @@ msgstr "Julkaise"
 msgid "Unpublish"
 msgstr "Peru julkaisu"
 
-#: admin.py:941 cms_toolbars.py:197
+#: admin.py:941 cms_toolbars.py:198
 #: templates/admin/djangocms_versioning/versioning_buttons.html:19
-#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
-msgid "Revert"
+#: templates/djangocms_versioning/admin/icons/restore_icon.html:3
+msgid "Restore"
 msgstr "Palauta"
 
-#: admin.py:959 templates/djangocms_versioning/admin/icons/discard_icon.html:3
+#: admin.py:968 templates/djangocms_versioning/admin/icons/discard_icon.html:3
 msgid "Discard"
 msgstr "Hylkää"
 
-#: admin.py:976 cms_toolbars.py:164
+#: admin.py:985 cms_toolbars.py:165
 msgid "Unlock"
 msgstr "Poista lukitus"
 
-#: admin.py:1003
+#: admin.py:1012
 msgid "Settings"
 msgstr "Asetukset"
 
-#: admin.py:1040
+#: admin.py:1049
 msgid "Compare versions"
 msgstr "Vertaa versioita"
 
-#: admin.py:1049
+#: admin.py:1058
 msgid "Exactly two versions need to be selected."
 msgstr "Valitse tasan kaksi versiota."
 
-#: admin.py:1067
+#: admin.py:1076
 #, python-format
 msgid "Delete selected %(verbose_name_plural)s"
 msgstr "Poista valitut %(verbose_name_plural)s"
 
-#: admin.py:1078
+#: admin.py:1087
 msgid ""
 "Draft or published versions cannot be deleted. First unpublish or use discard"
 " for drafts."
@@ -122,28 +122,28 @@ msgstr ""
 "Luonnoksia tai julkaistuja versioita ei voi poistaa. Peru julkaisu tai hylkää"
 " luonnos ennen poistamista."
 
-#: admin.py:1107
+#: admin.py:1116
 #, python-brace-format
 msgid "Select {} to view its versions"
 msgstr "Valitse {} nähdäksesi sen versiot"
 
-#: admin.py:1123
+#: admin.py:1132
 msgid "Version cannot be archived"
 msgstr "Versiota ei voi arkistoida"
 
-#: admin.py:1147
+#: admin.py:1156
 msgid "Version archived"
 msgstr "Versio arkistoitu"
 
-#: admin.py:1157 admin.py:1340 admin.py:1489
+#: admin.py:1166 admin.py:1349 admin.py:1511
 msgid "This view only supports POST method."
 msgstr "Tämä näkymä hyväksyy vain POST-pyynnöt."
 
-#: admin.py:1171
+#: admin.py:1180
 msgid "Version cannot be published"
 msgstr "Versiota ei voi julkaista"
 
-#: admin.py:1188
+#: admin.py:1197
 msgid ""
 "Version could not be published: it conflicts with existing published content."
 " This usually means the URL or slug is already in use by another page. Please"
@@ -153,31 +153,31 @@ msgstr ""
 "sisällön kanssa. Yleensä tämä tarkoittaa, että URL-osoite tai slug on jo "
 "toisen sivun käytössä. Muuta slugia ja yritä uudelleen."
 
-#: admin.py:1198
+#: admin.py:1207
 msgid "Version published"
 msgstr "Versio julkaistu"
 
-#: admin.py:1236
+#: admin.py:1245
 msgid "Version cannot be unpublished"
 msgstr "Version julkaisua ei voi perua"
 
-#: admin.py:1271
+#: admin.py:1280
 msgid "Version unpublished"
 msgstr "Version julkaisu on peruttu"
 
-#: admin.py:1436
+#: admin.py:1458
 msgid "The last version has been deleted"
 msgstr "Viimeisin versio on poistettu"
 
-#: admin.py:1502
+#: admin.py:1524
 msgid "You do not have permission to remove the version lock"
 msgstr "Sinulla ei ole oikeutta poistaa version lukitusta"
 
-#: admin.py:1507
+#: admin.py:1529
 msgid "Version unlocked"
 msgstr "Version lukitus poistettu"
 
-#: admin.py:1552
+#: admin.py:1574
 #, python-brace-format
 msgid "Displaying versions of \"{grouper}\""
 msgstr "Näytetään kohteen \"{grouper}\" versiot"
@@ -202,50 +202,50 @@ msgstr "Valitun kielen on oltava tuettu!"
 msgid "You do not have permission to copy these plugins."
 msgstr "Sinulla ei ole oikeutta kopioida näitä lisäosia."
 
-#: cms_toolbars.py:226
+#: cms_toolbars.py:236
 msgid "Manage Versions"
 msgstr "Hallitse versioita"
 
-#: cms_toolbars.py:229
+#: cms_toolbars.py:239
 #, python-brace-format
 msgid "Compare to {source}"
 msgstr "Vertaa versioon {source}"
 
-#: cms_toolbars.py:247 indicators.py:69
+#: cms_toolbars.py:257 indicators.py:69
 msgid "Discard Changes"
 msgstr "Peru muutokset"
 
-#: cms_toolbars.py:282
+#: cms_toolbars.py:292
 msgid "View Published"
 msgstr "Näytä julkaistu"
 
-#: cms_toolbars.py:352 cms_toolbars.py:466
+#: cms_toolbars.py:362 cms_toolbars.py:476
 msgid "Language"
 msgstr "Kieli"
 
-#: cms_toolbars.py:389
+#: cms_toolbars.py:399
 msgid "Add Translation"
 msgstr "Lisää käännös"
 
-#: cms_toolbars.py:400
+#: cms_toolbars.py:410
 msgid "Delete Translation"
 msgstr "Poista käännös"
 
-#: cms_toolbars.py:423
+#: cms_toolbars.py:433
 msgid "Copy all plugins"
 msgstr "Kopioi kaikki lisäosat"
 
-#: cms_toolbars.py:425
+#: cms_toolbars.py:435
 #, python-format
 msgid "from %s"
 msgstr "kohteesta %s"
 
-#: cms_toolbars.py:426
+#: cms_toolbars.py:436
 #, python-format
 msgid "Are you sure you want to copy all plugins from %s?"
 msgstr "Haluatko varmasti kopioida kaikki lisäosat kohteesta %s?"
 
-#: cms_toolbars.py:443
+#: cms_toolbars.py:453
 msgid "No other language available"
 msgstr "Muita kieliä ei ole saatavilla"
 
@@ -279,7 +279,7 @@ msgid "Create new draft"
 msgstr "Luo uusi luonnos"
 
 #: indicators.py:49
-msgid "Revert from Unpublish"
+msgid "Restore from Unpublish"
 msgstr "Palauta julkaistuksi"
 
 #: indicators.py:69
@@ -375,15 +375,15 @@ msgstr "Sinulla ei ole oikeuksia poistaa lukitusta"
 msgid "Version is not in archived or unpublished state"
 msgstr "Versio ei ole arkistoitu tai julkaisematon"
 
-#: models.py:582
+#: models.py:585
 msgid "Version is not in draft or published state"
 msgstr "Versio ei ole luonnos eikä julkaistu"
 
-#: models.py:591
+#: models.py:594
 msgid "Version is already locked"
 msgstr "Versio on jo lukittu"
 
-#: models.py:597
+#: models.py:600
 msgid "Draft version is not locked"
 msgstr "Luonnos ei ole lukittu"
 
@@ -447,14 +447,14 @@ msgstr " Versionumero: %(version_number)s"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:23
 #: templates/djangocms_versioning/admin/discard_confirmation.html:22
-#: templates/djangocms_versioning/admin/revert_confirmation.html:30
+#: templates/djangocms_versioning/admin/restore_confirmation.html:30
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:28
 msgid "No, take me back"
 msgstr "Ei, palaa takaisin"
 
 #: templates/djangocms_versioning/admin/archive_confirmation.html:27
 #: templates/djangocms_versioning/admin/discard_confirmation.html:27
-#: templates/djangocms_versioning/admin/revert_confirmation.html:45
+#: templates/djangocms_versioning/admin/restore_confirmation.html:45
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:32
 msgid "Yes, I'm sure"
 msgstr "Kyllä, olen varma"
@@ -528,37 +528,41 @@ msgid "Are you sure you want to discard following version?"
 msgstr "Haluatko varmasti hylätä tämän version?"
 
 #: templates/djangocms_versioning/admin/discard_confirmation.html:17
-#: templates/djangocms_versioning/admin/revert_confirmation.html:25
+#: templates/djangocms_versioning/admin/restore_confirmation.html:25
 #, python-format
 msgid "Version number: %(version_number)s"
 msgstr "Versionumero: %(version_number)s"
+
+#: templates/djangocms_versioning/admin/icons/revert_icon.html:3
+msgid "Revert"
+msgstr "Palauta"
 
 #: templates/djangocms_versioning/admin/icons/view.html:3
 msgid "View on site"
 msgstr "Näytä sivustolla"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:16
-msgid "Revert Confirmation"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:16
+msgid "Restore Confirmation"
 msgstr "Palauttamisen vahvistaminen"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:19
+#: templates/djangocms_versioning/admin/restore_confirmation.html:19
 msgid ""
-"Reverting to this version may cause loss of an existing draft version. Please"
-" select an option to continue"
+"Restoring this version may cause loss of an existing draft version. Please "
+"select an option to continue"
 msgstr ""
-"Palauttaminen tähän versioon voi poistaa olemassa olevan luonnoksen. Valitse,"
-" miten haluat jatkaa"
+"Tämän version palauttaminen voi poistaa olemassa olevan luonnoksen. Valitse, "
+"miten haluat jatkaa"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:21
-msgid "Are you sure you want to revert to the following version?"
-msgstr "Haluatko varmasti palauttaa seuraavaan versioon?"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:21
+msgid "Are you sure you want to restore the following version?"
+msgstr "Haluatko varmasti palauttaa seuraavan version?"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:36
-msgid "Discard existing draft and Revert"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:36
+msgid "Discard existing draft and Restore"
 msgstr "Hylkää nykyinen luonnos ja palauta"
 
-#: templates/djangocms_versioning/admin/revert_confirmation.html:40
-msgid "Archive existing draft and Revert"
+#: templates/djangocms_versioning/admin/restore_confirmation.html:40
+msgid "Archive existing draft and Restore"
 msgstr "Arkistoi nykyinen luonnos ja palauta"
 
 #: templates/djangocms_versioning/admin/unpublish_confirmation.html:15

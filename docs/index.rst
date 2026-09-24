@@ -156,7 +156,7 @@ Glossary
     copy function
         When creating a new draft version, versioning will usually copy an
         existing version. By default it will copy the current published version,
-        but when reverting to an old version, a specific unpublished or archived version
+        but when restoring an old version, a specific unpublished or archived version
         will be used. A customizable copy function is used for this.
 
     cms_config

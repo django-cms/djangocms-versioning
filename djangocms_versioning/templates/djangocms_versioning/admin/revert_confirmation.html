@@ -1,49 +1,5 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_urls static %}
-
-{% block extrahead %}
-    {{ block.super }}
-    {{ media }}
-    <link rel="stylesheet" href="{% static 'djangocms_versioning/css/versioning.css' %}">
-    <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
-    <script type="text/javascript" src="{% static 'djangocms_versioning/js/admin/versioning.js' %}"></script>
-{% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
-{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
-
-{% block content %}
-<h1>{% block title %}{% translate "Revert Confirmation" %}{% endblock %}</h1>
-<p>
-    {% if draft_version %}
-    {% translate "Reverting to this version may cause loss of an existing draft version. Please select an option to continue" %}
-    {% else %}
-    {% translate "Are you sure you want to revert to the following version?" %}
-    {% endif %}
-</p>
-<h3>{{ object_name }}</h3>
-<h4>{% blocktrans %}Version number: {{ version_number }}{% endblocktrans %}</h4>
-<form action="" method="POST" class="js-close-sideframe">
-    {% csrf_token %}
-    <div class="submit-row">
-        <a href="{{ back_url }}" class="button cancel-link js-versioning-keep-sideframe" style="margin-inline-start: auto" role="button">
-            {% translate 'No, take me back' %}
-        </a>
-        {% if draft_version %}
-        <input  class="button revert-button confirm-link"
-                type="submit"
-                name="discard"
-                value="{% translate 'Discard existing draft and Revert' %}">
-        <input  class="button revert-button confirm-link"
-                name="archive"
-                type="submit"
-                value="{% translate 'Archive existing draft and Revert' %}">
-        {% else %}
-        <input  class="button revert-button confirm-link default"
-                type="submit"
-                name="revert"
-                value="{% translate "Yes, I'm sure" %}">
-        {% endif %}
-    </div>
-</form>
-{% endblock %}
+{% extends "djangocms_versioning/admin/restore_confirmation.html" %}
+{% comment %}
+Deprecated: this template has been renamed to restore_confirmation.html.
+It is kept for backwards compatibility and will be removed in a future version.
+{% endcomment %}

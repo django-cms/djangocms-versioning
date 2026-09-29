@@ -230,7 +230,7 @@ Command Options
      - Version field the age is measured on (default: ``modified``, i.e. the time the version
        was last changed, which for an unpublished version is when it was unpublished)
    * - ``--batch-size BATCH_SIZE``
-     - Number of content objects deleted per query (default: 1000)
+     - Number of content objects processed per batch (default: 1000)
    * - ``--delete-empty-groupers``
      - Also delete grouper objects (e.g. a ``Poll`` or ``BlogPost``) that are left without any
        content object, mirroring what deleting the last version of a grouper does
@@ -243,10 +243,12 @@ Command Options
 How Deletion Works
 ++++++++++++++++++
 
-The command groups the matching versions by content type and deletes the **content
-objects** in bulk, one batch per query. The ``Version`` objects follow through the generic
-relation django CMS Versioning injects into every versioned content model, so version rows
-never outlive their content.
+The command groups the matching versions by content type and processes the **content
+objects** in batches. Models using Django's standard ``Model.delete()`` are deleted in bulk.
+Models that override ``delete()`` (including inherited overrides) are deleted individually
+through that method to preserve custom cleanup. Both paths retain Django's deletion signals
+and cascades. The ``Version`` objects follow through the generic relation django CMS
+Versioning injects into every versioned content model.
 
 Content objects that another model protects through a foreign key cannot be deleted. The
 command falls back to deleting the batch object by object, keeps the protected ones and
@@ -254,6 +256,15 @@ reports how many were kept::
 
     Deleted 412 version(s).
     3 version(s) were kept: their content object is protected by a foreign key.
+
+With ``--delete-empty-groupers``, empty groupers are always deleted individually through
+their model's ``delete()`` method. A protected grouper is kept without preventing other
+empty groupers from being deleted. Content in any language or state keeps its grouper alive.
+
+Page groupers are processed deepest-first and are only deleted when they have no remaining
+descendants. This preserves descendants with retained content, as well as empty descendants
+outside the cleanup candidates. An eligible empty branch is removed one page at a time,
+preserving django CMS's tree maintenance and cache cleanup.
 
 
 Running Regularly

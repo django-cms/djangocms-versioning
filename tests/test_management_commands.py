@@ -2,10 +2,12 @@ from datetime import timedelta
 from io import StringIO
 from unittest.mock import patch
 
+from cms.models import Page
 from cms.test_utils.testcases import CMSTestCase
+from django.contrib.sites.models import Site
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 
 from djangocms_versioning import conf, constants, models as versioning_models
@@ -15,7 +17,7 @@ from djangocms_versioning.test_utils.blogpost.models import (
     BlogContent,
     BlogPost,
 )
-from djangocms_versioning.test_utils.polls.models import Poll, PollContent
+from djangocms_versioning.test_utils.polls.models import Answer, Poll, PollContent, PollPlugin
 
 
 class CreateVersionsTestCase(CMSTestCase):
@@ -239,4 +241,213 @@ class DeleteUnpublishedVersionsTestCase(CMSTestCase):
 
         call_command("delete_unpublished_versions", verbosity=0)
 
+        self.assertFalse(Version.objects.filter(pk=version.pk).exists())
+
+
+@patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+@patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+class DeleteUnpublishedCleanupTestCase(CMSTestCase):
+    def old_version(self, factory=factories.PollVersionFactory, **kwargs):
+        version = factory(state=constants.UNPUBLISHED, **kwargs)
+        Version.objects.filter(pk=version.pk).update(modified=timezone.now() - timedelta(days=100))
+        return version
+
+    def cleanup(self, **kwargs):
+        out = StringIO()
+        call_command("delete_unpublished_versions", interactive=False, stdout=out, **kwargs)
+        return out.getvalue()
+
+    def page(self, parent=None):
+        site = Site.objects.get_current()
+        if factories.TreeNode:
+            node = parent.node.add_child(site=site) if parent else factories.TreeNode.add_root(site=site)
+            return factories.PageFactory(node=node)
+        return parent.add_child(site=site) if parent else Page.add_root(site=site)
+
+    def test_content_without_override_is_deleted_in_bulk(self):
+        versions = [self.old_version() for _ in range(3)]
+        original_delete = models.QuerySet.delete
+        content_batches = []
+
+        def delete(queryset):
+            if queryset.model is PollContent:
+                content_batches.append(set(queryset.values_list("pk", flat=True)))
+            return original_delete(queryset)
+
+        with patch.object(models.QuerySet, "delete", delete):
+            output = self.cleanup()
+
+        self.assertEqual(content_batches, [{version.object_id for version in versions}])
+        self.assertIn("Deleted 3 version(s).", output)
+
+    def test_content_delete_override_runs_without_requiring_return_value(self):
+        versions = [self.old_version() for _ in range(3)]
+        deleted_ids = []
+
+        def delete(content):
+            deleted_ids.append(content.pk)
+            models.Model.delete(content)
+
+        with patch.object(PollContent, "delete", delete):
+            output = self.cleanup(batch_size=2)
+
+        self.assertCountEqual(deleted_ids, [version.object_id for version in versions])
+        self.assertFalse(Version.objects.filter(pk__in=[version.pk for version in versions]).exists())
+        self.assertIn("Deleted 3 version(s).", output)
+
+    def test_custom_delete_that_keeps_content_is_not_counted(self):
+        version = self.old_version()
+        with patch.object(PollContent, "delete", return_value=None):
+            output = self.cleanup()
+        self.assertTrue(Version.objects.filter(pk=version.pk).exists())
+        self.assertIn("Deleted 0 version(s).", output)
+
+    def test_protected_content_does_not_block_batch_or_later_batches(self):
+        versions = [self.old_version() for _ in range(5)]
+        answer = factories.AnswerFactory(poll_content=versions[0].content)
+        field = Answer._meta.get_field("poll_content")
+        with patch.object(field.remote_field, "on_delete", models.PROTECT):
+            output = self.cleanup(batch_size=2, verbosity=2)
+
+        self.assertTrue(Version.objects.filter(pk=versions[0].pk).exists())
+        self.assertTrue(PollContent._base_manager.filter(pk=versions[0].object_id).exists())
+        self.assertTrue(Answer.objects.filter(pk=answer.pk).exists())
+        self.assertFalse(Version.objects.filter(pk__in=[version.pk for version in versions[1:]]).exists())
+        self.assertIn("Deleted 4 version(s).", output)
+        self.assertIn("1 version(s) were kept", output)
+        self.assertIn("polls.PollContent: 4 version(s) deleted", output)
+
+    def test_protected_custom_delete_rolls_back_and_continues(self):
+        protected = self.old_version()
+        deletable = self.old_version()
+        original_text = protected.content.text
+
+        def delete(content):
+            if content.pk == protected.object_id:
+                PollContent._base_manager.filter(pk=content.pk).update(text="must be rolled back")
+                raise models.ProtectedError("Custom cleanup is protected", [content])
+            models.Model.delete(content)
+
+        with patch.object(PollContent, "delete", delete):
+            output = self.cleanup(verbosity=0)
+
+        protected.content.refresh_from_db()
+        self.assertEqual(protected.content.text, original_text)
+        self.assertTrue(Version.objects.filter(pk=protected.pk).exists())
+        self.assertFalse(Version.objects.filter(pk=deletable.pk).exists())
+        self.assertIn("Deleted 1 version(s).", output)
+        self.assertIn("1 version(s) were kept", output)
+
+    def test_non_page_groupers_use_instance_delete(self):
+        version = self.old_version()
+        poll_id = version.content.poll_id
+        deleted_ids = []
+
+        def delete(poll):
+            deleted_ids.append(poll.pk)
+            models.Model.delete(poll)
+
+        with patch.object(Poll, "delete", delete):
+            output = self.cleanup(delete_empty_groupers=True)
+
+        self.assertEqual(deleted_ids, [poll_id])
+        self.assertFalse(Poll.objects.filter(pk=poll_id).exists())
+        self.assertIn("Deleted 1 empty polls.Poll object(s).", output)
+
+    def test_protected_grouper_does_not_block_other_groupers(self):
+        protected = self.old_version()
+        deletable = self.old_version()
+        protected_poll = protected.content.poll
+        deletable_poll = deletable.content.poll
+        plugin = PollPlugin.objects.create(poll=protected_poll)
+        field = PollPlugin._meta.get_field("poll")
+
+        with patch.object(field.remote_field, "on_delete", models.PROTECT):
+            output = self.cleanup(delete_empty_groupers=True)
+
+        self.assertFalse(Version.objects.filter(pk__in=[protected.pk, deletable.pk]).exists())
+        self.assertTrue(Poll.objects.filter(pk=protected_poll.pk).exists())
+        self.assertTrue(PollPlugin.objects.filter(pk=plugin.pk).exists())
+        self.assertFalse(Poll.objects.filter(pk=deletable_poll.pk).exists())
+        self.assertIn("Cannot delete empty polls.Poll", output)
+        self.assertIn("Deleted 1 empty polls.Poll object(s).", output)
+
+    def test_all_groupers_with_remaining_content_are_kept(self):
+        version = self.old_version(content__language="en")
+        kept = factories.PollVersionFactory(content__poll=version.content.poll, content__language="de")
+        self.cleanup(delete_empty_groupers=True)
+        self.assertFalse(Version.objects.filter(pk=version.pk).exists())
+        self.assertTrue(Version.objects.filter(pk=kept.pk).exists())
+        self.assertTrue(Poll.objects.filter(pk=kept.content.poll_id).exists())
+
+    def test_page_descendants_with_retained_content_are_kept(self):
+        for state in (constants.PUBLISHED, constants.DRAFT, constants.UNPUBLISHED, constants.ARCHIVED):
+            with self.subTest(state=state):
+                parent = self.page()
+                child = self.page(parent)
+                old = self.old_version(factories.PageVersionFactory, content__page=parent)
+                kept = factories.PageVersionFactory(content__page=child, state=state)
+
+                output = self.cleanup(delete_empty_groupers=True)
+
+                self.assertFalse(Version.objects.filter(pk=old.pk).exists())
+                self.assertTrue(Page.objects.filter(pk=parent.pk).exists())
+                self.assertTrue(Page.objects.filter(pk=child.pk).exists())
+                self.assertTrue(Version.objects.filter(pk=kept.pk).exists())
+                self.assertIn("it still has descendants", output)
+
+    def test_empty_descendant_outside_candidates_is_kept(self):
+        parent = self.page()
+        child = self.page(parent)
+        self.old_version(factories.PageVersionFactory, content__page=parent)
+        self.cleanup(delete_empty_groupers=True)
+        self.assertTrue(Page.objects.filter(pk=parent.pk).exists())
+        self.assertTrue(Page.objects.filter(pk=child.pk).exists())
+
+    def test_eligible_page_branch_is_deleted_deepest_first(self):
+        parent = self.page()
+        child = self.page(parent)
+        leaf = self.page(child)
+        for page in (parent, child, leaf):
+            self.old_version(factories.PageVersionFactory, content__page=page)
+        original_delete = Page.delete
+        deleted_ids = []
+
+        def delete(page):
+            deleted_ids.append(page.pk)
+            original_delete(page)
+
+        with patch.object(Page, "delete", delete):
+            output = self.cleanup(delete_empty_groupers=True, batch_size=1)
+
+        self.assertEqual(deleted_ids, [leaf.pk, child.pk, parent.pk])
+        self.assertFalse(Page.objects.filter(pk__in=deleted_ids).exists())
+        self.assertIn("Deleted 3 empty cms.Page object(s).", output)
+
+    def test_page_deletion_updates_parent_child_count(self):
+        parent = self.page()
+        child = self.page(parent)
+        factories.PageVersionFactory(content__page=parent, state=constants.PUBLISHED)
+        self.old_version(factories.PageVersionFactory, content__page=child)
+
+        self.cleanup(delete_empty_groupers=True)
+
+        self.assertFalse(Page.objects.filter(pk=child.pk).exists())
+        node = parent.node if factories.TreeNode else parent
+        node.refresh_from_db()
+        self.assertEqual(node.numchild, 0)
+
+    def test_invalid_numeric_options_do_not_delete(self):
+        version = self.old_version()
+        for options in ({"days": -1}, {"batch_size": 0}, {"batch_size": -1}):
+            with self.subTest(options=options), self.assertRaises(CommandError):
+                self.cleanup(**options)
+        self.assertTrue(Version.objects.filter(pk=version.pk).exists())
+
+    def test_created_date_can_be_used_instead_of_modified(self):
+        version = factories.PollVersionFactory(state=constants.UNPUBLISHED)
+        Version.objects.filter(pk=version.pk).update(created=timezone.now() - timedelta(days=100))
+        self.cleanup()
+        self.assertTrue(Version.objects.filter(pk=version.pk).exists())
+        self.cleanup(date_field="created")
         self.assertFalse(Version.objects.filter(pk=version.pk).exists())

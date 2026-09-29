@@ -1,9 +1,10 @@
 from datetime import timedelta
 
+from cms.models import Page
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import Count, ProtectedError
+from django.db.models import Count, Model, ProtectedError
 from django.utils import timezone
 
 from djangocms_versioning import conf, constants
@@ -60,7 +61,7 @@ class Command(BaseCommand):
             "--batch-size",
             type=int,
             default=DEFAULT_BATCH_SIZE,
-            help=f"Number of content objects deleted per query (defaults to {DEFAULT_BATCH_SIZE})",
+            help=f"Number of content objects processed per batch (defaults to {DEFAULT_BATCH_SIZE})",
         )
         parser.add_argument(
             "--delete-empty-groupers",
@@ -210,6 +211,7 @@ class Command(BaseCommand):
         protected = 0
         grouper_ids = set()
         grouper_field = versionable.grouper_field.attname
+        use_bulk_delete = model.delete is Model.delete
         # Walk the versions by primary key so that objects which cannot be deleted
         # do not make the next batch return the same rows again.
         last_pk = 0
@@ -226,7 +228,7 @@ class Command(BaseCommand):
             content_objects = model._base_manager.filter(pk__in=object_ids)
             if self.delete_empty_groupers:
                 grouper_ids.update(content_objects.values_list(grouper_field, flat=True))
-            batch_deleted, batch_protected = self.delete_batch(model, object_ids)
+            batch_deleted, batch_protected = self.delete_batch(model, object_ids, use_bulk_delete)
             deleted += batch_deleted
             protected += batch_protected
             if self.verbosity > 1:
@@ -236,21 +238,31 @@ class Command(BaseCommand):
             self.delete_groupers_without_content(versionable, grouper_ids)
         return deleted, protected
 
-    def delete_batch(self, model, object_ids: list) -> tuple[int, int]:
-        """Delete one batch of content objects, falling back to single deletions if the
-        batch as a whole is protected by a foreign key."""
-        try:
-            with transaction.atomic():
-                return self.count_deleted_versions(model._base_manager.filter(pk__in=object_ids).delete()), 0
-        except ProtectedError:
-            pass
+    def delete_batch(self, model, object_ids: list, use_bulk_delete: bool) -> tuple[int, int]:
+        """Use bulk deletion only when it cannot bypass a model's delete override.
+
+        Retry protected batches individually so unprotected content can still be deleted.
+        """
+        if use_bulk_delete:
+            try:
+                with transaction.atomic():
+                    return self.count_deleted_versions(model._base_manager.filter(pk__in=object_ids).delete()), 0
+            except ProtectedError:
+                pass
 
         deleted = 0
         protected = 0
-        for object_id in object_ids:
+        for content in model._base_manager.filter(pk__in=object_ids).iterator(chunk_size=self.batch_size):
+            object_id = content.pk
             try:
                 with transaction.atomic():
-                    deleted += self.count_deleted_versions(model._base_manager.filter(pk=object_id).delete())
+                    if use_bulk_delete:
+                        deleted += self.count_deleted_versions(model._base_manager.filter(pk=object_id).delete())
+                    else:
+                        version_ids = list(content.versions.values_list("pk", flat=True))
+                        content.delete()
+                        # Custom delete methods need not return Django's deletion counts.
+                        deleted += len(version_ids) - Version.objects.filter(pk__in=version_ids).count()
             except ProtectedError as error:
                 protected += 1
                 if self.verbosity > 0:
@@ -275,14 +287,38 @@ class Command(BaseCommand):
         empty = {grouper_id for grouper_id in grouper_ids if grouper_id is not None} - still_used
         if not empty:
             return
-        try:
-            with transaction.atomic():
-                versionable.grouper_model._base_manager.filter(pk__in=empty).delete()
-        except ProtectedError as error:
-            self.stdout.write(self.style.WARNING(
-                f"  Cannot delete empty {versionable.grouper_model._meta.label} objects: {error}"
-            ))
-            return
+        groupers = versionable.grouper_model._base_manager.filter(pk__in=empty)
+        is_page = issubclass(versionable.grouper_model, Page)
+        if is_page:
+            # django CMS 4 stores the tree on a separate TreeNode model.
+            separate_node = any(field.name == "node" for field in Page._meta.fields)
+            groupers = groupers.order_by("-node__depth" if separate_node else "-depth")
+
+        deleted = 0
+        for grouper in groupers.iterator(chunk_size=self.batch_size):
+            grouper_id = grouper.pk
+            try:
+                with transaction.atomic():
+                    if versionable.content_model._base_manager.filter(
+                        **{grouper_field: grouper_id}
+                    ).exists():
+                        continue
+                    if is_page:
+                        node = grouper.node if separate_node else grouper
+                        if node.get_descendants().exists():
+                            if self.verbosity > 0:
+                                self.stdout.write(self.style.WARNING(
+                                    f"  Keeping empty {grouper._meta.label} pk={grouper_id}: "
+                                    "it still has descendants."
+                                ))
+                            continue
+                    grouper.delete()
+                    if not versionable.grouper_model._base_manager.filter(pk=grouper_id).exists():
+                        deleted += 1
+            except ProtectedError as error:
+                self.stdout.write(self.style.WARNING(
+                    f"  Cannot delete empty {versionable.grouper_model._meta.label} pk={grouper_id}: {error}"
+                ))
         self.stdout.write(self.style.SUCCESS(
-            f"Deleted {len(empty)} empty {versionable.grouper_model._meta.label} object(s)."
+            f"Deleted {deleted} empty {versionable.grouper_model._meta.label} object(s)."
         ))

@@ -155,7 +155,8 @@ class VersioningAdminMixin:
             permission = version.check_modify.as_bool(request.user)
             if conf.LOCK_VERSIONS and permission:
                 permission = content_is_unlocked_for_user(obj, request.user)
-            return permission
+            # Versioning may only further restrict the underlying admin's permissions
+            return permission and super().has_change_permission(request, obj)
 
         return super().has_change_permission(request, obj)
 

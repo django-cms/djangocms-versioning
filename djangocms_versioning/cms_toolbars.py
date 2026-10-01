@@ -14,7 +14,7 @@ from cms.cms_toolbars import (
 from cms.constants import REFRESH_PAGE
 from cms.models import PageContent
 from cms.toolbar.items import RIGHT, Break, ButtonList, TemplateItem
-from cms.toolbar.utils import get_object_preview_url
+from cms.toolbar.utils import get_object_edit_url
 from cms.toolbar_pool import toolbar_pool
 from cms.utils import page_permissions
 from cms.utils.conf import get_cms_setting
@@ -359,7 +359,7 @@ class VersioningPageToolbar(PageToolbar):
                 # Get the page content, it could be draft too!
                 page_content = self.page.get_admin_content(language=code)
                 if page_content:
-                    url = get_object_preview_url(page_content, code)
+                    url = get_object_edit_url(page_content, code)
                     language_menu.add_link_item(name, url=url, active=self.current_lang == code)
 
     def change_language_menu(self):
@@ -415,7 +415,7 @@ class VersioningPageToolbar(PageToolbar):
                                 ),
                                 None,
                             )
-                            on_close = get_object_preview_url(other_content)
+                            on_close = get_object_edit_url(other_content)
                         remove_plugins_menu.add_modal_item(name, url=url, disabled=disabled, on_close=on_close)
             # COPY ALL PLUGINS — only if user can change AND in edit mode
             if self.toolbar.edit_mode_active and copy:
@@ -469,7 +469,7 @@ class VersioningBasicToolbar(BasicToolbar):
             # Get the page content, it could be draft too!
             page_content = self.page.get_admin_content(language=code)
             if page_content:
-                url = get_object_preview_url(page_content, code)
+                url = get_object_edit_url(page_content, code)
                 language_menu.add_link_item(name, url=url, active=self.current_lang == code)
 
 

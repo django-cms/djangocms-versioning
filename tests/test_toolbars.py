@@ -702,16 +702,16 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertIn("Italiano", language_menu_item_names)
 
         en_item = self._get_toolbar_item_by_name(language_menu, "English")
-        en_preview_url = get_object_preview_url(en_pagecontent_1, "en")
+        en_edit_url = get_object_edit_url(en_pagecontent_1, "en")
         de_item = self._get_toolbar_item_by_name(language_menu, "Deutsche")
-        de_preview_url = get_object_preview_url(de_pagecontent_1, "de")
+        de_edit_url = get_object_edit_url(de_pagecontent_1, "de")
         it_item = self._get_toolbar_item_by_name(language_menu, "Italiano")
-        it_preview_url = get_object_preview_url(it_pagecontent_3, "it")
+        it_edit_url = get_object_edit_url(it_pagecontent_3, "it")
 
         # Ensure that each menu item points to the correct url
-        self.assertEqual(en_item.url, en_preview_url)
-        self.assertEqual(de_item.url, de_preview_url)
-        self.assertEqual(it_item.url, it_preview_url)
+        self.assertEqual(en_item.url, en_edit_url)
+        self.assertEqual(de_item.url, de_edit_url)
+        self.assertEqual(it_item.url, it_edit_url)
 
     @override_settings(USE_I18N=False)
     def test_page_toolbar_wo_language_menu(self):

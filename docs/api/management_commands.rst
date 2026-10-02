@@ -116,7 +116,7 @@ Then you can run::
 
 
 Common Scenario
----------------
++++++++++++++++
 
 When adding versioning to an existing model with existing content:
 
@@ -141,7 +141,7 @@ When adding versioning to an existing model with existing content:
 
 
 Integrating with Migrations
-----------------------------
++++++++++++++++++++++++++++
 
 You can call this command from a Django migration for automatic setup:
 
@@ -168,3 +168,117 @@ You can call this command from a Django migration for automatic setup:
 
     When using in migrations, it's better to set ``DJANGOCMS_VERSIONING_DEFAULT_USER``
     in settings so you don't have to hardcode user IDs in migrations.
+
+
+delete_unpublished_versions
+---------------------------
+
+.. versionadded:: 2.8
+
+Permanently deletes unpublished versions -- and the content objects behind them -- that
+have not been touched for a given number of days (90 by default). Use it to keep the
+version history of a long-running site from growing without bounds.
+
+Draft and published versions are **never** deleted. Archived versions are only deleted
+when ``--archived`` is given.
+
+Because deleting versions is destructive, the command refuses to run unless
+:attr:`DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS` is set to ``constants.DELETE_ANY``
+or ``constants.DELETE_NON_PUBLIC_ONLY``::
+
+    CommandError: Deleting versions is not enabled. Set
+    DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS to "any" or "non-public only" in
+    settings.py to allow this command to delete versions.
+
+With ``constants.DELETE_NON_PUBLIC_ONLY`` an unpublished version that a published version
+was created from stays protected: such versions are skipped and not reported as candidates.
+
+
+Basic Usage
++++++++++++
+
+.. code-block:: bash
+
+    # See what a run would remove -- always do this first
+    python manage.py delete_unpublished_versions --dry-run
+
+    # Delete unpublished versions older than 90 days
+    python manage.py delete_unpublished_versions
+
+    # Delete unpublished and archived versions older than 30 days, unattended
+    python manage.py delete_unpublished_versions --days 30 --archived --noinput
+
+
+Command Options
++++++++++++++++
+
+.. list-table:: delete_unpublished_versions Options
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+   * - ``--days DAYS``
+     - Only delete versions untouched for at least this many days (default: 90)
+   * - ``--archived``
+     - Also delete archived versions, not just unpublished ones
+   * - ``--dry-run``
+     - Report the number of affected versions per content model and exit without changing anything
+   * - ``--model app_label.ModelName``
+     - Limit the run to one content model. Repeat the option for several models
+   * - ``--date-field {modified,created}``
+     - Version field the age is measured on (default: ``modified``, i.e. the time the version
+       was last changed, which for an unpublished version is when it was unpublished)
+   * - ``--batch-size BATCH_SIZE``
+     - Number of content objects processed per batch (default: 1000)
+   * - ``--delete-empty-groupers``
+     - Also delete grouper objects (e.g. a ``Poll`` or ``BlogPost``) that are left without any
+       content object, mirroring what deleting the last version of a grouper does
+   * - ``--noinput``, ``--no-input``
+     - Do not prompt for confirmation before deleting
+   * - ``-v {0,1,2,3}``
+     - Verbosity level. ``2`` reports progress per batch
+
+
+How Deletion Works
+++++++++++++++++++
+
+The command groups the matching versions by content type and processes the **content
+objects** in batches. Models using Django's standard ``Model.delete()`` are deleted in bulk.
+Models that override ``delete()`` (including inherited overrides) are deleted individually
+through that method to preserve custom cleanup. Both paths retain Django's deletion signals
+and cascades. The ``Version`` objects follow through the generic relation django CMS
+Versioning injects into every versioned content model.
+
+Content objects that another model protects through a foreign key cannot be deleted. The
+command falls back to deleting the batch object by object, keeps the protected ones and
+reports how many were kept::
+
+    Deleted 412 version(s).
+    3 version(s) were kept: their content object is protected by a foreign key.
+
+With ``--delete-empty-groupers``, empty groupers are always deleted individually through
+their model's ``delete()`` method. A protected grouper is kept without preventing other
+empty groupers from being deleted. Content in any language or state keeps its grouper alive.
+
+Page groupers are processed deepest-first and are only deleted when they have no remaining
+descendants. This preserves descendants with retained content, as well as empty descendants
+outside the cleanup candidates. An eligible empty branch is removed one page at a time,
+preserving django CMS's tree maintenance and cache cleanup.
+
+
+Running Regularly
++++++++++++++++++
+
+The command is safe to run from cron or a scheduled task:
+
+.. code-block:: bash
+
+    # Every night at 3:00, prune unpublished and archived versions older than a year
+    0 3 * * * /path/to/venv/bin/python /path/to/manage.py delete_unpublished_versions \
+        --days 365 --archived --noinput -v 0
+
+.. warning::
+
+    Deleted versions cannot be restored. Run with ``--dry-run`` first and make sure you
+    have a database backup before the first unattended run.

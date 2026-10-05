@@ -554,6 +554,7 @@ class Version(models.Model):
     check_modify = Conditions(
         [
             in_state([constants.DRAFT], not_draft_error),
+            user_can_change(change_permission_error),
             draft_is_not_locked(lock_draft_error_message),
             user_can_unlock(_("You do not have unlock permissions")),
         ]

@@ -1,5 +1,6 @@
 from unittest import skip
 
+from cms.api import assign_user_to_page
 from cms.models import PlaceholderRelationField
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.items import TemplateItem
@@ -96,7 +97,7 @@ class AdminPermissionTestCase(CMSTestCase):
         self.user_has_change_perms = self._create_user(
             "user_has_unlock_perms",
             is_staff=True,
-            permissions=["change_pollcontentversion", "delete_versionlock"],
+            permissions=["change_pollcontent", "change_pollcontentversion", "delete_versionlock"],
         )
 
     def test_user_has_change_permission(self):
@@ -128,7 +129,9 @@ class AdminPermissionTestCase(CMSTestCase):
             response = self.client.get(url)
 
         self.assertIsNotNone(version.locked_by)  # Was locked
-        self.assertEqual(response.status_code, 403)
+        # The user may view the content (read-only), but not change it
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context["has_change_permission"])
 
     def test_editor_without_delete_versionlock_permission_can_edit_unlocked_content(self):
         """
@@ -147,6 +150,7 @@ class AdminPermissionTestCase(CMSTestCase):
 
         # Create a version without a lock (unlocked)
         version = factories.PageVersionFactory(state=DRAFT, locked_by=None)
+        assign_user_to_page(version.content.page, editor, grant_all=True)
 
         # Editor should be able to access the edit view
         url = get_object_edit_url(version.content)
@@ -174,6 +178,7 @@ class AdminPermissionTestCase(CMSTestCase):
 
         # Create a version without a lock (unlocked)
         version = factories.PageVersionFactory(state=DRAFT, locked_by=editor)
+        assign_user_to_page(version.content.page, editor, grant_all=True)
 
         # Editor should be able to access the edit view
         url = get_object_edit_url(version.content)

@@ -1,5 +1,9 @@
 from unittest.mock import patch
 
+from cms.api import assign_user_to_page, create_page
+from cms.models import PageContent
+from cms.utils.urlutils import admin_reverse
+from django.contrib.auth.models import Permission
 from django.core.checks import messages
 
 from djangocms_versioning import constants
@@ -7,6 +11,7 @@ from djangocms_versioning.models import StateTracking, Version
 from djangocms_versioning.test_utils import factories
 from djangocms_versioning.test_utils.blogpost.cms_config import BlogpostCMSConfig
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
+from djangocms_versioning.test_utils.polls.models import PollContent
 from tests.test_admin import BaseStateTestCase
 
 
@@ -344,3 +349,72 @@ class PermissionTestCase(BaseStateTestCase):
                 content_type=poll_version.content_type, state=constants.DRAFT
             ).exists()
         )
+
+
+class ModifyPermissionTestCase(BaseStateTestCase):
+    """Regression tests: versioning must not grant change access to draft content
+    to users lacking the underlying change permission."""
+
+    def setUp(self):
+        self.superuser = self.get_superuser()
+        page = create_page("test page", "page.html", "en", created_by=self.superuser)
+        self.page_content = PageContent._original_manager.get(page=page, language="en")
+        self.page_version = Version.objects.get_for_content(self.page_content)
+        self.change_url = admin_reverse("cms_pagecontent_change", args=(self.page_content.pk,))
+
+    def test_check_modify_requires_change_permission(self):
+        self.assertEqual(self.page_version.state, constants.DRAFT)
+        self.assertFalse(self.page_version.check_modify.as_bool(self.get_staff_user_with_no_permissions()))
+        self.assertTrue(self.page_version.check_modify.as_bool(self.superuser))
+
+    def test_page_content_change_view_denied_without_page_permission(self):
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            get_response = self.client.get(self.change_url)
+            post_response = self.client.post(
+                self.change_url,
+                {
+                    "title": "changed",
+                    "slug": "changed",
+                    "template": "page.html",
+                    "xframe_options": 3,
+                    "limit_visibility_in_menu": 2,
+                },
+            )
+
+        self.assertEqual(get_response.status_code, 403)
+        self.assertEqual(post_response.status_code, 403)
+        self.page_content.refresh_from_db()
+        self.assertEqual(self.page_content.title, "test page")
+        self.assertNotEqual(self.page_content.xframe_options, 3)
+
+    def test_page_content_change_view_allowed_with_page_permission(self):
+        user = self.get_staff_user_with_no_permissions()
+        user.user_permissions.add(
+            *Permission.objects.filter(
+                content_type__app_label="cms",
+                codename__in=["view_page", "change_page", "view_pagecontent", "change_pagecontent"],
+            )
+        )
+        assign_user_to_page(self.page_content.page, user, grant_all=True)
+
+        with self.login_user_context(user):
+            response = self.client.get(self.change_url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_versioned_content_admin_respects_model_change_permission(self):
+        poll_version = factories.PollVersionFactory(state=constants.DRAFT)
+        url = self.get_admin_url(PollContent, "change", poll_version.content.pk)
+        user = self.get_staff_user_with_no_permissions()
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        user.user_permissions.add(self.get_permission("change_pollcontent"))
+
+        with self.login_user_context(user):
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)

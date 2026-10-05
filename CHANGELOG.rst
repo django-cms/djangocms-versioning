@@ -2,16 +2,20 @@
 Changelog
 =========
 
-2.7.2 (2026-09-29)
+2.8.0 (2026-10-05)
 ==================
 
+* feat: Add management command to delete unpublished versions by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/607
 * fix: Enforced change permission on draft content change views (reported by ziad) by @fsbraun.
   Staff users without change permission for the underlying content (e.g., without page
   permissions when ``CMS_PERMISSION = True``) could open and save the admin change form of
   any draft. Versioning now only further restricts, never grants, the content admin's change
   permission. Editors who relied on Django's ``change_page`` permission without CMS page
-  permissions will lose edit access to drafts.
+  permissions will lose edit access to drafts. by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/609
+* fix: Language switcher should point to edit url by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/608
 
+
+**Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.7.1...2.8.0
 2.7.1 (2026-09-20)
 ==================
 

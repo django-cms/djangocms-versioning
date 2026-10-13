@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
         requirements-file: [
             dj42_cms41.txt,
             dj52_cms41.txt,
@@ -56,6 +56,13 @@ jobs:
             python-version: "3.14"
           - requirements-file: dj52_cms50.txt
             python-version: "3.14"
+          # Keep Python 3.15 off older dependency combinations.
+          - python-version: "3.15"
+            requirements-file: "dj42_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms50.txt"
 
     steps:
     - uses: actions/checkout@v7
@@ -83,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
         requirements-file: [
             dj42_cms41.txt,
             dj52_cms41.txt,
@@ -116,6 +123,15 @@ jobs:
             python-version: "3.14"
           - requirements-file: dj60_cms50.txt
             python-version: "3.14"
+          # Keep Python 3.15 off older dependency combinations.
+          - python-version: "3.15"
+            requirements-file: "dj42_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms50.txt"
+          - python-version: "3.15"
+            requirements-file: "dj60_cms50.txt"
 
     services:
       postgres:
@@ -155,7 +171,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14", "3.15" ]
         requirements-file: [
             dj42_cms41.txt,
             dj52_cms41.txt,
@@ -188,6 +204,15 @@ jobs:
             python-version: "3.14"
           - requirements-file: dj60_cms50.txt
             python-version: "3.14"
+          # Keep Python 3.15 off older dependency combinations.
+          - python-version: "3.15"
+            requirements-file: "dj42_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms41.txt"
+          - python-version: "3.15"
+            requirements-file: "dj52_cms50.txt"
+          - python-version: "3.15"
+            requirements-file: "dj60_cms50.txt"
 
     services:
       mysql:
@@ -225,7 +250,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12']
+        python-version: ['3.12', '3.15']
         requirements-file: ['dj52_cms50.txt']
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/main.tar.gz'
@@ -260,7 +285,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ "3.13" ]
+        python-version: [ "3.13", "3.15" ]
         cms-version: [
           'https://github.com/django-cms/django-cms/archive/main.tar.gz'
         ]

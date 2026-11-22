@@ -128,6 +128,12 @@ workflows, see :doc:`/howto/configuration`.
 
     Determines where users are redirected after publishing or unpublishing content.
 
+    .. versionchanged:: 2.9
+        The setting also applies after discarding a draft: with ``"published"`` or
+        ``"preview"`` users are redirected to the published version (if there is one),
+        instead of the version overview. Discards started from the version overview or
+        from an indicator menu return to where they were started.
+
     **Allowed values**:
 
     - ``"versions"``: Redirect to the version overview of the current object

@@ -982,6 +982,8 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             f"admin:{obj._meta.app_label}_{self.model._meta.model_name}_discard",
             args=(obj.pk,),
         )
+        # Discards started from the version list return to the version list
+        discard_url += "?" + urlencode({"next": version_list_url(obj.content)})
         return self.admin_action_button(
             discard_url,
             icon="bin",
@@ -1240,8 +1242,12 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
         if not url:
             return redirect(fallback)
 
+        parsed = urlparse(url)
+        if parsed.scheme or parsed.netloc:
+            # Only redirect within the site
+            return redirect(fallback)
         try:
-            resolve(url)
+            resolve(parsed.path)
         except Resolver404:
             return redirect(fallback)
 
@@ -1457,14 +1463,38 @@ class VersionAdmin(ChangeListActionsMixin, admin.ModelAdmin, metaclass=MediaDefi
             return TemplateResponse(request, "djangocms_versioning/admin/discard_confirmation.html", context)
 
         version_url = version_list_url(version.content)
-        if request.POST.get("discard"):
-            ModelClass = version.content.__class__
-            deleted = version.delete()
-            if deleted[1]["last"]:
-                version_url = get_admin_url(ModelClass, "changelist")
-                self.message_user(request, _("The last version has been deleted"))
+        if not request.POST.get("discard"):
+            return redirect(version_url)
 
-        return redirect(version_url)
+        ModelClass = version.content.__class__
+        # Evaluate before the draft (and its content) is deleted
+        redirect_url = self._get_discard_redirect_url(request, version) or version_url
+        deleted = version.delete()
+        if deleted[1]["last"]:
+            # Nothing left to return to
+            self.message_user(request, _("The last version has been deleted"))
+            return redirect(get_admin_url(ModelClass, "changelist"))
+        return self._internal_redirect(request.GET.get("next"), redirect_url)
+
+    def _get_discard_redirect_url(self, request, version):
+        """Returns the URL of the published version the user gets to see after
+        discarding ``version``: its url on the site or its preview - depending on
+        the ``DJANGOCMS_VERSIONING_ON_PUBLISH_REDIRECT`` setting. Returns ``None``
+        if the version list is to be shown, i.e., if the setting is ``"versions"``,
+        or if there is no published version."""
+        if conf.ON_PUBLISH_REDIRECT not in ("preview", "published"):
+            return None
+        published = (
+            Version.objects.filter_by_content_grouping_values(version.content)
+            .filter(state=PUBLISHED)
+            .first()
+        )
+        if published is None:
+            return None
+        redirect_url = get_preview_url(published.content)
+        if conf.ON_PUBLISH_REDIRECT == "published" and hasattr(published.content, "get_absolute_url"):
+            redirect_url = get_object_live_url(published.content, site=get_current_site(request)) or redirect_url
+        return redirect_url
 
     def compare_view(self, request, object_id):
         """Compares two versions"""

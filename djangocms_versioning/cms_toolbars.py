@@ -248,7 +248,7 @@ class VersioningToolbar(PlaceholderToolbar):
                         url=reverse(
                             f"admin:{proxy_model._meta.app_label}_{proxy_model.__name__.lower()}_discard",
                             args=(version.pk,),
-                        ),
+                        ) + "?" + urlencode({"back": self.toolbar.request_path}),
                     )
 
     def _get_published_page_version(self):

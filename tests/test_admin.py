@@ -26,6 +26,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
 from django.test.utils import ignore_warnings
 from django.urls import reverse
+from django.utils.html import escape
 from django.utils.http import urlencode
 from django.utils.timezone import now
 from django.utils.translation import override
@@ -600,6 +601,9 @@ class VersionAdminActionsTestCase(CMSTestCase):
         draft_discard_url = self.get_admin_url(
             self.versionable.version_model_proxy, "discard", version.pk
         )
+        # Discarding from the version list returns to the version list
+        draft_discard_url += "?" + urlencode({"next": version_list_url(version.content)})
+        draft_discard_url = escape(draft_discard_url)
 
         actual_enabled_control = self.version_admin._get_discard_link(version, request)
 
@@ -3985,3 +3989,88 @@ class GrouperAdminPerformanceTestCase(CMSTestCase):
         with self.assertNumQueries(3 if PackageVersion(cms_version) < PackageVersion("5.0.7") else 4):
             response = poll_admin.changelist_view(request)
             list(response.context_data["cl"].result_list)
+
+
+class DiscardRedirectTestCase(CMSTestCase):
+    """After a confirmed discard the user returns to where the discard was started."""
+
+    def setUp(self):
+        self.user = self.get_superuser()
+        self.published = factories.PageVersionFactory(content__language="en")
+        self.published.publish(self.user)
+        self.draft = self.published.copy(self.user)
+        self.discard_url = admin_reverse(
+            "djangocms_versioning_pagecontentversion_discard", args=(self.draft.pk,)
+        )
+
+    def discard(self, **params):
+        url = self.discard_url + ("?" + urlencode(params) if params else "")
+        with self.login_user_context(self.user):
+            response = self.client.post(url, {"discard": "1"})
+        self.assertFalse(Version.objects.filter(pk=self.draft.pk).exists())
+        self.assertEqual(response.status_code, 302)
+        return response.url
+
+    def test_discard_redirects_to_published_page(self):
+        live_url = self.published.content.page.get_absolute_url("en")
+        self.assertTrue(live_url)
+
+        with patch.object(djangocms_versioning.admin.conf, "ON_PUBLISH_REDIRECT", "published"):
+            self.assertEqual(self.discard(), live_url)
+
+    def test_discard_redirects_to_preview_of_published_version(self):
+        with patch.object(djangocms_versioning.admin.conf, "ON_PUBLISH_REDIRECT", "preview"):
+            self.assertEqual(self.discard(), helpers.get_preview_url(self.published.content))
+
+    def test_discard_redirects_to_version_list_if_configured(self):
+        with patch.object(djangocms_versioning.admin.conf, "ON_PUBLISH_REDIRECT", "versions"):
+            self.assertEqual(self.discard(), version_list_url(self.published.content))
+
+    def test_discard_redirects_to_version_list_without_published_version(self):
+        self.published.unpublish(self.user)
+
+        with patch.object(djangocms_versioning.admin.conf, "ON_PUBLISH_REDIRECT", "published"):
+            self.assertEqual(self.discard(), version_list_url(self.published.content))
+
+    def test_discard_redirects_to_next(self):
+        """The version list and the indicator menus pass their own url as next parameter"""
+        next_url = version_list_url(self.published.content)
+
+        self.assertEqual(self.discard(next=next_url), next_url)
+
+    def test_discard_ignores_invalid_next(self):
+        live_url = self.published.content.page.get_absolute_url("en")
+
+        for next_url in ("https://example.com/en/admin/", "//example.com/en/admin/", "/not-a-valid-url"):
+            with self.subTest(next=next_url):
+                self.draft = self.published.copy(self.user)
+                self.discard_url = admin_reverse(
+                    "djangocms_versioning_pagecontentversion_discard", args=(self.draft.pk,)
+                )
+                self.assertEqual(self.discard(next=next_url), live_url)
+
+    def test_discard_last_version_ignores_next(self):
+        version = factories.PageVersionFactory(content__language="en")
+        self.draft = version
+        self.discard_url = admin_reverse(
+            "djangocms_versioning_pagecontentversion_discard", args=(version.pk,)
+        )
+
+        redirect_url = self.discard(next=version_list_url(version.content))
+
+        self.assertEqual(redirect_url, helpers.get_admin_url(PageContent, "changelist"))
+
+    def test_indicator_menu_discard_returns_to_origin(self):
+        from djangocms_versioning.indicators import content_indicator_menu
+
+        back = admin_reverse("cms_pagecontent_changelist") + "?language=en"
+        request = RequestFactory().get(back)
+        request.user = self.user
+
+        menu = content_indicator_menu(request, "dirty", [self.draft, self.published], back=back)
+
+        discard_urls = [entry[2] for entry in menu if "/discard/" in entry[2]]
+        self.assertEqual(len(discard_urls), 1)
+        query = parse_qs(urlparse(discard_urls[0]).query)
+        self.assertEqual(query, {"back": [back], "next": [back]})
+

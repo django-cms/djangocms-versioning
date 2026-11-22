@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
 from cms.admin.utils import GrouperModelAdmin
+from cms.api import create_page
 from cms.models import PageContent
 from cms.test_utils.testcases import CMSTestCase
 from cms.toolbar.utils import get_object_edit_url, get_object_preview_url
@@ -3996,7 +3997,9 @@ class DiscardRedirectTestCase(CMSTestCase):
 
     def setUp(self):
         self.user = self.get_superuser()
-        self.published = factories.PageVersionFactory(content__language="en")
+        # create_page (unlike the factory) gives the page a url on all supported cms versions
+        page = create_page("Discard test", "page.html", "en", created_by=self.user)
+        self.published = Version.objects.get_for_content(page.pagecontent_set(manager="admin_manager").get())
         self.published.publish(self.user)
         self.draft = self.published.copy(self.user)
         self.discard_url = admin_reverse(

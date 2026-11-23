@@ -172,6 +172,23 @@ class DeleteUnpublishedVersionsTestCase(CMSTestCase):
 
     @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
     @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_keep_latest_does_not_protect_history_of_current_content(self):
+        """An object with a published version does not need its newer archived version."""
+        published = self._version(constants.PUBLISHED, 200)
+        archived = self._version(
+            constants.ARCHIVED, 100,
+            content__poll=published.content.poll, content__language=published.content.language,
+        )
+
+        call_command(
+            "delete_unpublished_versions", keep_latest=True, archived=True, interactive=False, verbosity=0
+        )
+
+        self.assertTrue(Version.objects.filter(pk=published.pk).exists())
+        self.assertFalse(Version.objects.filter(pk=archived.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
     def test_keep_latest_applies_to_archived_versions(self):
         older = self._version(constants.UNPUBLISHED, 200)
         latest = self._version(

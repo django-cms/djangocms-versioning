@@ -5,9 +5,9 @@ Changelog
 Unreleased
 ==========
 
-* feat: ``delete_unpublished_versions`` accepts ``--keep-latest`` to never delete the most
-  recent version of an object (per grouper and extra grouping fields, e.g. per page and
-  language), so that pruning old unpublished versions does not remove an object's last
+* feat: ``delete_unpublished_versions`` accepts ``--keep-latest`` to never delete the latest
+  version of an object without a draft or published version (per grouper and extra grouping
+  fields, e.g. per page and language), so that pruning old unpublished versions does not remove an object's last
   content (#617).
 
 2.8.0 (2026-10-05)

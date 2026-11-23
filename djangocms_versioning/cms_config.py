@@ -3,6 +3,11 @@ import collections
 from cms import __version__ as cms_version
 from cms.app_base import CMSAppConfig, CMSAppExtension
 from cms.models import PageContent
+
+try:
+    from cms.models import TreeNode
+except ImportError:  # django CMS 5+: the tree lives on the page itself
+    TreeNode = None
 from cms.utils.i18n import get_language_list, get_language_tuple
 from cms.utils.plugins import copy_plugins_to_placeholder
 from cms.utils.urlutils import admin_reverse
@@ -294,7 +299,8 @@ class VersioningCMSPageAdminMixin(VersioningAdminMixin):
 
         page = source_page_content.page
 
-        if not target_language or target_language not in get_language_list(site_id=page.node.site_id):
+        site_id = page.node.site_id if TreeNode else page.site_id
+        if not target_language or target_language not in get_language_list(site_id=site_id):
             return HttpResponseBadRequest(force_str(_("Language must be set to a supported language!")))
 
         target_page_content = get_latest_admin_viewable_content(page, language=target_language)

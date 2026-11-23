@@ -24,6 +24,7 @@ from djangocms_versioning.test_utils.factories import (
     PageVersionFactory,
     PollTitleExtensionFactory,
     TestTitleExtensionFactory,
+    TreeNode,
 )
 
 
@@ -35,9 +36,11 @@ class ExtensionTestCase(CMSTestCase):
         )
         self.page = self.version.content.page
         site = Site.objects.first()
+        # django CMS 4.1 keeps the tree on a separate TreeNode model
+        parent = {"parent_node": self.page.node.parent} if TreeNode else {"parent_page": self.page.parent}
         self.new_page = self.page.copy(
             site=site,
-            parent_node=self.page.node.parent,
+            **parent,
             translations=False,
             permissions=False,
             extensions=False,

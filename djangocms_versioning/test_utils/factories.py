@@ -92,6 +92,10 @@ class PollVersionFactory(AbstractVersionFactory):
 
 
 class PollContentWithVersionFactory(PollContentFactory):
+    class Meta:
+        # The hook below creates a version, it does not change the content object
+        skip_postgeneration_save = True
+
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         # NOTE: Use this method as below to define version attributes:
@@ -136,6 +140,10 @@ class BlogPostVersionFactory(AbstractVersionFactory):
 
 
 class BlogContentWithVersionFactory(BlogContentFactory):
+    class Meta:
+        # The hook below creates a version, it does not change the content object
+        skip_postgeneration_save = True
+
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         # NOTE: Use this method as below to define version attributes:
@@ -169,6 +177,10 @@ class IncorrectBlogPostVersionFactory(AbstractVersionFactory):
 
 
 class IncorrectBlogContentWithVersionFactory(IncorrectBlogContentFactory):
+    class Meta:
+        # The hook below creates a version, it does not change the content object
+        skip_postgeneration_save = True
+
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         if not create:
@@ -245,6 +257,10 @@ class PageVersionFactory(AbstractVersionFactory):
 
 
 class PageContentWithVersionFactory(PageContentFactory):
+    class Meta:
+        # The hook below creates a version, it does not change the content object
+        skip_postgeneration_save = True
+
     @factory.post_generation
     def version(self, create, extracted, **kwargs):
         # NOTE: Use this method as below to define version attributes:
@@ -311,6 +327,8 @@ class PollTitleExtensionFactory(factory.django.DjangoModelFactory):
 
 
 class TestTitleExtensionFactory(factory.django.DjangoModelFactory):
+    __test__ = False  # Not a test class: keep pytest from collecting it
+
     extended_object = factory.SubFactory(PageContentFactory)
 
     class Meta:

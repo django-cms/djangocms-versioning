@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from unittest.mock import Mock, patch
 
+import pytest
 from cms.admin.forms import ChangePageForm
 from cms.models import Page
 from cms.test_utils.testcases import CMSTestCase
@@ -35,6 +36,9 @@ from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
 from djangocms_versioning.test_utils.polls.models import Poll, PollContent
 
 req_factory = RequestFactory()
+
+#: Tests configuring the extension again re-create the version proxy models
+RECONFIGURED = "ignore:Model .* was already registered:RuntimeWarning"
 
 
 class PageContentVersioningBehaviourTestCase(CMSTestCase):
@@ -231,6 +235,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
             extension.handle_versioning_setting(cms_config1)
             extension.handle_versioning_setting(cms_config2)
 
+    @pytest.mark.filterwarnings(RECONFIGURED)
     def test_versioning_add_to_confirmation_context_is_an_optional_setting(self):
         extension = VersioningCMSExtension()
         poll_versionable = VersionableItem(
@@ -271,6 +276,7 @@ class VersioningExtensionUnitTestCase(CMSTestCase):
         with self.assertRaises(ImproperlyConfigured):
             extension.configure_app(cms_config)
 
+    @pytest.mark.filterwarnings(RECONFIGURED)
     def test_versionables_list_created(self):
         """Test handle_versioning_setting method adds all the
         models into the versionables list

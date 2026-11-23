@@ -9,7 +9,8 @@ class CheckDraftEditableTestCase(CMSTestCase):
     def test_creation_wo_with_user(self):
 
         poll = Poll.objects.create(name="my test poll")
-        poll_content = PollContent.objects.create(poll=poll, language="en", text="Do you love django CMS?")
+        with self.assertWarns(UserWarning):  # No user: no version is created automatically
+            poll_content = PollContent.objects.create(poll=poll, language="en", text="Do you love django CMS?")
         version = Version.objects.create(content=poll_content, created_by=self.get_superuser())
         self.assertEqual(version.state, DRAFT)
         self.assertTrue(poll_content.versions.exists())

@@ -5,6 +5,7 @@ from unittest import skip, skipUnless
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
+import pytest
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
 from cms.admin.utils import GrouperModelAdmin
@@ -379,7 +380,7 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         versionable = Mock(spec=[], version_model_proxy=Version, grouper_model=Poll)
 
         with patch.object(site, "register") as mock:
-            with self.assertWarns(UserWarning):
+            with pytest.warns(UserWarning):
                 register_versionadmin_proxy(versionable, site)
 
         mock.assert_not_called()
@@ -421,7 +422,7 @@ class VersionAdminTestCase(CMSTestCase):
 
     def _content_link(self, version):
         """``VersionAdmin.content_link`` is deprecated but still tested."""
-        with self.assertWarns(DeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             return self.site._registry[Version].content_link(version)
 
     def test_content_link_editable_object(self):

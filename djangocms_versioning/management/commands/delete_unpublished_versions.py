@@ -4,7 +4,7 @@ from cms.models import Page
 from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import Count, Model, ProtectedError
+from django.db.models import Count, Max, Model, ProtectedError
 from django.utils import timezone
 
 from djangocms_versioning import conf, constants
@@ -23,7 +23,8 @@ class Command(BaseCommand):
     help = (
         "Deletes unpublished versions and their content objects if they have not been touched for a "
         f"given number of days ({DEFAULT_DAYS} by default). Archived versions can be included with "
-        "--archived. Draft and published versions are never deleted. Requires the setting "
+        "--archived. Draft and published versions are never deleted. Use --keep-latest to also keep "
+        "the most recent version of each object. Requires the setting "
         "DJANGOCMS_VERSIONING_ALLOW_DELETING_VERSIONS to allow deleting versions."
     )
 
@@ -38,6 +39,14 @@ class Command(BaseCommand):
             "--archived",
             action="store_true",
             help="Also delete archived versions, not just unpublished ones",
+        )
+        parser.add_argument(
+            "--keep-latest",
+            action="store_true",
+            help=(
+                "Never delete the most recent version of an object (per grouper and extra grouping "
+                "fields such as language), so that no object loses its last content"
+            ),
         )
         parser.add_argument(
             "--dry-run",
@@ -99,7 +108,9 @@ class Command(BaseCommand):
         described_states = " or ".join(states)
 
         versionables = self.get_versionables(options["models"])
-        queryset = self.get_queryset(states, cutoff, versionables, options["date_field"])
+        queryset = self.get_queryset(
+            states, cutoff, versionables, options["date_field"], keep_latest=options["keep_latest"]
+        )
 
         # Group the work by content type so that content objects can be deleted in bulk
         counts = dict(
@@ -172,7 +183,9 @@ class Command(BaseCommand):
             for content_type_id in versionable.content_types
         }
 
-    def get_queryset(self, states: list, cutoff, versionables: dict, date_field: str):
+    def get_queryset(
+        self, states: list, cutoff, versionables: dict, date_field: str, keep_latest: bool = False
+    ):
         queryset = Version.objects.filter(
             state__in=states,
             content_type_id__in=versionables.keys(),
@@ -185,7 +198,22 @@ class Command(BaseCommand):
                 state=constants.PUBLISHED, source__isnull=False
             ).values_list("source_id", flat=True)
             queryset = queryset.exclude(pk__in=sources_of_published)
+        if keep_latest:
+            # Dict keys are content type ids: a versionable can serve several of them.
+            for versionable in {id(v): v for v in versionables.values()}.values():
+                queryset = queryset.exclude(pk__in=self.latest_version_ids(versionable))
         return queryset
+
+    @staticmethod
+    def latest_version_ids(versionable):
+        """Subquery with the pk of the most recent version (of any state) for each
+        combination of grouping values, e.g. for each page and language."""
+        return (
+            versionable.content_model._base_manager.order_by()
+            .values(*versionable.grouping_fields)
+            .annotate(latest_version=Max("versions__pk"))
+            .values("latest_version")
+        )
 
     @staticmethod
     def label_for(content_type_id: int) -> str:

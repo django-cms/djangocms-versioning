@@ -193,6 +193,13 @@ or ``constants.DELETE_NON_PUBLIC_ONLY``::
 With ``constants.DELETE_NON_PUBLIC_ONLY`` an unpublished version that a published version
 was created from stays protected: such versions are skipped and not reported as candidates.
 
+.. warning::
+
+    By default the command also deletes the **most recent** version of an object if that
+    version is unpublished and old enough. A page that was published once, then unpublished
+    and never touched again loses its only content this way. Pass ``--keep-latest`` to keep
+    the most recent version of every object and only prune the history behind it.
+
 
 Basic Usage
 +++++++++++
@@ -204,6 +211,9 @@ Basic Usage
 
     # Delete unpublished versions older than 90 days
     python manage.py delete_unpublished_versions
+
+    # Only prune history: keep the most recent version of each object
+    python manage.py delete_unpublished_versions --keep-latest
 
     # Delete unpublished and archived versions older than 30 days, unattended
     python manage.py delete_unpublished_versions --days 30 --archived --noinput
@@ -222,6 +232,9 @@ Command Options
      - Only delete versions untouched for at least this many days (default: 90)
    * - ``--archived``
      - Also delete archived versions, not just unpublished ones
+   * - ``--keep-latest``
+     - Never delete the most recent version of an object, whatever its state. "Most recent"
+       is determined per grouper and extra grouping fields, e.g. per page and language
    * - ``--dry-run``
      - Report the number of affected versions per content model and exit without changing anything
    * - ``--model app_label.ModelName``

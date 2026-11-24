@@ -25,6 +25,7 @@ from djangocms_versioning.test_utils.factories import (
     PageUrlFactory,
     PageVersionFactory,
     PollVersionFactory,
+    TreeNode,
     UserFactory,
 )
 from djangocms_versioning.test_utils.polls.cms_config import PollsCMSConfig
@@ -524,7 +525,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         PageContentWithVersionFactory(page=version.content.page, language="de")
         PageContentWithVersionFactory(page=version.content.page, language="it")
         page = version.content.page
-        page.update_languages(["en", "de", "it"])
+        if TreeNode:  # only django CMS 4.1 keeps a language list on the page
+            page.update_languages(["en", "de", "it"])
 
         request = self.get_page_request(
             page=page,
@@ -567,7 +569,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
                 PageContentWithVersionFactory(page=version.content.page, language="de")
                 PageContentWithVersionFactory(page=version.content.page, language="it")
                 page = version.content.page
-                page.update_languages(["en", "de", "it"])
+                if TreeNode:  # only django CMS 4.1 keeps a language list on the page
+                    page.update_languages(["en", "de", "it"])
 
                 request = self.get_page_request(
                     page=page,
@@ -600,7 +603,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             PageContentWithVersionFactory(page=version.content.page, language="de")
             PageContentWithVersionFactory(page=version.content.page, language="it")
             page = version.content.page
-            page.update_languages(["en", "de", "it"])
+            if TreeNode:  # only django CMS 4.1 keeps a language list on the page
+                page.update_languages(["en", "de", "it"])
 
             request = self.get_page_request(
                 page=page,
@@ -637,7 +641,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
             PageContentWithVersionFactory(page=version.content.page, language="de")
             PageContentWithVersionFactory(page=version.content.page, language="it")
             page = version.content.page
-            page.update_languages(["en", "de", "it"])
+            if TreeNode:  # only django CMS 4.1 keeps a language list on the page
+                page.update_languages(["en", "de", "it"])
 
             request = self.get_page_request(
                 page=page,
@@ -683,7 +688,8 @@ class VersioningPageToolbarTestCase(CMSTestCase):
         self.assertEqual(it_pagecontent_2_version.state, PUBLISHED)
         self.assertEqual(it_pagecontent_3_version.state, DRAFT)
 
-        page.update_languages(["en", "de", "it"])
+        if TreeNode:  # only django CMS 4.1 keeps a language list on the page
+            page.update_languages(["en", "de", "it"])
 
         request = self.get_page_request(
             page=page,

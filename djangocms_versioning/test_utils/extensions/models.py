@@ -2,8 +2,8 @@ from cms.extensions.models import PageContentExtension, PageExtension
 
 
 class TestPageExtension(PageExtension):
-    pass
+    __test__ = False  # Not a test class: keep pytest from collecting it
 
 
 class TestPageContentExtension(PageContentExtension):
-    pass
+    __test__ = False  # Not a test class: keep pytest from collecting it

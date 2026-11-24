@@ -5,6 +5,7 @@ from unittest import skip, skipUnless
 from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
+import pytest
 from bs4 import BeautifulSoup
 from cms import __version__ as cms_version
 from cms.admin.utils import GrouperModelAdmin
@@ -379,7 +380,8 @@ class AdminRegisterVersionTestCase(CMSTestCase):
         versionable = Mock(spec=[], version_model_proxy=Version, grouper_model=Poll)
 
         with patch.object(site, "register") as mock:
-            register_versionadmin_proxy(versionable, site)
+            with pytest.warns(UserWarning):
+                register_versionadmin_proxy(versionable, site)
 
         mock.assert_not_called()
 
@@ -418,6 +420,11 @@ class VersionAdminTestCase(CMSTestCase):
         self.assertTrue(qs._prefetch_done)
         self.assertIn("content", qs._prefetch_related_lookups)
 
+    def _content_link(self, version):
+        """``VersionAdmin.content_link`` is deprecated but still tested."""
+        with pytest.warns(DeprecationWarning):
+            return self.site._registry[Version].content_link(version)
+
     def test_content_link_editable_object(self):
         """
         The link returned is the change url for an editable object
@@ -425,7 +432,7 @@ class VersionAdminTestCase(CMSTestCase):
         version = factories.PageVersionFactory(content__title="mypage")
         preview_url = helpers.get_preview_url(version.content)
         self.assertEqual(
-            self.site._registry[Version].content_link(version),
+            self._content_link(version),
             f'<a target="_top" class="js-close-sideframe" href="{preview_url}">{version.content}</a>',
         )
 
@@ -435,7 +442,7 @@ class VersionAdminTestCase(CMSTestCase):
         """
         version = factories.PollVersionFactory(content__text="test4")
         self.assertEqual(
-            self.site._registry[Version].content_link(version),
+            self._content_link(version),
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
                 url=f"/en/admin/polls/pollcontent/{version.content.pk}/preview/", label="test4"
             ),
@@ -449,7 +456,7 @@ class VersionAdminTestCase(CMSTestCase):
         expected_url = f"/en/admin/blogpost/blogcontent/{version.content.pk}/change/"
         self.assertFalse(is_editable_model(version))
         self.assertEqual(
-            self.site._registry[Version].content_link(version),
+            self._content_link(version),
             '<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>'.format(
                 url=expected_url, label="test4"
             ),
@@ -465,7 +472,7 @@ class VersionAdminTestCase(CMSTestCase):
                 url = get_object_preview_url(version.content, language=version.content.language)
                 label = version.content
                 self.assertEqual(
-                    self.site._registry[Version].content_link(version),
+                    self._content_link(version),
                     f'<a target="_top" class="js-close-sideframe" href="{url}">{label}</a>',
                 )
 

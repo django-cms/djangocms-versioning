@@ -2,6 +2,14 @@
 Changelog
 =========
 
+Unreleased
+==========
+
+* feat: ``delete_unpublished_versions`` accepts ``--keep-latest`` to never delete the latest
+  version of an object without a draft or published version (per grouper and extra grouping
+  fields, e.g. per page and language), so that pruning old unpublished versions does not remove an object's last
+  content (#617).
+
 2.8.0 (2026-10-05)
 ==================
 
@@ -14,8 +22,9 @@ Changelog
   permissions will lose edit access to drafts. by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/609
 * fix: Language switcher should point to edit url by @fsbraun in https://github.com/django-cms/djangocms-versioning/pull/608
 
-
 **Full Changelog**: https://github.com/django-cms/djangocms-versioning/compare/2.7.1...2.8.0
+
+
 2.7.1 (2026-09-20)
 ==================
 

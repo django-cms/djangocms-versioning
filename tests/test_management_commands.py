@@ -123,6 +123,88 @@ class DeleteUnpublishedVersionsTestCase(CMSTestCase):
 
     @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
     @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_latest_version_is_deleted_by_default(self):
+        only = self._version(constants.UNPUBLISHED, 100)
+
+        call_command("delete_unpublished_versions", interactive=False, verbosity=0)
+
+        self.assertFalse(Version.objects.filter(pk=only.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_keep_latest_option(self):
+        # Object whose only version is unpublished: kept
+        only = self._version(constants.UNPUBLISHED, 100)
+        # Object with two unpublished versions: only the older one is deleted
+        older = self._version(constants.UNPUBLISHED, 200)
+        newer = self._version(
+            constants.UNPUBLISHED, 100,
+            content__poll=older.content.poll, content__language=older.content.language,
+        )
+        # Object with a newer draft: the unpublished version is not the latest and is deleted
+        superseded = self._version(constants.UNPUBLISHED, 100)
+        draft = self._version(
+            constants.DRAFT, 1,
+            content__poll=superseded.content.poll, content__language=superseded.content.language,
+        )
+
+        call_command("delete_unpublished_versions", keep_latest=True, interactive=False, verbosity=0)
+
+        for version in (only, newer, draft):
+            self.assertTrue(Version.objects.filter(pk=version.pk).exists())
+            self.assertTrue(PollContent.admin_manager.filter(pk=version.object_id).exists())
+        for version in (older, superseded):
+            self.assertFalse(Version.objects.filter(pk=version.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_keep_latest_respects_extra_grouping_fields(self):
+        """The latest version is determined per language, not per grouper only."""
+        english = self._version(constants.UNPUBLISHED, 200, content__language="en")
+        german = self._version(
+            constants.UNPUBLISHED, 100, content__poll=english.content.poll, content__language="de"
+        )
+
+        call_command("delete_unpublished_versions", keep_latest=True, interactive=False, verbosity=0)
+
+        self.assertTrue(Version.objects.filter(pk=english.pk).exists())
+        self.assertTrue(Version.objects.filter(pk=german.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_keep_latest_does_not_protect_history_of_current_content(self):
+        """An object with a published version does not need its newer archived version."""
+        published = self._version(constants.PUBLISHED, 200)
+        archived = self._version(
+            constants.ARCHIVED, 100,
+            content__poll=published.content.poll, content__language=published.content.language,
+        )
+
+        call_command(
+            "delete_unpublished_versions", keep_latest=True, archived=True, interactive=False, verbosity=0
+        )
+
+        self.assertTrue(Version.objects.filter(pk=published.pk).exists())
+        self.assertFalse(Version.objects.filter(pk=archived.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    def test_keep_latest_applies_to_archived_versions(self):
+        older = self._version(constants.UNPUBLISHED, 200)
+        latest = self._version(
+            constants.ARCHIVED, 100,
+            content__poll=older.content.poll, content__language=older.content.language,
+        )
+
+        call_command(
+            "delete_unpublished_versions", keep_latest=True, archived=True, interactive=False, verbosity=0
+        )
+
+        self.assertFalse(Version.objects.filter(pk=older.pk).exists())
+        self.assertTrue(Version.objects.filter(pk=latest.pk).exists())
+
+    @patch.object(conf, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
+    @patch.object(versioning_models, "ALLOW_DELETING_VERSIONS", constants.DELETE_ANY)
     def test_dry_run_does_not_delete(self):
         version = self._version(constants.UNPUBLISHED, 100)
         out = StringIO()

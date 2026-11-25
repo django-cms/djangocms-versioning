@@ -7,8 +7,10 @@ from .constants import ARCHIVED, DRAFT, PUBLISHED, UNPUBLISHED, VERSION_STATES
 from .models import Version
 
 
-def _reverse_action(version, action, back=None):
-    get_params = f"?{urlencode({'back': back})}" if back else ""
+def _reverse_action(version, action, back=None, **params):
+    if back:
+        params["back"] = back
+    get_params = f"?{urlencode(params)}" if params else ""
     return admin_reverse(
         f"{version._meta.app_label}_{version.versionable.version_model_proxy._meta.model_name}_{action}",
         args=(version.pk,)
@@ -67,7 +69,8 @@ def content_indicator_menu(request, status, versions, back=""):
         if versions[0].check_discard.as_bool(request.user):
             menu.append((
                 _("Delete Draft") if status == DRAFT else _("Discard Changes"), "cms-icon-bin",
-                _reverse_action(versions[0], "discard", back=back),
+                # Return to where the discard was started, also after confirmation
+                _reverse_action(versions[0], "discard", back=back, **({"next": back} if back else {})),
                 "",  # Let view ask for confirmation
             ))
         if len(versions) >= 2 and versions[0].state == DRAFT and versions[1].state == PUBLISHED:

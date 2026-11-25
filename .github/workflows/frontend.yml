@@ -13,7 +13,8 @@ concurrency:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    # Playwright does not yet support ubuntu-latest (26.04)
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v7
